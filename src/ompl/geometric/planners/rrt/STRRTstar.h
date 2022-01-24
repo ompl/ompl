@@ -71,103 +71,46 @@ namespace ompl
                         This parameter greatly influences the runtime of the
                         algorithm. It represents the maximum length of a
                         motion to be added in the tree of motions. */
-            void setRange(double distance)
-            {
-                maxDistance_ = distance;
-            }
+            void setRange(double distance);
 
             /** \brief Get the range the planner is using */
-            double getRange() const
-            {
-                return maxDistance_;
-            }
+            double getRange() const;
 
-            double getOptimumApproxFactor() const
-            {
-                return optimumApproxFactor_;
-            }
+            /** \brief The Optimum Approximation factor (0 - 1). */
+            double getOptimumApproxFactor() const;
 
-            void setOptimumApproxFactor(double optimumApproxFactor)
-            {
-                if (optimumApproxFactor <= 0 || optimumApproxFactor > 1)
-                {
-                    OMPL_ERROR("%s: The optimum approximation factor needs to be between 0 and 1.", getName().c_str());
-                }
-                optimumApproxFactor_ = optimumApproxFactor;
-            }
+            /** \brief Set the Optimum Approximation factor. This allows the planner to converge more quickly, but only
+             * yields approximately optimal solutions. */
+            void setOptimumApproxFactor(double optimumApproxFactor);
 
-            std::string getRewiringState() const
-            {
-                std::vector<std::string> s{"Radius", "KNearest", "Off"};
-                return s[rewireState_];
-            }
+            std::string getRewiringState() const;
 
-            void setRewiringToOff()
-            {
-                rewireState_ = OFF;
-            }
+            /** \brief Do not rewire at all. */
+            void setRewiringToOff();
 
-            void setRewiringToRadius()
-            {
-                rewireState_ = RADIUS;
-            }
+            /** \brief Rewire by radius. */
+            void setRewiringToRadius();
 
-            void setRewiringToKNearest()
-            {
-                rewireState_ = KNEAREST;
-            }
+            /** \brief Rewire by k-nearest. */
+            void setRewiringToKNearest();
 
-            double getRewireFactor() const
-            {
-                return rewireFactor_;
-            }
+            double getRewireFactor() const;
 
-            void setRewireFactor(double v)
-            {
-                if (v <= 1)
-                {
-                    OMPL_ERROR("%s: Rewire Factor needs to be greater than 1.", getName().c_str());
-                }
-                rewireFactor_ = v;
-            }
+            void setRewireFactor(double v);
 
-            unsigned int getBatchSize() const
-            {
-                return initialBatchSize_;
-            }
+            /** \brief The number of samples before the time bound is increased. */
+            unsigned int getBatchSize() const;
 
-            void setBatchSize(int v)
-            {
-                if (v < 1)
-                {
-                    OMPL_ERROR("%s: Batch Size needs to be at least 1.", getName().c_str());
-                }
-                initialBatchSize_ = v;
-            }
+            void setBatchSize(int v);
 
-            void setTimeBoundFactorIncrease(double f)
-            {
-                if (f <= 1.0)
-                {
-                    OMPL_ERROR("%s: Time Bound Factor Increase needs to be higher than 1.", getName().c_str());
-                    OMPL_ERROR("%s: Time Bound Factor Increase needs to be higher than 1.", getName().c_str());
-                }
-                timeBoundFactorIncrease_ = f;
-            }
+            /** \brief The value by which the time bound factor is multiplied in each increase step. */
+            void setTimeBoundFactorIncrease(double f);
 
-            void setInitialTimeBoundFactor(double f)
-            {
-                if (f <= 1.0)
-                {
-                    OMPL_ERROR("%s: Initial Time Bound Factor Increase needs to be higher than 1.", getName().c_str());
-                }
-                initialTimeBoundFactor_ = f;
-            }
+            /** \brief The initial time bound factor. */
+            void setInitialTimeBoundFactor(double f);
 
-            void setSampleUniformForUnboundedTime(bool uniform)
-            {
-                sampleUniformForUnboundedTime_ = uniform;
-            }
+            /** \brief Whether the state space is sampled uniformly or centered at lower time values. */
+            void setSampleUniformForUnboundedTime(bool uniform);
 
             void setup() override;
 
