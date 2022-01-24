@@ -1123,3 +1123,99 @@ ompl::base::State *ompl::geometric::STRRTstar::nextGoal(const ompl::base::Planne
 
     return nullptr;
 }
+
+void ompl::geometric::STRRTstar::setRange(double distance)
+{
+    maxDistance_ = distance;
+}
+
+double ompl::geometric::STRRTstar::getRange() const
+{
+    return maxDistance_;
+}
+
+double ompl::geometric::STRRTstar::getOptimumApproxFactor() const
+{
+    return optimumApproxFactor_;
+}
+
+void ompl::geometric::STRRTstar::setOptimumApproxFactor(double optimumApproxFactor)
+{
+    if (optimumApproxFactor <= 0 || optimumApproxFactor > 1)
+    {
+        OMPL_ERROR("%s: The optimum approximation factor needs to be between 0 and 1.", getName().c_str());
+    }
+    optimumApproxFactor_ = optimumApproxFactor;
+}
+
+std::string ompl::geometric::STRRTstar::getRewiringState() const
+{
+    std::vector<std::string> s{"Radius", "KNearest", "Off"};
+    return s[rewireState_];
+}
+
+void ompl::geometric::STRRTstar::setRewiringToOff()
+{
+    rewireState_ = OFF;
+}
+
+void ompl::geometric::STRRTstar::setRewiringToRadius()
+{
+    rewireState_ = RADIUS;
+}
+
+void ompl::geometric::STRRTstar::setRewiringToKNearest()
+{
+    rewireState_ = KNEAREST;
+}
+
+double ompl::geometric::STRRTstar::getRewireFactor() const
+{
+    return rewireFactor_;
+}
+
+void ompl::geometric::STRRTstar::setRewireFactor(double v)
+{
+    if (v <= 1)
+    {
+        OMPL_ERROR("%s: Rewire Factor needs to be greater than 1.", getName().c_str());
+    }
+    rewireFactor_ = v;
+}
+
+unsigned int ompl::geometric::STRRTstar::getBatchSize() const
+{
+    return initialBatchSize_;
+}
+
+void ompl::geometric::STRRTstar::setBatchSize(int v)
+{
+    if (v < 1)
+    {
+        OMPL_ERROR("%s: Batch Size needs to be at least 1.", getName().c_str());
+    }
+    initialBatchSize_ = v;
+}
+
+void ompl::geometric::STRRTstar::setTimeBoundFactorIncrease(double f)
+{
+    if (f <= 1.0)
+    {
+        OMPL_ERROR("%s: Time Bound Factor Increase needs to be higher than 1.", getName().c_str());
+    }
+    timeBoundFactorIncrease_ = f;
+}
+
+void ompl::geometric::STRRTstar::setInitialTimeBoundFactor(double f)
+{
+    if (f <= 1.0)
+    {
+        OMPL_ERROR("%s: Initial Time Bound Factor Increase needs to be higher than 1.", getName().c_str());
+    }
+    initialTimeBoundFactor_ = f;
+}
+
+void ompl::geometric::STRRTstar::setSampleUniformForUnboundedTime(bool uniform)
+{
+    sampleUniformForUnboundedTime_ = uniform;
+}
