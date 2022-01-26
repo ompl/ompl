@@ -464,13 +464,13 @@ namespace ompl
             /// @endcond
 
             // flag to either save or not save approximate solutions
-            bool acceptApproximate_ {true};
+            bool acceptApproximate_ {false};
 
             /** \brief The set of solutions computed for this goal (maintains an array of PlannerSolution) */
             PlannerSolutionSetPtr solutions_;
 
             /** \brief Flag that indicates whether we calculate the cost of a plan before adding to the solution set */
-            bool computeSolutionCost_ {true};
+            bool computeSolutionCost_ {false};
 
             /** \brief Flag that controls whether or not we return approximate solutions */
             bool returnApproximateSolutions_ {false};
