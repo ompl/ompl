@@ -776,7 +776,7 @@ namespace ompl
             double denseDelta_{0.};
 
             /** \brief granularity of nodes in the roadmap. Affects how dense the roamdap will be in (denseRoadmap_ = true) mode. */
-            double granularity_ {0.0001};
+            double granularity_ {0.0008};
 
             /** \brief A flag that indicates if we need to run the database in a way to create a high-density roadmap */
             bool denseRoadmap_ {true};

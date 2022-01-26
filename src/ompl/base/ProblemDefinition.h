@@ -410,7 +410,7 @@ namespace ompl
             }
 
             /** \brief Setters and getters for computeSolutionCost_ flag*/
-            bool geComputeSolutionCost () {
+            bool getComputeSolutionCost () {
                 return computeSolutionCost_;   
             }
 
@@ -423,8 +423,6 @@ namespace ompl
             bool getReturnApproximateSolutions () {
                 return returnApproximateSolutions_;   
             }
-
-            
 
             /** \brief Returns the flag that controls whether or not we accept approximate solutions */
             bool acceptsApproximate() {
