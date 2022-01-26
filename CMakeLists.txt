@@ -110,7 +110,7 @@ set_package_properties(Eigen3 PROPERTIES
     URL "http://eigen.tuxfamily.org"
     PURPOSE "A linear algebra library used throughout OMPL.")
 find_package(Eigen3 REQUIRED)
-include_directories("${EIGEN3_INCLUDE_DIR}")
+include_directories(SYSTEM "${EIGEN3_INCLUDE_DIR}")  # only SYSTEM hides compiler warnings
 
 set_package_properties(MORSE PROPERTIES
     URL "https://www.openrobots.org/wiki/morse"
