@@ -222,7 +222,7 @@ bool ompl::geometric::SPARSdb::getSimilarPaths(int /*nearestK*/, const base::Sta
     // Get paths between start and goal
     bool result =
         getPaths(startVertexCandidateNeighbors_, goalVertexCandidateNeighbors_, start, goal, candidateSolution, ptc);
-
+    
     // Error check
     if (!result)
     {
@@ -395,7 +395,7 @@ bool ompl::geometric::SPARSdb::lazyCollisionSearch(const Vertex &start, const Ve
         }
 
         // Check if all the points in the potential solution are valid
-        if (lazyCollisionCheck(vertexPath, ptc))
+        if (!collisionCheckOnRecall_ || lazyCollisionCheck(vertexPath, ptc))
         {
             if (verbose_)
             {
@@ -951,12 +951,18 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
 
     /* The whole neighborhood set which has been most recently computed */
     std::vector<Vertex> graphNeighborhood;
+    std::vector<Vertex> gnbhd;
+
     /* The visible neighborhood set which has been most recently computed */
     std::vector<Vertex> visibleNeighborhood;
+    std::vector<Vertex> vnbhd;
 
     ++iterations_;
 
+    //@TODO - Ramy: Test if creating another nbhd to seperate recall from connectivity has positive effects.
     findGraphNeighbors(qNew, graphNeighborhood, visibleNeighborhood);
+    if (denseRoadmap_)
+        findGraphNeighbors(qNew, gnbhd, vnbhd, granularity_);
 
     if (verbose_)
     {
@@ -972,17 +978,17 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
     if (verbose_)
         OMPL_INFORM(" - checkAddCoverage() Are other nodes around it visible?");
     // Coverage criterion
-    if (!checkAddCoverage(qNew,
+    if (denseRoadmap_ || !checkAddCoverage(qNew,
                           visibleNeighborhood))  // Always add a node if no other nodes around it are visible (GUARD)
     {
         if (verbose_)
             OMPL_INFORM(" -- checkAddConnectivity() Does this node connect neighboring nodes that are not connected? ");
         // Connectivity criterion
-        if (!checkAddConnectivity(qNew, visibleNeighborhood))
+        if ((vnbhd.size() > 0) || !checkAddConnectivity(qNew, visibleNeighborhood))
         {
             if (verbose_)
                 OMPL_INFORM(" --- checkAddInterface() Does this node's neighbor's need it to better connect them? ");
-            if (!checkAddInterface(qNew, graphNeighborhood, visibleNeighborhood))
+            if (denseRoadmap_ || !checkAddInterface(qNew, graphNeighborhood, visibleNeighborhood)) // @TODO - Ramy: I think with the new changes this becomes unnecessary. Test without it and see.
             {
                 if (verbose_)
                     OMPL_INFORM(" ---- Ensure SPARS asymptotic optimality");
@@ -1085,8 +1091,16 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
     // and connect them
 
     std::vector<Vertex> statesInDiffConnectedComponents;  // links
-    if (visibleNeighborhood.size() >
-        1)  // if less than 2 there is no way to find a pair of nodes in different connected components
+    Vertex newVertex {};
+    if (denseRoadmap_) {
+        newVertex = addGuard(si_->cloneState(qNew), COVERAGE);
+        if (visibleNeighborhood.size() == 1)
+        {
+            if (!sameComponent(visibleNeighborhood[0], newVertex))
+                connectGuards(newVertex, visibleNeighborhood[0]);
+            }
+    }
+    if (visibleNeighborhood.size() > 1)  // if less than 2 there is no way to find a pair of nodes in different connected components
     {
         // For each neighbor
         for (std::size_t i = 0; i < visibleNeighborhood.size(); ++i)
@@ -1109,7 +1123,8 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
             if (verbose_)
                 OMPL_INFORM(" --- Adding node for CONNECTIVITY ");
             // Add the node
-            Vertex newVertex = addGuard(si_->cloneState(qNew), CONNECTIVITY);
+            if (!denseRoadmap_)
+                newVertex = addGuard(si_->cloneState(qNew), CONNECTIVITY);
 
             for (unsigned long statesInDiffConnectedComponent : statesInDiffConnectedComponents)
             {
@@ -1125,6 +1140,10 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
             }
 
             return true;
+        }
+        else if (denseRoadmap_ && visibleNeighborhood.size() > 0) {
+            if (!sameComponent(visibleNeighborhood[0], newVertex))
+            connectGuards(newVertex, visibleNeighborhood[0]);
         }
     }
     return false;
@@ -1278,13 +1297,16 @@ void ompl::geometric::SPARSdb::resetFailures()
 }
 
 void ompl::geometric::SPARSdb::findGraphNeighbors(base::State *st, std::vector<Vertex> &graphNeighborhood,
-                                                  std::vector<Vertex> &visibleNeighborhood)
+                                                  std::vector<Vertex> &visibleNeighborhood, std::optional<double> radius)
 {
     visibleNeighborhood.clear();
     stateProperty_[queryVertex_] = st;
-    nn_->nearestR(queryVertex_, sparseDelta_, graphNeighborhood);
+    if (!radius.has_value()) {
+        radius = sparseDelta_;
+    }
+    nn_->nearestR(queryVertex_, *radius, graphNeighborhood);
     if (verbose_ && false)
-        OMPL_INFORM("Finding nearest nodes in NN tree within radius %f", sparseDelta_);
+        OMPL_INFORM("Finding nearest nodes in NN tree within radius %f", *radius);
     stateProperty_[queryVertex_] = nullptr;
 
     // Now that we got the neighbors from the NN, we must remove any we can't see
@@ -1293,10 +1315,13 @@ void ompl::geometric::SPARSdb::findGraphNeighbors(base::State *st, std::vector<V
             visibleNeighborhood.push_back(i);
 }
 
-bool ompl::geometric::SPARSdb::findGraphNeighbors(const base::State *state, std::vector<Vertex> &graphNeighborhood)
+bool ompl::geometric::SPARSdb::findGraphNeighbors(const base::State *state, std::vector<Vertex> &graphNeighborhood, std::optional<double> radius)
 {
     base::State *stateCopy = si_->cloneState(state);
 
+    if (!radius.has_value()) {
+        radius = sparseDelta_;
+    }
     // Don't check for visibility
     graphNeighborhood.clear();
     stateProperty_[queryVertex_] = stateCopy;
@@ -1308,7 +1333,7 @@ bool ompl::geometric::SPARSdb::findGraphNeighbors(const base::State *state, std:
         0.25;  // speed to which we look outside the original sparse delta neighborhood
     for (std::size_t i = 0; i < expandNeighborhoodSearchAttempts; ++i)
     {
-        neighborSearchRadius = sparseDelta_ + i * EXPAND_NEIGHBORHOOD_RATE * sparseDelta_;
+        neighborSearchRadius = *radius + i * EXPAND_NEIGHBORHOOD_RATE * (*radius);
         if (verbose_)
         {
             OMPL_INFORM("-------------------------------------------------------");

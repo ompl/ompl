@@ -42,6 +42,8 @@
 #include <ompl/geometric/PathSimplifier.h>
 #include <ompl/datastructures/NearestNeighbors.h>
 
+#include <optional>
+
 namespace ompl
 {
     namespace tools

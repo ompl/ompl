@@ -404,8 +404,28 @@ namespace ompl
             /** \brief Print information about the start and goal states and the optimization objective */
             void print(std::ostream &out = std::cout) const;
 
+            /** \brief Setters and getters for computeSolutionCost_ flag*/
+            void setComputeSolutionCost (const bool computeSolutionCost) {
+                computeSolutionCost_ = computeSolutionCost;   
+            }
+
+            /** \brief Setters and getters for computeSolutionCost_ flag*/
+            bool getComputeSolutionCost () const {
+                return computeSolutionCost_;   
+            }
+
+            /** \brief Setters and getters for returnApproximateSolutions_ flag*/
+            void setReturnApproximateSolutions (const bool returnApproximateSolutions) {
+                returnApproximateSolutions_ = returnApproximateSolutions;   
+            }
+
+            /** \brief Setters and getters for returnApproximateSolutions_ flag*/
+            bool getReturnApproximateSolutions () const {
+                return returnApproximateSolutions_;   
+            }
+
             /** \brief Returns the flag that controls whether or not we accept approximate solutions */
-            bool acceptsApproximate() {
+            bool getAcceptApproximate() const {
                 return acceptApproximate_;
             }
 
@@ -442,10 +462,16 @@ namespace ompl
             /// @endcond
 
             // flag to either save or not save approximate solutions
-            bool acceptApproximate_ {true};
+            bool acceptApproximate_ {false};
 
             /** \brief The set of solutions computed for this goal (maintains an array of PlannerSolution) */
             PlannerSolutionSetPtr solutions_;
+
+            /** \brief Flag that indicates whether we calculate the cost of a plan before adding to the solution set */
+            bool computeSolutionCost_ {false};
+
+            /** \brief Flag that controls whether or not we return approximate solutions */
+            bool returnApproximateSolutions_ {false};
         };
     }
 }

@@ -47,6 +47,7 @@
 
 #include <limits>
 #include <utility>
+#include <optional>
 
 namespace ompl
 {
@@ -126,7 +127,10 @@ namespace ompl
         base::PlannerStatus ThunderRetrieveRepair::solve(const base::PlannerTerminationCondition &ptc)
         {
             bool solved = false;
-            double approxdif = std::numeric_limits<double>::infinity();
+            double approxdif {0.0};
+            const bool returnApproxSol {pdef_->getReturnApproximateSolutions()};
+            if (returnApproxSol)
+                approxdif = std::numeric_limits<double>::infinity();
             nearestPaths_.clear();
 
             // Check if the database is empty
@@ -178,10 +182,10 @@ namespace ompl
             }
 
             // Finished
-            approxdif = 0;
             bool approximate = candidateSolution.isApproximate_;
 
             pdef_->addSolutionPath(candidateSolution.path_, approximate, approxdif, getName());
+
             solved = true;
             return {solved, approximate};
         }

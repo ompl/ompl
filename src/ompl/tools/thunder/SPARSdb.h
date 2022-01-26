@@ -59,6 +59,7 @@
 #include <utility>
 #include <vector>
 #include <map>
+#include <optional>
 
 namespace ompl
 {
@@ -608,7 +609,7 @@ namespace ompl
 
             /** \brief Finds visible nodes in the graph near state */
             void findGraphNeighbors(base::State *state, std::vector<Vertex> &graphNeighborhood,
-                                    std::vector<Vertex> &visibleNeighborhood);
+                                    std::vector<Vertex> &visibleNeighborhood, std::optional<double> radius = std::nullopt);
 
             /**
              * \brief Finds nodes in the graph near state NOTE: note tested for visibility
@@ -616,7 +617,7 @@ namespace ompl
              * \param result
              * \return false is no neighbors found
              */
-            bool findGraphNeighbors(const base::State *state, std::vector<Vertex> &graphNeighborhood);
+            bool findGraphNeighbors(const base::State *state, std::vector<Vertex> &graphNeighborhood, std::optional<double> radius = std::nullopt);
 
             /** \brief Approaches the graph from a given vertex */
             void approachGraph(Vertex v);
@@ -774,6 +775,15 @@ namespace ompl
 
             /** \brief Maximum range for allowing two samples to support an interface */
             double denseDelta_{0.};
+
+            /** \brief granularity of nodes in the roadmap. Affects how dense the roamdap will be in (denseRoadmap_ = true) mode. */
+            double granularity_ {0.0008};
+
+            /** \brief A flag that indicates if we need to run the database in a way to create a high-density roadmap */
+            bool denseRoadmap_ {true};
+
+            /** \brief Flag to indicate wheter or not we do collision checking for paths retrieved from the database */
+            bool collisionCheckOnRecall_ {false};
 
             /** \brief Used by getSimilarPaths */
             std::vector<Vertex> startVertexCandidateNeighbors_;
