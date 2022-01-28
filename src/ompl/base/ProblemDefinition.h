@@ -420,7 +420,7 @@ namespace ompl
             }
 
             /** \brief Setters and getters for returnApproximateSolutions_ flag*/
-            bool getReturnApproximateSolutions () const {
+            bool getReturnApproximateSolutions() const {
                 return returnApproximateSolutions_;   
             }
 

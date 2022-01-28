@@ -413,6 +413,21 @@ namespace ompl
                 maxFailures_ = m;
             }
 
+            void setDenseRoadmap(const bool denseRoadmap)
+            {
+                denseRoadmap_ = denseRoadmap;
+            }
+
+            void setRoadmapGranularity(const double granularity)
+            {
+                granularity_ = granularity;
+            }
+
+            void setCollisionCheckOnRecall(const bool collisionCheckOnRecall)
+            {
+                collisionCheckOnRecall_ = collisionCheckOnRecall;
+            }
+
             /** \brief Retrieve the maximum consecutive failure limit. */
             unsigned int getMaxFailures() const
             {
@@ -435,6 +450,21 @@ namespace ompl
             double getStretchFactor() const
             {
                 return stretchFactor_;
+            }
+
+            bool getDenseRoadmap() const
+            {
+                return denseRoadmap_;
+            }
+
+            double getRoadmapGranularity() const
+            {
+                return granularity_;
+            }
+
+            bool getCollisionCheckOnRecall() const
+            {
+                return collisionCheckOnRecall_;
             }
 
             bool getGuardSpacingFactor(double pathLength, double &numGuards, double &spacingFactor);
