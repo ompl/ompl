@@ -39,6 +39,8 @@
 ompl::geometric::STRRTstar::STRRTstar(const ompl::base::SpaceInformationPtr &si)
   : Planner(si, "SpaceTimeRRT"), sampler_(&(*si), startMotion_, goalMotions_, newBatchGoalMotions_, sampleOldBatch_)
 {
+    if (std::dynamic_pointer_cast<ompl::base::SpaceTimeStateSpace>(si->getStateSpace()) == nullptr)
+        OMPL_ERROR("%s: State Space needs to be of type SpaceTimeStateSpace.", getName().c_str());
     specs_.optimizingPaths = true;
     specs_.canReportIntermediateSolutions = true;
     Planner::declareParam<double>("range", this, &STRRTstar::setRange, &STRRTstar::getRange, "0.:1.:10000.");
