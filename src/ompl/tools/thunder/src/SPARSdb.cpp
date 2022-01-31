@@ -374,7 +374,7 @@ bool ompl::geometric::SPARSdb::lazyCollisionSearch(const Vertex &start, const Ve
                 if (verbose_)
                     OMPL_INFORM("has partial solution ");
                 // Save this candidateSolution for later
-                convertVertexPathToStatePath(vertexPath, actualStart, actualGoal, candidateSolution);
+                convertVertexPathToStatePath(vertexPath, actualStart, actualGoal, candidateSolution, true);
                 return false;
             }
 
@@ -403,7 +403,7 @@ bool ompl::geometric::SPARSdb::lazyCollisionSearch(const Vertex &start, const Ve
             }
 
             // the path is valid, we are done!
-            convertVertexPathToStatePath(vertexPath, actualStart, actualGoal, candidateSolution);
+            convertVertexPathToStatePath(vertexPath, actualStart, actualGoal, candidateSolution, true);
             return true;
         }
         // else, loop with updated graph that has the invalid edges/states disabled
