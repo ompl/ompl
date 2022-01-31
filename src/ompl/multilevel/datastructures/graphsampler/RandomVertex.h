@@ -51,6 +51,7 @@ namespace ompl
         public:
             BundleSpaceGraphSamplerRandomVertex() = delete;
             BundleSpaceGraphSamplerRandomVertex(BundleSpaceGraph *);
+            virtual ~BundleSpaceGraphSamplerRandomVertex() = default;
 
         protected:
             virtual void sampleImplementation(base::State *xRandom) override;

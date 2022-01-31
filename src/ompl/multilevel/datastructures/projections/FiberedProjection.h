@@ -67,9 +67,6 @@ namespace ompl
 
             virtual void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const override;
 
-            /* \brief Project bundle space element onto base space */
-            virtual void project(const ompl::base::State *xBundle, ompl::base::State *xBase) const = 0;
-
             /* \brief Lift base space element using a fiber bundle element */
             virtual void lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                               ompl::base::State *xBundle) const = 0;

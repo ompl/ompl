@@ -166,6 +166,11 @@ namespace ompl
                 {
                     cost = eis.cost;
                 }
+                EdgeInternalState& operator=(const EdgeInternalState &eis)
+                {
+                    cost = eis.cost;
+                    return *this;
+                }
                 void setWeight(double d)
                 {
                     cost = ompl::base::Cost(d);
