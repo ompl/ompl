@@ -52,6 +52,16 @@ namespace ompl
 {
     namespace geometric
     {
+        /**
+           @anchor gSTRRT*
+           @par Short description
+           ST-RRT* is a bidirectional, time-optimal planner for planning in space-time.
+           It operates similar to a bidirectional version of RRT*, but allows planning in unbounded time spaces by
+           gradual time-bound extensions and is highly optimized for planning in space-time by employing
+           Conditional Sampling and Simplified Rewiring.
+        */
+
+        /** \brief Space-Time RRT* (STRRTstar) */
         class STRRTstar : public base::Planner
         {
         public:
