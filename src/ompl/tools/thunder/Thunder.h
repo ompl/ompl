@@ -109,7 +109,8 @@ namespace ompl
             double stretch_factor_{};
             double DenseD_{};
             double SparseD_{};
-            size_t n_threads_{0};
+            size_t n_parallel_plans_{0};
+            size_t cforest_n_threads_{0};
 
         public:
             /** \brief Display debug data about potential available solutions */
@@ -190,13 +191,23 @@ namespace ompl
             }
 
             /** \brief Set the number of threads to use for planning. */
-            void setNumThreads(const size_t n_threads) {
-              n_threads_ = n_threads;
+            void setNumParallelPlans(const size_t n_parallel_plans) {
+              n_parallel_plans_ = n_parallel_plans;
             }
 
             /** \brief Get the number of threads used for planning. */
-            size_t getNumThreads() const {
-              return n_threads_;
+            size_t getNumParallelPlans() const {
+              return n_parallel_plans_;
+            }
+
+            /** \brief Set the number of threads to use for planning. */
+            void setCforestNumThreads(const size_t cforest_n_threads) {
+              cforest_n_threads_ = cforest_n_threads;
+            }
+
+            /** \brief Get the number of threads used for planning. */
+            size_t getCforestNumThreads() const {
+              return cforest_n_threads_;
             }
 
             /** \brief This method will create the necessary classes

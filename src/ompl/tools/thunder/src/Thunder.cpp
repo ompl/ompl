@@ -85,8 +85,8 @@ void ompl::tools::Thunder::setup()
         // Setup planning from scratch planner
         OMPL_INFORM("Initializing planners");
         // set number of threads if not already set
-        if(n_threads_ == 0) {
-          n_threads_ = std::max(std::thread::hardware_concurrency(), 2u) - 1;
+        if(n_parallel_plans_ == 0) {
+          n_parallel_plans_ = std::max(std::thread::hardware_concurrency(), 2u) - 1;
         }
         // set the size of the planner vector
         planner_vec_.clear();
@@ -94,7 +94,7 @@ void ompl::tools::Thunder::setup()
           std::vector<base::PlannerPtr> planner_vec {1};
           planner_vec_ = planner_vec;
         } else {
-          std::vector<base::PlannerPtr> planner_vec (n_threads_);
+          std::vector<base::PlannerPtr> planner_vec (n_parallel_plans_);
           planner_vec_ = planner_vec;
         }
         // set up planner ptr vector based on planner type
@@ -109,7 +109,9 @@ void ompl::tools::Thunder::setup()
                 }
                 else if (planner_type_ == thunderPlanner::PLANNER_CFOREST)
                 {
-                    planner = std::make_shared<ompl::geometric::CForest>(si_);
+                    auto cforest_planner {std::make_shared<ompl::geometric::CForest>(si_)};
+                    cforest_planner->setNumThreads(cforest_n_threads_);
+                    planner = cforest_planner;
                 }
                 else
                 {
