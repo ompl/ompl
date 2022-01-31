@@ -95,10 +95,10 @@ public:
         return true;
     }
 
-    bool checkMotion(const ompl::base::State *s1, const ompl::base::State *s2,
-                     std::pair<ob::State *, double> &lastValid) const override
+    bool checkMotion(const ompl::base::State *, const ompl::base::State *,
+                     std::pair<ob::State *, double> &) const override
     {
-        return checkMotion(s1, s2);
+        throw ompl::Exception("SpaceTimeMotionValidator::checkMotion", "not implemented");
     }
 
 private:

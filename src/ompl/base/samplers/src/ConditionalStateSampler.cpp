@@ -126,8 +126,7 @@ bool ompl::base::ConditionalStateSampler::sample(ompl::base::State *state)
     return false;
 }
 
-bool ompl::base::ConditionalStateSampler::sampleNear(ompl::base::State *state, const ompl::base::State *near,
-                                                     double distance)
+bool ompl::base::ConditionalStateSampler::sampleNear(ompl::base::State *, const ompl::base::State *, double)
 {
     throw ompl::Exception("ConditionalSampler::sampleNear", "not implemented");
 }

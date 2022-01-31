@@ -57,7 +57,7 @@ namespace ompl
             }
             ~EmptyStateSpace() override = default;
 
-            double getMeasure() const
+            double getMeasure() const override
             {
               return 0;
             }
@@ -82,4 +82,3 @@ namespace ompl
 }
 
 #endif
-

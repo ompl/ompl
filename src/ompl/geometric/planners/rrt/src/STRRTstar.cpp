@@ -843,6 +843,8 @@ ompl::geometric::STRRTstar::computeSolutionMotion(base::Motion *motion)
         }
         connectionQueue.pop();
     }
+    // suppress compiler warning
+    return nullptr;
 }
 
 void ompl::geometric::STRRTstar::removeInvalidGoals(const std::vector<base::Motion *> &invalidGoals)
