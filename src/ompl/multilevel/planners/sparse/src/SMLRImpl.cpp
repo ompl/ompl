@@ -124,8 +124,7 @@ bool SMLRImpl::hasConverged()
     if (progressFailure)
     {
         OMPL_INFORM("Converged with probability %f (no valid samples for %d rounds).",
-        (1.0 - 1.0 / (double)consecutiveFailures_), 
-        consecutiveFailures_);
+                    (1.0 - 1.0 / (double)consecutiveFailures_), consecutiveFailures_);
     }
     return progressFailure;
 }

@@ -90,16 +90,19 @@ ProjectionPtr ProjectionFactory::makeProjection(const SpaceInformationPtr &Bundl
             const base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
             ProjectionPtr componentM = makeProjection(BundleM);
             components.push_back(componentM);
-            if(!componentM->isFibered()) fibered = false;
+            if (!componentM->isFibered())
+                fibered = false;
         }
-        if(fibered)
+        if (fibered)
         {
-            CompoundFiberedProjectionPtr proj = std::make_shared<CompoundFiberedProjection>(Bundle_space, nullptr, components);
+            CompoundFiberedProjectionPtr proj =
+                std::make_shared<CompoundFiberedProjection>(Bundle_space, nullptr, components);
             FiberedProjectionPtr cproj = std::static_pointer_cast<FiberedProjection>(proj);
             return cproj;
             // return std::make_shared<CompoundFiberedProjection>(Bundle_space, nullptr, components);
         }
-        else{
+        else
+        {
             return std::make_shared<CompoundProjection>(Bundle_space, nullptr, components);
         }
     }
@@ -155,17 +158,20 @@ ProjectionPtr ProjectionFactory::makeProjection(const SpaceInformationPtr &Bundl
             base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
             ProjectionPtr componentM = makeProjection(BundleM, BaseM, areValidityCheckersEquivalent);
             components.push_back(componentM);
-            if(!componentM->isFibered()) fibered = false;
+            if (!componentM->isFibered())
+                fibered = false;
         }
 
-        if(fibered)
+        if (fibered)
         {
-            CompoundFiberedProjectionPtr proj = std::make_shared<CompoundFiberedProjection>(Bundle_space, Base_space, components);
+            CompoundFiberedProjectionPtr proj =
+                std::make_shared<CompoundFiberedProjection>(Bundle_space, Base_space, components);
             FiberedProjectionPtr cproj = std::static_pointer_cast<FiberedProjection>(proj);
             cproj->makeFiberSpace();
             return cproj;
         }
-        else{
+        else
+        {
             return std::make_shared<CompoundProjection>(Bundle_space, Base_space, components);
         }
     }
@@ -702,7 +708,7 @@ int ProjectionFactory::GetNumberOfComponents(const StateSpacePtr &space)
             int type = space->getType();
 
             if ((type == base::STATE_SPACE_SE2) || (type == base::STATE_SPACE_SE3) ||
-                (type == base::STATE_SPACE_DUBINS)) 
+                (type == base::STATE_SPACE_DUBINS))
             {
                 nrComponents = 1;
             }

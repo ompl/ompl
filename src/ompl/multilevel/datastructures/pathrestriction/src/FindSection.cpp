@@ -50,7 +50,7 @@ namespace ompl
     {
         static const unsigned int PATH_SECTION_MAX_FIBER_SAMPLING = 10;
     }
-}
+}  // namespace ompl
 
 using namespace ompl::multilevel;
 
@@ -183,7 +183,7 @@ bool FindSection::tripleStep(HeadPtr &head, const ompl::base::State *sBundleGoal
     //     v
     // xBundleGoalTmp -------> xBundleGoal
 
-    double locationMin = std::max(0.0, location - 100*validBaseSpaceSegmentLength_);
+    double locationMin = std::max(0.0, location - 100 * validBaseSpaceSegmentLength_);
     while (!found && location >= locationMin)
     {
         restriction_->interpolateBasePath(location, xBase);

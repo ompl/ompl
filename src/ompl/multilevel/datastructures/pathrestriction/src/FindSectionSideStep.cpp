@@ -49,8 +49,8 @@ namespace ompl
     {
         static const unsigned int PATH_SECTION_TREE_MAX_DEPTH = 3;
         static const unsigned int PATH_SECTION_TREE_MAX_BRANCHING = 10;
-    }
-}
+    }  // namespace magic
+}  // namespace ompl
 
 using namespace ompl::multilevel;
 

@@ -77,11 +77,10 @@ void HeadAnalyzer::print()
     if (enabled_)
     {
         OccurenceMap::iterator itr;
-        OMPL_DEBUG("%s",std::string(60, '-').c_str());
+        OMPL_DEBUG("%s", std::string(60, '-').c_str());
         OMPL_DEBUG("HeadAnalyzer (%d samples, location: %f).", samples_, head_->getLocationOnBasePath());
         for (itr = map_.begin(); itr != map_.end(); ++itr)
         {
-
             OMPL_DEBUG(" > %s:%d", itr->first.c_str(), itr->second);
         }
     }

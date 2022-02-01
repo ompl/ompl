@@ -67,11 +67,8 @@ BundleSpaceGraphSparse::BundleSpaceGraphSparse(const SpaceInformationPtr &si, Bu
 {
     setName("BundleSpaceGraphSparse");
 
-    Planner::declareParam<double>("sparse_delta_fraction", 
-        this, 
-        &BundleSpaceGraphSparse::setSparseDeltaFraction,
-        &BundleSpaceGraphSparse::getSparseDeltaFraction, 
-        "0.0:0.01:1.0");
+    Planner::declareParam<double>("sparse_delta_fraction", this, &BundleSpaceGraphSparse::setSparseDeltaFraction,
+                                  &BundleSpaceGraphSparse::getSparseDeltaFraction, "0.0:0.01:1.0");
 }
 
 BundleSpaceGraphSparse::~BundleSpaceGraphSparse()
@@ -98,7 +95,6 @@ void BundleSpaceGraphSparse::setup()
     double maxExt = getBundle()->getMaximumExtent();
     sparseDelta_ = sparseDeltaFraction_ * maxExt;
     OMPL_DEBUG("Visibility region set to %f (max extent %f)", sparseDelta_, maxExt);
-
 }
 
 void BundleSpaceGraphSparse::clear()
@@ -617,11 +613,11 @@ const std::pair<BundleSpaceGraph::Edge, bool> BundleSpaceGraphSparse::addEdge(co
 {
     // consecutiveFailures_ = 0;  // reset consecutive failures
     auto e = BaseT::addEdge(a, b);
-    if(sameComponent(a, vStart_))
+    if (sameComponent(a, vStart_))
     {
-      //TODO: This cannot work like that. what if an edge is drawn between two
-      //previously unconnected components? In that case we would need to update
-      //the edges what we do not do right now.
+        // TODO: This cannot work like that. what if an edge is drawn between two
+        // previously unconnected components? In that case we would need to update
+        // the edges what we do not do right now.
         initialConnectedComponentEdges.push_back(e.first);
     }
     return e;

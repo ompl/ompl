@@ -26,7 +26,6 @@ MultiSPARSImpl::MultiSPARSImpl(const ompl::base::SpaceInformationPtr &si, Bundle
     sparseDeltaFraction_ = 0.25;
     std::cout << getBundle()->getMaximumExtent() << std::endl;
     // sparseDeltaFraction_ = 0.1;
-
 }
 
 void MultiSPARSImpl::setup()
@@ -64,7 +63,6 @@ void MultiSPARSImpl::grow()
         addConfiguration(qGoal_);
         goalConfigurations_.push_back(qGoal_);
 
-
         findSection();
     }
 
@@ -101,8 +99,7 @@ bool MultiSPARSImpl::hasConverged()
     if (progressFailure)
     {
         OMPL_INFORM("Converged with probability %f (no valid samples for %d rounds).",
-        (1.0 - 1.0 / (double)consecutiveFailures_), 
-        consecutiveFailures_);
+                    (1.0 - 1.0 / (double)consecutiveFailures_), consecutiveFailures_);
     }
     return progressFailure;
 }

@@ -203,8 +203,8 @@ namespace ompl
             projection.print(out);
             return out;
         }
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 CompoundProjection::CompoundProjection(const StateSpacePtr &bundleSpace, const StateSpacePtr &baseSpace,
                                        const std::vector<ProjectionPtr> &components)
@@ -301,8 +301,8 @@ unsigned int CompoundProjection::getBaseDimension() const
 
 bool CompoundProjection::isFibered() const
 {
-    //For fibered compound projections, 
-    //use ompl::multilevel::CompoundFiberedProjection
+    // For fibered compound projections,
+    // use ompl::multilevel::CompoundFiberedProjection
     return false;
 }
 
@@ -315,7 +315,6 @@ void CompoundProjection::print(std::ostream &out) const
 {
     for (unsigned int k = 0; k < components_.size(); k++)
     {
-        out << *(components_.at(k).get())
-          << (k < (components_.size() - 1)?" | ":"");
+        out << *(components_.at(k).get()) << (k < (components_.size() - 1) ? " | " : "");
     }
 }

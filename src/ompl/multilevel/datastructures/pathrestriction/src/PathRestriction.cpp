@@ -97,7 +97,8 @@ BundleSpaceGraph *PathRestriction::getBundleSpaceGraph()
 
 void PathRestriction::setBasePath(ompl::base::PathPtr path)
 {
-    if (!path) return;
+    if (!path)
+        return;
     auto geometricBasePath = std::static_pointer_cast<geometric::PathGeometric>(path);
     setBasePath(geometricBasePath->getStates());
 }
@@ -252,5 +253,5 @@ namespace ompl
             r.print(out);
             return out;
         }
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl

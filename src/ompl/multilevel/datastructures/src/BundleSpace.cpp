@@ -179,8 +179,8 @@ void BundleSpace::sanityChecks() const
         checkBundleSpaceMeasure("Base", Base_space);
         if (getProjection()->getDimension() != getBundleDimension())
         {
-          OMPL_ERROR("Bundle space has %d dimensions, but projection has %d dimensions.", 
-              getProjection()->getDimension(), getBundleDimension());
+            OMPL_ERROR("Bundle space has %d dimensions, but projection has %d dimensions.",
+                       getProjection()->getDimension(), getBundleDimension());
             throw Exception("BundleSpace Dimensions are wrong.");
         }
     }
@@ -479,5 +479,5 @@ namespace ompl
             bundleSpace.print(out);
             return out;
         }
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl

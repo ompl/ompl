@@ -62,16 +62,16 @@ ompl::base::StateSamplerPtr FiberedProjection::getFiberSamplerPtr() const
     return fiberSpaceSampler_;
 }
 
-CompoundFiberedProjection::CompoundFiberedProjection(
-    const base::StateSpacePtr &bundleSpace, const base::StateSpacePtr &baseSpace,
-    const std::vector<ProjectionPtr> &components):
-  FiberedProjection(bundleSpace, baseSpace), CompoundProjection(bundleSpace, baseSpace, components)
+CompoundFiberedProjection::CompoundFiberedProjection(const base::StateSpacePtr &bundleSpace,
+                                                     const base::StateSpacePtr &baseSpace,
+                                                     const std::vector<ProjectionPtr> &components)
+  : FiberedProjection(bundleSpace, baseSpace), CompoundProjection(bundleSpace, baseSpace, components)
 {
-    //Verify that all components are fibered
+    // Verify that all components are fibered
     unsigned int M = components_.size();
     for (unsigned int m = 0; m < M; m++)
     {
-        if(!components.at(m)->isFibered())
+        if (!components.at(m)->isFibered())
         {
             OMPL_ERROR("Init Compound Fiber Projection with Non-fibered projection component.");
             throw "NonFiberComponentError";
@@ -121,10 +121,8 @@ void CompoundFiberedProjection::print(std::ostream &out) const
     CompoundProjection::print(out);
 }
 
-void CompoundFiberedProjection::lift(
-    const ompl::base::State *xBase, 
-    const ompl::base::State *xFiber, 
-    ompl::base::State *xBundle) const
+void CompoundFiberedProjection::lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
+                                     ompl::base::State *xBundle) const
 {
     unsigned int M = components_.size();
 
@@ -135,22 +133,18 @@ void CompoundFiberedProjection::lift(
             const State *xmBase = xBase->as<CompoundState>()->as<State>(m);
             const State *xmFiber = xFiber->as<CompoundState>()->as<State>(m);
             State *xmBundle = xBundle->as<CompoundState>()->as<State>(m);
-            FiberedProjectionPtr projFibered = 
-              std::static_pointer_cast<FiberedProjection>(components_.at(m));
+            FiberedProjectionPtr projFibered = std::static_pointer_cast<FiberedProjection>(components_.at(m));
             projFibered->lift(xmBase, xmFiber, xmBundle);
         }
     }
     else
     {
-        FiberedProjectionPtr projFibered = 
-          std::static_pointer_cast<FiberedProjection>(components_.front());
+        FiberedProjectionPtr projFibered = std::static_pointer_cast<FiberedProjection>(components_.front());
         projFibered->lift(xBase, xFiber, xBundle);
     }
 }
 
-void CompoundFiberedProjection::projectFiber(
-    const ompl::base::State *xBundle, 
-    ompl::base::State *xFiber) const
+void CompoundFiberedProjection::projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const
 {
     unsigned int M = components_.size();
 
@@ -158,10 +152,9 @@ void CompoundFiberedProjection::projectFiber(
     {
         for (unsigned int m = 0; m < M; m++)
         {
-            if(components_.at(m)->getCoDimension() > 0)
+            if (components_.at(m)->getCoDimension() > 0)
             {
-                FiberedProjectionPtr projFibered = 
-                  std::static_pointer_cast<FiberedProjection>(components_.at(m));
+                FiberedProjectionPtr projFibered = std::static_pointer_cast<FiberedProjection>(components_.at(m));
                 const State *xmBundle = xBundle->as<CompoundState>()->as<State>(m);
                 State *xmFiber = xFiber->as<CompoundState>()->as<State>(m);
                 projFibered->projectFiber(xmBundle, xmFiber);
@@ -170,8 +163,7 @@ void CompoundFiberedProjection::projectFiber(
     }
     else
     {
-        FiberedProjectionPtr projFibered = 
-          std::static_pointer_cast<FiberedProjection>(components_.front());
+        FiberedProjectionPtr projFibered = std::static_pointer_cast<FiberedProjection>(components_.front());
         projFibered->projectFiber(xBundle, xFiber);
     }
 }
@@ -184,11 +176,10 @@ ompl::base::StateSpacePtr CompoundFiberedProjection::computeFiberSpace()
 
     for (unsigned int m = 0; m < M; m++)
     {
-        FiberedProjectionPtr projFibered = 
-          std::static_pointer_cast<FiberedProjection>(components_.at(m));
+        FiberedProjectionPtr projFibered = std::static_pointer_cast<FiberedProjection>(components_.at(m));
         StateSpacePtr fiberM = projFibered->getFiberSpace();
         compoundFiber->as<CompoundStateSpace>()->addSubspace(fiberM, 1.0);
     }
-    
+
     return compoundFiber;
 }

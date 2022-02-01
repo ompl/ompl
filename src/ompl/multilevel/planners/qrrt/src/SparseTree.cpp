@@ -7,15 +7,10 @@ unsigned int SparseTree::counter_ = 0;
 
 void ConfigurationAnalytics::print()
 {
-    std::cout << "Config " << config->index 
-      << " radius: " << radius
-      << " (ext: " << numberOfExtensions 
-      << ", unsuccess seq: " << numberOfUnsuccessfulSubsequentExtensions 
-      << "), (extension failures: "
-     << extensionInvalidState << " invalid state, " 
-     << extensionInsideCover << " inside cover, " 
-     << extensionNoConnection << " no connection)" 
-     << std::endl;
+    std::cout << "Config " << config->index << " radius: " << radius << " (ext: " << numberOfExtensions
+              << ", unsuccess seq: " << numberOfUnsuccessfulSubsequentExtensions
+              << "), (extension failures: " << extensionInvalidState << " invalid state, " << extensionInsideCover
+              << " inside cover, " << extensionNoConnection << " no connection)" << std::endl;
 }
 
 double ConfigurationAnalytics::getImportance()
@@ -24,12 +19,11 @@ double ConfigurationAnalytics::getImportance()
     return d;
 }
 
-SparseTree::SparseTree(TreeData& data, ompl::base::SpaceInformationPtr si):
-  data_(data), si_(si)
+SparseTree::SparseTree(TreeData &data, ompl::base::SpaceInformationPtr si) : data_(data), si_(si)
 {
     id_ = counter_++;
     double maxExt = si_->getMaximumExtent();
-    sparseDelta_ = sparseDeltaFraction_ * maxExt; //0.02 for 6d ?
+    sparseDelta_ = sparseDeltaFraction_ * maxExt;  // 0.02 for 6d ?
 }
 
 void SparseTree::setup()
@@ -38,17 +32,17 @@ void SparseTree::setup()
 
 void SparseTree::clear()
 {
-    if(data_) data_->clear();
+    if (data_)
+        data_->clear();
     while (!treeElementsPriorityQueue_.empty())
     {
-      treeElementsPriorityQueue_.pop();
+        treeElementsPriorityQueue_.pop();
     }
     analytics_.clear();
     indexConfigToAnalytics_.clear();
 }
 
-BundleSpaceGraph::Configuration* 
-SparseTree::nearest(Configuration *x)
+BundleSpaceGraph::Configuration *SparseTree::nearest(Configuration *x)
 {
     return data_->nearest(x);
 }
@@ -58,7 +52,7 @@ bool SparseTree::isConverged()
     return data_->size() > 0 && treeElementsPriorityQueue_.size() <= 0;
 }
 
-ConfigurationAnalytics* SparseTree::getAnalytics(Configuration *x)
+ConfigurationAnalytics *SparseTree::getAnalytics(Configuration *x)
 {
     return analytics_.at(indexConfigToAnalytics_.at(x->index));
 }
@@ -67,7 +61,8 @@ void SparseTree::add(Configuration *x)
 {
     data_->add(x);
 
-    if(treeElementsPriorityQueue_.empty()) root_ = x;
+    if (treeElementsPriorityQueue_.empty())
+        root_ = x;
 
     treeElementsPriorityQueue_.push(x);
     ConfigurationAnalytics *configAnalysis = new ConfigurationAnalytics();
@@ -75,33 +70,30 @@ void SparseTree::add(Configuration *x)
     configAnalysis->radius = sparseDelta_;
 
     analytics_.push_back(configAnalysis);
-    indexConfigToAnalytics_.insert({x->index, analytics_.size()-1});
+    indexConfigToAnalytics_.insert({x->index, analytics_.size() - 1});
 
-    //TODO: Remove sanity check
+    // TODO: Remove sanity check
     int idx = getAnalytics(x)->config->index;
-    if(x->index != idx)
+    if (x->index != idx)
     {
-      OMPL_ERROR("Wrong Indexing. config has index %d, but analytics vector returned index %d", x->index, idx);
-      throw "WrongIndex";
+        OMPL_ERROR("Wrong Indexing. config has index %d, but analytics vector returned index %d", x->index, idx);
+        throw "WrongIndex";
     }
-
 }
 void SparseTree::setMaximumExtensions(int maximumExtensions)
 {
-  maximumExtensions_ = maximumExtensions;
+    maximumExtensions_ = maximumExtensions;
 }
 
 void SparseTree::setSparseDeltaFraction(double sparseDeltaFraction)
 {
-  sparseDeltaFraction_ = sparseDeltaFraction;
+    sparseDeltaFraction_ = sparseDeltaFraction;
 }
 
-
-BundleSpaceGraph::Configuration* 
-SparseTree::pop()
+BundleSpaceGraph::Configuration *SparseTree::pop()
 {
     Configuration *x = treeElementsPriorityQueue_.top();
-    if(treeElementsPriorityQueue_.size() > 0)
+    if (treeElementsPriorityQueue_.size() > 0)
     {
         treeElementsPriorityQueue_.pop();
     }
@@ -128,7 +120,7 @@ double SparseTree::getDistanceToRoot(Configuration *x)
     return si_->distance(x->state, getRoot()->state);
 }
 
-Configuration* SparseTree::getRoot() 
+Configuration *SparseTree::getRoot()
 {
     return root_;
 }
@@ -138,58 +130,66 @@ void SparseTree::push(Configuration *x, ExtensionReturnType type)
     ConfigurationAnalytics *xstats = getAnalytics(x);
     xstats->numberOfExtensions++;
     // if(id_ == 0) xstats->print();
-    if(type == EXTENSION_SUCCESS)
+    if (type == EXTENSION_SUCCESS)
     {
         xstats->numberOfSuccessfulExtensions++;
         xstats->numberOfUnsuccessfulSubsequentExtensions = 0;
-    }else if(type == EXTENSION_FAILURE_INVALID_STATE)
+    }
+    else if (type == EXTENSION_FAILURE_INVALID_STATE)
     {
         xstats->numberOfUnsuccessfulSubsequentExtensions++;
         xstats->extensionInvalidState++;
-    }else if(type == EXTENSION_FAILURE_INSIDE_COVER)
+    }
+    else if (type == EXTENSION_FAILURE_INSIDE_COVER)
     {
         xstats->numberOfUnsuccessfulSubsequentExtensions++;
         xstats->extensionInsideCover++;
-    }else if(type == EXTENSION_FAILURE_SHELL_SAMPLING)
+    }
+    else if (type == EXTENSION_FAILURE_SHELL_SAMPLING)
     {
-        xstats->numberOfUnsuccessfulSubsequentExtensions+= 0.1*maximumExtensions_;
+        xstats->numberOfUnsuccessfulSubsequentExtensions += 0.1 * maximumExtensions_;
         xstats->extensionInsideCover++;
-    }else if(type == EXTENSION_FAILURE_NO_CONNECTION)
+    }
+    else if (type == EXTENSION_FAILURE_NO_CONNECTION)
     {
-        //This is interesting. Try to gather more information by either
-        //decreasing radius or by starting a sub-tree
+        // This is interesting. Try to gather more information by either
+        // decreasing radius or by starting a sub-tree
         //
-        //Simple principle: If we cannot connect, we are too coarse resolution.
-        //In that case, we need to focus our attention on a smaller region
+        // Simple principle: If we cannot connect, we are too coarse resolution.
+        // In that case, we need to focus our attention on a smaller region
         //(finer resolution), because the state space geometry is apparently
-        //much more intricate at that part of the state space. 
+        // much more intricate at that part of the state space.
         //
-        //Attention-focus or so? Adaptive sparsity
+        // Attention-focus or so? Adaptive sparsity
         //
-        if(xstats->extensionNoConnection < 2)
+        if (xstats->extensionNoConnection < 2)
         {
             xstats->radius *= 0.5;
         }
         // std::cout << "Reduced radius for " << x->index << " to " << xstats->radius << std::endl;
         xstats->numberOfUnsuccessfulSubsequentExtensions++;
         xstats->extensionNoConnection++;
-    }else{
+    }
+    else
+    {
         OMPL_ERROR("ExtensionReturnType unknown.");
         throw "UnknownType";
     }
 
-    if(xstats->numberOfUnsuccessfulSubsequentExtensions < maximumExtensions_)
+    if (xstats->numberOfUnsuccessfulSubsequentExtensions < maximumExtensions_)
     {
-        //recompute importance
+        // recompute importance
         x->importance = xstats->getImportance() + getDistanceToRoot(x);
         // std::cout << "Add config with importance= " << x->importance << std::endl;
         treeElementsPriorityQueue_.push(x);
-        if(treeElementsPriorityQueue_.size() > size())
+        if (treeElementsPriorityQueue_.size() > size())
         {
             OMPL_ERROR("Priority queue holds more elements than nodes in tree.");
             throw "QueueOverflow";
         }
-    }else{
+    }
+    else
+    {
         // OMPL_INFORM("Removed index %d from active list.", x->index);
         // xstats->print();
     }

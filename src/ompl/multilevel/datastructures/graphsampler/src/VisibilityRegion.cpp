@@ -88,7 +88,7 @@ void BundleSpaceGraphSamplerVisibilityRegion::sampleImplementation(base::State *
     BundleSpaceGraph::Graph graph = bundleSpaceGraph_->getGraph();
 
     // Select random edge
-    // const std::vector<BundleSpaceGraph::Edge> &edges = 
+    // const std::vector<BundleSpaceGraph::Edge> &edges =
     //   bundleSpaceGraphSparse_->initialConnectedComponentEdges;
     // int k = rng_.uniformInt(0, edges.size()-1);
     // BundleSpaceGraph::Edge e = edges.at(k);

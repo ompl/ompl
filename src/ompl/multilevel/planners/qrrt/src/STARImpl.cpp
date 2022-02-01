@@ -18,9 +18,8 @@ STARImpl::STARImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_) : 
     getGraphSampler()->disableSegmentBias();
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
 
-    //parameters
-    //maximumextensions_ (SparseTree.h)
-
+    // parameters
+    // maximumextensions_ (SparseTree.h)
 }
 
 STARImpl::~STARImpl()
@@ -33,28 +32,24 @@ void STARImpl::setup()
 
     maxDistance_ = 0.1;
 
-    if(!treeStart_)
+    if (!treeStart_)
     {
-      TreeData tree;
-      tree.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
-      tree->setDistanceFunction(
-          [this](const Configuration *a, const Configuration *b) 
-          { return distance(a, b); });
-      treeStart_ = std::make_shared<SparseTree>(tree, getBundle());
-      treeStart_->setup();
+        TreeData tree;
+        tree.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
+        tree->setDistanceFunction([this](const Configuration *a, const Configuration *b) { return distance(a, b); });
+        treeStart_ = std::make_shared<SparseTree>(tree, getBundle());
+        treeStart_->setup();
     }
-    if(!treeGoal_)
+    if (!treeGoal_)
     {
-      TreeData tree;
-      tree.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
-      tree->setDistanceFunction(
-          [this](const Configuration *a, const Configuration *b) 
-          { return distance(a, b); });
+        TreeData tree;
+        tree.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
+        tree->setDistanceFunction([this](const Configuration *a, const Configuration *b) { return distance(a, b); });
 
-      treeGoal_ = std::make_shared<SparseTree>(tree, getBundle());
-      treeGoal_->setup();
+        treeGoal_ = std::make_shared<SparseTree>(tree, getBundle());
+        treeGoal_->setup();
     }
-    //setFindSectionStrategy(FindSectionType::SIDE_STEP):
+    // setFindSectionStrategy(FindSectionType::SIDE_STEP):
     setFindSectionStrategy(FindSectionType::PATTERN_DANCE);
 }
 void STARImpl::clear()
@@ -95,7 +90,7 @@ void STARImpl::init()
     }
 }
 
-void STARImpl::addToTree(SparseTreePtr& tree, Configuration *x)
+void STARImpl::addToTree(SparseTreePtr &tree, Configuration *x)
 {
     Vertex m = boost::add_vertex(x, graph_);
     disjointSets_.make_set(m);
@@ -124,25 +119,26 @@ void STARImpl::grow()
     }
 
     //###########################################################
-    //(0) Tree Selection. 
+    //(0) Tree Selection.
     // SparseTreePtr &tree = activeInitialTree_ ? treeStart_ : treeGoal_;
     // activeInitialTree_ = !activeInitialTree_;
     // SparseTreePtr &otherTree = activeInitialTree_ ? treeStart_ : treeGoal_;
 
-    //DEBUG with only start tree
+    // DEBUG with only start tree
     SparseTreePtr &tree = treeStart_;
     SparseTreePtr &otherTree = treeGoal_;
 
-    if(tree->isConverged()) return;
+    if (tree->isConverged())
+        return;
 
     //###########################################################
     //(1) State Selection
-    //  [ ] Selected state based on 
+    //  [ ] Selected state based on
     //    (i) number of unsuccessful attempts.
     //    (ii) frontier node status
     //    (iii) not yet expanded
     //    (iv) number of neighbors. More neighbors means more of the shell is
-    //    blocked. 
+    //    blocked.
     //
     // std::vector<Configuration*> treeElements;
     // tree->list(treeElements);
@@ -152,7 +148,8 @@ void STARImpl::grow()
 
     Configuration *xSelected = tree->pop();
 
-    if(!xSelected) return;
+    if (!xSelected)
+        return;
 
     std::cout << "Selected config with importance " << xSelected->importance << std::endl;
 
@@ -162,21 +159,20 @@ void STARImpl::grow()
 
     double sparseDelta = tree->getRadius(xSelected);
 
-    //if infeasible, make delta smaller
+    // if infeasible, make delta smaller
 
     auto sampler = getBundleSamplerPtr();
-    sampler->sampleShell(xRandom_->state, xSelected->state, 
-        sparseDelta, sparseDelta + 0.01*sparseDelta);
+    sampler->sampleShell(xRandom_->state, xSelected->state, sparseDelta, sparseDelta + 0.01 * sparseDelta);
 
     double ds = distance(xSelected, xRandom_);
-    if(ds < sparseDelta)
+    if (ds < sparseDelta)
     {
         tree->push(xSelected, EXTENSION_FAILURE_SHELL_SAMPLING);
         return;
     }
 
     bool valid = getBundle()->getStateValidityChecker()->isValid(xRandom_->state);
-    if(!valid)
+    if (!valid)
     {
         // boost::add_vertex(new Configuration(getBundle(), xRandom_->state), graph_);
         tree->push(xSelected, EXTENSION_FAILURE_INVALID_STATE);
@@ -187,28 +183,28 @@ void STARImpl::grow()
     //(3) Remove Covered Samples.
     //  Need to keep some to guarantee near-optimality.
 
-    //It could happen that we have a feasible sample, which is not connectable
+    // It could happen that we have a feasible sample, which is not connectable
     Configuration *xNearest = tree->nearest(xRandom_);
     double d = distance(xNearest, xRandom_);
-    if (d < sparseDelta && 
-        getBundle()->checkMotion(xNearest->state, xRandom_->state))
+    if (d < sparseDelta && getBundle()->checkMotion(xNearest->state, xRandom_->state))
     {
-        if(xNearest == xSelected)
+        if (xNearest == xSelected)
         {
             OMPL_ERROR("Shell sampling returned a state inside inner radius.");
             throw "ERROR";
         }
         bool selfConnection = getBundle()->checkMotion(xSelected->state, xRandom_->state);
-        if(selfConnection)
+        if (selfConnection)
         {
-          // boost::add_vertex(new Configuration(getBundle(), xRandom_->state), graph_);
-        }else
+            // boost::add_vertex(new Configuration(getBundle(), xRandom_->state), graph_);
+        }
+        else
         {
-          Configuration *xNext = new Configuration(getBundle(), xRandom_->state);
-          addToTree(tree, xNext);
-          addBundleEdge(xNearest, xNext);
-          // tree->push(xSelected, EXTENSION_SUCCESS);
-          // std::cout << "Connector " << xSelected->index << " to " << xNearest->index << std::endl;
+            Configuration *xNext = new Configuration(getBundle(), xRandom_->state);
+            addToTree(tree, xNext);
+            addBundleEdge(xNearest, xNext);
+            // tree->push(xSelected, EXTENSION_SUCCESS);
+            // std::cout << "Connector " << xSelected->index << " to " << xNearest->index << std::endl;
         }
         tree->push(xSelected, EXTENSION_FAILURE_INSIDE_COVER);
         return;
@@ -217,15 +213,15 @@ void STARImpl::grow()
     //###########################################################
     //(4) Connect Selected to Random
     // Improvements: Do local planning to reach state. We could even use a
-    // potential field method here. 
+    // potential field method here.
 
     // if (!propagator_->steer(xSelected, xRandom_, xRandom_))
-    if(!getBundle()->checkMotion(xSelected->state, xRandom_->state))
+    if (!getBundle()->checkMotion(xSelected->state, xRandom_->state))
     {
         // boost::add_vertex(new Configuration(getBundle(), xRandom_->state), graph_);
-        //If we find a valid sample which is not connectable, then this usually
-        //indicates a complicated state space geometry which could be useful to
-        //investigate further (i.e. allocate more resources to this)
+        // If we find a valid sample which is not connectable, then this usually
+        // indicates a complicated state space geometry which could be useful to
+        // investigate further (i.e. allocate more resources to this)
         tree->push(xSelected, EXTENSION_FAILURE_NO_CONNECTION);
         return;
     }
@@ -251,7 +247,7 @@ void STARImpl::grow()
             OMPL_INFORM("Estimated distance to go: %f", distanceBetweenTrees_);
         }
 
-        //Try to connect trees
+        // Try to connect trees
         bool satisfied = propagator_->steer(xNext, xOtherTree, xRandom_);
 
         if (satisfied)
@@ -264,23 +260,22 @@ void STARImpl::grow()
 
 bool STARImpl::isInfeasible()
 {
-  return !hasSolution_ && (treeStart_->isConverged() || treeGoal_->isConverged());
+    return !hasSolution_ && (treeStart_->isConverged() || treeGoal_->isConverged());
 }
 
 bool STARImpl::hasConverged()
 {
-  return false;
+    return false;
 }
 
 double STARImpl::getImportance() const
 {
-  return BaseT::getImportance();
+    return BaseT::getImportance();
 }
 
 void STARImpl::getPlannerData(ompl::base::PlannerData &data) const
 {
     BaseT::getPlannerData(data);
-    OMPL_DEBUG(" Start Tree has %d (%d cnvrgd) vertices, Goal Tree has %d (%d cnvrgd) vertices.", 
-        treeStart_->size(), treeStart_->sizeConvergedNodes(), 
-        treeGoal_->size(), treeGoal_->sizeConvergedNodes());
+    OMPL_DEBUG(" Start Tree has %d (%d cnvrgd) vertices, Goal Tree has %d (%d cnvrgd) vertices.", treeStart_->size(),
+               treeStart_->sizeConvergedNodes(), treeGoal_->size(), treeGoal_->sizeConvergedNodes());
 }

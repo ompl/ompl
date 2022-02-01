@@ -63,26 +63,26 @@ void BiQRRTImpl::setup()
 
     maxDistance_ = 0.1;
 
-    if(!treeStart_)
+    if (!treeStart_)
     {
         treeStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
         treeStart_->setDistanceFunction(
-            [this](const Configuration *a, const Configuration *b) 
-            { return distance(a, b); });
+            [this](const Configuration *a, const Configuration *b) { return distance(a, b); });
     }
-    if(!treeGoal_)
+    if (!treeGoal_)
     {
         treeGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Configuration *>(this));
         treeGoal_->setDistanceFunction(
-            [this](const Configuration *a, const Configuration *b) 
-            { return distance(a, b); });
+            [this](const Configuration *a, const Configuration *b) { return distance(a, b); });
     }
 }
 void BiQRRTImpl::clear()
 {
     BaseT::clear();
-    if (treeStart_) treeStart_->clear();
-    if (treeGoal_) treeGoal_->clear();
+    if (treeStart_)
+        treeStart_->clear();
+    if (treeGoal_)
+        treeGoal_->clear();
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
 }
 
@@ -121,7 +121,6 @@ void BiQRRTImpl::init()
         throw ompl::Exception("Invalid goal states.");
     }
 }
-
 
 void BiQRRTImpl::grow()
 {
@@ -194,6 +193,5 @@ void BiQRRTImpl::grow()
 void BiQRRTImpl::getPlannerData(ompl::base::PlannerData &data) const
 {
     BaseT::getPlannerData(data);
-    OMPL_DEBUG(" Start Tree has %d vertices, Goal Tree has %d vertices.", 
-        treeStart_->size(), treeGoal_->size());
+    OMPL_DEBUG(" Start Tree has %d vertices, Goal Tree has %d vertices.", treeStart_->size(), treeGoal_->size());
 }
