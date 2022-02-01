@@ -111,7 +111,7 @@ public:
         coordinates.push_back({angles[0], angles[1]});
 
         //(1) check out of bounds
-        if (world_->outOfBounds(coordinates[0]))
+        if (world_->outOfBounds(coordinates[0])) {
             return false;
         }
 
