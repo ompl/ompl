@@ -62,56 +62,18 @@ void BundleSpaceGraphSamplerVisibilityRegion::clear()
     regionBias_.reset();
 }
 
-//  Previous impl for 21-ICRA
-// void BundleSpaceGraphSamplerVisibilityRegion::sampleImplementation(State *xRandom)
-// {
-//     BaseT::sampleImplementation(xRandom);
-
-//     double bias = regionBias_();
-
-//     // const double visibilityRadius = bias*bundleSpaceGraphSparse_->getSparseDelta();
-
-//     // bundleSpaceGraphSparse_->getBundleSamplerPtr()
-//     //   ->sampleUniformNear(xRandom, xRandom, visibilityRadius);
-
-//     double s = rng_.uniform01();
-//     if (s < bias)
-//     {
-//         const double visibilityRadius = bias * bundleSpaceGraphSparse_->getSparseDelta();
-
-//         bundleSpaceGraphSparse_->getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, visibilityRadius);
-//     }
-// }
-
-void BundleSpaceGraphSamplerVisibilityRegion::sampleImplementation(base::State *xRandom)
+void BundleSpaceGraphSamplerVisibilityRegion::sampleImplementation(State *xRandom)
 {
-    BundleSpaceGraph::Graph graph = bundleSpaceGraph_->getGraph();
+    BaseT::sampleImplementation(xRandom);
 
-    // Select random edge
-    // const std::vector<BundleSpaceGraph::Edge> &edges =
-    //   bundleSpaceGraphSparse_->initialConnectedComponentEdges;
-    // int k = rng_.uniformInt(0, edges.size()-1);
-    // BundleSpaceGraph::Edge e = edges.at(k);
+    double bias = regionBias_();
 
-    // Alternatively, just pick one from all edges
-    const BundleSpaceGraph::Edge &e = boost::random_edge(graph, rng_boost);
-
-    // Pick random point on the selected edge
     double s = rng_.uniform01();
-    const Vertex v1 = boost::source(e, graph);
-    const Vertex v2 = boost::target(e, graph);
-    const base::State *from = graph[v1]->state;
-    const base::State *to = graph[v2]->state;
-
-    bundleSpaceGraph_->getBundle()->getStateSpace()->interpolate(from, to, s, xRandom);
-
-    // Sample in visibility region to ensure completeness
-    s = rng_.uniform01();
-    if (s < 0.5)
+    if (s < bias)
     {
-        double bias = regionBias_();
         const double visibilityRadius = bias * bundleSpaceGraphSparse_->getSparseDelta();
 
         bundleSpaceGraphSparse_->getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, visibilityRadius);
     }
 }
+

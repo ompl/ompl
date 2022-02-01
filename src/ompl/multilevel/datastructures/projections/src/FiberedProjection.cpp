@@ -62,8 +62,8 @@ ompl::base::StateSamplerPtr FiberedProjection::getFiberSamplerPtr() const
     return fiberSpaceSampler_;
 }
 
-CompoundFiberedProjection::CompoundFiberedProjection(const base::StateSpacePtr &bundleSpace,
-                                                     const base::StateSpacePtr &baseSpace,
+CompoundFiberedProjection::CompoundFiberedProjection(const ompl::base::StateSpacePtr &bundleSpace,
+                                                     const ompl::base::StateSpacePtr &baseSpace,
                                                      const std::vector<ProjectionPtr> &components)
   : FiberedProjection(bundleSpace, baseSpace), CompoundProjection(bundleSpace, baseSpace, components)
 {
