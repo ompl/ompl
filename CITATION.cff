@@ -1,0 +1,47 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+license: "BSD-3-Clause"
+authors:
+- family-names: "Șucan"
+  given-names: "Ioan A."
+- family-names: "Kingston"
+  given-names: "Zachary"
+  orcid: https://orcid.org/0000-0002-3896-5110
+- family-names: "Moll"
+  given-names: "Mark"
+  orcid: "https://orcid.org/0000-0002-0451-2797"
+- family-names: "Kavraki"
+  given-names: "Lydia E."
+  orcid: https://orcid.org/0000-0003-0699-8038
+title: "The Open Motion Planning Library"
+url: "https://ompl.kavrakilab.org"
+identifiers:
+- type: doi
+  value: 10.1109/MRA.2012.2205651
+  description: "Primary citation for OMPL"
+- type: doi
+  value: 10.1109/MRA.2015.2448276
+  description: "Reference for OMPL's benchmarking capabilities and Planner Arena"
+- type: doi
+  value: 10.1177/0278364919868530
+  description: "Reference for OMPL's constrained motion planning capabilities"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Șucan"
+    given-names: "Ioan A."
+  - family-names: "Moll"
+    given-names: "Mark"
+    orcid: "https://orcid.org/0000-0002-0451-2797"
+  - family-names: "Kavraki"
+    given-names: "Lydia E."
+    orcid: https://orcid.org/0000-0003-0699-8038
+  doi: "10.1109/MRA.2012.2205651"
+  journal: "IEEE Robotics & Automation Magazine"
+  month: 12
+  start: 72
+  end: 82
+  title: "The Open Motion Planning Library"
+  issue: 4
+  volume: 19
+  year: 2012
