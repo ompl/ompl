@@ -19,6 +19,8 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_nearestneighbors datastructures/nearestneighbors.cpp)
     if(flann_FOUND)
         target_link_libraries(test_nearestneighbors ${FLANN_LIBRARIES})
+        # FLANN uses std::random_shuffle in a header file which is removed in C++17
+        set_target_properties(test_nearestneighbors PROPERTIES CXX_STANDARD 14)
     endif()
     add_ompl_test(test_pdf datastructures/pdf.cpp)
 
