@@ -91,14 +91,6 @@ void SMLRImpl::grow()
         findSection();
     }
 
-    // if(pis_.getSampledGoalsCount() < getGoalPtr()->maxSampleCount())
-    // {
-    //     const base::State *state = pis_.nextGoal();
-    //     Configuration qgoal = new Configuration(getBundle(), state);
-    //     qgoal->isGoal = true;
-    //     goalConfigurations_.push_back(qgoal);
-    // }
-
     if (!sampleBundleValid(xRandom_->state))
     {
         return;
