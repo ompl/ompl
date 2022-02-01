@@ -112,13 +112,8 @@ public:
 
         //(1) check out of bounds
         if (world_->outOfBounds(coordinates[0]))
-<<<<<<< HEAD
-            return false;
-=======
-        {
             return false;
         }
->>>>>>> upstream/main
 
         // Check each coordinate for obstacle intersection.
         for (size_t j = 0; j < world_->numObstacles(); ++j)
