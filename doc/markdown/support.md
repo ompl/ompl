@@ -16,7 +16,7 @@
 
 Use this form to contact the core OMPL developers directly.
 \htmlonly
-<form class="form" role="form" action="https://formspree.io/mmoll@rice.edu" method="POST">
+<form class="form" role="form" action="https://formspree.io/zak@rice.edu" method="POST">
   <div class="form-group">
     <input type="text" class="form-control" name="name" value='' placeholder="Your name">
   </div>

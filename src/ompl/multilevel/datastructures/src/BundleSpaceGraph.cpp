@@ -138,7 +138,7 @@ void BundleSpaceGraph::setup()
             [this](const Configuration *a, const Configuration *b) { return distance(a, b); });
     }
 
-    if (hasBaseSpace())
+    if (hasBaseSpace() && getProjection()->isFibered())
     {
         pathRestriction_ = std::make_shared<PathRestriction>(this);
     }

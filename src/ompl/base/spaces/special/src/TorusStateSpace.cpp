@@ -95,6 +95,7 @@ void TorusStateSampler::sampleGaussian(State *state, const State *mean, double s
 
     space_->enforceBounds(state);
 }
+
 void TorusStateSampler::sampleShell(State *state, const State *center, double innerRadius, double outerRadius)
 {
     auto *T = state->as<TorusStateSpace::StateType>();

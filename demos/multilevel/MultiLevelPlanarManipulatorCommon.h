@@ -58,7 +58,7 @@
 using namespace ompl::base;
 using namespace ompl::geometric;
 
-const int numLinks = 10;
+const int numLinks = 9;
 const double timeout = 10;
 const int xySlices = std::max(2, numLinks / 3);
 const std::string problemName = "corridor";
@@ -112,7 +112,13 @@ public:
 
         //(1) check out of bounds
         if (world_->outOfBounds(coordinates[0]))
+<<<<<<< HEAD
             return false;
+=======
+        {
+            return false;
+        }
+>>>>>>> upstream/main
 
         // Check each coordinate for obstacle intersection.
         for (size_t j = 0; j < world_->numObstacles(); ++j)

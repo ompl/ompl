@@ -49,6 +49,7 @@ Projection::Projection(ompl::base::StateSpacePtr bundleSpace, ompl::base::StateS
 
 bool Projection::isAdmissible() const
 {
+    OMPL_WARN("NYI");
     return true;
 }
 
@@ -161,7 +162,7 @@ std::string Projection::getTypeAsString() const
         std::string tstr = getBundleTypeAsString() + " -> " + getBaseTypeAsString();
         if (type_ == PROJECTION_CONSTRAINED_RELAXATION)
         {
-            tstr += " (rlx)";
+            tstr += " (relax)";
         }
         else if (type_ == PROJECTION_IDENTITY)
         {

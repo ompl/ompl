@@ -42,6 +42,7 @@
 #include "ompl/util/ClassForward.h"
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/base/samplers/InformedStateSampler.h"
+#include "ompl/control/Control.h"
 
 #include <functional>
 #include <iostream>
@@ -114,6 +115,10 @@ namespace ompl
 
             /** \brief Get the cost that corresponds to the motion segment between \e s1 and \e s2 */
             virtual Cost motionCost(const State *s1, const State *s2) const = 0;
+
+            /** \brief Get the cost that corresponds to the motion created by a control \e c applied for duration \e steps.
+             * The default implementation uses the identityCost. */
+            virtual Cost controlCost(const control::Control *c, unsigned int steps) const;
 
             /** \brief Get the cost that corresponds to combining the costs \e c1 and \e c2. Default implementation
              * defines this combination as an addition. */

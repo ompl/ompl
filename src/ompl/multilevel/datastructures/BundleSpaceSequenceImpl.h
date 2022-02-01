@@ -65,16 +65,19 @@ ompl::multilevel::BundleSpaceSequence<T>::BundleSpaceSequence(std::vector<ompl::
                                                               std::string type)
   : BaseT(siVec, type)
 {
-    assert(siVec.size() == (projVec.size() - 1));
     assert(siVec.size() > 0);
+    assert((siVec.size() - 1) == projVec.size());
     declareBundleSpaces(false);
 
-    // None projection added
+    // None projection (from last state to empty)
     bundleSpaces_.front()->makeProjection();
     for (unsigned int k = 1; k < bundleSpaces_.size(); k++)
     {
         BundleSpace *bk = bundleSpaces_.at(k);
         bk->setProjection(projVec.at(k - 1));
+        // need to precompute the location helper functions to utilize
+        //"copyToReals" inside the projection function
+        bk->getBundle()->setup();
     }
 }
 
@@ -205,7 +208,7 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
                 {
                     solutions_.push_back(sol_k);
                     double t_k_end = ompl::time::seconds(ompl::time::now() - t_start);
-                    OMPL_DEBUG("-- Found Solution on Level %d/%d after %f seconds.", k + 1, stopAtLevel_, t_k_end);
+                    OMPL_DEBUG("Found Solution on Level %d/%d after %f seconds.", k + 1, stopAtLevel_, t_k_end);
                     currentBundleSpaceLevel_ = k + 1;
                     if (currentBundleSpaceLevel_ > (bundleSpaces_.size() - 1))
                         currentBundleSpaceLevel_ = bundleSpaces_.size() - 1;
@@ -229,9 +232,7 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
             if (isInfeasible)
             {
                 double t_end = ompl::time::seconds(ompl::time::now() - t_start);
-                OMPL_INFORM("%s", std::string(80,'-').c_str());
-                OMPL_INFORM("-- Infeasibility detected after %f seconds (level %d).", t_end, k);
-                OMPL_INFORM("%s", std::string(80,'-').c_str());
+                OMPL_DEBUG("Infeasibility detected after %f seconds (level %d).", t_end, k);
                 return ompl::base::PlannerStatus::INFEASIBLE;
             }
             priorityQueue_.push(jBundle);
@@ -239,7 +240,7 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
 
         if (!foundKLevelSolution_)
         {
-            OMPL_INFORM("-- Planner failed finding solution on BundleSpace level %d", k);
+            OMPL_DEBUG("-- Planner failed finding solution on BundleSpace level %d", k);
             return ompl::base::PlannerStatus::TIMEOUT;
         }
     }

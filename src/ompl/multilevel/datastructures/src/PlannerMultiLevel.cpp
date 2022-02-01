@@ -81,7 +81,7 @@ std::vector<int> PlannerMultiLevel::getDimensionsPerLevel() const
     return dimensionsPerLevel;
 }
 
-int PlannerMultiLevel::getNumberOfLevels() const
+int PlannerMultiLevel::getLevels() const
 {
     return siVec_.size();
 }

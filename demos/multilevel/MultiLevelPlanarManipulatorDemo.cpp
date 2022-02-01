@@ -76,6 +76,7 @@ public:
     ProjectionJointSpaceToSE2(StateSpacePtr bundle, StateSpacePtr base, PlanarManipulator *manip)
       : Projection(bundle, base), manip_(manip)
     {
+        type_ = ompl::multilevel::PROJECTION_TASK_SPACE;
     }
 
     void project(const State *xBundle, State *xBase) const
@@ -177,7 +178,6 @@ int main()
     ompl::multilevel::ProjectionPtr projAB = std::make_shared<ProjectionJointSpaceToSE2>(space, spaceSE2, &manipulator);
 
     ompl::multilevel::ProjectionPtr projBC = std::make_shared<ompl::multilevel::Projection_SE2_R2>(spaceSE2, spaceR2);
-
     std::static_pointer_cast<ompl::multilevel::FiberedProjection>(projBC)->makeFiberSpace();
 
     //#########################################################################
@@ -202,7 +202,7 @@ int main()
 
     for (int i = 0; i < numLinks; ++i)
     {
-        start_angles[i] = 1e-7;
+        start_angles[i] = 1e-1*(pow(-1,i)) + i*1e-3;
     }
 
     //#########################################################################

@@ -32,40 +32,40 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-/* Author: Mark Moll */
+/* Author: Wolfgang Hönig */
 
-#ifndef PY_BINDINGS_OMPL_PY_GEOMETRIC_
-#define PY_BINDINGS_OMPL_PY_GEOMETRIC_
+#ifndef OMPL_BASE_OBJECTIVES_CONTROL_DURATION_OPTIMIZATION_OBJECTIVE_
+#define OMPL_BASE_OBJECTIVES_CONTROL_DURATION_OPTIMIZATION_OBJECTIVE_
 
-#include "ompl/datastructures/NearestNeighborsLinear.h"
-#include "ompl/geometric/planners/prm/ConnectionStrategy.h"
-#include "ompl/geometric/planners/prm/PRM.h"
-#include "ompl/geometric/planners/informedtrees/BITstar.h"
-#include <deque>
-#include <map>
-#include <boost/graph/adjacency_list.hpp>
-#include "py_std_function.hpp"
-
+#include "ompl/base/OptimizationObjective.h"
+#include "ompl/control/SpaceInformation.h"
 
 namespace ompl
 {
-    namespace geometric
+    namespace base
     {
-        inline int dummyFn() { return 1; }
-        inline int dummyConnectionStrategy()
+        /** \brief Defines optimization objectives where the total
+            time of a control action is summed. This cost function is
+            specified by implementing the controlCost() method. */
+        class ControlDurationObjective : public OptimizationObjective
         {
-            NearestNeighborsLinear<PRM::Vertex> nn;
-            std::shared_ptr<NearestNeighbors<PRM::Vertex> > nnPtr(&nn);
-            return sizeof(KStrategy<PRM::Vertex>(1, nnPtr)) + sizeof(KStarStrategy<PRM::Vertex>(dummyFn, nnPtr, 1)) + sizeof(nn);
-        }
-        inline int dummySTLContainerSize()
-        {
-            return sizeof(std::deque<ompl::base::State*>) +
-                sizeof(std::map<boost::adjacency_list<>::vertex_descriptor, ompl::base::State*>) +
-                sizeof(std::vector<const ompl::base::State*>) +
-                sizeof(std::vector< std::shared_ptr<ompl::geometric::BITstar::Vertex> >) +
-                sizeof(std::vector< std::shared_ptr<ompl::base::SpaceInformation> >);
-        }
+        public:
+            /** \brief Requires a control::SpaceInformationPtr to access \p dt. */
+            ControlDurationObjective(const control::SpaceInformationPtr &si);
+
+            /** \brief Returns a cost with a value of 0. */
+            Cost stateCost(const State *s) const override;
+
+            /** \brief Returns a cost with a value of 0. */
+            Cost motionCost(const State *s1, const State *s2) const override;
+
+            /** \brief Returns the cost with the value of steps*dt. */
+            Cost controlCost(const control::Control *c, unsigned int steps) const override;
+
+        protected:
+            /** \brief Duration of each control step. */
+            double dt_;
+        };
     }
 }
 

@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2014, University of Toronto
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Toronto nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2014, University of Toronto
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Toronto nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Authors: Jonathan Gammell */
 
@@ -104,31 +104,34 @@ namespace ompl
                 else if (InformedSampler::space_->getType() == STATE_SPACE_UNKNOWN)
                 {
                     // Unknown, this is annoying. I hope the user knows what they're doing
-                    OMPL_WARN("PathLengthDirectInfSampler: Treating the StateSpace of type \"STATE_SPACE_UNKNOWN\" as type \"STATE_SPACE_REAL_VECTOR\".");
+                    OMPL_WARN("PathLengthDirectInfSampler: Treating the StateSpace of type \"STATE_SPACE_UNKNOWN\" as "
+                              "type \"STATE_SPACE_REAL_VECTOR\".");
                     informedIdx_ = 0u;
                     uninformedIdx_ = 0u;
                 }
                 else
                 {
-                    throw Exception("PathLengthDirectInfSampler only supports Unknown, RealVector, SE2, and SE3 StateSpaces.");
+                    throw Exception("PathLengthDirectInfSampler only supports Unknown, RealVector, SE2, and SE3 "
+                                    "StateSpaces.");
                 }
             }
             else if (InformedSampler::space_->isCompound())
             {
-                // Check that it is SE2 or SE3
-                if (InformedSampler::space_->getType() == STATE_SPACE_SE2 ||
-                    InformedSampler::space_->getType() == STATE_SPACE_SE3)
-                {
-                    // Variable:
-                    // An ease of use upcasted pointer to the space as a compound space
-                    const CompoundStateSpace *compoundSpace = InformedSampler::space_->as<CompoundStateSpace>();
+                // Variable:
+                // An ease of use upcasted pointer to the space as a compound space
+                const CompoundStateSpace *compoundSpace = InformedSampler::space_->as<CompoundStateSpace>();
 
+                // Check that the given space is SE2, SE3, Dubins, or Reeds-Shepp.
+                if (InformedSampler::space_->getType() == STATE_SPACE_SE2 ||
+                    InformedSampler::space_->getType() == STATE_SPACE_SE3 ||
+                    InformedSampler::space_->getType() == STATE_SPACE_DUBINS ||
+                    InformedSampler::space_->getType() == STATE_SPACE_REEDS_SHEPP)
+                {
                     // Sanity check
                     if (compoundSpace->getSubspaceCount() != 2u)
                     {
                         // Pout
-                        throw Exception("The provided compound StateSpace is SE(2) or SE(3) but does not have exactly "
-                                        "2 subspaces.");
+                        throw Exception("The provided compound state space does not have exactly 2 subspaces.");
                     }
 
                     // Iterate over the state spaces, finding the real vector and SO components.
@@ -151,14 +154,28 @@ namespace ompl
                         else
                         {
                             // Pout
-                            throw Exception("The provided compound StateSpace is SE(2) or SE(3) but contains a "
-                                            "subspace that is not R^2, R^3, SO(2), or SO(3).");
+                            throw Exception("The provided compound state space contains a subspace (" +
+                                            std::to_string(idx) + ") that is not R^N, SO(2), or SO(3): " +
+                                            std::to_string(compoundSpace->getSubspace(idx)->getType()));
                         }
                     }
                 }
                 else
                 {
-                    throw Exception("PathLengthDirectInfSampler only supports RealVector, SE2 and SE3 statespaces.");
+                    // Case where we have a compound state space with only one subspace, and said subspace being R^N
+                    if (compoundSpace->getSubspaceCount() == 1u &&
+                        compoundSpace->getSubspace(0)->getType() == STATE_SPACE_REAL_VECTOR)
+                    {
+                        informedIdx_ = 0u;
+                        uninformedIdx_ = 0u;
+                    }
+                    else
+                    {
+                        throw Exception("PathLengthDirectInfSampler only supports RealVector, SE2, SE3, Dubins, and "
+                                        "ReedsShepp state spaces. Provided compound state space of type: " +
+                                        std::to_string(InformedSampler::space_->getType()) + " with " +
+                                        std::to_string(compoundSpace->getSubspaceCount()) + " subspaces.");
+                    }
                 }
             }
 
@@ -674,5 +691,5 @@ namespace ompl
             return numInclusions;
         }
         /////////////////////////////////////////////////////////////////////////////////////////////
-    };  // base
-};      // ompl
+    };  // namespace base
+};      // namespace ompl

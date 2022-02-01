@@ -51,6 +51,7 @@ if (OMPL_BUILD_DEMOS)
     add_ompl_demo(demo_MultiLevelPlanningKinematicChain multilevel/MultiLevelPlanningKinematicChain.cpp)
     add_ompl_demo(demo_MultiLevelPlanningHyperCube multilevel/MultiLevelPlanningHyperCube.cpp)
     add_ompl_demo(demo_MultiLevelPlanningHyperCubeBenchmark multilevel/MultiLevelPlanningHyperCubeBenchmark.cpp)
+    add_ompl_demo(demo_SpaceTimePlanning SpaceTimePlanning.cpp)
 
     find_package(yaml-cpp)
     set_package_properties(yaml-cpp PROPERTIES
@@ -81,7 +82,7 @@ if (OMPL_BUILD_DEMOS)
 
     if (OMPL_EXTENSION_TRIANGLE)
         add_ompl_demo(demo_TriangulationDemo TriangulationDemo.cpp)
-        add_ompl_demo(demo_LTLWithTriangulation LTLWithTriangulation)
+        add_ompl_demo(demo_LTLWithTriangulation LTLWithTriangulation.cpp)
     endif()
 endif(OMPL_BUILD_DEMOS)
 

@@ -67,7 +67,6 @@ namespace ompl
             ProjectionFactory() = default;
 
             /** \brief Guess projection(s) between two SpaceInformationPtr Bundle and Base */
-
             ProjectionPtr makeProjection(const base::SpaceInformationPtr &Bundle,
                                          const base::SpaceInformationPtr &Base);
 

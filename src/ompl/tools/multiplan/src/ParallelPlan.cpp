@@ -147,15 +147,22 @@ void ompl::tools::ParallelPlan::solveOne(base::Planner *planner, std::size_t min
     OMPL_DEBUG("ParallelPlan.solveOne starting planner %s", planner->getName().c_str());
 
     time::point start = time::now();
-    if (planner->solve(*ptc))
+    try
     {
-        double duration = time::seconds(time::now() - start);
-        foundSolCountLock_.lock();
-        unsigned int nrSol = ++foundSolCount_;
-        foundSolCountLock_.unlock();
-        if (nrSol >= minSolCount)
-            ptc->terminate();
-        OMPL_DEBUG("ParallelPlan.solveOne: Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
+        if (planner->solve(*ptc))
+        {
+            double duration = time::seconds(time::now() - start);
+            foundSolCountLock_.lock();
+            unsigned int nrSol = ++foundSolCount_;
+            foundSolCountLock_.unlock();
+            if (nrSol >= minSolCount)
+                ptc->terminate();
+            OMPL_DEBUG("ParallelPlan.solveOne: Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
+        }
+    }
+    catch (Exception &e)
+    {
+        OMPL_ERROR("Exception thrown during ParrallelPlan::solveOne: %s", e.what());
     }
 }
 
@@ -165,32 +172,39 @@ void ompl::tools::ParallelPlan::solveMore(base::Planner *planner, std::size_t mi
     OMPL_DEBUG("ParallelPlan.solveMore: starting planner %s", planner->getName().c_str());
 
     time::point start = time::now();
-    if (planner->solve(*ptc))
+    try
     {
-        double duration = time::seconds(time::now() - start);
-        foundSolCountLock_.lock();
-        unsigned int nrSol = ++foundSolCount_;
-        foundSolCountLock_.unlock();
+        if (planner->solve(*ptc))
+        {
+            double duration = time::seconds(time::now() - start);
+            foundSolCountLock_.lock();
+            unsigned int nrSol = ++foundSolCount_;
+            foundSolCountLock_.unlock();
 
-        if (nrSol >= maxSolCount)
-            ptc->terminate();
+            if (nrSol >= maxSolCount)
+                ptc->terminate();
 
-        OMPL_DEBUG("ParallelPlan.solveMore: Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
+            OMPL_DEBUG("ParallelPlan.solveMore: Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
 
-        const std::vector<base::PlannerSolution> &paths = pdef_->getSolutions();
+            const std::vector<base::PlannerSolution> &paths = pdef_->getSolutions();
 
-        std::lock_guard<std::mutex> slock(phlock_);
-        start = time::now();
-        unsigned int attempts = 0;
-        for (const auto &path : paths)
-            attempts += phybrid_->recordPath(std::static_pointer_cast<geometric::PathGeometric>(path.path_), false);
+            std::lock_guard<std::mutex> slock(phlock_);
+            start = time::now();
+            unsigned int attempts = 0;
+            for (const auto &path : paths)
+                attempts += phybrid_->recordPath(std::static_pointer_cast<geometric::PathGeometric>(path.path_), false);
 
-        if (phybrid_->pathCount() >= minSolCount)
-            phybrid_->computeHybridPath();
+            if (phybrid_->pathCount() >= minSolCount)
+                phybrid_->computeHybridPath();
 
-        duration = time::seconds(time::now() - start);
-        OMPL_DEBUG("ParallelPlan.solveMore: Spent %f seconds hybridizing %u solution paths (attempted %u connections "
-                   "between paths)",
-                   duration, (unsigned int)phybrid_->pathCount(), attempts);
+            duration = time::seconds(time::now() - start);
+            OMPL_DEBUG("ParallelPlan.solveMore: Spent %f seconds hybridizing %u solution paths (attempted %u connections "
+                       "between paths)",
+                       duration, (unsigned int)phybrid_->pathCount(), attempts);
+        }
+    }
+    catch (Exception &e)
+    {
+        OMPL_ERROR("Exception thrown during ParrallelPlan::solveMore: %s", e.what());
     }
 }

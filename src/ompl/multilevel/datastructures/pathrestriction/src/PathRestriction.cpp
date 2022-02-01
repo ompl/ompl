@@ -53,6 +53,7 @@ using namespace ompl::multilevel;
 
 PathRestriction::PathRestriction(BundleSpaceGraph *bundleSpaceGraph) : bundleSpaceGraph_(bundleSpaceGraph)
 {
+    setFindSectionStrategy(FindSectionType::SIDE_STEP);
 }
 
 void PathRestriction::setFindSectionStrategy(FindSectionType type)
@@ -116,7 +117,6 @@ void PathRestriction::setBasePath(std::vector<ompl::base::State *> basePath)
         lengthsIntermediateBasePath_.push_back(lk);
         lengthBasePath_ += lk;
         lengthsCumulativeBasePath_.push_back(lengthBasePath_);
-
     }
     OMPL_DEBUG("Set new base path with %d states and length %f.", basePath_.size(), lengthBasePath_);
 }

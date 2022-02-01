@@ -60,7 +60,6 @@ namespace ompl
         /** \brief Forward declaration of ompl::multilevel::FiberedProjection */
         OMPL_CLASS_FORWARD(FiberedProjection);
         /// @endcond
-
         /* \brief A bundle projection with an explicit fiber space representation
          * which can be explicitly sampled to lift states */
         class FiberedProjection : public Projection
@@ -74,20 +73,15 @@ namespace ompl
             /* \brief Lift state from base to bundle */
             virtual void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const override;
 
-            /* \brief Project bundle space element onto base space */
-            virtual void project(const ompl::base::State *xBundle, ompl::base::State *xBase) const = 0;
-
-            /** @name Fiber space specific operations
-             *  @{ */
-
             /* \brief Lift base space element using a fiber bundle element */
             virtual void lift(const ompl::base::State *xBase, const ompl::base::State *xFiber,
                               ompl::base::State *xBundle) const = 0;
 
             /* \brief Project bundle space onto fiber space */
             virtual void projectFiber(const ompl::base::State *xBundle, ompl::base::State *xFiber) const = 0;
+
             /* \brief Get explicit fiber space representation */
-            ompl::base::StateSpacePtr getFiberSpace() const;
+            virtual ompl::base::StateSpacePtr getFiberSpace() const;
 
             /* \brief Get explicit fiber space sampler */
             ompl::base::StateSamplerPtr getFiberSamplerPtr() const;

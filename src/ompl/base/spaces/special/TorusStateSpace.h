@@ -58,7 +58,7 @@ namespace ompl
 
             void sampleGaussian(State *state, const State *mean, double stdDev) override;
 
-            void sampleShell(State *state, const State *center, double innerRadius, double outerRadius);
+            void sampleShell(State *state, const State *center, double innerRadius, double outerRadius) override;
         };
 
         class TorusStateSpace : public CompoundStateSpace

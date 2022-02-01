@@ -67,7 +67,9 @@ namespace ompl
                 deviation stdDev. If the sampled value exceeds the state
                 space boundary, it is thresholded to the nearest boundary. */
             void sampleGaussian(State *state, const State *mean, double stdDev) override;
-            void sampleShell(State *state, const State *center, double innerRadius, double outerRadius);
+
+            /** \brief Sample a state uniformly from a hyper annulus around center.*/
+            void sampleShell(State *state, const State *center, double innerRadius, double outerRadius) override;
         };
 
         /** \brief A state space representing R<sup>n</sup>. The distance function is the L2 norm. */

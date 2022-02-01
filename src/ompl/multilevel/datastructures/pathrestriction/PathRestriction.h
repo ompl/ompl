@@ -72,7 +72,7 @@ namespace ompl
         using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
 
         /** \brief Representation of path restriction
-           (union of fibers over a base path).
+            (union of fibers over a base path).
 
             Class represents path restriction by keeping a set of discrete base
             path states. To access states inbetween, we use the

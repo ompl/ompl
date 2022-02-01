@@ -92,7 +92,6 @@ namespace ompl
         protected:
             /** \brief Pointer to associated bundle space */
             PathRestriction *restriction_;
-
             FiberedProjectionPtr projection_;
 
             base::State *xBaseTmp_{nullptr};

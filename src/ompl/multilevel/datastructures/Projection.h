@@ -159,6 +159,7 @@ namespace ompl
 
             bool isCompound() const override;
 
+
         protected:
             std::vector<ProjectionType> types_;
 

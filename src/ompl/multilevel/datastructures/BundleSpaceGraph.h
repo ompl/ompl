@@ -121,8 +121,6 @@ namespace ompl
                 bool isStart{false};
                 bool isGoal{false};
 
-                float importance{0.0};
-
                 /** \brief parent index for {qrrt*} */
                 Configuration *parent{nullptr};
 
@@ -131,6 +129,8 @@ namespace ompl
 
                 /** \brief same as rrt*, connection cost with parent {qrrt*} */
                 base::Cost lineCost;
+
+                double importance;
 
                 /** \brief The set of motions descending from the current motion {qrrt*} */
                 std::vector<Configuration *> children;
@@ -167,6 +167,11 @@ namespace ompl
                 EdgeInternalState(const EdgeInternalState &eis)
                 {
                     cost = eis.cost;
+                }
+                EdgeInternalState& operator=(const EdgeInternalState &eis)
+                {
+                    cost = eis.cost;
+                    return *this;
                 }
                 void setWeight(double d)
                 {
@@ -240,8 +245,8 @@ namespace ompl
             /* \brief Given graph, fill in the ompl::base::PlannerData structure */
             void getPlannerDataGraph(ompl::base::PlannerData &data, const Graph &graph, const Vertex vStart) const;
 
-            /** \brief Importance of BundleSpace depending on number of
-                vertices in BundleSpaceGraph */
+            /** \brief Importance of Bundle-space depending on number of
+                vertices in Bundle-graph */
             double getImportance() const override;
 
             /** \brief Initialization methods for the first iteration

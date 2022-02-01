@@ -75,14 +75,8 @@ ompl::geometric::SPARStwo::SPARStwo(const base::SpaceInformationPtr &si)
     Planner::declareParam<unsigned int>("max_failures", this, &SPARStwo::setMaxFailures, &SPARStwo::getMaxFailures,
                                         "100:10:3000");
 
-    addPlannerProgressProperty("iterations INTEGER", [this]
-                               {
-                                   return getIterationCount();
-                               });
-    addPlannerProgressProperty("best cost REAL", [this]
-                               {
-                                   return getBestCost();
-                               });
+    addPlannerProgressProperty("iterations INTEGER", [this] { return getIterationCount(); });
+    addPlannerProgressProperty("best cost REAL", [this] { return getBestCost(); });
 }
 
 ompl::geometric::SPARStwo::~SPARStwo()
@@ -95,10 +89,7 @@ void ompl::geometric::SPARStwo::setup()
     Planner::setup();
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
-    nn_->setDistanceFunction([this](const Vertex a, const Vertex b)
-                             {
-                                 return distanceFunction(a, b);
-                             });
+    nn_->setDistanceFunction([this](const Vertex a, const Vertex b) { return distanceFunction(a, b); });
     double maxExt = si_->getMaximumExtent();
     sparseDelta_ = sparseDeltaFraction_ * maxExt;
     denseDelta_ = denseDeltaFraction_ * maxExt;
@@ -230,10 +221,7 @@ void ompl::geometric::SPARStwo::constructRoadmap(const base::PlannerTerminationC
     if (stopOnMaxFail)
     {
         resetFailures();
-        base::PlannerTerminationCondition ptcOrFail([this, &ptc]
-                                                    {
-                                                        return ptc || reachedFailureLimit();
-                                                    });
+        base::PlannerTerminationCondition ptcOrFail([this, &ptc] { return ptc || reachedFailureLimit(); });
         constructRoadmap(ptcOrFail);
     }
     else
@@ -351,20 +339,11 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
     addedSolution_ = false;
     resetFailures();
     base::PathPtr sol;
-    base::PlannerTerminationCondition ptcOrFail([this, &ptc]
-                                                {
-                                                    return ptc || reachedFailureLimit();
-                                                });
-    std::thread slnThread([this, &ptcOrFail, &sol]
-                          {
-                              checkForSolution(ptcOrFail, sol);
-                          });
+    base::PlannerTerminationCondition ptcOrFail([this, &ptc] { return ptc || reachedFailureLimit(); });
+    std::thread slnThread([this, &ptcOrFail, &sol] { checkForSolution(ptcOrFail, sol); });
 
     // Construct planner termination condition which also takes M into account
-    base::PlannerTerminationCondition ptcOrStop([this, &ptc]
-                                                {
-                                                    return ptc || reachedTerminationCriterion();
-                                                });
+    base::PlannerTerminationCondition ptcOrStop([this, &ptc] { return ptc || reachedTerminationCriterion(); });
     constructRoadmap(ptcOrStop);
 
     // Ensure slnThread is ceased before exiting solve
@@ -376,7 +355,9 @@ ompl::base::PlannerStatus ompl::geometric::SPARStwo::solve(const base::PlannerTe
     {
         pdef_->addSolutionPath(sol, false, -1.0, getName());
         return base::PlannerStatus::EXACT_SOLUTION;
-    }else{
+    }
+    else
+    {
         return reachedFailureLimit() ? base::PlannerStatus::INFEASIBLE : base::PlannerStatus::TIMEOUT;
     }
 }
@@ -814,23 +795,14 @@ ompl::base::PathPtr ompl::geometric::SPARStwo::constructSolution(const Vertex st
 
     try
     {
-        boost::astar_search(g_, start,
-                            [this, goal](Vertex v)
-                            {
-                                return costHeuristic(v, goal);
-                            },
-                            boost::predecessor_map(prev)
-                                .distance_compare([this](base::Cost c1, base::Cost c2)
-                                                  {
-                                                      return opt_->isCostBetterThan(c1, c2);
-                                                  })
-                                .distance_combine([this](base::Cost c1, base::Cost c2)
-                                                  {
-                                                      return opt_->combineCosts(c1, c2);
-                                                  })
-                                .distance_inf(opt_->infiniteCost())
-                                .distance_zero(opt_->identityCost())
-                                .visitor(AStarGoalVisitor<Vertex>(goal)));
+        boost::astar_search(
+            g_, start, [this, goal](Vertex v) { return costHeuristic(v, goal); },
+            boost::predecessor_map(prev)
+                .distance_compare([this](base::Cost c1, base::Cost c2) { return opt_->isCostBetterThan(c1, c2); })
+                .distance_combine([this](base::Cost c1, base::Cost c2) { return opt_->combineCosts(c1, c2); })
+                .distance_inf(opt_->infiniteCost())
+                .distance_zero(opt_->identityCost())
+                .visitor(AStarGoalVisitor<Vertex>(goal)));
     }
     catch (AStarFoundGoal &)
     {

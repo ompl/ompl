@@ -78,7 +78,7 @@ namespace ompl
             virtual void clear() override;
 
             /** \brief Number of multilevel abstractions */
-            int getNumberOfLevels() const;
+            int getLevels() const;
 
             /** \brief Get dimensionality of the multilevel abstraction */
             std::vector<int> getDimensionsPerLevel() const;

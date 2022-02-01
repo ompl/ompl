@@ -105,11 +105,6 @@ bool BundleSpace::makeProjection()
         return false;
 
     sanityChecks();
-
-    std::stringstream ss;
-    ss << (*this);
-    OMPL_DEBUG("%s", ss.str().c_str());
-
     return true;
 }
 
@@ -150,7 +145,11 @@ void BundleSpace::setup()
             pdef_->setOptimizationObjective(lengthObj);
         }
     }
-
+    else
+    {
+        OMPL_ERROR("Called without ProblemDefinitionPtr");
+        throw ompl::Exception("NoProblemDefinition");
+    }
 }
 
 GoalSampleableRegion *BundleSpace::getGoalPtr() const
@@ -216,6 +215,11 @@ void BundleSpace::resetCounter()
 void BundleSpace::setProjection(ProjectionPtr projection)
 {
     projection_ = projection;
+    if (getProjection() == nullptr)
+    {
+        OMPL_ERROR("Projection is nullptr.");
+        throw ompl::Exception("Projection is nullptr.");
+    }
 }
 
 ProjectionPtr BundleSpace::getProjection() const
@@ -463,7 +467,7 @@ void BundleSpace::project(const ompl::base::State *xBundle, ompl::base::State *x
 
 void BundleSpace::print(std::ostream &out) const
 {
-    out << "BundleSpace(lvl" << getLevel() << "): " << *(getProjection().get());
+    out << getProjection();
 }
 
 namespace ompl
