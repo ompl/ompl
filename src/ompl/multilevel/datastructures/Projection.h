@@ -142,7 +142,7 @@ namespace ompl
              * */
             void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const override;
             /// Print to stream
-            virtual void print(std::ostream &out) const;
+            virtual void print(std::ostream &out) const override;
 
             /// Dimension of Base Space
             unsigned int getBaseDimension() const;
