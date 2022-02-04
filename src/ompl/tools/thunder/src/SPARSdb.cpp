@@ -988,7 +988,7 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
         {
             if (verbose_)
                 OMPL_INFORM(" --- checkAddInterface() Does this node's neighbor's need it to better connect them? ");
-            if (denseRoadmap_ || !checkAddInterface(qNew, graphNeighborhood, visibleNeighborhood)) // @TODO - Ramy: I think with the new changes this becomes unnecessary. Test without it and see.
+            if (!checkAddInterface(qNew, graphNeighborhood, visibleNeighborhood)) // @TODO - Ramy: I think with the new changes this becomes unnecessary. Test without it and see.
             {
                 if (verbose_)
                     OMPL_INFORM(" ---- Ensure SPARS asymptotic optimality");
