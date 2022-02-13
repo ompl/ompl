@@ -959,11 +959,16 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
 
     ++iterations_;
 
+    if (denseRoadmap_) {
+        //this added call to findGraphNeighbors is very inexpensive when granularity is small enough (which it is meant to be).
+        findGraphNeighbors(qNew, gnbhd, vnbhd, granularity_);
+        if (vnbhd.size()) {
+            return false;
+        }
+    }
+
     //@TODO - Ramy: Test if creating another nbhd to seperate recall from connectivity has positive effects.
     findGraphNeighbors(qNew, graphNeighborhood, visibleNeighborhood);
-    if (denseRoadmap_)
-        findGraphNeighbors(qNew, gnbhd, vnbhd, granularity_);
-
     if (verbose_)
     {
         OMPL_INFORM(" graph neighborhood: %d | visible neighborhood: %d", graphNeighborhood.size(),
@@ -978,13 +983,13 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
     if (verbose_)
         OMPL_INFORM(" - checkAddCoverage() Are other nodes around it visible?");
     // Coverage criterion
-    if (denseRoadmap_ || !checkAddCoverage(qNew,
+    if (!checkAddCoverage(qNew,
                           visibleNeighborhood))  // Always add a node if no other nodes around it are visible (GUARD)
     {
         if (verbose_)
             OMPL_INFORM(" -- checkAddConnectivity() Does this node connect neighboring nodes that are not connected? ");
         // Connectivity criterion
-        if ((vnbhd.size() > 0) || !checkAddConnectivity(qNew, visibleNeighborhood))
+        if (!checkAddConnectivity(qNew, visibleNeighborhood))
         {
             if (verbose_)
                 OMPL_INFORM(" --- checkAddInterface() Does this node's neighbor's need it to better connect them? ");
@@ -1079,6 +1084,15 @@ bool ompl::geometric::SPARSdb::checkAddCoverage(const base::State *qNew, std::ve
     if (verbose_)
         OMPL_INFORM(" --- Adding node for COVERAGE ");
     Vertex v = addGuard(si_->cloneState(qNew), COVERAGE);
+    for (const auto &neighbor : visibleNeighborhood) {
+        // If there's no edge between the two new states
+        // DTC: this should actually never happen - we just created the new vertex so
+        // why would it be connected to anything?
+        if (!boost::edge(v, neighbor, g_).second) {
+            connectGuards(v, neighbor);
+        }
+    }
+
     if (verbose_)
         OMPL_INFORM("       Added vertex %f", v);
 
