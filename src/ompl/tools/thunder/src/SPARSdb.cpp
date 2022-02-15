@@ -427,7 +427,7 @@ bool ompl::geometric::SPARSdb::constructSolution(const Vertex start, const Verte
                             start,  // start state
                             [this, goal](const Vertex v)
                             {
-                                return distanceFunction(v, goal);
+                                return heuristicScaling_ * distanceFunction(v, goal);
                             },  // the heuristic
                             // ability to disable edges (set cost to inifinity):
                             boost::weight_map(edgeWeightMap(g_, edgeCollisionStateProperty_))

@@ -428,6 +428,11 @@ namespace ompl
                 collisionCheckOnRecall_ = collisionCheckOnRecall;
             }
 
+            void setHeuristicScaling(const double heuristicScaling)
+            {
+                heuristicScaling_ = heuristicScaling;
+            }
+
             /** \brief Retrieve the maximum consecutive failure limit. */
             unsigned int getMaxFailures() const
             {
@@ -465,6 +470,11 @@ namespace ompl
             bool getCollisionCheckOnRecall() const
             {
                 return collisionCheckOnRecall_;
+            }
+
+            double getHeuristicScaling() const
+            {
+                return heuristicScaling_;
             }
 
             bool getGuardSpacingFactor(double pathLength, double &numGuards, double &spacingFactor);
@@ -818,6 +828,8 @@ namespace ompl
             /** \brief Used by getSimilarPaths */
             std::vector<Vertex> startVertexCandidateNeighbors_;
             std::vector<Vertex> goalVertexCandidateNeighbors_;
+
+            double heuristicScaling_ {1.0};
 
             /** \brief Option to enable debugging output */
             bool verbose_{false};
