@@ -245,6 +245,7 @@ endif()
 
 find_package(ament_cmake QUIET)
 if(ament_cmake_FOUND)
+    ament_export_include_directories(include)
     # Allows ament to register colcon package when using ompl from underlay workspaces
     ament_package()
 endif()
