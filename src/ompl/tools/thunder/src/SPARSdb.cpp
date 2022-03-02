@@ -1683,7 +1683,7 @@ void ompl::geometric::SPARSdb::connectGuards(Vertex v, Vertex vp)
     Edge e = (boost::add_edge(v, vp, g_)).first;
 
     // Add associated properties to the edge
-    edgeWeightProperty_[e] = distanceFunction(v, vp);  // TODO: use this value with astar
+    edgeWeightProperty_[e] = costFunction(v, vp);  // TODO: use this value with astar
     edgeCollisionStateProperty_[e] = NOT_CHECKED;
 
     // Add the edge to the incrementeal connected components datastructure
