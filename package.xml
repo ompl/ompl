@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>ompl</name>
   <version>1.5.2</version>
   <description>OMPL is a free sampling-based motion planning library.</description>
@@ -13,6 +13,8 @@
   <author>Kavraki Lab</author>
 
   <buildtool_depend>cmake</buildtool_depend>
+  <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
+
 
   <build_depend>cmake</build_depend>
   <build_depend>boost</build_depend>
@@ -27,6 +29,7 @@
   <exec_depend>libflann-dev</exec_depend>
 
   <export>
-    <build_type>cmake</build_type>
+    <build_type condition="$ROS_VERSION == 1">cmake</build_type>
+    <build_type condition="$ROS_VERSION == 2">ament_cmake</build_type>
   </export>
 </package>
