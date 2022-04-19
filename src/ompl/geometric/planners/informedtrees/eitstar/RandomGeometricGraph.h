@@ -185,6 +185,9 @@ namespace ompl
                  * to or better than the current solution. */
                 bool canBePruned(const std::shared_ptr<State> &state) const;
 
+                /** \brief Decides what start/goal vertices should become part of the graph permanently. */
+                void pruneStartsAndGoals();
+
                 /** \brief Returns the heuristic cost from the preferred start of a state. */
                 ompl::base::Cost lowerBoundCostToCome(const std::shared_ptr<State> &state) const;
 
