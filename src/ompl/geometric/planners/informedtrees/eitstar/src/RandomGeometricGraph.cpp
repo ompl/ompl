@@ -113,6 +113,9 @@ namespace ompl
                 goalStates_.clear();
                 prunedStartStates_.clear();
                 prunedGoalStates_.clear();
+
+                buffer_.clear();
+                startGoalBuffer_.clear();
             }
 
             void RandomGeometricGraph::pruneStartsAndGoals()

@@ -266,59 +266,62 @@ namespace ompl
 
         void EITstar::clearQuery()
         {
-            forwardQueue_->clear();
-            reverseQueue_->clear();
-            startVertices_.clear();
-            goalVertices_.clear();
-            graph_.clearQuery();
-            solutionCost_ = objective_->infiniteCost();
-            reverseCost_ = objective_->infiniteCost();
-            approximateSolutionCost_ = objective_->infiniteCost();
-            approximateSolutionCostToGoal_ = objective_->infiniteCost();
-
-            suboptimalityFactor_ = std::numeric_limits<double>::infinity();
-            restartReverseSearch();
-
-            numSparseCollisionChecksCurrentLevel_ = initialNumSparseCollisionChecks_;
-
-            numProcessedEdges_ = 0u;
-            numReverseProcessedEdges_ = 0u;
-            numInDepthReverseProcessedEdges_ = 0u;
-            revQueueInsertedEdges_ = 0u;
-            forwardQueueInsertedEdges_ = 0u;
-
-            numReusedEdges_ = 0u;
-            numSavedChecks_ = 0u;
-
-            iterateDuration_ = 0u;
-            forwardDuration_ = 0u;
-
-            reverseDuration_ = 0u;
-            updateReverseDuration_ = 0u;
-            updateForwardDuration_ = 0u;
-            updateFreebyReverseDuration_ = 0u;
-            expandTargetDuration_ = 0u;
-            nnDuration_ = 0u;
-
-            reverseQueue_->insertReverseDuration_ = 0u;
-            reverseQueue_->computeKeysDuration_= 0u;
-            reverseQueue_->updateReverseDuration_ = 0u;
-
-            cntReverseDuration_ = 0u;
-
-            validationDuration_ = 0u;
-            couldBeValidDuration_ = 0u;
-
-            forwardQueue_->popDuration_ = 0u;
-            forwardQueue_->updateDuration_ = 0u;
-
-            reverseSearchTag_++;
-
-            if (!isMultiqueryEnabled_)
+            if (setup_)
             {
-              clear();
+                forwardQueue_->clear();
+                reverseQueue_->clear();
+                startVertices_.clear();
+                goalVertices_.clear();
+                graph_.clearQuery();
+                solutionCost_ = objective_->infiniteCost();
+                reverseCost_ = objective_->infiniteCost();
+                approximateSolutionCost_ = objective_->infiniteCost();
+                approximateSolutionCostToGoal_ = objective_->infiniteCost();
+
+                suboptimalityFactor_ = std::numeric_limits<double>::infinity();
+                restartReverseSearch();
+
+                numSparseCollisionChecksCurrentLevel_ = initialNumSparseCollisionChecks_;
+
+                numProcessedEdges_ = 0u;
+                numReverseProcessedEdges_ = 0u;
+                numInDepthReverseProcessedEdges_ = 0u;
+                revQueueInsertedEdges_ = 0u;
+                forwardQueueInsertedEdges_ = 0u;
+
+                numReusedEdges_ = 0u;
+                numSavedChecks_ = 0u;
+
+                iterateDuration_ = 0u;
+                forwardDuration_ = 0u;
+
+                reverseDuration_ = 0u;
+                updateReverseDuration_ = 0u;
+                updateForwardDuration_ = 0u;
+                updateFreebyReverseDuration_ = 0u;
+                expandTargetDuration_ = 0u;
+                nnDuration_ = 0u;
+
+                reverseQueue_->insertReverseDuration_ = 0u;
+                reverseQueue_->computeKeysDuration_= 0u;
+                reverseQueue_->updateReverseDuration_ = 0u;
+
+                cntReverseDuration_ = 0u;
+
+                validationDuration_ = 0u;
+                couldBeValidDuration_ = 0u;
+
+                forwardQueue_->popDuration_ = 0u;
+                forwardQueue_->updateDuration_ = 0u;
+
+                reverseSearchTag_++;
+
+                if (!isMultiqueryEnabled_)
+                {
+                    clear();
+                }
+                setup_ = false;
             }
-            setup_ = false;
         }
 
         ompl::base::Cost EITstar::bestCost() const
