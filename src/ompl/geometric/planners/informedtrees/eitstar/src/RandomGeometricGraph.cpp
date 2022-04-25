@@ -194,7 +194,10 @@ namespace ompl
 
             void RandomGeometricGraph::clearQuery()
             {
-                pruneStartsAndGoals();
+                if(isMultiqueryEnabled_)
+                {
+                    pruneStartsAndGoals();
+                }
 
                 startStates_.clear();
                 goalStates_.clear();
@@ -202,9 +205,13 @@ namespace ompl
                 prunedGoalStates_.clear();
 
                 newSamples_.clear();
-                //whitelistedStates_.clear();
 
                 samples_.clear();
+                if(isMultiqueryEnabled_)
+                {
+                    samples_.add(startGoalBuffer_);
+                }
+
                 currentNumSamples_ = 0u;
 
                 tag_ ++;
@@ -526,8 +533,15 @@ namespace ompl
                         // We sample unifrormly since we are generally assuming that we are doing multiquery planning
                         // this means that we need to sample the whole space, and add the samples to the buffer
                         // We only add the samples that could improve the solution to the graph later on.
-                        sampler_->sampleUniform(state->raw(), objective_->infiniteCost());
-                        //sampler_->sampleUniform(state->raw(), solutionCost_);
+
+                        if (isMultiqueryEnabled_)
+                        {
+                            sampler_->sampleUniform(state->raw(), objective_->infiniteCost());
+                        }
+                        else
+                        {
+                            sampler_->sampleUniform(state->raw(), solutionCost_);
+                        }
 
                         ++numSampledStates_;
                     } while (!spaceInfo_->isValid(state->raw()));
@@ -592,12 +606,6 @@ namespace ompl
 
                     auto numInformedSamples{0u};
 
-                    // Fix this
-                    if (samples_.size() == 2) 
-                    {
-                        samples_.add(startGoalBuffer_);
-                    }
-
                     if (isPruningEnabled_)
                     {
                         prune();
@@ -609,15 +617,6 @@ namespace ompl
                     }
 
                     samples_.add(newSamples_);
-
-                    /*for (auto &sample: newSamples_){
-                      for (const auto &n: getNeighbors(sample)){
-                        if (sample->isWhitelisted(n)){
-                          whitelistedStates_.push_back(sample);
-                          break;
-                        }
-                      }
-                    }*/
 
                     // only initialize samples after all states have been added to the graph
                     for (auto &sample: newSamples_)
@@ -653,6 +652,16 @@ namespace ompl
             bool RandomGeometricGraph::isPruningEnabled() const
             {
                 return isPruningEnabled_;
+            }
+
+            void RandomGeometricGraph::enableMultiquery(bool multiquery)
+            {
+                isMultiqueryEnabled_ = multiquery;
+            }
+
+            bool RandomGeometricGraph::isMultiqueryEnabled() const
+            {
+                return isMultiqueryEnabled_;
             }
 
             void RandomGeometricGraph::setUseKNearest(bool useKNearest)

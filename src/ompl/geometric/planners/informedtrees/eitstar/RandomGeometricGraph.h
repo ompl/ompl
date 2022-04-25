@@ -105,6 +105,12 @@ namespace ompl
                 /** \brief Returns Whether pruning is enabled. */
                 bool isPruningEnabled() const;
 
+                /** \brief Enable multiquery usage of the graph. */
+                void enableMultiquery(bool multiquery);
+
+                /** \brief Returns Whether multiquery usage of the graph is enabled. */
+                bool isMultiqueryEnabled() const;
+
                 /** \brief Set whether to use a k-nearest connection model. If false, it uses an r-disc model. */
                 void setUseKNearest(bool useKNearest);
 
@@ -255,6 +261,9 @@ namespace ompl
 
                 /** \brief Whether pruning is enabled. */
                 bool isPruningEnabled_{true};
+
+                /** \brief Whether multiquery is enabled. */
+                bool isMultiqueryEnabled_{false};
 
                 /** \brief Whether to use a k-nearest RGG. If false, EIT* uses an r-disc RGG. */
                 bool useKNearest_{true};

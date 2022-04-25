@@ -363,6 +363,7 @@ namespace ompl
 
         void EITstar::enableMultiquery(bool multiquery){
             isMultiqueryEnabled_ = multiquery;
+            graph_.enableMultiquery(multiquery);
         };
 
         bool EITstar::isMultiqueryEnabled() const
@@ -1142,7 +1143,15 @@ namespace ompl
         void EITstar::restartReverseSearch()
         {
             reverseQueue_->clear();
-            reverseQueue_->updateQueueOrdering(suboptimalityFactor_);
+
+            if (isMultiqueryEnabled_)
+            {
+                reverseQueue_->updateQueueOrdering(suboptimalityFactor_);
+            }
+            else
+            {
+                reverseQueue_->updateQueueOrdering(0);
+            }
 
             goalVertices_.clear();
             reverseCost_ = objective_->infiniteCost();
