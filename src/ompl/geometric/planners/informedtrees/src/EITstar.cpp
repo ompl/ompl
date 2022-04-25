@@ -514,7 +514,7 @@ namespace ompl
         void EITstar::iterate(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
             // implement this properly
-            if (graph_.getStates().size() < batchSize_ ){
+            if (isMultiqueryEnabled_ && graph_.getStates().size() < batchSize_ ){
               improveApproximation(terminationCondition);
               ++iteration_;
               return;
