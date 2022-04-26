@@ -91,20 +91,10 @@ namespace ompl
                 modifiedQueue_ = true;
                 
                 // For now, let's just do this naively.
-#ifdef TIMING
-                auto start_update = std::chrono::steady_clock::now();
-#endif
                 for (const auto &edge : edges)
                 {
                     insertOrUpdate(edge);
                 }
-
-#ifdef TIMING 
-                auto end_update = std::chrono::steady_clock::now();
-                unsigned int duration = std::chrono::duration_cast<std::chrono::microseconds>(
-                    end_update - start_update ).count();
-                updateDuration_ += duration;
-#endif
             }
 
             void ForwardQueue::remove(const Edge &edge)
@@ -128,19 +118,8 @@ namespace ompl
 
             ForwardQueue::Container::const_iterator ForwardQueue::getFrontIter(double suboptimalityFactor)
             {
-#ifdef TIMING 
-                auto start_update = std::chrono::steady_clock::now();
-#endif
-
                 if (cacheQueueLookup_ && !modifiedQueue_)
                 {
-#ifdef TIMING 
-                    auto end_update = std::chrono::steady_clock::now();
-                    unsigned int duration = std::chrono::duration_cast<std::chrono::microseconds>(
-                        end_update - start_update ).count();
-                    popDuration_ += duration;
-#endif
-
                     return front_;
                 }
 
@@ -187,13 +166,6 @@ namespace ompl
                 // Return the correct edge.
                 if (objective_->isCostBetterThan(bestEffortEdgeCost, lowerBoundEdgeCost))
                 {
-#ifdef TIMING 
-                    auto end_update = std::chrono::steady_clock::now();
-                    unsigned int duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                        end_update - start_update ).count();
-                    popDuration_ += duration;
-#endif
-
                     return bestEffortEdge;
                 }
                 else if (objective_->isCostBetterThan(get(bestCostEdge).first.estimatedCost, lowerBoundEdgeCost))

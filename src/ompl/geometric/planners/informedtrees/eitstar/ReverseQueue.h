@@ -37,8 +37,6 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_REVERSE_QUEUE_
 #define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_REVERSE_QUEUE_
 
-//#define TIMING
-
 #include <array>
 #include <map>
 #include <tuple>
@@ -96,9 +94,6 @@ namespace ompl
 
                 /** \brief Clears the queue, i.e., deletes all elements from it. */
                 void clear();
-                unsigned int insertReverseDuration_{0u};
-                unsigned int computeKeysDuration_{0u};
-                unsigned int updateReverseDuration_{0u};
 
                 /** \brief Copies all edges into a vector and returns the vector. */
                 std::vector<Edge> getEdges() const;

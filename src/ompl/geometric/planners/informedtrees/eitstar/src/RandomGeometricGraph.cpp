@@ -120,73 +120,36 @@ namespace ompl
 
             void RandomGeometricGraph::pruneStartsAndGoals()
             {
-                const bool deleteStartGoalSamples = dimension_ <= 8;
-                constexpr bool deleteOnEffort = true;
+                auto startAndGoalStates = startStates_;
+                startAndGoalStates.insert(std::end(startAndGoalStates), std::begin(goalStates_), std::end(goalStates_));
 
-                if (deleteStartGoalSamples){
-                  // compute overall density
-                  const double density = countSamplesInInformedSet() / spaceInfo_->getSpaceMeasure();
+                for (auto &sample: startAndGoalStates){
+                  bool remove = true;
 
-                  auto startAndGoalStates = startStates_;
-                  startAndGoalStates.insert(std::end(startAndGoalStates), std::begin(goalStates_), std::end(goalStates_));
+                  // look at the cost that we might save if we keep this one
+                  unsigned int totalSavedEffort = 0;
+                  unsigned int maxSingleEdgeSavedEffort = 0;
+                  for (const auto &w: getNeighbors(sample)){
+                    if (auto neighbor = w.lock()) {
+                      if (sample->isWhitelisted(neighbor)){
+                        const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), neighbor->raw());
+                        totalSavedEffort += fullSegmentCount;
 
-                  for (auto &sample: startAndGoalStates){
-                    bool remove = true;
-
-                    if (deleteOnEffort){
-                      // look at the cost that we might save if we keep this one
-                      unsigned int totalSavedEffort = 0;
-                      unsigned int maxSingleEdgeSavedEffort = 0;
-                      for (const auto &w: getNeighbors(sample)){
-                        if (auto neighbor = w.lock()) {
-                          if (sample->isWhitelisted(neighbor)){
-                            const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), neighbor->raw());
-                            totalSavedEffort += fullSegmentCount;
-
-                            if (fullSegmentCount > maxSingleEdgeSavedEffort){
-                              maxSingleEdgeSavedEffort = fullSegmentCount;
-                            }
-                          }
+                        if (fullSegmentCount > maxSingleEdgeSavedEffort){
+                          maxSingleEdgeSavedEffort = fullSegmentCount;
                         }
                       }
-
-                      if (maxSingleEdgeSavedEffort > effortThreshold_){
-                        remove = false;
-                      }
-                    }
-                    else{
-                      // compute density for the specific sample
-                      const auto &neighbors = getNeighbors(sample);
-                      double maxDist = 0.;
-                      for (const auto &n: neighbors){
-                        if (auto neighbor = n.lock()) {
-                          auto dist = spaceInfo_->distance(sample->raw(), neighbor->raw());
-                          if (maxDist < dist){
-                            maxDist = dist;
-                          }
-                        }
-                      }
-                      const double specificDensity = neighbors.size() / (unitNBallMeasure_ * std::pow(maxDist, dimension_));
-
-                      if (specificDensity < 1.5 * density){
-                        remove = false;
-                      }
-                    
-                    }
-
-                    if (remove){
-                      samples_.remove(sample);
-                    }
-                    else{
-                      startGoalBuffer_.push_back(sample);
                     }
                   }
-                }
-                else{
-                  for (auto &sample: startStates_){
-                    startGoalBuffer_.push_back(sample);
+
+                  if (maxSingleEdgeSavedEffort > effortThreshold_){
+                    remove = false;
                   }
-                  for (auto &sample: goalStates_){
+
+                  if (remove){
+                    samples_.remove(sample);
+                  }
+                  else{
                     startGoalBuffer_.push_back(sample);
                   }
                 }

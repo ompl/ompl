@@ -37,8 +37,6 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_FORWARD_QUEUE_
 #define OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_EITSTAR_FORWARD_QUEUE_
 
-//#define TIMING
-
 #include <array>
 #include <map>
 #include <utility>
@@ -92,9 +90,6 @@ namespace ompl
 
                 /** \brief Returns how many elements are in the queue. */
                 std::size_t size() const;
-
-                unsigned int popDuration_{0u};
-                unsigned int updateDuration_{0u};
 
                 /** \brief Inserts or updates an edge in the queue. */
                 void insertOrUpdate(const Edge &edge);
@@ -176,7 +171,6 @@ namespace ompl
                 }
 
                 mutable unsigned int cachedMinEdgeEffort_{0u};
-                mutable std::vector<std::shared_ptr<State>> cachedWhitelist_{};
 
                 /** \brief Returns an iterator to the edge with the best estimated cost. */
                 Container::iterator getBestCostEstimateEdge();

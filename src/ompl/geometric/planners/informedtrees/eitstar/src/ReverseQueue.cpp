@@ -70,58 +70,19 @@ namespace ompl
 
             void ReverseQueue::insertOrUpdate(const Edge &edge)
             {
-#ifdef TIMING 
-                auto start_update_reverse = std::chrono::steady_clock::now();
-#endif
-
-                auto res = !updateIfExists(edge);
-                    
-#ifdef TIMING 
-                auto end_update_reverse = std::chrono::steady_clock::now();
+                if (!updateIfExists(edge))
                 {
-                  unsigned int duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                      end_update_reverse - start_update_reverse ).count();
-                  if (!std::isfinite(suboptimalityFactor_)) updateReverseDuration_ += duration;
-                }
-#endif
-
-                if (res)
-                {
-#ifdef TIMING 
-                    auto start_keys_reverse = std::chrono::steady_clock::now();
-#endif
-                    
                     // Compute the keys.
                     const auto key1 = computeAdmissibleSolutionCost(edge);
                     const auto key2 = computeAdmissibleCostToComeToTarget(edge); 
                     const auto key3 = computeAdmissibleSolutionEffort(edge);
                     const auto key4 = computeInadmissibleSolutionEffort(edge);
 
-#ifdef TIMING 
-                    {
-                      auto end_keys_reverse = std::chrono::steady_clock::now();
-                      unsigned int duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                          end_keys_reverse - start_keys_reverse ).count();
-                      if (!std::isfinite(suboptimalityFactor_)) computeKeysDuration_ += duration;
-                    }
-#endif
                     // Create the heap element.
                     const auto element = std::make_tuple(key1, key2, key3, key4, edge);
 
                     // Insert the edge with the key in the queue.
-#ifdef TIMING 
-                    auto start_insert_reverse = std::chrono::steady_clock::now();
-#endif
                     const auto elementPointer = queue_.insert(element);
-                    
-#ifdef TIMING 
-                    auto end_insert_reverse = std::chrono::steady_clock::now();
-                    {
-                      unsigned int duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
-                          end_insert_reverse - start_insert_reverse ).count();
-                      if (!std::isfinite(suboptimalityFactor_)) insertReverseDuration_ += duration;
-                    }
-#endif
 
                     // Remember the element.
                     edge.source->asReverseVertex()->outgoingReverseQueueLookup_.emplace_back(elementPointer);
