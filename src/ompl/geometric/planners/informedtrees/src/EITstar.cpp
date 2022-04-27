@@ -883,7 +883,7 @@ namespace ompl
 
             const auto forwardEdge = forwardQueue_->peek(suboptimalityFactor_);
 
-            if (!std::isfinite(suboptimalityFactor_))
+            if (!std::isfinite(suboptimalityFactor_) && isMultiqueryEnabled_)
             {
                 if (!forwardEdge.target->hasReverseVertex())
                 {

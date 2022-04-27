@@ -175,9 +175,15 @@ namespace ompl
                     samples_.add(startGoalBuffer_);
                 }
 
+
                 currentNumSamples_ = 0u;
 
                 tag_ ++;
+
+                if (!isMultiqueryEnabled_)
+                {
+                    clear();
+                }
             }
 
             void RandomGeometricGraph::updateStartAndGoalStates(
@@ -658,7 +664,7 @@ namespace ompl
                 {
                     // copy the whitelisted vertices
                     std::vector<std::shared_ptr<State>> whitelistedNeighbors;
-                    if (keepWhitelisted)
+                    if (keepWhitelisted && isMultiqueryEnabled_)
                     {
                         std::vector<std::shared_ptr<State>> samples;
                         samples_.list(samples);
@@ -688,7 +694,7 @@ namespace ompl
                     }
 
                     // add whitelisted neighbours to the vector even if they are above the radius
-                    if (keepWhitelisted)
+                    if (keepWhitelisted && isMultiqueryEnabled_)
                     {
                         std::copy_if(whitelistedNeighbors.begin(), 
                                      whitelistedNeighbors.end(), 
