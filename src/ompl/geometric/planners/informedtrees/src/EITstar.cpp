@@ -137,7 +137,14 @@ namespace ompl
 
                 // Instantiate the queues.
                 forwardQueue_ = std::make_unique<eitstar::ForwardQueue>(objective_, space_);
-                reverseQueue_ = std::make_unique<eitstar::ReverseQueue>(objective_, space_, suboptimalityFactor_);
+                if (isMultiqueryEnabled_)
+                {
+                    reverseQueue_ = std::make_unique<eitstar::ReverseQueue>(objective_, space_, suboptimalityFactor_);
+                }
+                else
+                {
+                    reverseQueue_ = std::make_unique<eitstar::ReverseQueue>(objective_, space_, 1.);
+                }
                 
                 // Setup the graph with the problem information.
                 graph_.setup(problem_, &pis_);
@@ -308,7 +315,8 @@ namespace ompl
             suboptimalityFactor_ = factor;
         }
 
-        void EITstar::enableMultiquery(bool multiquery){
+        void EITstar::enableMultiquery(bool multiquery)
+        {
             isMultiqueryEnabled_ = multiquery;
             graph_.enableMultiquery(multiquery);
         };
@@ -317,6 +325,7 @@ namespace ompl
         {
             return isMultiqueryEnabled_;
         };
+
         void EITstar::setStartGoalPruningThreshold(unsigned int threshold)
         {
             graph_.setEffortThreshold(threshold);
@@ -451,11 +460,14 @@ namespace ompl
 
         void EITstar::iterate(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
-            // implement this properly
-            if (isMultiqueryEnabled_ && graph_.getStates().size() < batchSize_ ){
-              improveApproximation(terminationCondition);
-              ++iteration_;
-              return;
+            // If we are in a multiquery setting, we do not want to search the approximation 
+            // only consisting of start/goals. Thus, the first thing we do in this instance is 
+            // adding the first batch of samples.
+            if (isMultiqueryEnabled_ && graph_.getStates().size() == graph_.getStartStates().size() + graph_.getGoalStates().size() )
+            {
+                improveApproximation(terminationCondition);
+                ++iteration_;
+                return;
             }
 
             // First check if the reverse search needs to be continued.
