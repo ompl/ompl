@@ -446,15 +446,6 @@ namespace ompl
                     
                     }
                 }
-                /*if (state->hasForwardVertex())
-                {
-                    for (const auto &child : state->asForwardVertex()->getChildren())
-                    {
-                        data.addEdge(base::PlannerDataVertex(state->raw(),
-                                                             state->getId()),
-                                     base::PlannerDataVertex(child->getState()->raw(), child->getState()->getId()));
-                    }
-                }*/
             }
         }
 

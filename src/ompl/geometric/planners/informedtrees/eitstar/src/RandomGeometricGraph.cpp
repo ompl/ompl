@@ -875,22 +875,6 @@ namespace ompl
             {
 
                 if (whitelistedStates_.size() != 0){
-                    /*
-                    unsigned int lowerBoundEffort = 0u;
-                    for (auto &n: getNeighbors(state)){
-                        if (state->isWhitelisted(n.lock()))
-                        {
-                          return 0u;
-                        }
-                        const unsigned int fullSegmentCount = 
-                          space_->validSegmentCount(state->raw(), n.lock()->raw());
-                        const unsigned int performedChecks = 
-                          state->getIncomingCollisionCheckResolution(n.lock());
-                        lowerBoundEffort =
-                            std::min(lowerBoundEffort, fullSegmentCount - performedChecks);
-                    }
-
-                    return lowerBoundEffort;*/
                     return 0u;
                 }
 
