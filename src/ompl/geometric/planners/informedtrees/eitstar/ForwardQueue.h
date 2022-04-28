@@ -52,22 +52,6 @@
 #include "ompl/geometric/planners/informedtrees/eitstar/Vertex.h"
 
 #include  <unordered_map>
-namespace std {
-  template<>
-  struct hash<pair<size_t, size_t>>
-  {
-    size_t operator()(const pair<size_t, size_t> &k) const
-    {
-      size_t seed;
-      hash<size_t> hasher;
-
-      seed = hasher(k.first);
-      seed ^= hasher(k.second) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-
-      return seed;
-    }
-  };
-}
 
 namespace ompl
 {
@@ -75,6 +59,20 @@ namespace ompl
     {
         namespace eitstar
         {
+            struct pair_hash
+            {
+                std::size_t operator()(const std::pair<std::size_t, std::size_t> &k) const
+                {
+                    std::size_t seed;
+                    std::hash<std::size_t> hasher;
+
+                    seed = hasher(k.first);
+                    seed ^= hasher(k.second) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+
+                    return seed;
+                }
+            };
+
             class ForwardQueue
             {
             public:
@@ -148,7 +146,8 @@ namespace ompl
                 using Container = 
                     std::unordered_map<
                         std::pair<std::size_t, std::size_t>, 
-                        std::pair<EdgeKeys, Edge>
+                        std::pair<EdgeKeys, Edge>,
+                        pair_hash
                     >;
 
                 /** \brief Finds the iterator at the front of the queue. */
