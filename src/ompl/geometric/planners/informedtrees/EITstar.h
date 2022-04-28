@@ -121,13 +121,6 @@ namespace ompl
             /** \brief Returns the number of samples per batch. */
             unsigned int getBatchSize() const;
 
-            unsigned int getProcessedForwardEdges() const{
-              return numProcessedEdges_;
-            };
-            bool isTrivialSolution() const{
-              return !isBetter(graph_.minPossibleCost(), solutionCost_);
-            }
-
             /** \brief Sets the initial number of collision checks on the reverse search. */
             void setInitialNumberOfSparseCollisionChecks(std::size_t numChecks);
 
@@ -147,10 +140,10 @@ namespace ompl
             bool isMultiqueryEnabled() const;
 
             /** \brief Set start/goal pruning threshold. */
-            void setStartGoalPruning(unsigned int threshold);
+            void setStartGoalPruningThreshold(unsigned int threshold);
 
             /** \brief Get threshold at which we prune starts/goals. */
-            unsigned int getStartGoalPruning() const;
+            unsigned int getStartGoalPruningThreshold() const;
 
             /** \brief Set whether pruning is enabled or not. */
             void enablePruning(bool prune);
