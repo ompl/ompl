@@ -155,6 +155,9 @@ namespace ompl
                 /** \brief Sets the goal state. */
                 std::shared_ptr<State> registerGoalState(const ompl::base::State *goal);
 
+                /** \brief Registers a whitelisted state */
+                void registerWhitelistedState(const std::shared_ptr<State> &state) const;
+
                 /** \brief Returns whether a start state is available. */
                 bool hasStartState() const;
 
@@ -176,13 +179,12 @@ namespace ompl
                 /** \brief Returns the tag of the current RGG. */
                 std::size_t getTag() const;
 
-                mutable std::vector<std::shared_ptr<State>> whitelistedStates_{};
-
+                /** \brief Returns the inadmissible effort to come. */
                 unsigned int inadmissibleEffortToCome(const std::shared_ptr<State> &state) const;
 
             private:
                 /** \brief Returns a sample either from the buffer or a newly generated one. */
-                void getNewSample(std::shared_ptr<State> &state);
+                std::shared_ptr<State> getNewSample();
 
                 /** \brief Returns the number of states in the informed set. */
                 std::size_t countSamplesInInformedSet() const;
@@ -211,6 +213,9 @@ namespace ompl
 
                 /** \brief Returns the radius for the RGG. */
                 double computeRadius(std::size_t numInformedSamples) const;
+
+                /** \brief The list of whitelisted states. */
+                mutable std::vector<std::shared_ptr<State>> whitelistedStates_{};
 
                 /** \brief The tag of the current RGG. */
                 std::size_t tag_{1u};

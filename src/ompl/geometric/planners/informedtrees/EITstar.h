@@ -172,6 +172,7 @@ namespace ompl
             /** \brief Returns a copy of the forward queue. */
             std::vector<eitstar::Edge> getForwardQueue() const;
 
+            /** \brief Returns the effort of the edge at the top of the forward queue. */
             unsigned int getForwardEffort() const;
 
             /** \brief Returns a copy of the reverse queue. */

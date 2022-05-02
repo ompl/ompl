@@ -121,19 +121,17 @@ namespace ompl
             void RandomGeometricGraph::pruneStartsAndGoals()
             {
                 auto startAndGoalStates = startStates_;
-                startAndGoalStates.insert(std::end(startAndGoalStates), std::begin(goalStates_), std::end(goalStates_));
+                startAndGoalStates.insert(startAndGoalStates.end(), goalStates_.begin(), goalStates_.end());
 
                 for (auto &sample: startAndGoalStates){
                   bool remove = true;
 
                   // look at the cost that we might save if we keep this one
-                  unsigned int totalSavedEffort = 0;
-                  unsigned int maxSingleEdgeSavedEffort = 0;
+                  unsigned int maxSingleEdgeSavedEffort = 0u;
                   for (const auto &w: getNeighbors(sample)){
                     if (auto neighbor = w.lock()) {
                       if (sample->isWhitelisted(neighbor)){
                         const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), neighbor->raw());
-                        totalSavedEffort += fullSegmentCount;
 
                         if (fullSegmentCount > maxSingleEdgeSavedEffort){
                           maxSingleEdgeSavedEffort = fullSegmentCount;
@@ -174,7 +172,6 @@ namespace ompl
                 {
                     samples_.add(startGoalBuffer_);
                 }
-
 
                 currentNumSamples_ = 0u;
 
@@ -333,8 +330,9 @@ namespace ompl
 
                 std::vector<std::shared_ptr<State>> samples;
                 samples_.list(samples);
-                for (auto &state: samples){
-                  initializeState(state);
+                for (auto &state: samples)
+                {
+                    initializeState(state);
                 }
             }
 
@@ -483,8 +481,16 @@ namespace ompl
                 return goal;
             }
 
-            void RandomGeometricGraph::getNewSample(std::shared_ptr<State> &state)
+            void RandomGeometricGraph::registerWhitelistedState(const std::shared_ptr<State> &state) const
             {
+                whitelistedStates_.push_back(state);
+            }
+
+            std::shared_ptr<State> RandomGeometricGraph::getNewSample()
+            {
+                // Allocate a new state.
+                auto state = std::make_shared<State>(spaceInfo_, objective_);
+
                 // Create the requested number of new states.
                 if (currentNumSamples_ < buffer_.size())
                 {
@@ -494,21 +500,18 @@ namespace ompl
                 }
                 else
                 {
-                    // Allocate a new state.
-                    state = std::make_shared<State>(spaceInfo_, objective_);
-
                     do  // Sample randomly until a valid state is found.
                     {
-                        // We sample unifrormly since we are generally assuming that we are doing multiquery planning
-                        // this means that we need to sample the whole space, and add the samples to the buffer
-                        // We only add the samples that could improve the solution to the graph later on.
-
                         if (isMultiqueryEnabled_)
                         {
+                            // If we are doing multiquery planning, we sample uniformly, and reject samples that can
+                            // not improve the solution. This means that we need to sample the whole space, and add
+                            // the samples to the buffer
                             sampler_->sampleUniform(state->raw(), objective_->infiniteCost());
                         }
                         else
                         {
+                            // In case we are not doing multiquery planning, we can still directly sample the informed set.
                             sampler_->sampleUniform(state->raw(), solutionCost_);
                         }
 
@@ -523,9 +526,7 @@ namespace ompl
                 }
 
                 ++currentNumSamples_;
-
-                // Initialize the state.
-                //initializeState(state);
+                return state;
             }
 
             bool RandomGeometricGraph::addStates(std::size_t numNewStates,
@@ -543,26 +544,24 @@ namespace ompl
                 // Create the requested number of new states.
                 do
                 {
-                    std::shared_ptr<State> state;
                     do
                     { 
-                        getNewSample(state);
+                        const auto state = getNewSample();
 
                         // Since we do not do informed sampling, we need to check if the sample could improve
                         // the current solution.
                         if (!canBePruned(state))
                         {
                             newSamples_.emplace_back(state);
+                            
+                            // Add this state to the goal states if it is a goal.
+                            if (problem_->getGoal()->isSatisfied(state->raw()))
+                            {
+                                goalStates_.emplace_back(state);
+                            }
                             break;
                         }
                     } while (!terminationCondition);
-
-                    // Add this state to the goal states if it is a goal.
-                    if (problem_->getGoal()->isSatisfied(state->raw()))
-                    {
-                        goalStates_.emplace_back(state);
-                    }
-
                 } while (newSamples_.size() < numNewStates && !terminationCondition);
 
                 // Add the new states to the samples.
@@ -657,14 +656,13 @@ namespace ompl
             RandomGeometricGraph::getNeighbors(const std::shared_ptr<State> &state) const
             {
                 assert(state);
-                constexpr bool keepWhitelisted = true;
 
                 // If the neighbors cache of the vertex isn't up to date, update it.
                 if (state->neighbors_.first != tag_)
                 {
                     // copy the whitelisted vertices
                     std::vector<std::shared_ptr<State>> whitelistedNeighbors;
-                    if (keepWhitelisted && isMultiqueryEnabled_)
+                    if (isMultiqueryEnabled_)
                     {
                         std::vector<std::shared_ptr<State>> samples;
                         samples_.list(samples);
@@ -673,7 +671,7 @@ namespace ompl
                           std::copy_if(samples.begin(), 
                                        samples.end(), 
                                        std::back_inserter(whitelistedNeighbors),
-                                       [&](auto v){
+                                       [&state](const auto v){
                                           return state->isWhitelisted(v) ;
                                        });
                         }
@@ -694,12 +692,12 @@ namespace ompl
                     }
 
                     // add whitelisted neighbours to the vector even if they are above the radius
-                    if (keepWhitelisted && isMultiqueryEnabled_)
+                    if (isMultiqueryEnabled_)
                     {
                         std::copy_if(whitelistedNeighbors.begin(), 
                                      whitelistedNeighbors.end(), 
                                      std::back_inserter(neighbors),
-                                     [&](auto v){return std::find(neighbors.begin(), neighbors.end(), v) == neighbors.end();});
+                                     [&neighbors](const auto v){return std::find(neighbors.begin(), neighbors.end(), v) == neighbors.end();});
 
                     }
 
@@ -873,24 +871,16 @@ namespace ompl
 
             unsigned int RandomGeometricGraph::lowerBoundEffortToCome(const std::shared_ptr<State> &state) const
             {
-
-                if (whitelistedStates_.size() != 0){
+                // If we previously validated any states, the lower bound effort to come is 0.
+                // (it is possible to compute a better bound, but empirically, it is not worth the computational
+                // effort it takes to compute this better bound.)
+                if (whitelistedStates_.size() != 0u){
                     return 0u;
                 }
 
+                // If there's no whitelisted states, we can quickly compute a better bound:
+                // The minimum number of collision checks from any of the starts to the state we are checking for.
                 unsigned int lowerBoundEffort = std::numeric_limits<unsigned int>::max();
-
-                for (const auto &s: whitelistedStates_) {
-                    if (s->getId() > currentNumSamples_){
-                        break;
-                    }
-                    if (s->getId() == state->getId()){
-                        return 0;
-                    }
-                    lowerBoundEffort =
-                        std::min(lowerBoundEffort, space_->validSegmentCount(state->raw(), s->raw()));
-                }
-
                 for (const auto &start : startStates_)
                 {
                     lowerBoundEffort =

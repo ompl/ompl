@@ -59,14 +59,17 @@ namespace ompl
     {
         namespace eitstar
         {
+            
             struct pair_hash
             {
                 std::size_t operator()(const std::pair<std::size_t, std::size_t> &k) const
                 {
-                    std::size_t seed;
+                    // This method to combine hashes is the same as boost::hash_combine
+                    // https://www.boost.org/doc/libs/1_67_0/boost/container_hash/hash.hpp
+                    // For a discussion see e.g. https://stackoverflow.com/a/35991300
                     std::hash<std::size_t> hasher;
 
-                    seed = hasher(k.first);
+                    std::size_t seed = hasher(k.first);
                     seed ^= hasher(k.second) + 0x9e3779b9 + (seed<<6) + (seed>>2);
 
                     return seed;
@@ -152,10 +155,6 @@ namespace ompl
 
                 /** \brief Finds the iterator at the front of the queue. */
                 Container::const_iterator getFrontIter(double suboptimalityFactor);
-                Container::const_iterator front_;
-
-                const bool cacheQueueLookup_ = true;
-                bool modifiedQueue_ = true;
 
                 /** \brief Returns the edge pair from the container. */
                 inline std::pair<EdgeKeys, Edge>& get(Container::iterator &it) const 
@@ -169,13 +168,13 @@ namespace ompl
                     return it->second;
                 }
 
-                mutable unsigned int cachedMinEdgeEffort_{0u};
-
                 /** \brief Returns an iterator to the edge with the best estimated cost. */
                 Container::iterator getBestCostEstimateEdge();
 
                 /** \brief Returns an iterator to the edge with the lower bound cost. */
                 Container::iterator getLowerBoundCostEdge();
+
+                /** \brief Returns a constant iterator to the edge with the lower bound cost. */
                 Container::const_iterator getLowerBoundCostEdge() const;
 
                 /** \brief Returns a constant iterator to the edge with the best estimated cost. */
@@ -196,8 +195,20 @@ namespace ompl
                 /** \brief The state space. */
                 std::shared_ptr<const ompl::base::StateSpace> space_;
 
-                /** \brief The queue is ordered on the lower bound cost through an edge (high to low). */
+                /** \brief The queue does not maintain order, the peek/pop methods give the top element of the queue. */
                 Container queue_{};
+
+                /** \brief Iterator to the current top element in the queue. */
+                Container::const_iterator front_;
+
+                /** \brief Indicates whether the lookup of the top elelement should be cached. */
+                const bool cacheQueueLookup_ = true;
+
+                /** \brief Indicates if the queue was changed since the last time the top element was cached. */
+                bool modifiedQueue_ = true;
+
+                /** \brief The cached minimum effort. */
+                mutable unsigned int cachedMinEdgeEffort_{0u};
             };
         }  // namespace eitstar
 

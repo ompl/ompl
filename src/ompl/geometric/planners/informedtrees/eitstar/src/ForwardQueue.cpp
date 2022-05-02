@@ -99,7 +99,7 @@ namespace ompl
 
             void ForwardQueue::remove(const Edge &edge)
             {
-                std::pair<std::size_t, std::size_t> key = std::make_pair(edge.source->getId(), edge.target->getId());
+                const std::pair<std::size_t, std::size_t> key = std::make_pair(edge.source->getId(), edge.target->getId());
                 const auto it = queue_.find(key);
                 if (it != queue_.cend())
                 {
@@ -126,8 +126,8 @@ namespace ompl
                 auto lowerBoundEdgeCost = objective_->infiniteCost();
                 auto bestCostEdgeCost = objective_->infiniteCost();
 
-                auto lowerBoundEdge = queue_.begin(); 
-                auto bestCostEdge = queue_.begin(); 
+                auto lowerBoundEdge = queue_.cbegin(); 
+                auto bestCostEdge = queue_.cbegin(); 
 
                 if (std::isfinite(suboptimalityFactor))
                 {
@@ -188,7 +188,9 @@ namespace ompl
 
                 front_ = getFrontIter(suboptimalityFactor);
                 auto edge = get(front_).second;
-                getMinEffortToCome();
+
+                // this call updates the cached minimum effort
+                cachedMinEdgeEffort_ = getMinEffortToCome();
                 modifiedQueue_ = false;
 
                 return edge;
@@ -197,9 +199,9 @@ namespace ompl
             void ForwardQueue::updateIfExists(const Edge &edge)
             {
                 // Get an iterator to the element in the queue.
-                std::pair<std::size_t, std::size_t> key = 
+                const std::pair<std::size_t, std::size_t> key = 
                     std::make_pair(edge.source->getId(), edge.target->getId());
-                auto it = queue_.find(key);
+                const auto it = queue_.find(key);
                 if (it == queue_.end())
                 {
                     return;
@@ -212,7 +214,7 @@ namespace ompl
             Edge ForwardQueue::pop(double suboptimalityFactor){
                 auto it = getFrontIter(suboptimalityFactor);
 
-                auto edge = get(it).second;
+                const auto edge = get(it).second;
                 queue_.erase(it);
                 edge.target->removeFromSourcesOfIncomingEdgesInForwardQueue(edge.source);
 
@@ -231,7 +233,7 @@ namespace ompl
                 unsigned int minEdgeEffort = std::numeric_limits<unsigned int>::max();
                 for (auto it = queue_.cbegin(); it != queue_.cend(); ++it)
                 {
-                    auto edge = get(it).second;
+                    const auto edge = get(it).second;
                     
                     if (edge.target->hasReverseVertex() || edge.target->hasForwardVertex())
                     {
@@ -282,10 +284,10 @@ namespace ompl
 
             void ForwardQueue::clear()
             {
-                for (const auto &edge : queue_)
+                for (const auto &element : queue_)
                 {
-                    auto &a = edge.second;
-                    a.second.target->resetSourcesOfIncomingEdgesInForwardQueue();
+                    const auto &edge = element.second.second;
+                    edge.target->resetSourcesOfIncomingEdgesInForwardQueue();
                 }
                 queue_.clear();
                 modifiedQueue_ = true;
@@ -295,10 +297,10 @@ namespace ompl
             {
                 std::vector<Edge> edges;
                 edges.reserve(queue_.size());
-                for (auto keyAndEdge : queue_)
+                for (const auto element : queue_)
                 {
-                    auto &a = keyAndEdge.second;
-                    edges.emplace_back(a.second);
+                    const auto &edge = element.second.second;
+                    edges.emplace_back(edge);
                 }
                 return edges;
             }
@@ -326,9 +328,9 @@ namespace ompl
             {
                 // Find the best estimate edge and corresponding cost.
                 return std::min_element(queue_.begin(), queue_.end(), [this](const auto &a, const auto &b) {
-                    auto &aT = a.second;
-                    auto &bT = b.second;
-                    return objective_->isCostBetterThan(aT.first.estimatedCost, bT.first.estimatedCost);
+                    const auto &aEdgeKey = a.second.first;
+                    const auto &bEdgeKey = b.second.first;
+                    return objective_->isCostBetterThan(aEdgeKey.estimatedCost, bEdgeKey.estimatedCost);
                 });
             }
 
@@ -336,18 +338,18 @@ namespace ompl
             {
                 // Find the best estimate edge and corresponding cost.
                 return std::min_element(queue_.cbegin(), queue_.cend(), [this](const auto &a, const auto &b) {
-                    auto &aT = a.second;
-                    auto &bT = b.second;
-                    return objective_->isCostBetterThan(aT.first.estimatedCost, bT.first.estimatedCost);
+                    const auto &aEdgeKey = a.second.first;
+                    const auto &bEdgeKey = b.second.first;
+                    return objective_->isCostBetterThan(aEdgeKey.estimatedCost, bEdgeKey.estimatedCost);
                 });
             }
 
             ForwardQueue::Container::iterator ForwardQueue::getLowerBoundCostEdge()
             {
                 auto it = std::max_element(queue_.begin(), queue_.end(), [this](const auto &a, const auto &b) {
-                    auto &aT = a.second;
-                    auto &bT = b.second;
-                    return !objective_->isCostBetterThan(aT.first.lowerBoundCost, bT.first.lowerBoundCost);
+                    const auto &aEdgeKey = a.second.first;
+                    const auto &bEdgeKey = b.second.first;
+                    return !objective_->isCostBetterThan(aEdgeKey.lowerBoundCost, bEdgeKey.lowerBoundCost);
                 });
 
                 return it;
@@ -356,9 +358,9 @@ namespace ompl
             ForwardQueue::Container::const_iterator ForwardQueue::getLowerBoundCostEdge() const
             {
                 return  std::max_element(queue_.cbegin(), queue_.cend(), [this](const auto &a, const auto &b) {
-                    auto &aT = a.second;
-                    auto &bT = b.second;
-                    return !objective_->isCostBetterThan(aT.first.lowerBoundCost, bT.first.lowerBoundCost);
+                    const auto &aEdgeKey = a.second.first;
+                    const auto &bEdgeKey = b.second.first;
+                    return !objective_->isCostBetterThan(aEdgeKey.lowerBoundCost, bEdgeKey.lowerBoundCost);
                 });
             }
 
@@ -377,7 +379,7 @@ namespace ompl
 
             std::size_t ForwardQueue::estimateEffort(const Edge &edge) const
             {
-                unsigned int edgeEffort;
+                unsigned int edgeEffort = 0u;
                 if (edge.source->isWhitelisted(edge.target))
                 {
                     edgeEffort = 0u;
@@ -400,8 +402,8 @@ namespace ompl
                     return std::numeric_limits<unsigned int>::max();
                 }
 
-                unsigned int totalEffort = edge.target->getEstimatedEffortToGo() + edgeEffort;
-                return totalEffort;
+                // Return the total effort
+                return edge.target->getEstimatedEffortToGo() + edgeEffort;
             }
 
             ompl::base::Cost ForwardQueue::estimateCost(const Edge &edge) const

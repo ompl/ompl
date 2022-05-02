@@ -33,8 +33,6 @@
  *********************************************************************/
 
 // Authors: Marlin Strub
-#include <chrono>
-
 #include "ompl/geometric/planners/informedtrees/eitstar/ReverseQueue.h"
 
 #include <utility>
@@ -50,11 +48,11 @@ namespace ompl
         {
             ReverseQueue::ReverseQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
                                        const std::shared_ptr<const ompl::base::StateSpace> &space,
-                                       const double suboptimalityFactor)
-              : suboptimalityFactor_(suboptimalityFactor)
+                                       const bool isQueueCostOrdered)
+              : isQueueCostOrdered_(isQueueCostOrdered)
               , objective_(objective)
               , space_(space)
-              , queue_((std::isfinite(suboptimalityFactor) ? getCostComparisonOperator() : getEffortComparisonOperator()))
+              , queue_(isQueueCostOrdered_ ? getCostComparisonOperator() : getEffortComparisonOperator())
             {
             }
 
@@ -98,15 +96,14 @@ namespace ompl
                 }
             }
 
-            void ReverseQueue::updateQueueOrdering(const double suboptimalityFactor) 
+            void ReverseQueue::setCostQueueOrder(const bool isQueueCostOrdered) 
             {
-                suboptimalityFactor_ = suboptimalityFactor;
+                isQueueCostOrdered_ = isQueueCostOrdered;
 
                 if (!empty()){
-                    throw std::out_of_range("Can't update ordering of queue if there are elements in it.");
+                    throw std::runtime_error("Can't update ordering of queue if there are elements in it.");
                 }
-                //queue_.getComparisonOperator() = std::isfinite(suboptimalityFactor) ? getCostComparisonOperator() : getEffortComparisonOperator();
-                if (std::isfinite(suboptimalityFactor))
+                if (isQueueCostOrdered_)
                 {
                     queue_.getComparisonOperator() = getCostComparisonOperator();
                 }
@@ -205,7 +202,7 @@ namespace ompl
                     }
                 }
 
-                unsigned int totalEffort = edge.source->getEstimatedEffortToGo() +
+                const unsigned int totalEffort = edge.source->getEstimatedEffortToGo() +
                   edgeEffort + 
                   edge.target->getLowerBoundEffortToCome();
 
@@ -221,7 +218,7 @@ namespace ompl
 
             std::function<bool(const ReverseQueue::HeapElement &, const ReverseQueue::HeapElement &)> ReverseQueue::getCostComparisonOperator() const
             {
-               return [objective=objective_](const HeapElement &lhs, const HeapElement &rhs) {
+               return [&objective=objective_](const HeapElement &lhs, const HeapElement &rhs) {
                   if (objective->isCostEquivalentTo(std::get<0>(lhs), std::get<0>(rhs)))
                   {
                       if (objective->isCostEquivalentTo(std::get<1>(lhs), std::get<1>(rhs)))
@@ -242,16 +239,16 @@ namespace ompl
 
             std::function<bool(const ReverseQueue::HeapElement &, const ReverseQueue::HeapElement &)> ReverseQueue::getEffortComparisonOperator() const
             {
-              return [&](const HeapElement &lhs, const HeapElement &rhs) {
+              return [&objective=objective_](const HeapElement &lhs, const HeapElement &rhs) {
                   if (std::get<2>(lhs) == std::get<2>(rhs)){
                     if (std::get<3>(lhs) == std::get<3>(rhs)){
-                      if (objective_->isCostEquivalentTo(std::get<0>(lhs), std::get<0>(rhs)))
+                      if (objective->isCostEquivalentTo(std::get<0>(lhs), std::get<0>(rhs)))
                       {
-                          return objective_->isCostBetterThan(std::get<1>(lhs), std::get<1>(rhs));
+                          return objective->isCostBetterThan(std::get<1>(lhs), std::get<1>(rhs));
                       }
                       else
                       {
-                          return objective_->isCostBetterThan(std::get<0>(lhs), std::get<0>(rhs));
+                          return objective->isCostBetterThan(std::get<0>(lhs), std::get<0>(rhs));
                       } 
                     }
                     else{
@@ -283,15 +280,12 @@ namespace ompl
                     edgeEffort = fullSegmentCount - performedChecks;
 
                     // This should never occur, but we check anyways
+
                     if (fullSegmentCount < performedChecks)
                     {
                         edgeEffort = 0u;
                     }
                 }
-
-                unsigned int totalEffort = edge.source->getEstimatedEffortToGo() +
-                  edgeEffort + 
-                  edge.target->getInadmissibleEffortToCome();
 
                 if (std::numeric_limits<unsigned int>::max() -
                     edgeEffort - edge.source->getEstimatedEffortToGo() < 
@@ -300,7 +294,10 @@ namespace ompl
                     return std::numeric_limits<unsigned int>::max(); 
                 }
 
-                return totalEffort;
+                // return total effort
+                return edge.source->getEstimatedEffortToGo() +
+                  edgeEffort + 
+                  edge.target->getInadmissibleEffortToCome();
             }
 
             Edge ReverseQueue::pop()
