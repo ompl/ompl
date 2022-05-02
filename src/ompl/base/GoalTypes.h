@@ -62,10 +62,7 @@ namespace ompl
             GOAL_STATES = GOAL_SAMPLEABLE_REGION + 16,
 
             /** \brief This bit is set if casting to goal states (ompl::base::GoalLazySamples) is possible */
-            GOAL_LAZY_SAMPLES = GOAL_STATES + 32,
-
-            /** \brief This bit is set if casting to goal space (ompl::base::GoalSpace) is possible */
-            GOAL_SPACE = GOAL_LAZY_SAMPLES + 64
+            GOAL_LAZY_SAMPLES = GOAL_STATES + 32
         };
     }
 }
