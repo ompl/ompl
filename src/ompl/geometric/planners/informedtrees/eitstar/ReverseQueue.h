@@ -61,8 +61,7 @@ namespace ompl
             public:
                 /** \brief Constructs the queue with the given optimization objective and state space. */
                 ReverseQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
-                             const std::shared_ptr<const ompl::base::StateSpace> &space,
-                             const bool isQueueCostOrdered);
+                             const std::shared_ptr<const ompl::base::StateSpace> &space, const bool isQueueCostOrdered);
 
                 /** \brief Destructs this queue. */
                 ~ReverseQueue() = default;
@@ -113,8 +112,7 @@ namespace ompl
                 ompl::base::Cost computeAdmissibleSolutionCost(const Edge &edge) const;
 
             private:
-                using HeapElement = std::tuple<ompl::base::Cost, ompl::base::Cost,
-                      unsigned int, unsigned int, Edge>;
+                using HeapElement = std::tuple<ompl::base::Cost, ompl::base::Cost, unsigned int, unsigned int, Edge>;
                 using CostEffortHeap =
                     ompl::BinaryHeap<HeapElement, std::function<bool(const HeapElement &, const HeapElement &)>>;
 
@@ -144,7 +142,6 @@ namespace ompl
 
                 /** \brief The queue is ordered on [g + c + h, g + c, effort] */
                 CostEffortHeap queue_;
-
             };
         }  // namespace eitstar
 

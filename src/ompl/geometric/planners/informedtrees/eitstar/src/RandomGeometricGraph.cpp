@@ -123,39 +123,48 @@ namespace ompl
                 auto startAndGoalStates = startStates_;
                 startAndGoalStates.insert(startAndGoalStates.end(), goalStates_.begin(), goalStates_.end());
 
-                for (auto &sample: startAndGoalStates){
-                  bool remove = true;
+                for (auto &sample : startAndGoalStates)
+                {
+                    bool remove = true;
 
-                  // look at the cost that we might save if we keep this one
-                  unsigned int maxSingleEdgeSavedEffort = 0u;
-                  for (const auto &w: getNeighbors(sample)){
-                    if (auto neighbor = w.lock()) {
-                      if (sample->isWhitelisted(neighbor)){
-                        const std::size_t fullSegmentCount = space_->validSegmentCount(sample->raw(), neighbor->raw());
+                    // look at the cost that we might save if we keep this one
+                    unsigned int maxSingleEdgeSavedEffort = 0u;
+                    for (const auto &w : getNeighbors(sample))
+                    {
+                        if (auto neighbor = w.lock())
+                        {
+                            if (sample->isWhitelisted(neighbor))
+                            {
+                                const std::size_t fullSegmentCount =
+                                    space_->validSegmentCount(sample->raw(), neighbor->raw());
 
-                        if (fullSegmentCount > maxSingleEdgeSavedEffort){
-                          maxSingleEdgeSavedEffort = fullSegmentCount;
+                                if (fullSegmentCount > maxSingleEdgeSavedEffort)
+                                {
+                                    maxSingleEdgeSavedEffort = fullSegmentCount;
+                                }
+                            }
                         }
-                      }
                     }
-                  }
 
-                  if (maxSingleEdgeSavedEffort > effortThreshold_){
-                    remove = false;
-                  }
+                    if (maxSingleEdgeSavedEffort > effortThreshold_)
+                    {
+                        remove = false;
+                    }
 
-                  if (remove){
-                    samples_.remove(sample);
-                  }
-                  else{
-                    startGoalBuffer_.push_back(sample);
-                  }
+                    if (remove)
+                    {
+                        samples_.remove(sample);
+                    }
+                    else
+                    {
+                        startGoalBuffer_.push_back(sample);
+                    }
                 }
             }
 
             void RandomGeometricGraph::clearQuery()
             {
-                if(isMultiqueryEnabled_)
+                if (isMultiqueryEnabled_)
                 {
                     pruneStartsAndGoals();
                 }
@@ -168,14 +177,14 @@ namespace ompl
                 newSamples_.clear();
 
                 samples_.clear();
-                if(isMultiqueryEnabled_)
+                if (isMultiqueryEnabled_)
                 {
                     samples_.add(startGoalBuffer_);
                 }
 
                 currentNumSamples_ = 0u;
 
-                tag_ ++;
+                tag_++;
 
                 if (!isMultiqueryEnabled_)
                 {
@@ -205,12 +214,11 @@ namespace ompl
                         // If there was a new valid goal, register it as such and remember that a goal has been added.
                         if (static_cast<bool>(newGoalState))
                         {
-                            ++numValidSamples_; 
-                            
+                            ++numValidSamples_;
+
                             registerGoalState(newGoalState);
                             addedNewGoalState = true;
                         }
-
 
                     } while (inputStates->haveMoreGoalStates() && goalStates_.size() < maxNumGoals_ &&
                              !terminationCondition);
@@ -225,7 +233,7 @@ namespace ompl
                     // If there is a new valid start, register it as such and remember that a start has been added.
                     if (static_cast<bool>(newStartState))
                     {
-                        ++numValidSamples_; 
+                        ++numValidSamples_;
 
                         registerStartState(newStartState);
                         addedNewStartState = true;
@@ -330,7 +338,7 @@ namespace ompl
 
                 std::vector<std::shared_ptr<State>> samples;
                 samples_.list(samples);
-                for (auto &state: samples)
+                for (auto &state : samples)
                 {
                     initializeState(state);
                 }
@@ -356,7 +364,7 @@ namespace ompl
                 effortThreshold_ = threshold;
             }
 
-            unsigned int RandomGeometricGraph::getEffortThreshold() const 
+            unsigned int RandomGeometricGraph::getEffortThreshold() const
             {
                 return effortThreshold_;
             }
@@ -511,7 +519,8 @@ namespace ompl
                         }
                         else
                         {
-                            // In case we are not doing multiquery planning, we can still directly sample the informed set.
+                            // In case we are not doing multiquery planning, we can still directly sample the informed
+                            // set.
                             sampler_->sampleUniform(state->raw(), solutionCost_);
                         }
 
@@ -545,7 +554,7 @@ namespace ompl
                 do
                 {
                     do
-                    { 
+                    {
                         const auto state = getNewSample();
 
                         // Since we do not do informed sampling, we need to check if the sample could improve
@@ -553,7 +562,7 @@ namespace ompl
                         if (!canBePruned(state))
                         {
                             newSamples_.emplace_back(state);
-                            
+
                             // Add this state to the goal states if it is a goal.
                             if (problem_->getGoal()->isSatisfied(state->raw()))
                             {
@@ -587,7 +596,7 @@ namespace ompl
                     samples_.add(newSamples_);
 
                     // only initialize samples after all states have been added to the graph
-                    for (auto &sample: newSamples_)
+                    for (auto &sample : newSamples_)
                     {
                         initializeState(sample);
                     }
@@ -667,13 +676,10 @@ namespace ompl
                         std::vector<std::shared_ptr<State>> samples;
                         samples_.list(samples);
 
-                        if (std::find(samples.begin(), samples.end(), state) != samples.end()){
-                          std::copy_if(samples.begin(), 
-                                       samples.end(), 
-                                       std::back_inserter(whitelistedNeighbors),
-                                       [&state](const auto v){
-                                          return state->isWhitelisted(v) ;
-                                       });
+                        if (std::find(samples.begin(), samples.end(), state) != samples.end())
+                        {
+                            std::copy_if(samples.begin(), samples.end(), std::back_inserter(whitelistedNeighbors),
+                                         [&state](const auto v) { return state->isWhitelisted(v); });
                         }
                     }
 
@@ -694,17 +700,16 @@ namespace ompl
                     // add whitelisted neighbours to the vector even if they are above the radius
                     if (isMultiqueryEnabled_)
                     {
-                        std::copy_if(whitelistedNeighbors.begin(), 
-                                     whitelistedNeighbors.end(), 
-                                     std::back_inserter(neighbors),
-                                     [&neighbors](const auto v){return std::find(neighbors.begin(), neighbors.end(), v) == neighbors.end();});
-
+                        std::copy_if(whitelistedNeighbors.begin(), whitelistedNeighbors.end(),
+                                     std::back_inserter(neighbors), [&neighbors](const auto v) {
+                                         return std::find(neighbors.begin(), neighbors.end(), v) == neighbors.end();
+                                     });
                     }
 
                     // We dont want to connect to blacklisted neighbors and the querying state itself.
                     const auto connectionPredicate = [&state, this](const std::shared_ptr<State> &neighbor) {
-                        return !state->isBlacklisted(neighbor) &&
-                               (state->id_ != neighbor->id_) && !(isGoal(state) && isGoal(neighbor));
+                        return !state->isBlacklisted(neighbor) && (state->id_ != neighbor->id_) &&
+                               !(isGoal(state) && isGoal(neighbor));
                     };
 
                     // Cache the neighbors that are not blacklisted and not the state itself.
@@ -874,7 +879,8 @@ namespace ompl
                 // If we previously validated any states, the lower bound effort to come is 0.
                 // (it is possible to compute a better bound, but empirically, it is not worth the computational
                 // effort it takes to compute this better bound.)
-                if (whitelistedStates_.size() != 0u){
+                if (whitelistedStates_.size() != 0u)
+                {
                     return 0u;
                 }
 

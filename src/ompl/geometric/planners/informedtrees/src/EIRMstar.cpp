@@ -40,8 +40,7 @@ namespace ompl
 {
     namespace geometric
     {
-        EIRMstar::EIRMstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo)
-          : EITstar(spaceInfo)
+        EIRMstar::EIRMstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo) : EITstar(spaceInfo)
         {
             setName("EIRM*");
             enableMultiquery(true);

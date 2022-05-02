@@ -51,7 +51,7 @@
 #include "ompl/geometric/planners/informedtrees/eitstar/Edge.h"
 #include "ompl/geometric/planners/informedtrees/eitstar/Vertex.h"
 
-#include  <unordered_map>
+#include <unordered_map>
 
 namespace ompl
 {
@@ -59,7 +59,6 @@ namespace ompl
     {
         namespace eitstar
         {
-            
             struct pair_hash
             {
                 std::size_t operator()(const std::pair<std::size_t, std::size_t> &k) const
@@ -70,7 +69,7 @@ namespace ompl
                     std::hash<std::size_t> hasher;
 
                     std::size_t seed = hasher(k.first);
-                    seed ^= hasher(k.second) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+                    seed ^= hasher(k.second) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 
                     return seed;
                 }
@@ -131,6 +130,7 @@ namespace ompl
 
                 /** \brief Estimates the effort that remains to validate a solution through an edge. */
                 std::size_t estimateEffort(const Edge &edge) const;
+
             private:
                 /** \brief The three values an edge can be sorted by. */
                 struct EdgeKeys
@@ -146,24 +146,20 @@ namespace ompl
                 /** \brief Creates a queue element from the given edge. */
                 std::pair<EdgeKeys, Edge> makeElement(const Edge &edge) const;
 
-                using Container = 
-                    std::unordered_map<
-                        std::pair<std::size_t, std::size_t>, 
-                        std::pair<EdgeKeys, Edge>,
-                        pair_hash
-                    >;
+                using Container =
+                    std::unordered_map<std::pair<std::size_t, std::size_t>, std::pair<EdgeKeys, Edge>, pair_hash>;
 
                 /** \brief Finds the iterator at the front of the queue. */
                 Container::const_iterator getFrontIter(double suboptimalityFactor);
 
                 /** \brief Returns the edge pair from the container. */
-                inline std::pair<EdgeKeys, Edge>& get(Container::iterator &it) const 
+                inline std::pair<EdgeKeys, Edge> &get(Container::iterator &it) const
                 {
                     return it->second;
                 }
 
                 /** \brief Returns the edge pair from the container. */
-                inline const std::pair<EdgeKeys, Edge>& get(Container::const_iterator &it) const
+                inline const std::pair<EdgeKeys, Edge> &get(Container::const_iterator &it) const
                 {
                     return it->second;
                 }

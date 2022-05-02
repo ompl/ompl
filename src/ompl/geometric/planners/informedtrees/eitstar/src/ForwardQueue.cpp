@@ -89,7 +89,7 @@ namespace ompl
             void ForwardQueue::insertOrUpdate(const std::vector<Edge> &edges)
             {
                 modifiedQueue_ = true;
-                
+
                 // For now, let's just do this naively.
                 for (const auto &edge : edges)
                 {
@@ -99,7 +99,8 @@ namespace ompl
 
             void ForwardQueue::remove(const Edge &edge)
             {
-                const std::pair<std::size_t, std::size_t> key = std::make_pair(edge.source->getId(), edge.target->getId());
+                const std::pair<std::size_t, std::size_t> key =
+                    std::make_pair(edge.source->getId(), edge.target->getId());
                 const auto it = queue_.find(key);
                 if (it != queue_.cend())
                 {
@@ -126,13 +127,13 @@ namespace ompl
                 auto lowerBoundEdgeCost = objective_->infiniteCost();
                 auto bestCostEdgeCost = objective_->infiniteCost();
 
-                auto lowerBoundEdge = queue_.cbegin(); 
-                auto bestCostEdge = queue_.cbegin(); 
+                auto lowerBoundEdge = queue_.cbegin();
+                auto bestCostEdge = queue_.cbegin();
 
                 if (std::isfinite(suboptimalityFactor))
                 {
                     // Get the lower bounding edge and corresponding cost.
-                    lowerBoundEdge = getLowerBoundCostEdge(); 
+                    lowerBoundEdge = getLowerBoundCostEdge();
                     lowerBoundEdgeCost = inflateCost(get(lowerBoundEdge).first.lowerBoundCost, suboptimalityFactor);
 
                     // Find the best estimate edge and corresponding cost.
@@ -154,8 +155,8 @@ namespace ompl
                         bestEffortEdge = it;
                     }
                     else if (get(it).first.estimatedEffort == get(bestEffortEdge).first.estimatedEffort &&
-                        !objective_->isCostBetterThan(bestCostEdgeCost, get(it).first.estimatedCost) &&
-                        objective_->isCostBetterThan(get(it).first.lowerBoundCost, bestEffortLowerBoundCost))
+                             !objective_->isCostBetterThan(bestCostEdgeCost, get(it).first.estimatedCost) &&
+                             objective_->isCostBetterThan(get(it).first.lowerBoundCost, bestEffortLowerBoundCost))
                     {
                         bestEffortEdgeCost = get(it).first.estimatedCost;
                         bestEffortLowerBoundCost = get(it).first.lowerBoundCost;
@@ -199,7 +200,7 @@ namespace ompl
             void ForwardQueue::updateIfExists(const Edge &edge)
             {
                 // Get an iterator to the element in the queue.
-                const std::pair<std::size_t, std::size_t> key = 
+                const std::pair<std::size_t, std::size_t> key =
                     std::make_pair(edge.source->getId(), edge.target->getId());
                 const auto it = queue_.find(key);
                 if (it == queue_.end())
@@ -211,7 +212,8 @@ namespace ompl
                 modifiedQueue_ = true;
             }
 
-            Edge ForwardQueue::pop(double suboptimalityFactor){
+            Edge ForwardQueue::pop(double suboptimalityFactor)
+            {
                 auto it = getFrontIter(suboptimalityFactor);
 
                 const auto edge = get(it).second;
@@ -234,7 +236,7 @@ namespace ompl
                 for (auto it = queue_.cbegin(); it != queue_.cend(); ++it)
                 {
                     const auto edge = get(it).second;
-                    
+
                     if (edge.target->hasReverseVertex() || edge.target->hasForwardVertex())
                     {
                         continue;
@@ -245,10 +247,10 @@ namespace ompl
                         continue;
                     }
 
-
                     // Get the number of checks already performed on this edge.
                     const unsigned int performedChecks = edge.target->getIncomingCollisionCheckResolution(edge.source);
-                    const unsigned int fullSegmentCount = space_->validSegmentCount(edge.source->raw(), edge.target->raw());
+                    const unsigned int fullSegmentCount =
+                        space_->validSegmentCount(edge.source->raw(), edge.target->raw());
 
                     const unsigned int edgeEffort = fullSegmentCount - performedChecks;
 
@@ -357,7 +359,7 @@ namespace ompl
 
             ForwardQueue::Container::const_iterator ForwardQueue::getLowerBoundCostEdge() const
             {
-                return  std::max_element(queue_.cbegin(), queue_.cend(), [this](const auto &a, const auto &b) {
+                return std::max_element(queue_.cbegin(), queue_.cend(), [this](const auto &a, const auto &b) {
                     const auto &aEdgeKey = a.second.first;
                     const auto &bEdgeKey = b.second.first;
                     return !objective_->isCostBetterThan(aEdgeKey.lowerBoundCost, bEdgeKey.lowerBoundCost);
@@ -386,7 +388,8 @@ namespace ompl
                 }
                 else
                 {
-                    const unsigned int fullSegmentCount = space_->validSegmentCount(edge.source->raw(), edge.target->raw());
+                    const unsigned int fullSegmentCount =
+                        space_->validSegmentCount(edge.source->raw(), edge.target->raw());
 
                     // Get the number of checks already performed on this edge.
                     const unsigned int performedChecks = edge.target->getIncomingCollisionCheckResolution(edge.source);
@@ -395,9 +398,7 @@ namespace ompl
                 }
 
                 // Make sure this doesn't overflow.
-                if (std::numeric_limits<unsigned int>::max() -
-                        edgeEffort <
-                    edge.target->getEstimatedEffortToGo())
+                if (std::numeric_limits<unsigned int>::max() - edgeEffort < edge.target->getEstimatedEffortToGo())
                 {
                     return std::numeric_limits<unsigned int>::max();
                 }
