@@ -180,7 +180,7 @@ namespace ompl
 
             unsigned int ReverseQueue::computeAdmissibleSolutionEffort(const Edge &edge) const
             {
-                std::size_t edgeEffort;
+                std::size_t edgeEffort = 0u;
                 if (edge.source->isWhitelisted(edge.target))
                 {
                     edgeEffort = 0u;
@@ -267,8 +267,7 @@ namespace ompl
 
             unsigned int ReverseQueue::computeInadmissibleSolutionEffort(const Edge &edge) const
             {
-                std::size_t edgeEffort;
-                ;
+                std::size_t edgeEffort = 0u;
                 if (edge.source->isWhitelisted(edge.target))
                 {
                     edgeEffort = 0u;
