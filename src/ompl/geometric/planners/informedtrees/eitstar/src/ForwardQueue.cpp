@@ -52,7 +52,7 @@ namespace ompl
                                        const std::shared_ptr<const ompl::base::StateSpace> &space)
               : objective_(objective), space_(space)
             {
-                queue_.reserve(1000u);
+                queue_.reserve(100u);
             }
 
             bool ForwardQueue::empty() const
@@ -67,21 +67,20 @@ namespace ompl
 
             void ForwardQueue::insertOrUpdate(const Edge &edge)
             {
+                modifiedQueue_ = true;
+
                 // We update by removing the old edge and inserting the new.
-                auto iter = iterator(edge);
-                if (iter != queue_.end())
-                {
-                    queue_.erase(iter);
-                }
-
-                // Create the queue element of the edge.
+                std::pair<std::size_t, std::size_t> key = std::make_pair(edge.source->getId(), edge.target->getId());
                 const auto element = makeElement(edge);
-
-                // Find where the edge belongs.
-                const auto pos = position(element);
-
-                // Insert it at the correct position.
-                queue_.insert(pos, element);
+                auto it = queue_.find(key);
+                if (it != queue_.end())
+                {
+                    it->second = element;
+                }
+                else
+                {
+                    queue_.insert({key, element});
+                }
 
                 // Add it to the cache in the target state.
                 edge.target->addToSourcesOfIncomingEdgesInForwardQueue(edge.source);
@@ -89,6 +88,8 @@ namespace ompl
 
             void ForwardQueue::insertOrUpdate(const std::vector<Edge> &edges)
             {
+                modifiedQueue_ = true;
+
                 // For now, let's just do this naively.
                 for (const auto &edge : edges)
                 {
@@ -98,18 +99,83 @@ namespace ompl
 
             void ForwardQueue::remove(const Edge &edge)
             {
-                const auto it = iterator(edge);
-
+                const std::pair<std::size_t, std::size_t> key =
+                    std::make_pair(edge.source->getId(), edge.target->getId());
+                const auto it = queue_.find(key);
                 if (it != queue_.cend())
                 {
                     // The forward queue does not have a lookup, just erase the edge.
                     queue_.erase(it);
                     edge.target->removeFromSourcesOfIncomingEdgesInForwardQueue(edge.source);
+
+                    modifiedQueue_ = true;
                 }
                 else
                 {
                     throw std::out_of_range("Can not remove edge from the forward queue, because it is not in the "
                                             "queue.");
+                }
+            }
+
+            ForwardQueue::Container::const_iterator ForwardQueue::getFrontIter(double suboptimalityFactor)
+            {
+                if (cacheQueueLookup_ && !modifiedQueue_)
+                {
+                    return front_;
+                }
+
+                auto lowerBoundEdgeCost = objective_->infiniteCost();
+                auto bestCostEdgeCost = objective_->infiniteCost();
+
+                auto lowerBoundEdge = queue_.cbegin();
+                auto bestCostEdge = queue_.cbegin();
+
+                if (std::isfinite(suboptimalityFactor))
+                {
+                    // Get the lower bounding edge and corresponding cost.
+                    lowerBoundEdge = getLowerBoundCostEdge();
+                    lowerBoundEdgeCost = inflateCost(get(lowerBoundEdge).first.lowerBoundCost, suboptimalityFactor);
+
+                    // Find the best estimate edge and corresponding cost.
+                    bestCostEdge = getBestCostEstimateEdge();
+                    bestCostEdgeCost = inflateCost(get(bestCostEdge).first.estimatedCost, suboptimalityFactor);
+                }
+
+                // Find the least effort edge and corresponding cost.
+                auto bestEffortEdge = queue_.cbegin();
+                auto bestEffortEdgeCost = objective_->infiniteCost();
+                auto bestEffortLowerBoundCost = objective_->infiniteCost();
+                for (auto it = queue_.cbegin(); it != queue_.cend(); ++it)
+                {
+                    if (get(it).first.estimatedEffort < get(bestEffortEdge).first.estimatedEffort &&
+                        !objective_->isCostBetterThan(bestCostEdgeCost, get(it).first.estimatedCost))
+                    {
+                        bestEffortEdgeCost = get(it).first.estimatedCost;
+                        bestEffortLowerBoundCost = get(it).first.lowerBoundCost;
+                        bestEffortEdge = it;
+                    }
+                    else if (get(it).first.estimatedEffort == get(bestEffortEdge).first.estimatedEffort &&
+                             !objective_->isCostBetterThan(bestCostEdgeCost, get(it).first.estimatedCost) &&
+                             objective_->isCostBetterThan(get(it).first.lowerBoundCost, bestEffortLowerBoundCost))
+                    {
+                        bestEffortEdgeCost = get(it).first.estimatedCost;
+                        bestEffortLowerBoundCost = get(it).first.lowerBoundCost;
+                        bestEffortEdge = it;
+                    }
+                }
+
+                // Return the correct edge.
+                if (objective_->isCostBetterThan(bestEffortEdgeCost, lowerBoundEdgeCost))
+                {
+                    return bestEffortEdge;
+                }
+                else if (objective_->isCostBetterThan(get(bestCostEdge).first.estimatedCost, lowerBoundEdgeCost))
+                {
+                    return bestCostEdge;
+                }
+                else
+                {
+                    return lowerBoundEdge;
                 }
             }
 
@@ -121,111 +187,122 @@ namespace ompl
                     throw std::out_of_range("Forward queue is empty, cannot peek.");
                 }
 
-                const auto edge = pop(suboptimalityFactor);
-                insertOrUpdate(edge);
+                front_ = getFrontIter(suboptimalityFactor);
+                auto edge = get(front_).second;
+
+                // this call updates the cached minimum effort
+                cachedMinEdgeEffort_ = getMinEffortToCome();
+                modifiedQueue_ = false;
+
                 return edge;
             }
 
             void ForwardQueue::updateIfExists(const Edge &edge)
             {
                 // Get an iterator to the element in the queue.
-                const auto iter = iterator(edge);
-
-                // If the element doesn't exist in the queue, we return.
-                if (iter == queue_.end())
+                const std::pair<std::size_t, std::size_t> key =
+                    std::make_pair(edge.source->getId(), edge.target->getId());
+                const auto it = queue_.find(key);
+                if (it == queue_.end())
                 {
                     return;
                 }
 
-                // We update by erasing and inserting at the correct location.
-                queue_.erase(iter);
-
-                // Create the key and edge pair.
-                const auto element = makeElement(edge);
-
-                // Find where to insert the pair.
-                const auto pos = position(element);
-
-                // Insert the edge at the correct location.
-                queue_.insert(pos, element);
+                it->second = makeElement(edge);
+                modifiedQueue_ = true;
             }
 
             Edge ForwardQueue::pop(double suboptimalityFactor)
             {
-                // Get the lower bounding edge and corresponding cost.
-                const auto lowerBoundEdge = queue_.end() - 1u;  // Could do rbegin(), but converting reverse iterators
-                                                                // to froward iterators is error prone.
-                const auto lowerBoundEdgeCost = inflateCost(lowerBoundEdge->first.lowerBoundCost, suboptimalityFactor);
+                auto it = getFrontIter(suboptimalityFactor);
 
-                // Find the best estimate edge and corresponding cost.
-                const auto bestCostEdge = getBestCostEstimateEdge();
-                const auto bestCostEdgeCost = inflateCost(bestCostEdge->first.estimatedCost, suboptimalityFactor);
+                const auto edge = get(it).second;
+                queue_.erase(it);
+                edge.target->removeFromSourcesOfIncomingEdgesInForwardQueue(edge.source);
 
-                // Find the least effort edge and corresponding cost.
-                auto bestEffortEdge = queue_.cbegin();
-                auto bestEffortEdgeCost = objective_->infiniteCost();
+                modifiedQueue_ = true;
+
+                return edge;
+            }
+
+            unsigned int ForwardQueue::getMinEffortToCome() const
+            {
+                if (cacheQueueLookup_ && !modifiedQueue_)
+                {
+                    return cachedMinEdgeEffort_;
+                }
+
+                unsigned int minEdgeEffort = std::numeric_limits<unsigned int>::max();
                 for (auto it = queue_.cbegin(); it != queue_.cend(); ++it)
                 {
-                    if (it->first.estimatedEffort < bestEffortEdge->first.estimatedEffort &&
-                        !objective_->isCostBetterThan(bestCostEdgeCost, it->first.estimatedCost))
+                    const auto edge = get(it).second;
+
+                    if (edge.target->hasReverseVertex() || edge.target->hasForwardVertex())
                     {
-                        bestEffortEdgeCost = it->first.estimatedCost;
-                        bestEffortEdge = it;
+                        continue;
+                    }
+
+                    if (edge.source->isWhitelisted(edge.target))
+                    {
+                        continue;
+                    }
+
+                    // Get the number of checks already performed on this edge.
+                    const unsigned int performedChecks = edge.target->getIncomingCollisionCheckResolution(edge.source);
+                    const unsigned int fullSegmentCount =
+                        space_->validSegmentCount(edge.source->raw(), edge.target->raw());
+
+                    const unsigned int edgeEffort = fullSegmentCount - performedChecks;
+
+                    if (edgeEffort < minEdgeEffort)
+                    {
+                        minEdgeEffort = edgeEffort;
+                    }
+
+                    if (minEdgeEffort == 0u)
+                    {
+                        cachedMinEdgeEffort_ = 0;
+                        return 0u;
                     }
                 }
 
-                // Return the correct edge.
-                if (!objective_->isCostBetterThan(lowerBoundEdgeCost, bestEffortEdgeCost))
-                {
-                    const auto edge = bestEffortEdge->second;
-                    queue_.erase(bestEffortEdge);
-                    edge.target->removeFromSourcesOfIncomingEdgesInForwardQueue(edge.source);
-                    return edge;
-                }
-                else if (!objective_->isCostBetterThan(lowerBoundEdgeCost, bestCostEdge->first.estimatedCost))
-                {
-                    const auto edge = bestCostEdge->second;
-                    edge.target->removeFromSourcesOfIncomingEdgesInForwardQueue(edge.source);
-                    queue_.erase(bestCostEdge);
-                    return edge;
-                }
-                else
-                {
-                    const auto edge = lowerBoundEdge->second;
-                    edge.target->removeFromSourcesOfIncomingEdgesInForwardQueue(edge.source);
-                    queue_.erase(lowerBoundEdge);
-                    return edge;
-                }
+                cachedMinEdgeEffort_ = minEdgeEffort;
+                return minEdgeEffort;
             }
 
             ompl::base::Cost ForwardQueue::getLowerBoundOnOptimalSolutionCost() const
             {
-                return queue_.rbegin()->first.lowerBoundCost;
+                auto it = getLowerBoundCostEdge();
+                return get(it).first.lowerBoundCost;
             }
 
             bool ForwardQueue::containsOpenTargets(std::size_t reverseSearchTag) const
             {
                 return std::find_if(queue_.begin(), queue_.end(), [reverseSearchTag](const auto &edge) {
-                           return edge.second.target->asReverseVertex()->getExpandTag() != reverseSearchTag;
+                           auto &a = edge.second;
+                           return a.second.target->asReverseVertex()->getExpandTag() != reverseSearchTag;
                        }) != queue_.end();
             }
 
             void ForwardQueue::clear()
             {
-                for (const auto &edge : queue_)
+                for (const auto &element : queue_)
                 {
-                    edge.second.target->resetSourcesOfIncomingEdgesInForwardQueue();
+                    const auto &edge = element.second.second;
+                    edge.target->resetSourcesOfIncomingEdgesInForwardQueue();
                 }
                 queue_.clear();
+                modifiedQueue_ = true;
             }
 
             std::vector<Edge> ForwardQueue::getEdges() const
             {
                 std::vector<Edge> edges;
                 edges.reserve(queue_.size());
-                for (auto keyAndEdge : queue_)
+                for (const auto element : queue_)
                 {
-                    edges.emplace_back(keyAndEdge.second);
+                    const auto &edge = element.second.second;
+                    edges.emplace_back(edge);
                 }
                 return edges;
             }
@@ -235,6 +312,8 @@ namespace ompl
                 const auto edges = getEdges();
                 clear();
                 insertOrUpdate(edges);
+
+                modifiedQueue_ = true;
             }
 
             std::pair<ForwardQueue::EdgeKeys, Edge> ForwardQueue::makeElement(const Edge &edge) const
@@ -247,38 +326,43 @@ namespace ompl
                 return {{lowerBoundCostOfEdge, estimatedCostOfEdge, estimatedEffortOfEdge}, {edge.source, edge.target}};
             }
 
-            std::vector<std::pair<ForwardQueue::EdgeKeys, Edge>>::iterator ForwardQueue::iterator(const Edge &edge)
-            {
-                // Should probably make use of the fact that the queue is sorted. Look into std::binary_search.
-                return std::find_if(queue_.begin(), queue_.end(), [&edge](const auto &element) {
-                    return edge.source->getId() == element.second.source->getId() &&
-                           edge.target->getId() == element.second.target->getId();
-                });
-            }
-
-            std::vector<std::pair<ForwardQueue::EdgeKeys, Edge>>::iterator
-            ForwardQueue::position(const std::pair<EdgeKeys, Edge> &keysAndEdge)
-            {
-                return std::lower_bound(
-                    queue_.begin(), queue_.end(), keysAndEdge, [this](const auto &a, const auto &b) {
-                        return !objective_->isCostBetterThan(a.first.lowerBoundCost, b.first.lowerBoundCost);
-                    });
-            }
-
-            std::vector<std::pair<ForwardQueue::EdgeKeys, Edge>>::iterator ForwardQueue::getBestCostEstimateEdge()
+            ForwardQueue::Container::iterator ForwardQueue::getBestCostEstimateEdge()
             {
                 // Find the best estimate edge and corresponding cost.
                 return std::min_element(queue_.begin(), queue_.end(), [this](const auto &a, const auto &b) {
-                    return objective_->isCostBetterThan(a.first.estimatedCost, b.first.estimatedCost);
+                    const auto &aEdgeKey = a.second.first;
+                    const auto &bEdgeKey = b.second.first;
+                    return objective_->isCostBetterThan(aEdgeKey.estimatedCost, bEdgeKey.estimatedCost);
                 });
             }
 
-            std::vector<std::pair<ForwardQueue::EdgeKeys, Edge>>::const_iterator
-            ForwardQueue::getBestCostEstimateEdge() const
+            ForwardQueue::Container::const_iterator ForwardQueue::getBestCostEstimateEdge() const
             {
                 // Find the best estimate edge and corresponding cost.
                 return std::min_element(queue_.cbegin(), queue_.cend(), [this](const auto &a, const auto &b) {
-                    return objective_->isCostBetterThan(a.first.estimatedCost, b.first.estimatedCost);
+                    const auto &aEdgeKey = a.second.first;
+                    const auto &bEdgeKey = b.second.first;
+                    return objective_->isCostBetterThan(aEdgeKey.estimatedCost, bEdgeKey.estimatedCost);
+                });
+            }
+
+            ForwardQueue::Container::iterator ForwardQueue::getLowerBoundCostEdge()
+            {
+                auto it = std::max_element(queue_.begin(), queue_.end(), [this](const auto &a, const auto &b) {
+                    const auto &aEdgeKey = a.second.first;
+                    const auto &bEdgeKey = b.second.first;
+                    return !objective_->isCostBetterThan(aEdgeKey.lowerBoundCost, bEdgeKey.lowerBoundCost);
+                });
+
+                return it;
+            }
+
+            ForwardQueue::Container::const_iterator ForwardQueue::getLowerBoundCostEdge() const
+            {
+                return std::max_element(queue_.cbegin(), queue_.cend(), [this](const auto &a, const auto &b) {
+                    const auto &aEdgeKey = a.second.first;
+                    const auto &bEdgeKey = b.second.first;
+                    return !objective_->isCostBetterThan(aEdgeKey.lowerBoundCost, bEdgeKey.lowerBoundCost);
                 });
             }
 
@@ -297,17 +381,30 @@ namespace ompl
 
             std::size_t ForwardQueue::estimateEffort(const Edge &edge) const
             {
+                unsigned int edgeEffort = 0u;
+                if (edge.source->isWhitelisted(edge.target))
+                {
+                    edgeEffort = 0u;
+                }
+                else
+                {
+                    const unsigned int fullSegmentCount =
+                        space_->validSegmentCount(edge.source->raw(), edge.target->raw());
+
+                    // Get the number of checks already performed on this edge.
+                    const unsigned int performedChecks = edge.target->getIncomingCollisionCheckResolution(edge.source);
+
+                    edgeEffort = fullSegmentCount - performedChecks;
+                }
+
                 // Make sure this doesn't overflow.
-                if (std::numeric_limits<unsigned int>::max() -
-                        space_->validSegmentCount(edge.source->raw(), edge.target->raw()) <
-                    edge.target->getEstimatedEffortToGo())
+                if (std::numeric_limits<unsigned int>::max() - edgeEffort < edge.target->getEstimatedEffortToGo())
                 {
                     return std::numeric_limits<unsigned int>::max();
                 }
 
-                // Add the segment count of the edge plus the estimated effort to go.
-                return space_->validSegmentCount(edge.source->raw(), edge.target->raw()) +
-                       edge.target->getEstimatedEffortToGo();
+                // Return the total effort
+                return edge.target->getEstimatedEffortToGo() + edgeEffort;
             }
 
             ompl::base::Cost ForwardQueue::estimateCost(const Edge &edge) const

@@ -199,6 +199,11 @@ namespace ompl
                 lowerBoundEffortToCome_ = effort;
             }
 
+            void State::setInadmissibleEffortToCome(unsigned int effort)
+            {
+                inadmissibleEffortToCome_ = effort;
+            }
+
             unsigned int State::getEstimatedEffortToGo() const
             {
                 return estimatedEffortToGo_;
@@ -232,6 +237,11 @@ namespace ompl
             unsigned int State::getLowerBoundEffortToCome() const
             {
                 return lowerBoundEffortToCome_;
+            }
+
+            unsigned int State::getInadmissibleEffortToCome() const
+            {
+                return inadmissibleEffortToCome_;
             }
 
             const std::vector<std::weak_ptr<State>> State::getSourcesOfIncomingEdgesInForwardQueue() const

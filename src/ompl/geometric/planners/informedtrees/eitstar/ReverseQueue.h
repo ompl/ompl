@@ -61,7 +61,7 @@ namespace ompl
             public:
                 /** \brief Constructs the queue with the given optimization objective and state space. */
                 ReverseQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
-                             const std::shared_ptr<const ompl::base::StateSpace> &space);
+                             const std::shared_ptr<const ompl::base::StateSpace> &space, const bool isQueueCostOrdered);
 
                 /** \brief Destructs this queue. */
                 ~ReverseQueue() = default;
@@ -78,11 +78,17 @@ namespace ompl
                 /** \brief Inserts or updates multiple elements in the queue. */
                 void insertOrUpdate(const std::vector<Edge> &edges);
 
-                /** Get a reference to the top edge in the queue. */
+                /** \brief Get a reference to the top edge in the queue. */
                 const Edge &peek() const;
+
+                /** \brief Get the effort corresponding to the top edge of the queue. */
+                unsigned int peekEffort() const;
 
                 /** \brief Returns and deletes the top element of the queue. */
                 Edge pop();
+
+                /** \brief Updates the queue ordering depending on the given suboptimality factor. */
+                void setCostQueueOrder(const bool isQueueCostOrdered);
 
                 /** \brief Returns a lower bound on the resolution-optimal solution cost. */
                 ompl::base::Cost getLowerBoundOnOptimalSolutionCost() const;
@@ -99,19 +105,34 @@ namespace ompl
                 /** \brief Removes the outgoing edges of a vertex from the queue. */
                 void removeOutgoingEdges(const std::shared_ptr<Vertex> &vertex);
 
-            private:
-                /** \brief Update an edge in the queue if its in the queue. Does nothing if the edge is not in the
-                 * queue. */
-                bool updateIfExists(const Edge &edge);
+                /** \brief Returns the admissible total potential effort of an edge. */
+                unsigned int computeAdmissibleSolutionEffort(const Edge &edge) const;
 
                 /** \brief Returns the admissible total potential solution cost of an edge. */
                 ompl::base::Cost computeAdmissibleSolutionCost(const Edge &edge) const;
 
+            private:
+                using HeapElement = std::tuple<ompl::base::Cost, ompl::base::Cost, unsigned int, unsigned int, Edge>;
+                using CostEffortHeap =
+                    ompl::BinaryHeap<HeapElement, std::function<bool(const HeapElement &, const HeapElement &)>>;
+
+                /** \brief Update an edge in the queue if it exists. */
+                bool updateIfExists(const Edge &edge);
+
                 /** \brief Returns the cost to come to the target of the edge. */
                 ompl::base::Cost computeAdmissibleCostToComeToTarget(const Edge &edge) const;
 
-                /** \brief Returns the admissible total potential solution effort of an edge. */
-                unsigned int computeAdmissibleSolutionEffort(const Edge &edge) const;
+                /** \brief Returns the inadmissible total potential solution effort of an edge. */
+                unsigned int computeInadmissibleSolutionEffort(const Edge &edge) const;
+
+                /** \brief Returns the comparison operator that orders on cost with an effort tiebreaker. */
+                std::function<bool(const HeapElement &, const HeapElement &)> getCostComparisonOperator() const;
+
+                /** \brief Returns the comparison operator that orders on effort with a cost tiebreaker. */
+                std::function<bool(const HeapElement &, const HeapElement &)> getEffortComparisonOperator() const;
+
+                /** \brief What the reverse queue is ordered on. */
+                bool isQueueCostOrdered_;
 
                 /** \brief The optimization objective. */
                 std::shared_ptr<const ompl::base::OptimizationObjective> objective_;
@@ -120,9 +141,6 @@ namespace ompl
                 std::shared_ptr<const ompl::base::StateSpace> space_;
 
                 /** \brief The queue is ordered on [g + c + h, g + c, effort] */
-                using HeapElement = std::tuple<ompl::base::Cost, ompl::base::Cost, unsigned int, Edge>;
-                using CostEffortHeap =
-                    ompl::BinaryHeap<HeapElement, std::function<bool(const HeapElement &, const HeapElement &)>>;
                 CostEffortHeap queue_;
             };
         }  // namespace eitstar

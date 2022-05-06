@@ -119,10 +119,13 @@ namespace ompl
                 void setCurrentCostToCome(ompl::base::Cost cost);
 
                 /** \brief Sets the lower bound effort to come to this state through the continuous state space. */
-                void setLowerBoundEffortToCome(unsigned int);
+                void setLowerBoundEffortToCome(unsigned int effort);
 
-                /** \brief Returns the estimated effort (number of collision detections) to go from this state to the
-                 * goal through the current RGG. */
+                /** \brief Sets the inadmissible effort to come to this state through the continuous state space. */
+                void setInadmissibleEffortToCome(unsigned int effort);
+
+                /** \brief Get the estimated effort (number of collision detections) to go from this state to the goal
+                 * through the current RGG. */
                 unsigned int getEstimatedEffortToGo() const;
 
                 /** \brief Returns the best estimate of the cost to go from this state to the goal through the current
@@ -144,9 +147,13 @@ namespace ompl
                 /** \brief Returns the current cost to come from the start to this state. */
                 ompl::base::Cost getCurrentCostToCome() const;
 
-                /** \brief Returns the lower bound cost to come from the start to this state through the continuous
+                /** \brief Returns the lower bound effort to come from the start to this state through the continuous
                  * state space. */
                 unsigned int getLowerBoundEffortToCome() const;
+
+                /** \brief Returns the inadmissible effort to come from the start to this state through the continuous
+                 * state space. */
+                unsigned int getInadmissibleEffortToCome() const;
 
                 /** \brief Returns the sources of incoming edges in forward queue. */
                 const std::vector<std::weak_ptr<State>> getSourcesOfIncomingEdgesInForwardQueue() const;
@@ -184,6 +191,9 @@ namespace ompl
 
                 /** \brief A lower bound on the effort to come. */
                 unsigned int lowerBoundEffortToCome_{std::numeric_limits<unsigned int>::max()};
+
+                /** \brief An inadmissible estimate of the effort to come. */
+                unsigned int inadmissibleEffortToCome_{std::numeric_limits<unsigned int>::max()};
 
                 /** \brief An admissible estimate of the cost to go from this state to the goal through the current RGG.
                  */

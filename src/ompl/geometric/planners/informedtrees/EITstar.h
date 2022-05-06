@@ -121,7 +121,7 @@ namespace ompl
             /** \brief Returns the number of samples per batch. */
             unsigned int getBatchSize() const;
 
-            /** \brief Sets the initial number of collision checks on edges in the reverse search. */
+            /** \brief Sets the initial number of collision checks on the reverse search. */
             void setInitialNumberOfSparseCollisionChecks(std::size_t numChecks);
 
             /** \brief Sets the radius factor. */
@@ -133,7 +133,19 @@ namespace ompl
             /** \brief Sets the (initial) suboptimality factor. */
             void setSuboptimalityFactor(double factor);
 
-            /** \brief Enables or disables pruning. */
+            /** \brief Set wheter multiquery is enabled or not. */
+            void enableMultiquery(bool multiquery);
+
+            /** \brief Get wheter multiquery is enabled or not. */
+            bool isMultiqueryEnabled() const;
+
+            /** \brief Set start/goal pruning threshold. */
+            void setStartGoalPruningThreshold(unsigned int threshold);
+
+            /** \brief Get threshold at which we prune starts/goals. */
+            unsigned int getStartGoalPruningThreshold() const;
+
+            /** \brief Set whether pruning is enabled or not. */
             void enablePruning(bool prune);
 
             /** \brief Returns whether pruning is enabled or not. */
@@ -160,7 +172,10 @@ namespace ompl
             /** \brief Returns a copy of the forward queue. */
             std::vector<eitstar::Edge> getForwardQueue() const;
 
-            /** \brief Returns a copies of the edges in the reverse queue. */
+            /** \brief Returns the effort of the edge at the top of the forward queue. */
+            unsigned int getForwardEffort() const;
+
+            /** \brief Returns a copy of the reverse queue. */
             std::vector<eitstar::Edge> getReverseQueue() const;
 
             /** \brief Returns copies of the edges in the reverse tree. */
@@ -352,6 +367,9 @@ namespace ompl
             /** \brief The number of sparse collision detections performed on the reverse search on the previous level.
              */
             std::size_t numSparseCollisionChecksPreviousLevel_{0u};
+
+            /** \brief Whether multiquery is enabled. */
+            bool isMultiqueryEnabled_{true};
 
             /** \brief Whether pruning is enabled. */
             bool isPruningEnabled_{true};

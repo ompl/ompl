@@ -33,7 +33,6 @@
  *********************************************************************/
 
 // Authors: Marlin Strub
-
 #include "ompl/geometric/planners/informedtrees/eitstar/ReverseQueue.h"
 
 #include <utility>
@@ -48,26 +47,12 @@ namespace ompl
         namespace eitstar
         {
             ReverseQueue::ReverseQueue(const std::shared_ptr<const ompl::base::OptimizationObjective> &objective,
-                                       const std::shared_ptr<const ompl::base::StateSpace> &space)
-              : objective_(objective)
+                                       const std::shared_ptr<const ompl::base::StateSpace> &space,
+                                       const bool isQueueCostOrdered)
+              : isQueueCostOrdered_(isQueueCostOrdered)
+              , objective_(objective)
               , space_(space)
-              , queue_([objective](const HeapElement &lhs, const HeapElement &rhs) {
-                  if (objective->isCostEquivalentTo(std::get<0>(lhs), std::get<0>(rhs)))
-                  {
-                      if (objective->isCostEquivalentTo(std::get<1>(lhs), std::get<1>(rhs)))
-                      {
-                          return std::get<2>(lhs) < std::get<2>(rhs);
-                      }
-                      else
-                      {
-                          return objective->isCostBetterThan(std::get<1>(lhs), std::get<1>(rhs));
-                      }
-                  }
-                  else
-                  {
-                      return objective->isCostBetterThan(std::get<0>(lhs), std::get<0>(rhs));
-                  }
-              })
+              , queue_(isQueueCostOrdered_ ? getCostComparisonOperator() : getEffortComparisonOperator())
             {
             }
 
@@ -89,9 +74,10 @@ namespace ompl
                     const auto key1 = computeAdmissibleSolutionCost(edge);
                     const auto key2 = computeAdmissibleCostToComeToTarget(edge);
                     const auto key3 = computeAdmissibleSolutionEffort(edge);
+                    const auto key4 = computeInadmissibleSolutionEffort(edge);
 
                     // Create the heap element.
-                    const auto element = std::make_tuple(key1, key2, key3, edge);
+                    const auto element = std::make_tuple(key1, key2, key3, key4, edge);
 
                     // Insert the edge with the key in the queue.
                     const auto elementPointer = queue_.insert(element);
@@ -110,11 +96,41 @@ namespace ompl
                 }
             }
 
+            void ReverseQueue::setCostQueueOrder(const bool isQueueCostOrdered)
+            {
+                isQueueCostOrdered_ = isQueueCostOrdered;
+
+                if (!empty())
+                {
+                    throw std::runtime_error("Can't update ordering of queue if there are elements in it.");
+                }
+                if (isQueueCostOrdered_)
+                {
+                    queue_.getComparisonOperator() = getCostComparisonOperator();
+                }
+                else
+                {
+                    queue_.getComparisonOperator() = getEffortComparisonOperator();
+                }
+            }
+
             const Edge &ReverseQueue::peek() const
             {
                 if (auto element = queue_.top())
                 {
-                    return std::get<3>(element->data);
+                    return std::get<4>(element->data);
+                }
+                else
+                {
+                    throw std::out_of_range("There are no elements to peek in the reverse queue.");
+                }
+            }
+
+            unsigned int ReverseQueue::peekEffort() const
+            {
+                if (auto element = queue_.top())
+                {
+                    return std::get<2>(element->data);
                 }
                 else
                 {
@@ -127,7 +143,7 @@ namespace ompl
                 // Check if the edge is in the queue via the reverse queue pointers.
                 const auto &lookup = edge.source->asReverseVertex()->outgoingReverseQueueLookup_;
                 const auto it = std::find_if(lookup.cbegin(), lookup.cend(), [&edge](const auto &p) {
-                    return std::get<3>(p->data).target->getId() == edge.target->getId();
+                    return std::get<4>(p->data).target->getId() == edge.target->getId();
                 });
 
                 // Indicate that the edge is not in the queue by returning false.
@@ -140,6 +156,7 @@ namespace ompl
                 std::get<0>((*it)->data) = computeAdmissibleSolutionCost(edge);
                 std::get<1>((*it)->data) = computeAdmissibleCostToComeToTarget(edge);
                 std::get<2>((*it)->data) = computeAdmissibleSolutionEffort(edge);
+                std::get<3>((*it)->data) = computeInadmissibleSolutionEffort(edge);
                 queue_.update(*it);
 
                 // Indicate that the edge was updated by returning true.
@@ -163,9 +180,117 @@ namespace ompl
 
             unsigned int ReverseQueue::computeAdmissibleSolutionEffort(const Edge &edge) const
             {
-                return edge.source->getEstimatedEffortToGo() +
-                       space_->validSegmentCount(edge.target->raw(), edge.source->raw()) +
-                       edge.target->getLowerBoundEffortToCome();
+                std::size_t edgeEffort = 0u;
+                if (edge.source->isWhitelisted(edge.target))
+                {
+                    edgeEffort = 0u;
+                }
+                else
+                {
+                    const std::size_t fullSegmentCount =
+                        space_->validSegmentCount(edge.source->raw(), edge.target->raw());
+
+                    // Get the number of checks already performed on this edge.
+                    const std::size_t performedChecks = edge.target->getIncomingCollisionCheckResolution(edge.source);
+
+                    // This should never occur, but we check anyways
+                    assert(fullSegmentCount <= performedChecks);
+
+                    edgeEffort = fullSegmentCount - performedChecks;
+                }
+
+                const unsigned int totalEffort =
+                    edge.source->getEstimatedEffortToGo() + edgeEffort + edge.target->getLowerBoundEffortToCome();
+
+                if (std::numeric_limits<unsigned int>::max() - edgeEffort - edge.source->getEstimatedEffortToGo() <
+                    edge.target->getLowerBoundEffortToCome())
+                {
+                    return std::numeric_limits<unsigned int>::max();
+                }
+
+                return totalEffort;
+            }
+
+            std::function<bool(const ReverseQueue::HeapElement &, const ReverseQueue::HeapElement &)>
+            ReverseQueue::getCostComparisonOperator() const
+            {
+                return [&objective = objective_](const HeapElement &lhs, const HeapElement &rhs) {
+                    if (objective->isCostEquivalentTo(std::get<0>(lhs), std::get<0>(rhs)))
+                    {
+                        if (objective->isCostEquivalentTo(std::get<1>(lhs), std::get<1>(rhs)))
+                        {
+                            return std::get<2>(lhs) < std::get<2>(rhs);
+                        }
+                        else
+                        {
+                            return objective->isCostBetterThan(std::get<1>(lhs), std::get<1>(rhs));
+                        }
+                    }
+                    else
+                    {
+                        return objective->isCostBetterThan(std::get<0>(lhs), std::get<0>(rhs));
+                    }
+                };
+            }
+
+            std::function<bool(const ReverseQueue::HeapElement &, const ReverseQueue::HeapElement &)>
+            ReverseQueue::getEffortComparisonOperator() const
+            {
+                return [&objective = objective_](const HeapElement &lhs, const HeapElement &rhs) {
+                    if (std::get<2>(lhs) == std::get<2>(rhs))
+                    {
+                        if (std::get<3>(lhs) == std::get<3>(rhs))
+                        {
+                            if (objective->isCostEquivalentTo(std::get<0>(lhs), std::get<0>(rhs)))
+                            {
+                                return objective->isCostBetterThan(std::get<1>(lhs), std::get<1>(rhs));
+                            }
+                            else
+                            {
+                                return objective->isCostBetterThan(std::get<0>(lhs), std::get<0>(rhs));
+                            }
+                        }
+                        else
+                        {
+                            return std::get<3>(lhs) < std::get<3>(rhs);
+                        }
+                    }
+                    else
+                    {
+                        return std::get<2>(lhs) < std::get<2>(rhs);
+                    }
+                };
+            }
+
+            unsigned int ReverseQueue::computeInadmissibleSolutionEffort(const Edge &edge) const
+            {
+                std::size_t edgeEffort = 0u;
+                if (edge.source->isWhitelisted(edge.target))
+                {
+                    edgeEffort = 0u;
+                }
+                else
+                {
+                    const std::size_t fullSegmentCount =
+                        space_->validSegmentCount(edge.source->raw(), edge.target->raw());
+
+                    // Get the number of checks already performed on this edge.
+                    const std::size_t performedChecks = edge.target->getIncomingCollisionCheckResolution(edge.source);
+
+                    // This should never occur, but we check anyways
+                    assert(fullSegmentCount <= performedChecks);
+
+                    edgeEffort = fullSegmentCount - performedChecks;
+                }
+
+                if (std::numeric_limits<unsigned int>::max() - edgeEffort - edge.source->getEstimatedEffortToGo() <
+                    edge.target->getInadmissibleEffortToCome())
+                {
+                    return std::numeric_limits<unsigned int>::max();
+                }
+
+                // return total effort
+                return edge.source->getEstimatedEffortToGo() + edgeEffort + edge.target->getInadmissibleEffortToCome();
             }
 
             Edge ReverseQueue::pop()
@@ -176,7 +301,7 @@ namespace ompl
                 const auto element = queue_.top();
 
                 // Copy the data of the top edge.
-                auto edge = std::get<3>(element->data);
+                auto edge = std::get<4>(element->data);
 
                 // If the source state of the edge does not have an associated vertex, it's a bug.
                 assert(edge.source->hasReverseVertex());
@@ -213,7 +338,7 @@ namespace ompl
                 queue_.getContent(contents);
                 for (auto element : contents)
                 {
-                    std::get<3>(element).source->asReverseVertex()->outgoingReverseQueueLookup_.clear();
+                    std::get<4>(element).source->asReverseVertex()->outgoingReverseQueueLookup_.clear();
                 }
                 queue_.clear();
             }
@@ -226,7 +351,7 @@ namespace ompl
                 edges.reserve(contents.size());
                 for (const auto &element : contents)
                 {
-                    edges.push_back(std::get<3>(element));
+                    edges.push_back(std::get<4>(element));
                 }
                 return edges;
             }

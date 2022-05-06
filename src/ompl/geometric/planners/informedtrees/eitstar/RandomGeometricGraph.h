@@ -93,11 +93,23 @@ namespace ompl
                 /** \brief Returns the radius factor (eta in the paper). */
                 double getRadiusFactor() const;
 
-                /** \brief Enables or disables pruning of states that cannot possibly improve the current solution. */
+                /** \brief Sets the effort threshold. */
+                void setEffortThreshold(const unsigned int threshold);
+
+                /** \brief Gets the effort threshold. */
+                unsigned int getEffortThreshold() const;
+
+                /** \brief Enable pruning of the graph. */
                 void enablePruning(bool prune);
 
                 /** \brief Returns Whether pruning is enabled. */
                 bool isPruningEnabled() const;
+
+                /** \brief Enable multiquery usage of the graph. */
+                void enableMultiquery(bool multiquery);
+
+                /** \brief Returns Whether multiquery usage of the graph is enabled. */
+                bool isMultiqueryEnabled() const;
 
                 /** \brief Set whether to use a k-nearest connection model. If false, it uses an r-disc model. */
                 void setUseKNearest(bool useKNearest);
@@ -143,6 +155,9 @@ namespace ompl
                 /** \brief Sets the goal state. */
                 std::shared_ptr<State> registerGoalState(const ompl::base::State *goal);
 
+                /** \brief Registers a whitelisted state */
+                void registerWhitelistedState(const std::shared_ptr<State> &state) const;
+
                 /** \brief Returns whether a start state is available. */
                 bool hasStartState() const;
 
@@ -164,14 +179,22 @@ namespace ompl
                 /** \brief Returns the tag of the current RGG. */
                 std::size_t getTag() const;
 
+                /** \brief Returns the inadmissible effort to come. */
+                unsigned int inadmissibleEffortToCome(const std::shared_ptr<State> &state) const;
+
             private:
-                /** \brief Returns the number of states in the informed set. This iterates through all samples in the
-                 * graph. */
+                /** \brief Returns a sample either from the buffer or a newly generated one. */
+                std::shared_ptr<State> getNewSample();
+
+                /** \brief Returns the number of states in the informed set. */
                 std::size_t countSamplesInInformedSet() const;
 
                 /** \brief Returns whether a state can be pruned because it cannot possibly be part of a solution equal
                  * to or better than the current solution. */
                 bool canBePruned(const std::shared_ptr<State> &state) const;
+
+                /** \brief Decides what start/goal vertices should become part of the graph permanently. */
+                void pruneStartsAndGoals();
 
                 /** \brief Returns the heuristic cost from the preferred start of a state. */
                 ompl::base::Cost lowerBoundCostToCome(const std::shared_ptr<State> &state) const;
@@ -191,8 +214,20 @@ namespace ompl
                 /** \brief Returns the radius for the RGG. */
                 double computeRadius(std::size_t numInformedSamples) const;
 
+                /** \brief The list of whitelisted states. */
+                mutable std::vector<std::shared_ptr<State>> whitelistedStates_{};
+
                 /** \brief The tag of the current RGG. */
                 std::size_t tag_{1u};
+
+                /** \brief The buffered sampled states. */
+                std::vector<std::shared_ptr<State>> buffer_;
+
+                /** \brief The buffered start and goal states. */
+                std::vector<std::shared_ptr<State>> startGoalBuffer_;
+
+                /** \brief The current number of samples that are in use */
+                std::size_t currentNumSamples_{0u};
 
                 /** \brief The sampled states in a nearest neighbor structure. */
                 NearestNeighborsGNATNoThreadSafety<std::shared_ptr<State>> samples_;
@@ -232,6 +267,9 @@ namespace ompl
                 /** \brief Whether pruning is enabled. */
                 bool isPruningEnabled_{true};
 
+                /** \brief Whether multiquery is enabled. */
+                bool isMultiqueryEnabled_{false};
+
                 /** \brief Whether to use a k-nearest RGG. If false, EIT* uses an r-disc RGG. */
                 bool useKNearest_{true};
 
@@ -250,6 +288,9 @@ namespace ompl
 
                 /** \brief The factor by which to scale the connection radius (eta in the paper). */
                 double radiusFactor_{1.001};
+
+                /** \brief The threshold which we use to decide if we keep a start/goal vertex. */
+                unsigned int effortThreshold_{50000};
 
                 /** \brief The dimension of the state space this graph is embedded in. */
                 const double dimension_;

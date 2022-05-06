@@ -71,11 +71,15 @@ namespace ompl
             declareParam<double>("rewire_factor", this, &EITstar::setRadiusFactor, &EITstar::getRadiusFactor,
                                  "1.0:0.01:3.0");
             declareParam<std::size_t>("batch_size", this, &EITstar::setBatchSize, &EITstar::getBatchSize, "1:1:10000");
+            declareParam<bool>("use_multiquery", this, &EITstar::enableMultiquery, &EITstar::isMultiqueryEnabled,
+                               "0,1");
             declareParam<bool>("use_graph_pruning", this, &EITstar::enablePruning, &EITstar::isPruningEnabled, "0,1");
             declareParam<bool>("find_approximate_solutions", this, &EITstar::trackApproximateSolutions,
                                &EITstar::areApproximateSolutionsTracked, "0,1");
             declareParam<unsigned int>("set_max_num_goals", this, &EITstar::setMaxNumberOfGoals,
                                        &EITstar::getMaxNumberOfGoals, "1:1:1000");
+            declareParam<unsigned int>("set_start_goal_pruning", this, &EITstar::setStartGoalPruningThreshold,
+                                       &EITstar::getStartGoalPruningThreshold, "1:1:100000");
 
             // Register the progress properties.
             addPlannerProgressProperty("iterations INTEGER", [this]() { return std::to_string(iteration_); });
@@ -134,7 +138,15 @@ namespace ompl
 
                 // Instantiate the queues.
                 forwardQueue_ = std::make_unique<eitstar::ForwardQueue>(objective_, space_);
-                reverseQueue_ = std::make_unique<eitstar::ReverseQueue>(objective_, space_);
+                if (isMultiqueryEnabled_)
+                {
+                    reverseQueue_ = std::make_unique<eitstar::ReverseQueue>(objective_, space_,
+                                                                            std::isfinite(suboptimalityFactor_));
+                }
+                else
+                {
+                    reverseQueue_ = std::make_unique<eitstar::ReverseQueue>(objective_, space_, true);
+                }
 
                 // Setup the graph with the problem information.
                 graph_.setup(problem_, &pis_);
@@ -239,18 +251,33 @@ namespace ompl
 
         void EITstar::clearQuery()
         {
-            forwardQueue_->clear();
-            reverseQueue_->clear();
-            startVertices_.clear();
-            goalVertices_.clear();
-            graph_.clearQuery();
-            solutionCost_ = objective_->infiniteCost();
-            reverseCost_ = objective_->infiniteCost();
-            approximateSolutionCost_ = objective_->infiniteCost();
-            approximateSolutionCostToGoal_ = objective_->infiniteCost();
+            if (setup_)
+            {
+                forwardQueue_->clear();
+                reverseQueue_->clear();
+                startVertices_.clear();
+                goalVertices_.clear();
+                graph_.clearQuery();
+                solutionCost_ = objective_->infiniteCost();
+                reverseCost_ = objective_->infiniteCost();
+                approximateSolutionCost_ = objective_->infiniteCost();
+                approximateSolutionCostToGoal_ = objective_->infiniteCost();
 
-            Planner::clearQuery();
-            setup_ = false;
+                suboptimalityFactor_ = std::numeric_limits<double>::infinity();
+                restartReverseSearch();
+
+                numSparseCollisionChecksCurrentLevel_ = initialNumSparseCollisionChecks_;
+
+                numProcessedEdges_ = 0u;
+
+                reverseSearchTag_++;
+
+                if (!isMultiqueryEnabled_)
+                {
+                    clear();
+                }
+                setup_ = false;
+            }
         }
 
         ompl::base::Cost EITstar::bestCost() const
@@ -288,6 +315,27 @@ namespace ompl
         void EITstar::setSuboptimalityFactor(double factor)
         {
             suboptimalityFactor_ = factor;
+        }
+
+        void EITstar::enableMultiquery(bool multiquery)
+        {
+            isMultiqueryEnabled_ = multiquery;
+            graph_.enableMultiquery(multiquery);
+        };
+
+        bool EITstar::isMultiqueryEnabled() const
+        {
+            return isMultiqueryEnabled_;
+        };
+
+        void EITstar::setStartGoalPruningThreshold(unsigned int threshold)
+        {
+            graph_.setEffortThreshold(threshold);
+        }
+
+        unsigned int EITstar::getStartGoalPruningThreshold() const
+        {
+            return graph_.getEffortThreshold();
         }
 
         void EITstar::enablePruning(bool enable)
@@ -391,32 +439,22 @@ namespace ompl
 
         void EITstar::getPlannerData(base::PlannerData &data) const
         {
-            // base::PlannerDataVertex takes a raw pointer to a state. I want to guarantee, that the state lives as long
-            // as the program lives.
-            static std::set<std::shared_ptr<State>,
-                            std::function<bool(const std::shared_ptr<State> &, const std::shared_ptr<State> &)>>
-                liveStates([](const auto &lhs, const auto &rhs) { return lhs->getId() < rhs->getId(); });
-
             // Get the base class data.
             Planner::getPlannerData(data);
 
             // Add the samples and their outgoing edges.
             for (const auto &state : graph_.getStates())
             {
-                // Add the state to the live states.
-                liveStates.insert(state);
-
                 // Add the state as a vertex.
                 data.addVertex(base::PlannerDataVertex(state->raw(), state->getId()));
 
                 // If the sample is in the forward tree, add the outgoing edges.
-                if (state->hasForwardVertex())
+                for (const auto &state2 : graph_.getStates())
                 {
-                    for (const auto &child : state->asForwardVertex()->getChildren())
+                    if (state->isWhitelisted(state2))
                     {
-                        data.addEdge(base::PlannerDataVertex(state->asForwardVertex()->getState()->raw(),
-                                                             state->asForwardVertex()->getState()->getId()),
-                                     base::PlannerDataVertex(child->getState()->raw(), child->getState()->getId()));
+                        data.addEdge(base::PlannerDataVertex(state->raw(), state->getId()),
+                                     base::PlannerDataVertex(state2->raw(), state2->getId()));
                     }
                 }
             }
@@ -424,6 +462,17 @@ namespace ompl
 
         void EITstar::iterate(const ompl::base::PlannerTerminationCondition &terminationCondition)
         {
+            // If we are in a multiquery setting, we do not want to search the approximation
+            // only consisting of start/goals, since this completely ignores the computational effort we have already
+            // invested Thus, the first thing we do in this instance is adding the first batch of samples.
+            if (isMultiqueryEnabled_ &&
+                graph_.getStates().size() == graph_.getStartStates().size() + graph_.getGoalStates().size())
+            {
+                improveApproximation(terminationCondition);
+                ++iteration_;
+                return;
+            }
+
             // First check if the reverse search needs to be continued.
             if (continueReverseSearch())
             {
@@ -515,7 +564,12 @@ namespace ompl
                     // Expand the outgoing edges into the queue unless this state is the goal state.
                     if (!graph_.isGoal(edge.target))
                     {
-                        forwardQueue_->insertOrUpdate(expand(edge.target));
+                        auto edges = expand(edge.target);
+                        edges.erase(std::remove_if(
+                                        edges.begin(), edges.end(),
+                                        [&edge](const auto &e) { return e.target->getId() == edge.source->getId(); }),
+                                    edges.end());
+                        forwardQueue_->insertOrUpdate(edges);
                     }
                     else  // It is the goal state, update the solution.
                     {
@@ -564,8 +618,15 @@ namespace ompl
             // The edge is a freeby if its parent is already the parent of the child.
             if (isInReverseTree(edge))
             {
+                auto outgoingEdges = expand(target);
+                outgoingEdges.erase(
+                    std::remove_if(outgoingEdges.begin(), outgoingEdges.end(),
+                                   [&source](const auto &e) { return e.target->getId() == source->getId(); }),
+                    outgoingEdges.end());
+
                 // Simply expand the target into the queue.
-                reverseQueue_->insertOrUpdate(expand(target));
+                reverseQueue_->insertOrUpdate(outgoingEdges);
+
                 return;
             }
 
@@ -576,7 +637,13 @@ namespace ompl
                 const auto edgeCost = objective_->motionCostHeuristic(source->raw(), target->raw());
 
                 // Incorporate the edge in the reverse tree if it provides an improvement.
-                if (doesImproveReverseTree(edge, edgeCost))
+                const auto effort = estimateEffortToTarget(edge);
+                const bool doesDecreaseEffort = (effort < target->getEstimatedEffortToGo());
+
+                if ((!isMultiqueryEnabled_ && doesImproveReverseTree(edge, edgeCost)) ||
+                    (isMultiqueryEnabled_ &&
+                     ((std::isfinite(suboptimalityFactor_) && doesImproveReverseTree(edge, edgeCost)) ||
+                      (!std::isfinite(suboptimalityFactor_) && doesDecreaseEffort))))
                 {
                     // Get the parent and child vertices.
                     auto parentVertex = source->asReverseVertex();
@@ -592,15 +659,15 @@ namespace ompl
                     parentVertex->addChild(childVertex);
 
                     // Update the admissible cost to go.
-                    target->setAdmissibleCostToGo(combine(source->getAdmissibleCostToGo(), edgeCost));
+                    target->setAdmissibleCostToGo(objective_->betterCost(
+                        combine(source->getAdmissibleCostToGo(), edgeCost), edge.target->getAdmissibleCostToGo()));
 
                     // Update the best cost estimate of the target state if this edge can improve it.
                     target->setEstimatedCostToGo(
                         objective_->betterCost(estimateCostToTarget(edge), target->getEstimatedCostToGo()));
 
                     // Update the best effort estimate of the target state if this edge can improve it.
-                    target->setEstimatedEffortToGo(
-                        std::min(estimateEffortToTarget(edge), target->getEstimatedEffortToGo()));
+                    target->setEstimatedEffortToGo(std::min(effort, target->getEstimatedEffortToGo()));
 
                     // If this edge improves the reverse cost, update it.
                     if (graph_.isStart(target) && isBetter(target->getAdmissibleCostToGo(), reverseCost_))
@@ -615,7 +682,26 @@ namespace ompl
                     }
 
                     // Expand the target state into the reverse queue.
-                    reverseQueue_->insertOrUpdate(expand(target));
+                    auto outgoingEdges = expand(target);
+
+                    outgoingEdges.erase(
+                        std::remove_if(outgoingEdges.begin(), outgoingEdges.end(),
+                                       [&source, this](const auto &e) {
+                                           if (e.target->getId() == source->getId())
+                                           {
+                                               return true;
+                                           }
+                                           if (objective_->isFinite(solutionCost_) &&
+                                               isBetter(solutionCost_, reverseQueue_->computeAdmissibleSolutionCost(e)))
+                                           {
+                                               return true;
+                                           }
+
+                                           return false;
+                                       }),
+                        outgoingEdges.end());
+
+                    reverseQueue_->insertOrUpdate(outgoingEdges);
                 }
             }
         }
@@ -736,6 +822,19 @@ namespace ompl
                       !pis_.haveMoreGoalStates()));
         }
 
+        unsigned int EITstar::getForwardEffort() const
+        {
+            if (forwardQueue_->size() != 0u)
+            {
+                const auto forwardEdge = forwardQueue_->peek(suboptimalityFactor_);
+                const auto forwardEffort = forwardQueue_->estimateEffort(forwardEdge);
+
+                return forwardEffort;
+            }
+
+            return std::numeric_limits<unsigned int>::infinity();
+        }
+
         bool EITstar::continueReverseSearch() const
         {
             // Never continue the reverse search if the reverse queue is empty.
@@ -749,21 +848,59 @@ namespace ompl
                 return true;
             }
 
-            // There are three conditions under which the reverse search can be suspended:
-            //   1. The best edge in the forward search has a closed target (admissible cost-to-go estimate), and the
-            //      reverse search cannot lead to a better solution than the potential solution of this edge.
-            //   2. All edges in the forward queue have closed targets (admissible cost-to-go estimates).
-            //   3. We do not care about solution cost and the least-effort edge in the forward queue is connected to
-            //   the
-            //      reverse tree.
-            const bool condition1 = isClosed(forwardQueue_->peek(suboptimalityFactor_).target->asReverseVertex()) &&
+            /*
+
+            If multiquery-planning is enabled, and we are in the process of searching for the initial solution,
+            there are two conditions under which we suspend the reverse search:
+
+               1. The best edge in the forward search has a closed target (i.e. there is a path to an edge in the
+                  forward queue). Since we expand the reverse queue ordered by effort in the case that the suboptimality
+                  factor is infite, and multiquery planning is enabled, this is the lowest effort path.
+
+               2. We already found a possible path, and there is no way that a lower effort path exists.
+
+            If multiquery-planning is not enabled, there are three conditions under which the reverse search can be
+            suspended:
+
+               1. The best edge in the forward search has a closed target (admissible cost-to-go estimate), and the
+                  reverse search cannot lead to a better solution than the potential solution of this edge.
+
+               2. All edges in the forward queue have closed targets (admissible cost-to-go estimates).
+
+               3. We do not care about solution cost and the least-effort edge in the forward queue is connected to the
+                  reverse tree.
+
+             */
+
+            const auto forwardEdge = forwardQueue_->peek(suboptimalityFactor_);
+
+            if (!std::isfinite(suboptimalityFactor_) && isMultiqueryEnabled_)
+            {
+                if (!forwardEdge.target->hasReverseVertex())
+                {
+                    return true;
+                }
+
+                const auto forwardEffort = forwardQueue_->estimateEffort(forwardEdge);
+                const auto reverseEffort = reverseQueue_->peekEffort();
+                unsigned int minEffortToCome = 0u;
+
+                const auto reverseEdge = reverseQueue_->peek();
+                if (!reverseEdge.target->hasForwardVertex())
+                {
+                    minEffortToCome = forwardQueue_->getMinEffortToCome();
+                }
+
+                return reverseEffort + minEffortToCome < forwardEffort;
+            }
+
+            const bool condition1 = isClosed(forwardEdge.target->asReverseVertex()) &&
                                     isBetter(forwardQueue_->getLowerBoundOnOptimalSolutionCost(),
                                              reverseQueue_->getLowerBoundOnOptimalSolutionCost());
 
             const bool condition2 = !forwardQueue_->containsOpenTargets(reverseSearchTag_);
 
-            const bool condition3 = !std::isfinite(suboptimalityFactor_) &&
-                                    forwardQueue_->peek(suboptimalityFactor_).target->hasReverseVertex();
+            const bool condition3 = !std::isfinite(suboptimalityFactor_) && forwardEdge.target->hasReverseVertex();
 
             // The reverse search must be continued if it cannot be suspended.
             return !(condition1 || condition2 || condition3);
@@ -814,6 +951,16 @@ namespace ompl
         void EITstar::restartReverseSearch()
         {
             reverseQueue_->clear();
+
+            if (isMultiqueryEnabled_)
+            {
+                reverseQueue_->setCostQueueOrder(std::isfinite(suboptimalityFactor_));
+            }
+            else
+            {
+                reverseQueue_->setCostQueueOrder(true);
+            }
+
             goalVertices_.clear();
             reverseCost_ = objective_->infiniteCost();
             for (const auto &goal : graph_.getGoalStates())
@@ -873,11 +1020,19 @@ namespace ompl
                 solution.setOptimized(objective_, solutionCost_, objective_->isSatisfied(solutionCost_));
                 problem_->addSolutionPath(solution);
 
-                // If we found this solution with a suboptimality factor greater than 1, set the factor to one now.
-                // Empirically, this results in faster convergence, see associated publication for more info.
-                if (suboptimalityFactor_ > 1.0)
+                if (!std::isfinite(suboptimalityFactor_))
                 {
+                    // If we found this solution with a suboptimality factor greater than 1, set the factor to one now.
+                    // Empirically, this results in faster convergence, see associated publication for more info.
                     suboptimalityFactor_ = 1.0;
+
+                    if (isMultiqueryEnabled_)
+                    {
+                        restartReverseSearch();
+                        // Reinitialize the forward queue.
+                        forwardQueue_->clear();
+                        expandStartVerticesIntoForwardQueue();
+                    }
                 }
 
                 // Let the user know about the new solution.
@@ -1059,8 +1214,24 @@ namespace ompl
 
         unsigned int EITstar::estimateEffortToTarget(const eitstar::Edge &edge) const
         {
-            return edge.source->getEstimatedEffortToGo() +
-                   space_->validSegmentCount(edge.target->raw(), edge.source->raw());
+            // if we previously validated (=whitelisted) an edge, the effort to
+            // check is zero
+            std::size_t checksToCome = 0u;
+            if (edge.source->isWhitelisted(edge.target))
+            {
+                checksToCome = 0u;
+            }
+            else
+            {
+                // Get the segment count for the full resolution.
+                const std::size_t fullSegmentCount = space_->validSegmentCount(edge.source->raw(), edge.target->raw());
+                // Get the number of checks already performed on this edge.
+                const std::size_t performedChecks = edge.target->getIncomingCollisionCheckResolution(edge.source);
+
+                checksToCome = fullSegmentCount - performedChecks;
+            }
+
+            return edge.source->getEstimatedEffortToGo() + checksToCome;
         }
 
         bool EITstar::isValid(const Edge &edge) const
@@ -1068,6 +1239,7 @@ namespace ompl
             // The number of checks required to determine whether the edge is valid is the valid segment count minus one
             // because we know that the source and target states are valid.
             const std::size_t numChecks = space_->validSegmentCount(edge.source->raw(), edge.target->raw()) - 1u;
+
             return isValidAtResolution(edge, numChecks);
         }
 
@@ -1175,7 +1347,6 @@ namespace ompl
                 {
                     indices.emplace(current.first, mid - 1u);
                 }
-
                 if (current.second > mid)
                 {
                     indices.emplace(mid + 1u, current.second);
@@ -1196,6 +1367,9 @@ namespace ompl
                 ++numCollisionCheckedEdges_;
                 edge.source->whitelist(edge.target);
                 edge.target->whitelist(edge.source);
+
+                graph_.registerWhitelistedState(edge.source);
+                graph_.registerWhitelistedState(edge.target);
             }
 
             return true;
