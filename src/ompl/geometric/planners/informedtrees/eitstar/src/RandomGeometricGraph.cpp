@@ -879,7 +879,7 @@ namespace ompl
                 // If we previously validated any states, the lower bound effort to come is 0.
                 // (it is possible to compute a better bound, but empirically, it is not worth the computational
                 // effort it takes to compute this better bound.)
-                if (whitelistedStates_.size() != 0u)
+                if (isMultiqueryEnabled_ && whitelistedStates_.size() != 0u)
                 {
                     return 0u;
                 }

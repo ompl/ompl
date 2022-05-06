@@ -640,8 +640,10 @@ namespace ompl
                 const auto effort = estimateEffortToTarget(edge);
                 const bool doesDecreaseEffort = (effort < target->getEstimatedEffortToGo());
 
-                if ((std::isfinite(suboptimalityFactor_) && doesImproveReverseTree(edge, edgeCost)) ||
-                    (!std::isfinite(suboptimalityFactor_) && doesDecreaseEffort))
+                if ((!isMultiqueryEnabled_ && doesImproveReverseTree(edge, edgeCost)) ||
+                    (isMultiqueryEnabled_ &&
+                     ((std::isfinite(suboptimalityFactor_) && doesImproveReverseTree(edge, edgeCost)) ||
+                      (!std::isfinite(suboptimalityFactor_) && doesDecreaseEffort))))
                 {
                     // Get the parent and child vertices.
                     auto parentVertex = source->asReverseVertex();
