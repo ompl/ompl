@@ -42,9 +42,21 @@ namespace ompl
     {
         EIRMstar::EIRMstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo) : EITstar(spaceInfo)
         {
-            setName("EIRM*");
+            declareParam<unsigned int>("set_start_goal_pruning", this, &EIRMstar::setStartGoalPruningThreshold,
+                                       &EIRMstar::getStartGoalPruningThreshold, "1:1:100000");
+
             enableMultiquery(true);
-            params_.remove("use_multiquery");
+            setName("EIRM*");
+        }
+
+        void EIRMstar::setStartGoalPruningThreshold(unsigned int threshold)
+        {
+            EITstar::setStartGoalPruningThreshold(threshold);
+        }
+
+        unsigned int EIRMstar::getStartGoalPruningThreshold() const
+        {
+            return EITstar::getStartGoalPruningThreshold();
         }
     }  // namespace geometric
 }  // namespace ompl

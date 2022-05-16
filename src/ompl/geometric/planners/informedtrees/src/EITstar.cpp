@@ -71,15 +71,11 @@ namespace ompl
             declareParam<double>("rewire_factor", this, &EITstar::setRadiusFactor, &EITstar::getRadiusFactor,
                                  "1.0:0.01:3.0");
             declareParam<std::size_t>("batch_size", this, &EITstar::setBatchSize, &EITstar::getBatchSize, "1:1:10000");
-            declareParam<bool>("use_multiquery", this, &EITstar::enableMultiquery, &EITstar::isMultiqueryEnabled,
-                               "0,1");
             declareParam<bool>("use_graph_pruning", this, &EITstar::enablePruning, &EITstar::isPruningEnabled, "0,1");
             declareParam<bool>("find_approximate_solutions", this, &EITstar::trackApproximateSolutions,
                                &EITstar::areApproximateSolutionsTracked, "0,1");
             declareParam<unsigned int>("set_max_num_goals", this, &EITstar::setMaxNumberOfGoals,
                                        &EITstar::getMaxNumberOfGoals, "1:1:1000");
-            declareParam<unsigned int>("set_start_goal_pruning", this, &EITstar::setStartGoalPruningThreshold,
-                                       &EITstar::getStartGoalPruningThreshold, "1:1:100000");
 
             // Register the progress properties.
             addPlannerProgressProperty("iterations INTEGER", [this]() { return std::to_string(iteration_); });

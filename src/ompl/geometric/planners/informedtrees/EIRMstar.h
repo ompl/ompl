@@ -49,6 +49,12 @@ namespace ompl
         public:
             /** \brief Constructs an instance of EIRM* using the provided space information. */
             explicit EIRMstar(const std::shared_ptr<ompl::base::SpaceInformation> &spaceInfo);
+
+            /** \brief Set start/goal pruning threshold. */
+            void setStartGoalPruningThreshold(unsigned int threshold);
+
+            /** \brief Get threshold at which we prune starts/goals. */
+            unsigned int getStartGoalPruningThreshold() const;
         };
 
     }  // namespace geometric
