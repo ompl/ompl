@@ -658,16 +658,20 @@ bool ompl::geometric::SPARSdb::addPathToRoadmap(const base::PlannerTerminationCo
     if (!getGuardSpacingFactor(solutionPath.length(), numGuards, spacingFactor))
         return false;
 
-    OMPL_DEBUG("Expected number of necessary coverage guards is calculated to be %i from the original path state count "
+    OMPL_DEBUG("The expected number of necessary coverage guards is calculated to be %i from the original path state count "
                "%i",
                numGuards, solutionPath.getStateCount());
 
-    unsigned int n = 0;
-    const int n1 = solutionPath.getStateCount() - 1;
-    for (int i = 0; i < n1; ++i)
-        n += si_->getStateSpace()->validSegmentCount(solutionPath.getState(i), solutionPath.getState(i + 1));
-
-    solutionPath.interpolate(n);
+    if (pathSamplingFactor_.has_value()) {
+        solutionPath.interpolate(pathSamplingFactor_.value() * solutionPath.getStateCount());
+    } else {
+        unsigned int n = 0;
+        const auto n1 {solutionPath.getStateCount() - 1};
+        for (size_t i = 0; i < n1; ++i) {
+            n += si_->getStateSpace()->validSegmentCount(solutionPath.getState(i), solutionPath.getState(i + 1));
+        }
+        solutionPath.interpolate(n);
+    }
 
     // Debug
     if (verbose_)
@@ -829,7 +833,7 @@ bool ompl::geometric::SPARSdb::addPathToRoadmap(const base::PlannerTerminationCo
         addStateToRoadmap(ptc, solutionPath.getState(shuffledID));
     }
 
-    bool benchmarkLogging = true;
+    bool benchmarkLogging = false;
     if (benchmarkLogging)
     {
         OMPL_DEBUG("ompl::geometric::SPARSdb: Benchmark logging enabled (slower)");
@@ -962,6 +966,10 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
     if (denseRoadmap_) {
         //this added call to findGraphNeighbors is very inexpensive when granularity is small enough (which it is meant to be).
         findGraphNeighbors(qNew, gnbhd, vnbhd, granularity_);
+        // if roadmap has only one connected component when we try to add a node, skip the expensive attempt to add it as a connectivity node.
+        if (getNumConnectedComponents() == 1 && vnbhd.size()) {
+            return false;
+        }
     }
 
     //@TODO - Ramy: Test if creating another nbhd to seperate recall from connectivity has positive effects.
