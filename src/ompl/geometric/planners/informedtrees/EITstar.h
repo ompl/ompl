@@ -184,12 +184,6 @@ namespace ompl
             /** \brief Returns the planner data. */
             void getPlannerData(base::PlannerData &data) const override;
 
-<<<<<<< HEAD
-=======
-            /** \brief Set the seed used by the RNG and the StateSampler. The state sampler must already be allocated,
-             * as a new state sampler will not take this seed. */
-            void setLocalSeed(std::uint_fast32_t localSeed);
-
         protected:
             // ---
             // The settings that turn EIT* into EIRM*.
@@ -207,7 +201,6 @@ namespace ompl
             /** \brief Get threshold at which we prune starts/goals. */
             unsigned int getStartGoalPruningThreshold() const;
 
->>>>>>> 2a86ab5a... Change multiquery default of EIT*, move settings
         private:
             /** \brief Performs one iteration of EIT*. This either searches for a solution by advancing the forward
              * search, calculates more accurate heuristics by advancing the reverse search, or improves the current RGG
