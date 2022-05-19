@@ -43,6 +43,31 @@ namespace ompl
 {
     namespace geometric
     {
+        /**
+        @anchor gEIRMstar
+
+        \ref gEIRMstar "EIRM*" (Effort Informed Roadmaps) is an almost-surely asymptotically optimal multiquery path
+        planner based on EIT*. It aims to find an initial solution quickly by resuing previously invested computational
+        effort (i.e., validated edges) and asymptotically converges to the globally optimal solution.
+
+        It uses an asymmetric bidirectional search to identify known valid edges in a lazy roadmap and then reuses these
+        to quickly solve individual planning queries by reducing computational effort. As EIT*, EIRM* then adds batches
+        of samples to its approximation when improving the solution. To avoid issues that come with the growing graph
+        size from refining the approximation to find the globally optimal solution, EIRM* resets its approximation to
+        the initial batch of samples at each new query in a multiquery problem.
+
+        EIRM* behaves as EIT* in the single-query setting.
+
+        @par Associated publications:
+
+        V. N. Hartmann, M. P. Strub, M. Toussaint, J. D. Gammell. "Effort informed roadmaps (EIRM*):
+        Efficient asymptotically optimal multiquery planning by actively reusing validation effort"
+        Submitted to Proceedings of the International Symposium on Robotics Research (ISRR) 2022
+
+        arXiv: <a href="https://arxiv.org/abs/2205.08480">arXiv:2205.08480</a>
+        Video 1: <a href="https://www.youtube.com/watch?v=OjcnjuJLVUY">ISRR trailer</a>
+
+        */
         /** \brief Effort Informed Roadmaps (EIRM*) */
         class EIRMstar : public EITstar
         {
