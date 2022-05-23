@@ -56,8 +56,6 @@ namespace ompl
         size from refining the approximation to find the globally optimal solution, EIRM* resets its approximation to
         the initial batch of samples at each new query in a multiquery problem.
 
-        EIRM* behaves as EIT* in the single-query setting.
-
         @par Associated publications:
 
         V. N. Hartmann, M. P. Strub, M. Toussaint, J. D. Gammell. "Effort informed roadmaps (EIRM*):
