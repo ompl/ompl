@@ -133,18 +133,6 @@ namespace ompl
             /** \brief Sets the (initial) suboptimality factor. */
             void setSuboptimalityFactor(double factor);
 
-            /** \brief Set wheter multiquery is enabled or not. */
-            void enableMultiquery(bool multiquery);
-
-            /** \brief Get wheter multiquery is enabled or not. */
-            bool isMultiqueryEnabled() const;
-
-            /** \brief Set start/goal pruning threshold. */
-            void setStartGoalPruningThreshold(unsigned int threshold);
-
-            /** \brief Get threshold at which we prune starts/goals. */
-            unsigned int getStartGoalPruningThreshold() const;
-
             /** \brief Set whether pruning is enabled or not. */
             void enablePruning(bool prune);
 
@@ -195,6 +183,23 @@ namespace ompl
 
             /** \brief Returns the planner data. */
             void getPlannerData(base::PlannerData &data) const override;
+
+        protected:
+            // ---
+            // The settings that turn EIT* into EIRM*.
+            // ---
+
+            /** \brief Set wheter multiquery is enabled or not. */
+            void enableMultiquery(bool multiquery);
+
+            /** \brief Get wheter multiquery is enabled or not. */
+            bool isMultiqueryEnabled() const;
+
+            /** \brief Set start/goal pruning threshold. */
+            void setStartGoalPruningThreshold(unsigned int threshold);
+
+            /** \brief Get threshold at which we prune starts/goals. */
+            unsigned int getStartGoalPruningThreshold() const;
 
         private:
             /** \brief Performs one iteration of EIT*. This either searches for a solution by advancing the forward
@@ -369,7 +374,7 @@ namespace ompl
             std::size_t numSparseCollisionChecksPreviousLevel_{0u};
 
             /** \brief Whether multiquery is enabled. */
-            bool isMultiqueryEnabled_{true};
+            bool isMultiqueryEnabled_{false};
 
             /** \brief Whether pruning is enabled. */
             bool isPruningEnabled_{true};
