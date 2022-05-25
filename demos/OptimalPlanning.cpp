@@ -46,6 +46,7 @@
 #include <ompl/geometric/planners/informedtrees/AITstar.h>
 #include <ompl/geometric/planners/informedtrees/BITstar.h>
 #include <ompl/geometric/planners/informedtrees/EITstar.h>
+#include <ompl/geometric/planners/informedtrees/EIRMstar.h>
 #include <ompl/geometric/planners/cforest/CForest.h>
 #include <ompl/geometric/planners/fmt/FMT.h>
 #include <ompl/geometric/planners/fmt/BFMT.h>
@@ -75,6 +76,7 @@ enum optimalPlanner
     PLANNER_BITSTAR,
     PLANNER_CFOREST,
     PLANNER_EITSTAR,
+    PLANNER_EIRMSTAR,
     PLANNER_FMTSTAR,
     PLANNER_INF_RRTSTAR,
     PLANNER_PRMSTAR,
@@ -170,6 +172,11 @@ ob::PlannerPtr allocatePlanner(ob::SpaceInformationPtr si, optimalPlanner planne
         case PLANNER_EITSTAR:
         {
             return std::make_shared<og::EITstar>(si);
+            break;
+        }
+        case PLANNER_EIRMSTAR:
+        {
+            return std::make_shared<og::EIRMstar>(si);
             break;
         }
         case PLANNER_FMTSTAR:
@@ -434,7 +441,7 @@ bool argParse(int argc, char **argv, double *runTimePtr, optimalPlanner *planner
         "must be greater than 0.")("planner,p", bpo::value<std::string>()->default_value("RRTstar"),
                                    "(Optional) Specify the optimal planner to use, defaults to RRTstar if not given. "
                                    "Valid options are AITstar, "
-                                   "BFMTstar, BITstar, CForest, EITstar, FMTstar, InformedRRTstar, PRMstar, RRTstar, "
+                                   "BFMTstar, BITstar, CForest, EITstar, EIRMstar, FMTstar, InformedRRTstar, PRMstar, RRTstar, "
                                    "and SORRTstar.")  // Alphabetical order
         ("objective,o", bpo::value<std::string>()->default_value("PathLength"),
          "(Optional) Specify the optimization objective, defaults to PathLength if not given. Valid options are "
@@ -509,6 +516,10 @@ bool argParse(int argc, char **argv, double *runTimePtr, optimalPlanner *planner
     else if (boost::iequals("EITstar", plannerStr))
     {
         *plannerPtr = PLANNER_EITSTAR;
+    }
+    else if (boost::iequals("EIRMstar", plannerStr))
+    {
+        *plannerPtr = PLANNER_EIRMSTAR;
     }
     else if (boost::iequals("FMTstar", plannerStr))
     {
