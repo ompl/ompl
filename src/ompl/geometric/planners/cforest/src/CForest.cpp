@@ -269,9 +269,16 @@ void ompl::geometric::CForest::solve(base::Planner *planner, const base::Planner
 {
     OMPL_DEBUG("Starting %s", planner->getName().c_str());
     time::point start = time::now();
-    if (planner->solve(ptc))
+    try
     {
-        double duration = time::seconds(time::now() - start);
-        OMPL_DEBUG("Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
+        if (planner->solve(ptc))
+        {
+            double duration = time::seconds(time::now() - start);
+            OMPL_DEBUG("Solution found by %s in %lf seconds", planner->getName().c_str(), duration);
+        }
+    }
+    catch (ompl::Exception &e)
+    {
+        OMPL_ERROR("Exception thrown during CForest::solve: %s", e.what());
     }
 }
