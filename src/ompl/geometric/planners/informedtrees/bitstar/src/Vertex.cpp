@@ -394,7 +394,7 @@ namespace ompl
 
             // Iterate over the vector of children pointers until the child is found. Iterators make erase easier
             foundChild = false;
-            for (auto it = children_.begin(); it != children_.end() && !foundChild; ++it)
+            for (auto it = children_.begin(); it != children_.end(); ++it)
             {
 #ifdef BITSTAR_DEBUG
                 // Check that the weak pointer hasn't expired
@@ -416,6 +416,7 @@ namespace ompl
 
                     // Then remove that entry from the vector efficiently
                     swapPopBack(it, &children_);
+                    break;
                 }
                 // No else.
             }
@@ -586,7 +587,7 @@ namespace ompl
             bool found = false;
 
             // Iterate through the list and find the address of the element to delete
-            for (auto it = edgeQueueInLookup_.begin(); it != edgeQueueInLookup_.end() && !found; ++it)
+            for (auto it = edgeQueueInLookup_.begin(); it != edgeQueueInLookup_.end(); ++it)
             {
                 // Is it the element we're looking for? Source id
                 if ((*it)->data.second.first->getId() == element->data.second.first->getId())
@@ -596,6 +597,7 @@ namespace ompl
 
                     // Mark as found
                     found = true;
+                    break;
                 }
                 // No else, try the next
             }
@@ -713,7 +715,7 @@ namespace ompl
             bool found = false;
 
             // Iterate through the list and find the address of the element to delete
-            for (auto it = edgeQueueOutLookup_.begin(); it != edgeQueueOutLookup_.end() && !found; ++it)
+            for (auto it = edgeQueueOutLookup_.begin(); it != edgeQueueOutLookup_.end(); ++it)
             {
                 // Is it the element we're looking for? Source id
                 if ((*it)->data.second.second->getId() == element->data.second.second->getId())
@@ -723,6 +725,7 @@ namespace ompl
 
                     // Mark as found
                     found = true;
+                    break;
                 }
                 // No else, try the next
             }
