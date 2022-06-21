@@ -94,6 +94,7 @@ void ompl::tools::Lightning::setup()
             if (filePath_.empty())
             {
                 OMPL_ERROR("No file path has been specified, unable to load experience DB");
+                return; 
             }
             else
             {
