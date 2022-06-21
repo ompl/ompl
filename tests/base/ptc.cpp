@@ -96,7 +96,9 @@ BOOST_AUTO_TEST_CASE(TestIterationTermination)
     BOOST_CHECK(!ptc());
   BOOST_CHECK(ptc);
   BOOST_CHECK(ptc());
-  BOOST_CHECK(iptc.getTimesCalled() == 12);
+  //note that the constructor of ptc creates a copy of iptc so the termination can
+  //only be checked implicitely like above
+  BOOST_CHECK(iptc.getTimesCalled() == 0);
 }
 
 BOOST_AUTO_TEST_CASE(TestCostConvergenceTermination)
