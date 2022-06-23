@@ -148,7 +148,10 @@ ompl::geometric::LazyPRM::LazyPRM(const base::PlannerData &data, bool starStrate
     }
 }
 
-ompl::geometric::LazyPRM::~LazyPRM() = default;
+ompl::geometric::LazyPRM::~LazyPRM()
+{
+    clear();
+};
 
 void ompl::geometric::LazyPRM::setup()
 {
