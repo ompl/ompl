@@ -968,8 +968,10 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
         findGraphNeighbors(qNew, gnbhd, vnbhd, granularity_);
         // if roadmap has only one connected component when we try to add a node, skip the expensive attempt to add it as a connectivity node.
         if (getNumConnectedComponents() == 1 && vnbhd.size()) {
+            OMPL_DEBUG("NOT adding state!");
             return false;
         }
+        OMPL_DEBUG("Trying to add state! CCs: %d", getNumConnectedComponents());
     }
 
     //@TODO - Ramy: Test if creating another nbhd to seperate recall from connectivity has positive effects.
