@@ -38,7 +38,7 @@
 #define PLANAR_MANIPULATOR_STATE_VALIDITY_CHECKER_H_
 
 #include <ompl/base/StateValidityChecker.h>
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #include "PlanarManipulator.h"
 #include "PlanarManipulatorStateSpace.h"
 #include "PolyWorld.h"
