@@ -38,7 +38,7 @@
 #define PLANAR_MANIPULATOR_IK_GOAL_H_
 
 #include <ompl/base/goals/GoalLazySamples.h>
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #include "PlanarManipulator.h"
 #include "PlanarManipulatorStateSpace.h"
 
