@@ -36,6 +36,9 @@
 
 #include "ompl/base/PlannerTerminationCondition.h"
 
+#ifndef OMPL_BASE_ITERATION_TERMINATION_CONDITION_
+#define OMPL_BASE_ITERATION_TERMINATION_CONDITION_
+
 namespace ompl
 {
     namespace base
@@ -72,3 +75,5 @@ namespace ompl
         };
     }  // namespace base
 }  // namespace ompl
+
+#endif
