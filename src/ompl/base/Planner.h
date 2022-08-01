@@ -128,13 +128,6 @@ namespace ompl
                 (different problem definition) and clear() was called. */
             bool use(const ProblemDefinitionPtr &pdef);
 
-            /** \brief Set the problem definition this class operates on.
-                If a planner is not set in the constructor argument, a call
-                to this function is needed before any calls to nextStart()
-                or nextGoal() are made. Returns true if changes were found
-                (different problem definition) and clear() was called. */
-            bool use(const ProblemDefinition *pdef);
-
             /** \brief Check if the problem definition was set, start
                 state are available and goal was set */
             void checkValidity() const;
@@ -183,7 +176,7 @@ namespace ompl
             unsigned int sampledGoalsCount_;
             State *tempState_;
 
-            const ProblemDefinition *pdef_;
+            ProblemDefinitionPtr pdef_;
             const SpaceInformation *si_;
         };
 
