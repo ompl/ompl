@@ -157,11 +157,17 @@ namespace ompl
             /** \brief Returns the maximum number of goals EIT* will sample from sampleable goal regions. */
             unsigned int getMaxNumberOfGoals() const;
 
+            /** \brief Returns true if the forward queue is empty */
+            bool isForwardQueueEmpty() const;
+
             /** \brief Returns a copy of the forward queue. */
             std::vector<eitstar::Edge> getForwardQueue() const;
 
             /** \brief Returns the effort of the edge at the top of the forward queue. */
             unsigned int getForwardEffort() const;
+
+           /** \brief Returns true if the reverse queue is empty */
+            bool isReverseQueueEmpty() const;
 
             /** \brief Returns a copy of the reverse queue. */
             std::vector<eitstar::Edge> getReverseQueue() const;

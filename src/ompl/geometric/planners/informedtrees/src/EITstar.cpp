@@ -374,6 +374,18 @@ namespace ompl
             return graph_.getMaxNumberOfGoals();
         }
 
+        bool EITstar::isForwardQueueEmpty() const
+        {
+            assert(forwardQueue_);
+            return forwardQueue_->empty();
+        }
+
+        bool EITstar::isReverseQueueEmpty() const
+        {
+            assert(reverseQueue_);
+            return reverseQueue_->empty();
+        }
+
         std::vector<Edge> EITstar::getForwardQueue() const
         {
             return forwardQueue_->getEdges();
