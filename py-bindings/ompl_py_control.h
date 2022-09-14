@@ -45,7 +45,7 @@
 #define DeclareControlType(T) \
     inline int __dummy##T() \
     { \
-        sizeof(ompl::control::T##ControlSpace::ControlType); \
+        return sizeof(ompl::control::T##ControlSpace::ControlType); \
     }
 
 namespace ompl
