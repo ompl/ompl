@@ -63,6 +63,9 @@ namespace ompl
         class ControlSpace
         {
         public:
+            /** \brief Define the type of control allocated by this control space */
+            using ControlType = ompl::control::Control;
+
             // non-copyable
             ControlSpace(const ControlSpace &) = delete;
             ControlSpace &operator=(const ControlSpace &) = delete;

@@ -1,3 +1,4 @@
+py-bindings/stdsize.h
 src/ompl/tools/benchmark/Benchmark.h
 src/ompl/tools/benchmark/MachineSpecs.h
 src/ompl/tools/config/MagicConstants.h

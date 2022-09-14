@@ -139,8 +139,13 @@ class code_generator_t(object):
             indexing_suite_version=indexing_suite_version)
         self.replacement = {} if replacement_dict is None else replacement_dict
         self.mb.classes().always_expose_using_scope = True
-        self.mb.add_registration_code('PyEval_InitThreads();', tail=False)
         self.std_ns = self.mb.namespace('std')
+        # workaround for different castxml behavior on macOS and Linux
+        try:
+            self.std_ns.class_('vector< std::string >')
+            self.string_decl = 'std::string'
+        except:
+            self.string_decl = 'std::basic_string<char>'
         self.ompl_ns = self.mb.namespace('ompl')
         self.call_policies()
         self.filter_declarations()

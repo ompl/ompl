@@ -1,3 +1,4 @@
+py-bindings/stdsize.h
 src/ompl/util/ClassForward.h
 src/ompl/base/GenericParam.h
 src/ompl/base/StateSpaceTypes.h
