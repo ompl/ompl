@@ -36,6 +36,7 @@
 
 #include "ompl/base/PlannerTerminationCondition.h"
 #include "ompl/util/Time.h"
+#include <atomic>
 #include <thread>
 #include <utility>
 
@@ -147,10 +148,10 @@ namespace ompl
             std::thread *thread_;
 
             /** \brief Cached value returned by fn_() */
-            bool evalValue_;
+            std::atomic<bool> evalValue_;
 
             /** \brief Flag used to signal the condition evaluation thread to stop. */
-            bool signalThreadStop_;
+            std::atomic<bool> signalThreadStop_;
         };
 
         /// @endcond
