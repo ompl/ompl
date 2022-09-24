@@ -193,9 +193,10 @@ namespace ompl
                     // Get the number of checks already performed on this edge.
                     const std::size_t performedChecks = edge.target->getIncomingCollisionCheckResolution(edge.source);
 
-                    // This should never occur, but we check anyways
-                    assert(fullSegmentCount <= performedChecks);
+                    // Sanity check for the number of performed collision checks.
+                    assert(fullSegmentCount >= performedChecks);
 
+                    // The estimated effort is the remaining number of collision checks.
                     edgeEffort = fullSegmentCount - performedChecks;
                 }
 
@@ -277,9 +278,10 @@ namespace ompl
                     // Get the number of checks already performed on this edge.
                     const std::size_t performedChecks = edge.target->getIncomingCollisionCheckResolution(edge.source);
 
-                    // This should never occur, but we check anyways
-                    assert(fullSegmentCount <= performedChecks);
+                    // Sanity check for the number of performed collision checks.
+                    assert(fullSegmentCount >= performedChecks);
 
+                    // The estimated effort is the remaining number of collision checks.
                     edgeEffort = fullSegmentCount - performedChecks;
                 }
 
