@@ -44,11 +44,11 @@ ompl::geometric::DRRT::DRRT(const base::SpaceInformationPtr &si, bool addInterme
     specs_.approximateSolutions = true;
     specs_.directed = true;
 
-    pathToGoal = false;
+    pathToGoal_ = false;
     regrowing_ = false;
 
     Planner::declareParam<double>("range", this, &DRRT::setRange, &DRRT::getRange, "0.:1.:10000.");
-    Planner::declareParam<double>("goal_bias", this, &DRRT::setGoalBias, &DRRT::getGoalBias, "0.:.05:1.");
+    Planner::declareParam<double>("start_bias", this, &DRRT::setStartBias, &DRRT::getStartBias, "0.:.05:1.");
     Planner::declareParam<bool>("intermediate_states", this, &DRRT::setIntermediateStates, &DRRT::getIntermediateStates,
                                 "0,1");
 
@@ -99,40 +99,52 @@ void ompl::geometric::DRRT::freeMemory()
 ompl::base::PlannerStatus ompl::geometric::DRRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     checkValidity();
-    base::Goal *goal = pdef_->getGoal().get();
-    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
-    while (const base::State *st = pis_.nextStart())
+    if (pdef_->getStartStateCount() > 1)
     {
-        auto *motion = new Motion(si_);
-        si_->copyState(motion->state, st);
-        nn_->add(motion);
+        OMPL_ERROR("%s: There is more than one start state!", getName().c_str());
+        return base::PlannerStatus::INVALID_START;
     }
 
-    if (nn_->size() == 0)
+    // startState is where robot currently is, gets randomly sampled occasionally
+    const base::State *startState = pdef_->getStartState(0);
+
+    // Goal is where the robot wants to be, tree is rooted here
+    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
+    if (goal_s == nullptr)
     {
-        OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
-        return base::PlannerStatus::INVALID_START;
+        OMPL_ERROR("%s: Goal cannot be cast to GoalSampleableRegion", getName().c_str());
+        return base::PlannerStatus::INVALID_GOAL;
+    }
+    else
+    {
+        // Add the goal motion to the tree
+        base::State *rootState = si_->allocState();
+        goal_s->sampleGoal(rootState);
+        auto *motion = new Motion(si_);
+        si_->copyState(motion->state, rootState);
+        nn_->add(motion);
     }
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
-    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
+    OMPL_INFORM("Starting planning.");
 
     Motion *solution = nullptr;
-    Motion *approxsol = nullptr;
-    double approxdif = std::numeric_limits<double>::infinity();
     auto *rmotion = new Motion(si_);
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
     while (!ptc)
     {
-        /* sample random state (with goal biasing, and waypoint biasing if regrowing tree) */
-        if ((goal_s != nullptr) && rng_.uniform01() < goalBias_ && goal_s->canSample())
-            goal_s->sampleGoal(rstate);
-        else if ()
+        double p = rng_.uniform01();
+        // if no path to goal, chance to sample start state
+        if (!pathToGoal_ && p < startBias_)
+            si_->copyState(rstate, startState);
+        // otherwise, if tree is regrowing, chance to sample a random waypoint
+        else if (regrowing_ && waypoints_.size() > 0 && p > startBias_ && p < startBias_ + waypointBias_)
+            si_->copyState(rstate, waypoints_[rng_.uniformInt(0, waypoints_.size()-1)]->state);
         else
             sampler_->sampleUniform(rstate);
 
@@ -178,29 +190,16 @@ ompl::base::PlannerStatus ompl::geometric::DRRT::solve(const base::PlannerTermin
                 nmotion = motion;
             }
 
-            double dist = 0.0;
-            bool sat = goal->isSatisfied(nmotion->state, &dist);
-            if (sat)
+            if (si_->equalStates(nmotion->state, startState))
             {
-                approxdif = dist;
                 solution = nmotion;
+                nmotion->inStart = true;
                 break;
-            }
-            if (dist < approxdif)
-            {
-                approxdif = dist;
-                approxsol = nmotion;
             }
         }
     }
 
     bool solved = false;
-    bool approximate = false;
-    if (solution == nullptr)
-    {
-        solution = approxsol;
-        approximate = true;
-    }
 
     if (solution != nullptr)
     {
@@ -219,7 +218,7 @@ ompl::base::PlannerStatus ompl::geometric::DRRT::solve(const base::PlannerTermin
         auto path(std::make_shared<PathGeometric>(si_));
         for (int i = path_.size() - 1; i >= 0; --i)
             path->append(path_[i]->state);
-        pdef_->addSolutionPath(path, approximate, approxdif, getName());
+        pdef_->addSolutionPath(path, false, -1.0, getName());
         solved = true;
         pathToGoal_ = true;
     }
@@ -231,13 +230,11 @@ ompl::base::PlannerStatus ompl::geometric::DRRT::solve(const base::PlannerTermin
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
 
-    return {solved, approximate};
+    return {solved, false};
 }
 
 void ompl::geometric::DRRT::updateEnvironment()
 {
-    // Flag that says if a path to the goal has been invalidated
-    bool pathInvalidated = false;
 
     if (nn_->size() == 0)
     {
@@ -262,14 +259,19 @@ void ompl::geometric::DRRT::updateEnvironment()
         }
     }
 
+    // Flag that says if a path to the goal has been invalidated
+    bool pathInvalidated = false;
+
     // Remove motions by propagating leaf-ward from invalidated motions
     while (motionRemoveQueue.empty() == false)
     {
         // If this motion is a goal, path is destroyed and tree begins regrowing process
-        if (pathToGoal_ && motionRemoveQueue.front()->inGoal == true)
+        if (pathToGoal_ && motionRemoveQueue.front()->inStart == true)
+        {
             pathToGoal_ = false;
             regrowing_ = true;
             pathInvalidated = true;
+        }
 
         // Add all children of this motion to the removal queue
         addChildrenToList(&motionRemoveQueue, motionRemoveQueue.front());

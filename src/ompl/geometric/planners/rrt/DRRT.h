@@ -39,11 +39,7 @@
 
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/geometric/planners/PlannerIncludes.h"
-
-#include <limits>
-#include <vector>
 #include <queue>
-#include <deque>
 
 namespace ompl
 {
@@ -96,15 +92,15 @@ namespace ompl
                 is a real number between 0.0 and 1.0; its value should
                 usually be around 0.05 and should not be too large. It
                 is probably a good idea to use the default value. */
-            void setGoalBias(double goalBias)
+            void setStartBias(double startBias)
             {
-                goalBias_ = goalBias;
+                startBias_ = startBias;
             }
 
-            /** \brief Get the goal bias the planner is using */
-            double getGoalBias() const
+            /** \brief Get the start bias the planner is using */
+            double getStartBias() const
             {
-                return goalBias_;
+                return startBias_;
             }
 
             /** \brief Return true if the intermediate states generated along motions are to be added to the tree itself
@@ -174,6 +170,9 @@ namespace ompl
                 /** \brief Flag to indicate if this motion is on the path to the goal, for faster waypoint updating */
                 bool onPath{false};
 
+                /** \brief Set to true if this vertex is in the start state*/
+                bool inStart;
+
             };
 
             /** \brief Free the memory allocated by this planner */
@@ -206,7 +205,7 @@ namespace ompl
 
             /** \brief The fraction of time the start state is picked as the state to expand towards (if such a state is
              * available) */
-            double goalBias_{.05};
+            double startBias_{.05};
 
             /** \brief The fraction of time a random waypoint state is picked as the state to expand towards (if such a
              * state is available, i.e., tree is regrowing) */
