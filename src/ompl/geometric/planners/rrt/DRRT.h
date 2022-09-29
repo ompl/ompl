@@ -40,6 +40,7 @@
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include <queue>
+#include <set>
 
 namespace ompl
 {
@@ -80,7 +81,7 @@ namespace ompl
             /** \brief Informs the algorithm that the environment has changed. Triggers tree pruning
              * and updates waypoints. Call this either regularly, or only when the path becomes
              * invalidated by an obstacle */
-            void updateEnvironment();
+            void pruneTree();
 
             /** \brief Set the start bias
 
@@ -185,10 +186,11 @@ namespace ompl
             }
 
             /** \brief Removes the given motion from the parent's child list */
-            void removeFromParent(Motion *m);
+            static void removeFromParent(Motion *m);
 
-            /** \brief Add the children of a vertex to the given list. */
-            void addChildrenToList(std::queue<Motion *, std::deque<Motion *>> *motionList, Motion *motion);
+            /** \brief Recursively get all children stemming from Motion m */
+            void getAllChildren(const Motion *m, std::vector<Motion *> &cs,
+                                const std::set<Motion *> &directlyInvalidatedMotions);
 
             /** \brief State sampler */
             base::StateSamplerPtr sampler_;

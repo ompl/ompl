@@ -116,8 +116,43 @@ ompl::base::PlannerStatus ompl::geometric::DRRT::solve(const base::PlannerTermin
         OMPL_ERROR("%s: Goal cannot be cast to GoalSampleableRegion", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
-    else
+
+    bool replanning = false;
+
+    // Check if tree is non-empty, i.e., solve was called before on this planning instance
+    std::vector<Motion *> currentMotions;
+    nn_->list(currentMotions);
+    if (!currentMotions.empty())
     {
+        OMPL_DEBUG("Tree already exists.");
+
+        // Check if the goal is the same, meaning that we should replan with previous tree
+
+        // New goal state from problem definition
+        base::State *newGoalState = si_->allocState();
+        goal_s->sampleGoal(newGoalState);
+
+        // Current goal state from existing tree
+        base::State *currentGoalState = currentMotions[0]->state;
+
+        // The goal is the same as before if the two goal states are equal
+        if (si_->equalStates(currentGoalState, newGoalState))
+        {
+            // Prune existing tree to account for changes in the environment
+            OMPL_DEBUG("Replanning with previous tree.");
+            pruneTree();
+            replanning = true;
+        }
+        // The goal is different, start from scratch
+        else
+        {
+            clear();
+        }
+    }
+
+    if (!replanning)
+    {
+        OMPL_DEBUG("Starting planning.");
         // Add the goal motion to the tree
         base::State *rootState = si_->allocState();
         goal_s->sampleGoal(rootState);
@@ -128,8 +163,6 @@ ompl::base::PlannerStatus ompl::geometric::DRRT::solve(const base::PlannerTermin
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
-
-    OMPL_INFORM("Starting planning.");
 
     Motion *solution = nullptr;
     auto *rmotion = new Motion(si_);
@@ -142,17 +175,17 @@ ompl::base::PlannerStatus ompl::geometric::DRRT::solve(const base::PlannerTermin
         // if no path to goal, chance to sample start state
         if (!pathToGoal_ && p < startBias_)
             si_->copyState(rstate, startState);
-        // otherwise, if tree is regrowing, chance to sample a random waypoint
-        else if (regrowing_ && waypoints_.size() > 0 && p > startBias_ && p < startBias_ + waypointBias_)
+        // Otherwise, if tree is regrowing, chance to sample a random waypoint
+        else if (regrowing_ && !waypoints_.empty() && p > startBias_ && p < startBias_ + waypointBias_)
             si_->copyState(rstate, waypoints_[rng_.uniformInt(0, waypoints_.size()-1)]->state);
         else
             sampler_->sampleUniform(rstate);
 
-        /* find the closest state in the tree */
+        // Find the closest state in the tree
         Motion *nmotion = nn_->nearest(rmotion);
         base::State *dstate = rstate;
 
-        /* find state to add */
+        // Find state to add
         double d = si_->distance(nmotion->state, rstate);
         if (d > maxDistance_)
         {
@@ -160,6 +193,7 @@ ompl::base::PlannerStatus ompl::geometric::DRRT::solve(const base::PlannerTermin
             dstate = xstate;
         }
 
+        // Check if the motion between the nearest state and the state to add is valid
         if (si_->checkMotion(nmotion->state, dstate))
         {
             if (addIntermediateStates_)
@@ -176,6 +210,7 @@ ompl::base::PlannerStatus ompl::geometric::DRRT::solve(const base::PlannerTermin
                     motion->state = states[i];
                     motion->parent = nmotion;
                     nn_->add(motion);
+                    motion->parent->children.push_back(motion);
 
                     nmotion = motion;
                 }
@@ -186,6 +221,7 @@ ompl::base::PlannerStatus ompl::geometric::DRRT::solve(const base::PlannerTermin
                 si_->copyState(motion->state, dstate);
                 motion->parent = nmotion;
                 nn_->add(motion);
+                motion->parent->children.push_back(motion);
 
                 nmotion = motion;
             }
@@ -223,17 +259,17 @@ ompl::base::PlannerStatus ompl::geometric::DRRT::solve(const base::PlannerTermin
         pathToGoal_ = true;
     }
 
-    si_->freeState(xstate);
-    if (rmotion->state != nullptr)
-        si_->freeState(rmotion->state);
-    delete rmotion;
+//    si_->freeState(xstate);
+//    if (rmotion->state != nullptr)
+//        si_->freeState(rmotion->state);
+//    delete rmotion;
 
     OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
 
     return {solved, false};
 }
 
-void ompl::geometric::DRRT::updateEnvironment()
+void ompl::geometric::DRRT::pruneTree()
 {
 
     if (nn_->size() == 0)
@@ -242,72 +278,49 @@ void ompl::geometric::DRRT::updateEnvironment()
         return;
     }
 
-    // Queue of directly invalidated motions
-    std::vector<Motion *> invalidatedMotions;
-    // Queue of motions to remove recursively
-    std::queue<Motion *, std::deque<Motion *>> motionRemoveQueue;
-
-    // Loop through motions in tree, add all directly invalidated ones to queue for removal
     std::vector<Motion *> motions;
     nn_->list(motions);
+    std::set<Motion *> directlyInvalidatedMotions;
+
+    // Loop through motions in tree, add all directly invalidated ones to vector
     for (auto &motion : motions)
     {
-        if (si_->checkMotion(motion->parent->state, motion->state) == false)
+        if (motion->parent != nullptr && !si_->checkMotion(motion->parent->state, motion->state))
+            directlyInvalidatedMotions.insert(motion);
+    }
+
+    std::vector<Motion *> invalidatedMotions(directlyInvalidatedMotions.begin(),
+                                             directlyInvalidatedMotions.end());
+    // Add children of all directly invalidated motions to invalidated motions
+    for (auto &m : directlyInvalidatedMotions)
+    {
+        std::vector<Motion *> invalidatedChildren;
+        getAllChildren(m, invalidatedChildren, directlyInvalidatedMotions);
+        if (!invalidatedChildren.empty())
         {
-            invalidatedMotions.push_back(motion);
-            motionRemoveQueue.push(motion);
+            invalidatedMotions.reserve(invalidatedMotions.size() + invalidatedChildren.size());
+            invalidatedMotions.insert(invalidatedMotions.end(), invalidatedChildren.begin(),
+                                      invalidatedChildren.end());
         }
     }
 
-    // Flag that says if a path to the goal has been invalidated
-    bool pathInvalidated = false;
-
-    // Remove motions by propagating leaf-ward from invalidated motions
-    while (motionRemoveQueue.empty() == false)
+    // Update waypoints if a path to the goal has become invalidated
+    for (auto &invalidatedMotion : invalidatedMotions)
     {
-        // If this motion is a goal, path is destroyed and tree begins regrowing process
-        if (pathToGoal_ && motionRemoveQueue.front()->inStart == true)
+        if (pathToGoal_ && invalidatedMotion->inStart)
         {
             pathToGoal_ = false;
             regrowing_ = true;
-            pathInvalidated = true;
-        }
 
-        // Add all children of this motion to the removal queue
-        addChildrenToList(&motionRemoveQueue, motionRemoveQueue.front());
-
-        // Remove this motion from its parent
-        removeFromParent(motionRemoveQueue.front());
-
-        // Free the motion's state
-        si_->freeState(motionRemoveQueue.front()->state);
-
-        // Delete the motion's pointer
-        delete motionRemoveQueue.front();
-
-        // Remove the motion from the removal queue
-        motionRemoveQueue.pop();
-    }
-
-    // Update waypoints if a path to the goal was invalidated
-    if (pathInvalidated)
-    {
-        waypoints_.clear();
-        // Look for the first motion that was on the now invalidated path
-        for (auto &invalidatedMotion : invalidatedMotions)
-        {
-            if (invalidatedMotion->onPath)
+            // Start motion is invalidated, follow it to obstacle and add waypoints along the way
+            waypoints_.clear();
+            Motion *motion = invalidatedMotion;
+            while (motion->parent != nullptr && si_->checkMotion(motion->parent->state, motion->state))
             {
-                // Add all waypoints starting here, and ending at the tree root
-                Motion *motion = invalidatedMotion;
-                while (motion->parent != nullptr)
-                {
-                    if (si_->checkMotion(motion->parent->state, motion->state))
-                        waypoints_.push_back(motion);
-                    motion = motion->parent;
-                }
-                break;
+                waypoints_.push_back(motion);
+                motion = motion->parent;
             }
+            break;
         }
     }
 
@@ -318,6 +331,23 @@ void ompl::geometric::DRRT::updateEnvironment()
     }
     // clear path vector
     path_.clear();
+
+    // Remove all invalidated motions from the tree and delete them
+    for (auto &invalidatedMotion : invalidatedMotions)
+    {
+        // Remove from tree
+        nn_->remove(invalidatedMotion);
+
+        // Remove from parent if possible
+        if (invalidatedMotion->parent && !invalidatedMotion->parent->children.empty())
+            removeFromParent(invalidatedMotion);
+
+        // Free the motion's state
+        si_->freeState(invalidatedMotion->state);
+
+        // Delete the motion's pointer
+        delete invalidatedMotion;
+    }
 
 }
 
@@ -333,11 +363,19 @@ void ompl::geometric::DRRT::removeFromParent(Motion *m)
     }
 }
 
-void ompl::geometric::DRRT::addChildrenToList(std::queue<Motion *, std::deque<Motion *>> *motionList, Motion *motion)
+void ompl::geometric::DRRT::getAllChildren(const Motion *m,  std::vector<Motion *> &cs,
+                                           const std::set<Motion *> &directlyInvalidatedMotions)
 {
-    for (auto &child : motion->children)
+    // Loop over children of motion
+    for (auto &c : m->children)
     {
-        motionList->push(child);
+        // Only add child if it is not a directly invalidated motion
+        // TODO: Figure out a way to omit this check
+        if (!directlyInvalidatedMotions.count(c))
+        {
+            cs.push_back(c);
+            getAllChildren(c, cs, directlyInvalidatedMotions);
+        }
     }
 }
 
