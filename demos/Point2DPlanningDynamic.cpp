@@ -46,7 +46,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
-#include <format>
 #include <vector>
 
 namespace ob = ompl::base;
