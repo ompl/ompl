@@ -86,7 +86,7 @@ public:
         }
     }
 
-    bool plan(unsigned int start_row, unsigned int start_col, unsigned int goal_row, unsigned int goal_col)
+    bool plan(unsigned int start_row, unsigned int start_col, unsigned int goal_row, unsigned int goal_col, double time_limit)
     {
         if (!ss_)
             return false;
@@ -97,8 +97,7 @@ public:
         goal[0] = goal_row;
         goal[1] = goal_col;
         ss_->setStartAndGoalStates(start, goal);
-        // generate a few solutions; all will be added to the goal;
-        ss_->solve();
+        ss_->solve(time_limit);
 
         if (ss_->haveSolutionPath())
         {
@@ -195,22 +194,52 @@ int main(int /*argc*/, char ** /*argv*/)
     boost::filesystem::path path(TEST_RESOURCES_DIR);
     bool useDeterministicSampling = true;
 
-    Plane2DEnvironment env((path / "ppm/floor.ppm").string().c_str(),useDeterministicSampling);
-    if (env.plan(0, 0, 777, 1265))
+    double timeLimit = 2.0f;
+
+    for (int i=0; i<100; i++)
     {
-        env.recordSolution();
-        std::string fileName = "result_demo.ppm";
-        env.save(fileName.c_str());
+        // Find solution in original environment
+        Plane2DEnvironment env((path / "ppm/floor.ppm").string().c_str(),useDeterministicSampling);
+        std::cout << "\nFINDING SOLUTION IN ORIGINAL ENVIRONMENT...\n";
+        if (env.plan(0, 0, 777, 1265, timeLimit))
+        {
+            env.recordSolution();
+            env.save("result_demo.ppm");
+        }
+
+        // Change environment image to add a barrier
+        env.setPPM((path / "ppm/floor_redirect.ppm").string().c_str());
+        std::cout << "\nFINDING SOLUTION WITH BARRIER CLOSE TO ROBOT...\n";
+        // Replan around barrier
+        if (env.plan(0, 0, 777, 1265, timeLimit))
+        {
+            env.recordSolution();
+            env.save("result_demo_redirect.ppm");
+        }
+
+        // Reset environment image to get rid of red lines
+        env.setPPM((path / "ppm/floor_redirect.ppm").string().c_str());
+        std::cout << "\nFINDING SOLUTION WITH SAME BARRIER, BUT NEW START POSITION...\n";
+        // Replan from new robot start position
+        if (env.plan(1250, 80, 777, 1265, timeLimit))
+        {
+            env.recordSolution();
+            env.save("result_demo_diffstart.ppm");
+        }
+
+        // Change environment image to add barrier close to goal
+        env.setPPM((path / "ppm/floor_redirect_2.ppm").string().c_str());
+        std::cout << "\nFINDING SOLUTION WITH BARRIER CLOSE TO GOAL AND SAME NEW START POSITION...\n";
+        // Replan around new barrier and from new robot start position
+        if (env.plan(1250, 80, 777, 1265, timeLimit))
+        {
+            env.recordSolution();
+            env.save("result_demo_redirect2_diffstart.ppm");
+        }
+
     }
 
-    env.setPPM((path / "ppm/floor_redirect.ppm").string().c_str());
 
-    if (env.plan(0, 0, 777, 1265))
-    {
-        env.recordSolution();
-        std::string fileName = "result_demo_redirect.ppm";
-        env.save(fileName.c_str());
-    }
 
     return 0;
 }

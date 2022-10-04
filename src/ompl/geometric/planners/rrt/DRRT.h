@@ -81,7 +81,7 @@ namespace ompl
             /** \brief Informs the algorithm that the environment has changed. Triggers tree pruning
              * and updates waypoints. Call this either regularly, or only when the path becomes
              * invalidated by an obstacle */
-            void pruneTree();
+            void pruneTree(base::State *goalState);
 
             /** \brief Set the start bias
 
@@ -168,11 +168,8 @@ namespace ompl
                 /** \brief The set of motions descending from the current motion */
                 std::vector<Motion *> children;
 
-                /** \brief Flag to indicate if this motion is on the path to the goal, for faster waypoint updating */
-                bool onPath{false};
-
                 /** \brief Set to true if this vertex is in the start state*/
-                bool inStart;
+                bool inStart{false};
 
             };
 
@@ -197,9 +194,6 @@ namespace ompl
 
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
             std::shared_ptr<NearestNeighbors<Motion *>> nn_;
-
-            /** \brief List of motions along the path */
-            std::vector<Motion *> path_;
 
             /** \brief List of waypoint motions, which are motions that used to be along now-deleted path segments
              * to goal */
