@@ -49,6 +49,7 @@ ompl::geometric::DRRT::DRRT(const base::SpaceInformationPtr &si, bool addInterme
 
     Planner::declareParam<double>("range", this, &DRRT::setRange, &DRRT::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("start_bias", this, &DRRT::setStartBias, &DRRT::getStartBias, "0.:.05:1.");
+    Planner::declareParam<double>("waypoint_bias", this, &DRRT::setWaypointBias, &DRRT::getWaypointBias, "0.:.05:1.");
     Planner::declareParam<bool>("intermediate_states", this, &DRRT::setIntermediateStates, &DRRT::getIntermediateStates,
                                 "0,1");
 

@@ -104,6 +104,18 @@ namespace ompl
                 return startBias_;
             }
 
+            /** \brief Set the waypoint bias the planner is using */
+            void setWaypointBias(double waypointBias)
+            {
+                waypointBias_ = waypointBias;
+            }
+
+            /** \brief Get the waypoint bias the planner is using */
+            double getWaypointBias() const
+            {
+                return waypointBias_;
+            }
+
             /** \brief Return true if the intermediate states generated along motions are to be added to the tree itself
              */
             bool getIntermediateStates() const
