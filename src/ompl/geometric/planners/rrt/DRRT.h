@@ -81,7 +81,7 @@ namespace ompl
             /** \brief Informs the algorithm that the environment has changed. Triggers tree pruning
              * and updates waypoints. Call this either regularly, or only when the path becomes
              * invalidated by an obstacle */
-            void pruneTree(base::State *goalState);
+            void pruneTree();
 
             /** \brief Set the start bias
 
@@ -234,8 +234,8 @@ namespace ompl
             /** \brief The random number generator */
             RNG rng_;
 
-            /** \brief The most recent goal motion. Used for PlannerData computation */
-            Motion *lastGoalMotion_{nullptr};
+            /** \brief The most recent start motion. Used for PlannerData computation */
+            Motion *lastStartMotion_{nullptr};
         };
     }
 }

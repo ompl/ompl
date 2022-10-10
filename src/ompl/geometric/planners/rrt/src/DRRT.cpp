@@ -1,7 +1,7 @@
 /*********************************************************************
 * Software License Agreement (BSD License)
 *
-*  Copyright (c) 2015, Darie Roman
+*  Copyright (c) 2022, Darie Roman
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ void ompl::geometric::DRRT::clear()
     freeMemory();
     if (nn_)
         nn_->clear();
-    lastGoalMotion_ = nullptr;
+    lastStartMotion_ = nullptr;
 }
 
 void ompl::geometric::DRRT::setup()
@@ -140,7 +140,7 @@ ompl::base::PlannerStatus ompl::geometric::DRRT::solve(const base::PlannerTermin
         if (si_->equalStates(currentGoalState, newGoalState))
         {
             // Prune existing tree to account for changes in the environment
-            pruneTree(newGoalState);
+            pruneTree();
             nn_->list(currentMotions);
 
             // Reset inStart if robot start position changed
@@ -255,7 +255,7 @@ ompl::base::PlannerStatus ompl::geometric::DRRT::solve(const base::PlannerTermin
 
     if (solution != nullptr)
     {
-        lastGoalMotion_ = solution;
+        lastStartMotion_ = solution;
 
         // Get the motion along the solution path
         std::vector<Motion *> solutionPathReversed;
@@ -284,7 +284,7 @@ ompl::base::PlannerStatus ompl::geometric::DRRT::solve(const base::PlannerTermin
     return {solved, false};
 }
 
-void ompl::geometric::DRRT::pruneTree(base::State *goalState)
+void ompl::geometric::DRRT::pruneTree()
 {
 
     if (nn_->size() == 0)
@@ -405,8 +405,8 @@ void ompl::geometric::DRRT::getPlannerData(base::PlannerData &data) const
     if (nn_)
         nn_->list(motions);
 
-    if (lastGoalMotion_ != nullptr)
-        data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
+    if (lastStartMotion_ != nullptr)
+        data.addGoalVertex(base::PlannerDataVertex(lastStartMotion_->state));
 
     for (auto &motion : motions)
     {
