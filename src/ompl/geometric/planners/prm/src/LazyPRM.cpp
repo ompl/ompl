@@ -393,7 +393,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
             do
             {
                 solution = constructSolution(startV, goalV);
-            } while (!solution && vertexComponentProperty_[startV] == vertexComponentProperty_[goalV]);
+            } while (!solution && vertexComponentProperty_[startV] == vertexComponentProperty_[goalV] && !ptc);
             if (solution)
             {
                 someSolutionFound = true;
