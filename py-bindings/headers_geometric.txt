@@ -1,3 +1,4 @@
+py-bindings/stdsize.h
 src/ompl/geometric/PathGeometric.h
 src/ompl/geometric/PathSimplifier.h
 src/ompl/geometric/PathHybridization.h

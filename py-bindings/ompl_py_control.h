@@ -37,14 +37,25 @@
 #ifndef PY_BINDINGS_OMPL_PY_CONTROL_
 #define PY_BINDINGS_OMPL_PY_CONTROL_
 
+#include "ompl/control/spaces/DiscreteControlSpace.h"
+#include "ompl/control/spaces/RealVectorControlSpace.h"
 #include "ompl/control/ODESolver.h"
 #include "py_std_function.hpp"
 
+#define DeclareControlType(T) \
+    inline int __dummy##T() \
+    { \
+        return sizeof(ompl::control::T##ControlSpace::ControlType); \
+    }
 
 namespace ompl
 {
     namespace control
     {
+        DeclareControlType();
+        DeclareControlType(Compound);
+        DeclareControlType(Discrete);
+        DeclareControlType(RealVector);
         inline int dummyODESolverSize()
         {
             return sizeof(ODEBasicSolver<>) + sizeof(ODEErrorSolver<>) + sizeof(ODEAdaptiveSolver<>);

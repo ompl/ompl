@@ -161,7 +161,7 @@ class ompl_base_generator_t(code_generator_t):
         code_generator_t.filter_declarations(self)
         # rename STL vectors of certain types
         self.std_ns.class_(
-            'map< std::string, std::shared_ptr< ompl::base::ProjectionEvaluator > >').rename(
+            f'map< {self.string_decl}, std::shared_ptr< ompl::base::ProjectionEvaluator > >').rename(
                 'mapStringToProjectionEvaluator')
         self.std_ns.class_('vector< ompl::base::State * >').rename('vectorState')
         try:
@@ -172,9 +172,9 @@ class ompl_base_generator_t(code_generator_t):
             'vectorStateSpacePtr')
         #self.std_ns.class_('vector< <ompl::base::PlannerSolution> >').rename(
         # 'vectorPlannerSolution')
-        self.std_ns.class_('map< std::string, std::shared_ptr<ompl::base::GenericParam> >').rename(
+        self.std_ns.class_(f'map< {self.string_decl}, std::shared_ptr<ompl::base::GenericParam> >').rename(
             'mapStringToGenericParam')
-        self.std_ns.class_('map< std::string, ompl::base::StateSpace::SubstateLocation >').rename(
+        self.std_ns.class_(f'map< {self.string_decl}, ompl::base::StateSpace::SubstateLocation >').rename(
             'mapStringToSubstateLocation')
         self.std_ns.class_('vector<ompl::base::PlannerSolution>').rename('vectorPlannerSolution')
 
@@ -191,8 +191,7 @@ class ompl_base_generator_t(code_generator_t):
         self.ompl_ns.class_('SpecificParam< float >').rename('SpecificParamFloat')
         self.ompl_ns.class_('SpecificParam< double >').rename('SpecificParamDouble')
         self.ompl_ns.class_('SpecificParam< long double >').rename('SpecificParamLongDouble')
-        self.ompl_ns.class_(lambda decl: decl.name.startswith('SpecificParam<std::basic_string')).rename(
-            'SpecificParamString')
+        self.ompl_ns.class_(f'SpecificParam< {self.string_decl} >').rename('SpecificParamString')
         for cls in self.ompl_ns.classes(lambda decl: decl.name.startswith('SpecificParam')):
             cls.constructors().exclude()
         # don't export variables that need a wrapper
@@ -211,7 +210,10 @@ class ompl_base_generator_t(code_generator_t):
         state.variable('components').exclude()
         state.rename('CompoundStateInternal')
         # rename a ScopedState<> to State
-        bstate = self.ompl_ns.class_('ScopedState< ompl::base::StateSpace >')
+        try:
+            bstate = self.ompl_ns.class_('ScopedState< ompl::base::StateSpace >')
+        except declaration_not_found_t:
+            bstate = self.ompl_ns.class_('ScopedState<>')
         bstate.rename('State')
         bstate.operator('=', arg_types=['::ompl::base::State const &']).exclude()
         # add array access to double components of state
@@ -460,6 +462,20 @@ class ompl_control_generator_t(code_generator_t):
 
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
+        # rename the abstract base class Control to AbstractControl
+        control = self.ompl_ns.class_('Control')
+        control.rename('AbstractControl')
+        control.include()
+        # don't export components which is of type State**
+        control = self.ompl_ns.class_('CompoundControl')
+        control.variable('components').exclude()
+        # loop over all predefined state spaces
+        spaces = [s.related_class.name.replace('ControlSpace', '') \
+            for s in self.ompl_ns.class_('ControlSpace').recursive_derived]
+        for stype in spaces:
+            cls = self.ompl_ns.class_(stype + 'ControlSpace').decls('ControlType')
+            cls.rename(stype + 'ControlInternal')
+            cls.include()
         # rename STL vectors of certain types
         self.std_ns.class_('vector< ompl::control::Control * >').rename('vectorControlPtr')
         # don't export variables that need a wrapper
@@ -470,13 +486,14 @@ class ompl_control_generator_t(code_generator_t):
         allocControlFn.include()
         allocControlFn.call_policies = \
             call_policies.return_value_policy(call_policies.reference_existing_object)
-        # don't export components which is of type Control**
-        self.ompl_ns.class_('CompoundControl').variable('components').exclude()
         # don't export some internal data structure
         self.ompl_ns.class_('OrderCellsByImportance').exclude()
         # don't expose this utility function
         self.ompl_ns.member_functions('getValueAddressAtIndex').exclude()
         self.ompl_ns.class_('KPIECE1').member_functions('freeGridMotions').exclude()
+        # don't expose double*
+        self.ompl_ns.class_('RealVectorControlSpace').class_(
+            'ControlType').variable('values').exclude()
         # add array indexing to the RealVectorState
         self.add_array_access(self.ompl_ns.class_('RealVectorControlSpace').class_('ControlType'))
         # make objects printable that have a print function
@@ -846,16 +863,19 @@ class ompl_tools_generator_t(code_generator_t):
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
         # rename STL vectors/maps of certain types
-        self.std_ns.class_('vector< ompl::tools::Benchmark::PlannerExperiment >').rename(
-            'vectorPlannerExperiment')
-        self.std_ns.class_('vector< std::vector< std::map<std::string, std::string> > >').rename(
-            'vectorRunProgressData')
+        try:
+            self.std_ns.class_('vector< ompl::tools::Benchmark::PlannerExperiment >').rename(
+                'vectorPlannerExperiment')
+            self.std_ns.class_(f'vector< std::vector< std::map< {self.string_decl}, {self.string_decl} > > >').rename(
+                'vectorRunProgressData')
+        except:
+            pass
         # make objects printable that have a print function
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
 
         benchmark_cls = self.ompl_ns.class_('Benchmark')
         self.replace_member_function(benchmark_cls.member_function('saveResultsToStream'))
-        for constructor in benchmark_cls.constructors(arg_types=[None, "::std::string const &"]):
+        for constructor in benchmark_cls.constructors(arg_types=[None, f"{self.string_decl} const &"]):
             constructor.add_transformation(FT.input(1))
 
         self.ompl_ns.member_functions('addPlannerAllocator').exclude()
@@ -879,31 +899,24 @@ class ompl_util_generator_t(code_generator_t):
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
         # rename STL vectors of certain types
-        self.std_ns.class_('vector< unsigned long >').include()
-        self.std_ns.class_('vector< unsigned long >').rename('vectorSizeT')
-        # not needed; causes problems when compiling in C++11 mode
-        #self.std_ns.class_('vector< bool >').include()
-        #self.std_ns.class_('vector< bool >').rename('vectorBool')
-        self.std_ns.class_('vector< int >').include()
-        self.std_ns.class_('vector< int >').rename('vectorInt')
-        self.std_ns.class_('vector< double >').include()
-        self.std_ns.class_('vector< double >').rename('vectorDouble')
-        self.std_ns.class_('vector< unsigned int >').include()
-        self.std_ns.class_('vector< unsigned int >').rename('vectorUint')
-        self.std_ns.class_('vector< std::string >').include()
-        self.std_ns.class_('vector< std::string >').rename('vectorString')
-        self.std_ns.class_('vector< std::vector<int> >').include()
-        self.std_ns.class_('vector< std::vector<int> >').rename('vectorVectorInt')
-        self.std_ns.class_('vector< std::vector<unsigned int> >').include()
-        self.std_ns.class_('vector< std::vector<unsigned int> >').rename('vectorVectorUint')
-        self.std_ns.class_('vector< std::vector<double> >').include()
-        self.std_ns.class_('vector< std::vector<double> >').rename('vectorVectorDouble')
-        self.std_ns.class_('vector< std::map<std::string, std::string > >').include()
-        self.std_ns.class_('vector< std::map<std::string, std::string > >').rename(
-            'vectorMapStringToString')
-        self.std_ns.class_('map<std::string, std::string >').include()
-        self.std_ns.class_('map<std::string, std::string >').rename('mapStringToString')
-        self.std_ns.class_('vector< ompl::PPM::Color >').rename('vectorPPMColor')
+        classes = {
+            'vector< unsigned long >': 'vectorSizeT',
+            'vector< int >': 'vectorInt',
+            'vector< double >': 'vectorDouble',
+            'vector< unsigned int >': 'vectorUint',
+            f'vector< {self.string_decl} >': 'vectorString',
+            'vector< std::vector<int> >': 'vectorVectorInt',
+            'vector< std::vector<unsigned int> >': 'vectorVectorUint',
+            'vector< std::vector<double> >': 'vectorVectorDouble',
+            f'vector< std::map< {self.string_decl}, {self.string_decl} > >': 'vectorMapStringToString',
+            f'map< {self.string_decl}, {self.string_decl} > >': 'mapStringToString',
+            'vector< ompl::PPM::Color >': 'vectorPPMColor'
+        }
+        for decl, name in classes.items():
+            cls = self.std_ns.class_(decl)
+            cls.include()
+            cls.rename(name)
+
         try:
             # Exclude the ProlateHyperspheroid Class which needs Eigen, and the associated member
             # functions in the RNG
