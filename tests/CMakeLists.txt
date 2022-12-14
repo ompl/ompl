@@ -53,6 +53,9 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_2dmap_control control/2dmap/2dmap.cpp)
     add_ompl_test(test_planner_data_control control/planner_data.cpp)
 
+    # Test experience based planning
+    add_ompl_test(test_experience_planning tools/test_experience_planning.cpp)
+
     # Test planning via MORSE extension
     if(OMPL_EXTENSION_MORSE)
         add_ompl_test(test_morse_extension extensions/morse/morse_plan.cpp)
