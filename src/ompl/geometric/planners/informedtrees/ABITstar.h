@@ -79,7 +79,7 @@ namespace ompl
         techniques.” in Proceedings of the IEEE international conference on robotics and automation (ICRA), Paris,
         France, 31 May – 4 Jun. 2020.
         DOI: <a href="https://arxiv.org/abs/2002.06589">arXiv:2002.06589</a>.
-        Video 1: <a href="https://youtu.be/twM723QM9TQ">ICRA submission video</a>.
+        Video 1: <a href="https://youtu.be/VFdihv8Lq2A">ICRA submission video</a>.
         Video 2: <a href="https://youtu.be/ZghEeVGgecY">ICRA presentation video</a>
         */
         /** \brief Advanced Batch Informed Trees (ABIT*) */
