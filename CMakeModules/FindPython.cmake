@@ -116,7 +116,7 @@ function(find_python_module module)
         # it's a .so file.
         if (_minversion STREQUAL "")
             execute_process(COMMAND "${PYTHON_EXEC}" "-c"
-                "import re, inspect, ${module}; print(re.compile('/__init__.py.*').sub('',inspect.getfile(${module})))"
+                "from importlib.util import find_spec; print(find_spec('${module}').submodule_search_locations[0])"
                 RESULT_VARIABLE _status OUTPUT_VARIABLE _location
                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
             if(NOT _status)
@@ -125,7 +125,7 @@ function(find_python_module module)
             endif(NOT _status)
         else (_minversion STREQUAL "")
             execute_process(COMMAND "${PYTHON_EXEC}" "-c"
-                "import re, inspect, ${module}; print(re.compile('/__init__.py.*').sub('',${module}.__version__+';'+inspect.getfile(${module})))"
+                "from importlib.metadata import version; from importlib.util import find_spec; print(version('${module}') + ';' + find_spec('${module}').submodule_search_locations[0])"
                 RESULT_VARIABLE _status
                 OUTPUT_VARIABLE _verloc
                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
