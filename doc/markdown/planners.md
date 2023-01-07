@@ -94,6 +94,7 @@ Planners in this category only accounts for the geometric and kinematic constrai
   - [SPARS](\ref gSPARS)<br> An asymptotically near-optimal roadmap-based planner.
   - [SPARS2](\ref gSPARStwo)<br> An asymptotically near-optimal roadmap-based planner.
   - [FMT*](\ref gFMT)<br> An asymptotically optimal tree-based planner.
+  - [ST-RRT*](\ref gSTRRTstar)<br> a bidirectional, time-optimal planner for planning in space-time.
   - [CForest](\ref gCForest)<br> A meta-planner that runs several instances of asymptotically optimal planners in different threads. When one thread finds a better solution path, the states along the path are passed on to the other threads.
   - [AnytimePathShortening (APS)](\ref gAPS)<br> APS is a generic wrapper around one or more geometric motion planners that repeatedly applies [shortcutting](\ref ompl::geometric::PathSimplifier) and [hybridization](\ref ompl::geometric::PathHybridization) to a set of solution paths. Any number and combination of planners can be specified, each is run in a separate thread.
 .
