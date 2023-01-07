@@ -189,7 +189,7 @@ macro(find_boost_numpy)
             "numpy${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}"
             "numpy${PYTHON_VERSION_MAJOR}" "numpy")
             string(TOUPPER ${_bn_libname} _bn_upper)
-            set(_Boost_${_bn_upper}_HEADERS "boost/numpy.hpp")
+            set(_Boost_${_bn_upper}_HEADERS "boost/python/numpy.hpp")
             find_package(Boost COMPONENTS ${_bn_libname} QUIET)
             set(_bnlib "${Boost_${_bn_upper}_LIBRARY}")
             if (_bnlib)
