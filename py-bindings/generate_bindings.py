@@ -875,7 +875,7 @@ class ompl_tools_generator_t(code_generator_t):
 
         benchmark_cls = self.ompl_ns.class_('Benchmark')
         self.replace_member_function(benchmark_cls.member_function('saveResultsToStream'))
-        for constructor in benchmark_cls.constructors(arg_types=[None, f"{self.string_decl} const &"]):
+        for constructor in benchmark_cls.constructors(arg_types=[None, "::std::string const &"]):
             constructor.add_transformation(FT.input(1))
 
         self.ompl_ns.member_functions('addPlannerAllocator').exclude()
