@@ -1,5 +1,23 @@
 # Release Notes {#releaseNotes}
 
+## OMPL 1.6.0 (January 11, 2023)
+
+- A C++17 compiler is now required.
+- Added new planners:
+  - [ST-RRT*](\ref gSTRRTstar): a bidirectional, time-optimal planner for planning in space-time.
+  - **Multi-level planners**: Planning algorithms which can exploit multiple levels of abstractions.
+    - [Rapidly-exploring Random Quotient space Trees (QRRT)](\ref QRRT): A generalization of RRT to plan on different abstraction levels. 
+    - [QRRT*](\ref QRRTstar): An asymptotically optimal version of QRRT.
+    - [Quotient-Space Roadmap Planner (QMP)](\ref QMP): A generalization of PRM to plan on different abstraction levels. 
+    - [QMP*](\ref QMPstar): An asymptotically optimal version of QMP.
+- AIT* has been significantly refactored.
+- SST now uses the intermediate solution callback to report new solutions.
+- The kinodynamic version of SST (ompl::control::SST) now supports optimization objectives.
+- New topological state spaces have been added: a torus, a sphere, a Möbius strip, and a Klein bottle.
+- Updated docker images to Ubuntu Jammy.
+- Several fixes for Python bindings.
+- Bug fixes.
+
 ## OMPL 1.5.2 (January 31, 2021)
 
 - Small Planner Arena updates.
