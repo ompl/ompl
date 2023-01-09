@@ -164,16 +164,16 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     // Convert chosen PlannerData experience to an actual path
     auto primaryPath(std::make_shared<PathGeometric>(si_));
     // Add start
-    if(!perfect_match)
-      primaryPath->append(startState);
+    if (!perfect_match)
+        primaryPath->append(startState);
     // Add old states
     for (std::size_t i = 0; i < chosenPath->numVertices(); ++i)
     {
         primaryPath->append(chosenPath->getVertex(i).getState());
     }
     // Add goal
-    if(!perfect_match)
-      primaryPath->append(goalState);
+    if (!perfect_match)
+        primaryPath->append(goalState);
 
     // All save trajectories should be at least 2 states long, and then we append the start and goal states
     assert(primaryPath->getStateCount() >= 4);
@@ -201,7 +201,8 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
 }
 
 bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *startState, const base::State *goalState,
-                                                            ompl::base::PlannerDataPtr &chosenPath, std::size_t & bestPathScore)
+                                                            ompl::base::PlannerDataPtr &chosenPath,
+                                                            std::size_t &bestPathScore)
 {
     OMPL_INFORM("LightningRetrieveRepair: Found %d similar paths. Filtering", nearestPaths_.size());
 

@@ -194,7 +194,7 @@ namespace ompl
             /** \brief Number of 'k' close solutions to choose from database for further filtering */
             int nearestK_;
         };
-    }
-}
+    }  // namespace geometric
+}  // namespace ompl
 
 #endif
