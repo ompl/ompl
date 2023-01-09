@@ -168,7 +168,7 @@ namespace ompl
              * \return true if no error
              */
             bool findBestPath(const base::State *startState, const base::State *goalState,
-                              base::PlannerDataPtr &chosenPath);
+                              base::PlannerDataPtr &chosenPath, std::size_t &bestPathScore);
 
             /** \brief The database of motions to search through */
             tools::LightningDBPtr experienceDB_;
