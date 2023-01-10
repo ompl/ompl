@@ -175,9 +175,6 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     if (!perfect_match)
         primaryPath->append(goalState);
 
-    // All save trajectories should be at least 2 states long, and then we append the start and goal states
-    assert(primaryPath->getStateCount() >= 4);
-
     // Repair chosen path
     if (!repairPath(ptc, *primaryPath))
     {
