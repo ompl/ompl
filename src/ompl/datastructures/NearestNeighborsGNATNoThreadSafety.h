@@ -443,8 +443,9 @@ namespace ompl
                             gnat.rebuildDataStructure();
                         else if (gnat.size_ >= gnat.rebuildSize_)
                         {
-                            gnat.rebuildSize_ <<= 1;
+                            std::size_t rebuildSize = gnat.rebuildSize_ << 1;
                             gnat.rebuildDataStructure();
+                            gnat.rebuildSize_ = rebuildSize;
                         }
                         else
                             split(gnat);
