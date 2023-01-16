@@ -12,6 +12,8 @@
       <li data-target="#omplCarousel" data-slide-to="3"></li>
       <li data-target="#omplCarousel" data-slide-to="4"></li>
       <li data-target="#omplCarousel" data-slide-to="5"></li>
+      <li data-target="#omplCarousel" data-slide-to="6"></li>
+      <li data-target="#omplCarousel" data-slide-to="7"></li>
     </ol>
     <!-- Wrapper for slides -->
     <div class="carousel-inner">
@@ -20,6 +22,27 @@
         <div class="carousel-caption">
           <h4>OMPL used in ROS/MoveIt</h4>
           <p>OMPL is the default planning library in MoveIt and has been used for <a href="https://moveit.ros.org/robots">many robots</a>. Here, OMPL is used to plan footsteps for NASA's Robonaut2 aboard the International Space Station.</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <img src="images/frontpage/mbm.png">
+        <div class="carousel-caption">
+          <h4>MotionBenchMaker Dataset</h4>
+          <p><a href="https://github.com/KavrakiLab/motion_bench_maker">MotionBenchMaker</a> is a tool for generating motion planning problem datasets for evaluation or learning, and comes with 40 pre-fabricated problems shown here.</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <img src="images/frontpage/fetch_mmp.png">
+        <div class="carousel-caption">
+          <h4>Multi-modal Motion Planning</h4>
+          <p>OMPL has been used in multi-modal planners to achieve complex robot behavior, such as removing this barbell object from a puzzle box.</p>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <img src="images/frontpage/empp.jpg">
+        <div class="carousel-caption">
+          <h4>Evaluating Motion Planning Performance @ IROS 2022</h4>
+          <p><a href="https://motion-planning-workshop.kavrakilab.org/">EMPP @ IROS 2022</a> brought together researchers and industry professionals interested in evaluation of motion planners and highlighted OMPL.</p>
         </div>
       </div>
       <div class="carousel-item">
@@ -50,13 +73,13 @@
           <p>OMPL supports planning for kinematically constrained robots. This parallel manipulator (included as a <a href="ConstrainedPlanningImplicitChain_8cpp_source.html">demo program</a>) has over 150 degrees of freedom, but feasible motions can still be computed in seconds.</p>
         </div>
       </div>
-      <div class="carousel-item">
-        <img src="images/frontpage/ompl-morse.jpg">
-        <div class="carousel-caption">
-          <h4>OMPL in MORSE</h4>
-          <p>It is possible to use OMPL inside the <a href="http://www.openrobots.org/morse/doc/stable/morse.html">MORSE robot simulator</a>. This shows a robot car that, through planning, discovers a feasible trajectory to reach the target marked by the red X.</p>
-        </div>
-      </div>
+      <!-- <div class="carousel-item"> -->
+      <!--   <img src="images/frontpage/ompl-morse.jpg"> -->
+      <!--   <div class="carousel-caption"> -->
+      <!--     <h4>OMPL in MORSE</h4> -->
+      <!--     <p>It is possible to use OMPL inside the <a href="http://www.openrobots.org/morse/doc/stable/morse.html">MORSE robot simulator</a>. This shows a robot car that, through planning, discovers a feasible trajectory to reach the target marked by the red X.</p> -->
+      <!--   </div> -->
+      <!-- </div> -->
     </div>
     <!-- Controls -->
     <a class="carousel-control-prev" href="#omplCarousel" role="button" data-slide="prev">
@@ -171,23 +194,11 @@
     <div class="col-lg-12 col-md-12">
       <h2>News &amp; Events</h2>
       <ul>
-        <li><a href="https://vimeo.com/66567049">At ROSCON 2013, Sachin Chitta gave a presentation about MoveIt</a>, the new
-          software framework for motion planning in ROS. It provides a common interface to motion planning libraries
-          (including OMPL). The old ROS arm_navigation stack is now deprecated and all ROS users are encouraged to switch to
-          MoveIt.</li>
-        <li><a href="https://moveit.ros.org/wiki/Tutorials/ICRA2013">ICRA 2013 Tutorial on Motion Planning for Mobile
-            Manipulation: State-of-the-art Methods and Tools</a>. Both OMPL and <a href="https://moveit.ros.org">MoveIt</a>
-            were heavily featured in this tutorial.</li>
-        <li><a href="http://ompl.kavrakilab.org/2012/12/05/ompl-wins-the-2012-oss-world-challenge-grand-prize.html">OMPL has won the 2012 Open Source Software World Grand
-            Challenge!</a></li>
-        <li><a href="ieee-ram-2012-ompl.pdf">An article about OMPL</a> has been accepted for publication in IEEE's Robotics
-          &amp; Automation Magazine! It will appear in the December 2012 issue.</li>
-        <li><a href="https://www.youtube.com/watch?v=r1zbuLc8RhI">At ROSCON 2012, Sachin Chitta and Ioan Șucan gave a talk
-            about MoveIt</a>, the new motion planning stack in ROS. It provides a common interface to motion planning
-          libraries in ROS (including OMPL). It will eventually replace the arm navigation stack.</li>
-        <li><a href="http://kavrakilab.org/OMPLtutorial">IROS 2011 Tutorial on Motion Planning for Real Robots</a>. This
-          hands-on tutorial described how to use the ROS and OMPL, but it also provided some background on sampling-based
-          motion planning.</li>
+      <li><a href="https://github.com/ompl/ompl/releases/tag/1.6.0">OMPL 1.6.0 has been released!</a> This release includes new planners, <a href="file:///home/zak/src/ompl.github.io/multiLevelPlanning.html">multilevel planning</a>, bug fixes, and more.</li>
+      <li><a href="https://motion-planning-workshop.kavrakilab.org/">The Evaluating Motion Planning Performance workshop was hosted at IROS 2022 in Kyoto, Japan.</a> This workshop brought together interested professionals in academia and industry to discuss motion planner evaluation. Videos of talks are available.</li>
+      <li><a href="https://github.com/KavrakiLab/robowflex">Robowflex, a tool for motion planning researchers</a> using OMPL through MoveIt was nominated for best paper for industrial robotics research with real-world applications at IROS 2022.</li>
+      <li><a href="https://www.kavrakilab.org/publications/moll2021hyperplan.pdf">HyperPlan, a tool for automatically configuring motion planners,</a> is now <a href="https://github.com/KavrakiLab/hyperplan">available open source</a>. Given a training dataset, this tool can optimize motion planning performance by tuning parameters, such as range, which projection to use, and so on.</li>
+      <li><a href="https://github.com/KavrakiLab/motion_bench_maker">MotionBenchMaker, a motion planning dataset and tool to make datasets is now available.</a> The pre-fabricated dataset contains 8 different problem with 5 different robots, for 40 challenging motion planning problems total.
       </ul>
     </div>
   </div>
