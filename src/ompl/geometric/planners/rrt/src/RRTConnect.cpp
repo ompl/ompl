@@ -156,7 +156,10 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
         if (si_->getMotionStates(astate, bstate, states, count, true, true))
             si_->freeState(states[0]);
 
-        for (std::size_t i = 1; i < states.size(); ++i)
+        // Add states forwards if from start, backwards if from goal
+        for (std::size_t i = tgi.start ? 1 : states.size() - 1;  //
+             (tgi.start) ? i < states.size() : i > 0;            //
+             i += 2 * tgi.start - 1)
         {
             auto *motion = new Motion;
             motion->state = states[i];
