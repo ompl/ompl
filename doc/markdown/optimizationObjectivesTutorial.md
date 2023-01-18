@@ -108,7 +108,7 @@ You'll notice that we didn't use the reciprocal of the clearance as before. This
 ~~~{.cpp}
 bool MaximizeMinClearance::isCostBetterThan(ob::Cost c1, ob::Cost c2) const
 {
-    return c1.value() > c2.value() + ompl::magic::BETTER_PATH_COST_MARGIN;
+    return c1.value() > c2.value();
 }
 ~~~
 
