@@ -115,12 +115,12 @@ bool ompl::control::PlannerDataStorage::load(std::istream &in, base::PlannerData
     return true;
 }
 
-void ompl::control::PlannerDataStorage::store(const base::PlannerData &pd, const char *filename)
+bool ompl::control::PlannerDataStorage::store(const base::PlannerData &pd, const char *filename)
 {
     return base::PlannerDataStorage::store(pd, filename);
 }
 
-void ompl::control::PlannerDataStorage::store(const base::PlannerData &pd, std::ostream &out)
+bool ompl::control::PlannerDataStorage::store(const base::PlannerData &pd, std::ostream &out)
 {
     const auto *pdc = static_cast<const control::PlannerData *>(&pd);
     if (pdc == nullptr)
