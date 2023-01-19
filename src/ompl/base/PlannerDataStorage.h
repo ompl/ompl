@@ -85,20 +85,24 @@ namespace ompl
             virtual ~PlannerDataStorage();
 
             /// \brief Store (serialize) the PlannerData structure to the given filename.
-            virtual void store(const PlannerData &pd, const char *filename);
+            /// \return True on success, false on failure.
+            virtual bool store(const PlannerData &pd, const char *filename);
 
             /// \brief Store (serialize) the PlannerData structure to the given stream.
-            virtual void store(const PlannerData &pd, std::ostream &out);
+            /// \return True on success, false on failure.
+            virtual bool store(const PlannerData &pd, std::ostream &out);
 
             /// \brief Load the PlannerData structure from the given stream.
             /// The StateSpace that was used to store the data must match the
             /// StateSpace inside of the argument PlannerData.
-            virtual void load(const char *filename, PlannerData &pd);
+            /// \return True on success, false on failure.
+            virtual bool load(const char *filename, PlannerData &pd);
 
             /// \brief Load the PlannerData structure from the given stream.
             /// The StateSpace that was used to store the data must match the
             /// StateSpace inside of the argument PlannerData.
-            virtual void load(std::istream &in, PlannerData &pd);
+            /// \return True on success, false on failure.
+            virtual bool load(std::istream &in, PlannerData &pd);
 
         protected:
             /// \brief Information stored at the beginning of the PlannerData archive
