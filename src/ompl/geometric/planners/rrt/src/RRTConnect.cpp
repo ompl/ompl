@@ -154,21 +154,30 @@ ompl::geometric::RRTConnect::GrowState ompl::geometric::RRTConnect::growTree(Tre
         const unsigned int count = si_->getStateSpace()->validSegmentCount(astate, bstate);
 
         if (si_->getMotionStates(astate, bstate, states, count, true, true))
-            si_->freeState(states[0]);
+        {
+            // if coming from start, don't add the start state (start->goal)
+            if (tgi.start)
+                si_->freeState(states[0]);
+            // if coming from the goal, don't add the start state (goal->start)
+            else
+                si_->freeState(states[states.size() - 1]);
+        }
 
         // Add states forwards if from start, backwards if from goal
-        for (std::size_t i = tgi.start ? 1 : states.size() - 1;  //
-             (tgi.start) ? i < states.size() : i > 0;            //
-             i += 2 * tgi.start - 1)
+        const auto &add_state = [&](const auto &state)
         {
             auto *motion = new Motion;
-            motion->state = states[i];
+            motion->state = state;
             motion->parent = nmotion;
             motion->root = nmotion->root;
             tree->add(motion);
-
             nmotion = motion;
-        }
+        };
+
+        if (tgi.start)
+            std::for_each(++std::begin(states), std::end(states), add_state);
+        else
+            std::for_each(++std::rbegin(states), std::rend(states), add_state);
 
         tgi.xmotion = nmotion;
     }
