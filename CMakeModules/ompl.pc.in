@@ -9,4 +9,4 @@ Description: @PKG_DESC@
 Version: @PROJECT_VERSION@
 Requires: @PKG_EXTERNAL_DEPS@
 Libs: -L${libdir} @PKG_OMPL_LIBS@
-Cflags: -std=c++14 -I${includedir} -I@Boost_INCLUDE_DIR@
+Cflags: -std=c++17 -I${includedir} -I@Boost_INCLUDE_DIR@
