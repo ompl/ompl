@@ -42,7 +42,6 @@
 #include "ompl/util/ClassForward.h"
 #include "ompl/util/Console.h"
 #include "ompl/util/Hash.h"
-#include "ompl/util/DisableCompilerWarning.h"
 #include <algorithm>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
@@ -137,11 +136,8 @@ std::vector<ompl::control::ProductGraph::State *> ompl::control::ProductGraph::c
 {
     std::vector<GraphType::vertex_descriptor> parents(boost::num_vertices(graph_));
     std::vector<double> distances(boost::num_vertices(graph_));
-OMPL_PUSH_DISABLE_GCC_WARNING(-Wmaybe-uninitialized)
-    EdgeIter ei, eend;
-OMPL_POP_GCC
     // first build up the edge weights
-    for (boost::tie(ei, eend) = boost::edges(graph_); ei != eend; ++ei)
+    for (auto [ei, eend] = boost::edges(graph_); ei != eend; ++ei)
     {
         GraphType::vertex_descriptor src = boost::source(*ei, graph_);
         GraphType::vertex_descriptor target = boost::target(*ei, graph_);

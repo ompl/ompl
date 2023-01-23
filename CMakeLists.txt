@@ -65,7 +65,7 @@ if (NOT Boost_VERSION_STRING)
     endif()
 endif()
 if(Boost_VERSION_STRING VERSION_LESS "1.63.0")
-    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/external")
+    include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/src/external")
 endif()
 
 
@@ -110,7 +110,7 @@ set_package_properties(Eigen3 PROPERTIES
     URL "http://eigen.tuxfamily.org"
     PURPOSE "A linear algebra library used throughout OMPL.")
 find_package(Eigen3 REQUIRED)
-include_directories("${EIGEN3_INCLUDE_DIR}")
+include_directories(SYSTEM "${EIGEN3_INCLUDE_DIR}")
 
 set_package_properties(MORSE PROPERTIES
     URL "https://www.openrobots.org/wiki/morse"
@@ -124,7 +124,7 @@ set_package_properties(ODE PROPERTIES
 find_package(ODE QUIET)
 set(OMPL_EXTENSION_ODE ${ODE_FOUND})
 if (OMPL_EXTENSION_ODE)
-  include_directories(${ODE_INCLUDE_DIRS})
+  include_directories(SYSTEM ${ODE_INCLUDE_DIRS})
 endif()
 
 set_package_properties(Triangle PROPERTIES
@@ -133,7 +133,7 @@ set_package_properties(Triangle PROPERTIES
 find_package(Triangle QUIET)
 set(OMPL_EXTENSION_TRIANGLE ${TRIANGLE_FOUND})
 if (OMPL_EXTENSION_TRIANGLE)
-  include_directories(${TRIANGLE_INCLUDE_DIR})
+  include_directories(SYSTEM ${TRIANGLE_INCLUDE_DIR})
 endif()
 
 set_package_properties(flann PROPERTIES
@@ -142,7 +142,7 @@ set_package_properties(flann PROPERTIES
 find_package(flann 1.8.3 QUIET)
 if (FLANN_FOUND)
     set(OMPL_HAVE_FLANN 1)
-    include_directories(${FLANN_INCLUDE_DIRS})
+    include_directories(SYSTEM ${FLANN_INCLUDE_DIRS})
     link_directories(${FLANN_LIBRARY_DIRS})
 endif()
 
@@ -152,7 +152,7 @@ set_package_properties(spot PROPERTIES
 find_package(spot)
 if (spot_FOUND)
     set(OMPL_HAVE_SPOT 1)
-    include_directories("${SPOT_INCLUDE_DIRS}")
+    include_directories(SYSTEM "${SPOT_INCLUDE_DIRS}")
     link_directories(${SPOT_LIBRARY_DIRS})
 endif()
 
@@ -168,7 +168,7 @@ if(PYTHON_FOUND AND NOT Boost_VERSION_STRING VERSION_LESS "1.63.0")
         find_boost_numpy()
         if(Boost_NUMPY_LIBRARY)
             set(OMPL_HAVE_NUMPY 1)
-            include_directories("${PY_NUMPY}/core/include")
+            include_directories(SYSTEM "${PY_NUMPY}/core/include")
         endif()
     endif()
 endif()

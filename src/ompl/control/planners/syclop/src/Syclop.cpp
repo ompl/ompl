@@ -1,43 +1,42 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Matt Maly */
 
 #include "ompl/control/planners/syclop/Syclop.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/base/ProblemDefinition.h"
-#include "ompl/util/DisableCompilerWarning.h"
 #include <limits>
 #include <stack>
 #include <algorithm>
@@ -51,14 +50,9 @@ void ompl::control::Syclop::setup()
     base::Planner::setup();
     if (!leadComputeFn)
         setLeadComputeFn([this](int startRegion, int goalRegion, std::vector<int> &lead)
-                         {
-                             defaultComputeLead(startRegion, goalRegion, lead);
-                         });
+                         { defaultComputeLead(startRegion, goalRegion, lead); });
     buildGraph();
-    addEdgeCostFactor([this](int r, int s)
-                      {
-                          return defaultEdgeCost(r, s);
-                      });
+    addEdgeCostFactor([this](int r, int s) { return defaultEdgeCost(r, s); });
 }
 
 void ompl::control::Syclop::clear()
@@ -292,10 +286,7 @@ void ompl::control::Syclop::initEdge(Adjacency &adj, const Region *source, const
 
 void ompl::control::Syclop::setupEdgeEstimates()
 {
-OMPL_PUSH_DISABLE_GCC_WARNING(-Wmaybe-uninitialized)
-    EdgeIter ei, eend;
-OMPL_POP_GCC
-    for (boost::tie(ei, eend) = boost::edges(graph_); ei != eend; ++ei)
+    for (auto [ei, eend] = boost::edges(graph_); ei != eend; ++ei)
     {
         Adjacency &adj = graph_[*ei];
         adj.empty = true;
@@ -368,10 +359,7 @@ void ompl::control::Syclop::clearGraphDetails()
     VertexIter vi, vend;
     for (boost::tie(vi, vend) = boost::vertices(graph_); vi != vend; ++vi)
         graph_[*vi].clear();
-OMPL_PUSH_DISABLE_GCC_WARNING(-Wmaybe-uninitialized)
-    EdgeIter ei, eend;
-OMPL_POP_GCC
-    for (boost::tie(ei, eend) = boost::edges(graph_); ei != eend; ++ei)
+    for (auto [ei, eend] = boost::edges(graph_); ei != eend; ++ei)
         graph_[*ei].clear();
     graphReady_ = false;
 }

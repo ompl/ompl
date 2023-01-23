@@ -226,7 +226,7 @@ namespace ompl
         protected:
             struct Edge
             {
-                double cost;
+                double cost = {0};
             };
 
             using GraphType = boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, State *, Edge>;
