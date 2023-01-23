@@ -142,7 +142,7 @@ set_package_properties(flann PROPERTIES
 find_package(flann 1.8.3 QUIET)
 if (FLANN_FOUND)
     set(OMPL_HAVE_FLANN 1)
-    include_directories("${FLANN_INCLUDE_DIRS}")
+    include_directories(${FLANN_INCLUDE_DIRS})
     link_directories(${FLANN_LIBRARY_DIRS})
 endif()
 
