@@ -72,15 +72,24 @@ namespace ompl
         goal states while the planner is running. One can also turn off repairing the reverse search tree upon collision
         detection, which might be beneficial for problems in which collision detection is computationally inexpensive.
 
-        @par Associated publication:
+        @par Associated publications:
 
         M. P. Strub, J. D. Gammell. “Adaptively Informed Trees (AIT*): Fast Asymptotically Optimal Path Planning through
         Adaptive Heuristics” in Proceedings of the IEEE international conference on robotics and automation (ICRA),
         Paris, France, 31 May – 4 Jun. 2020.
 
-        DOI: <a href="https://arxiv.org/abs/2002.06599">arXiv:2002.06589</a>
+        arXiv: <a href="https://arxiv.org/abs/2002.06599">arXiv:2002.06589</a>
+        DOI: <a href="https://doi.org/10.1109/ICRA40945.2020.9197338">ICRA40945.2020.9197338</a>
         Video 1: <a href="https://youtu.be/twM723QM9TQ">ICRA submission video</a>.
         Video 2: <a href="https://youtu.be/1h7ugF9F6VM">ICRA presentation video</a>
+
+        M. P. Strub, J. D. Gammell. “AIT* and EIT*: Asymmetric bidirectional sampling-based path planning”
+        The International Journal of Robotics Research (IJRR), in revision, 2021.
+
+        arXiv: <a href="https://arxiv.org/abs/2111.01877">arXiv:2111.01877</a>
+        Video 1: <a href="https://youtu.be/aC2xBwOcDoo">IJRR trailer</a>
+        Video 2: <a href="https://youtu.be/ux4-Mui44DE">IJRR extension 1</a>
+
         */
 
         /** \brief Adaptively Informed Trees (AIT*) */

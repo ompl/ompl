@@ -63,6 +63,12 @@ namespace ompl
                 two states assuming no obstacles. */
             Cost motionCostHeuristic(const State *s1, const State *s2) const override;
 
+            /** \brief the best motion cost estimate for this objective is
+                simply the configuration space distance between \e s1
+                and \e s2, since this is the optimal cost between any
+                two states assuming no obstacles. */
+            Cost motionCostBestEstimate(const State *s1, const State *s2) const override;
+
             /** \brief Allocate a state sampler for the path-length objective (i.e., direct ellipsoidal sampling). */
             InformedSamplerPtr allocInformedStateSampler(const ProblemDefinitionPtr &probDefn,
                                                          unsigned int maxNumberCalls) const override;

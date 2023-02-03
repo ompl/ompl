@@ -163,6 +163,11 @@ ompl::base::Cost ompl::base::OptimizationObjective::motionCostHeuristic(const St
     return identityCost();  // assumes that identity < all costs
 }
 
+ompl::base::Cost ompl::base::OptimizationObjective::motionCostBestEstimate(const State *, const State *) const
+{
+    return identityCost();  // assumes that identity < all costs
+}
+
 const ompl::base::SpaceInformationPtr &ompl::base::OptimizationObjective::getSpaceInformation() const
 {
     return si_;
