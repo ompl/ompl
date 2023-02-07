@@ -210,6 +210,10 @@ void ompl::geometric::PathGeometric::printAsMatrix(std::ostream &out) const
 
 std::pair<bool, bool> ompl::geometric::PathGeometric::checkAndRepair(unsigned int attempts)
 {
+    // make sure state validity checker is set
+    if (!si_->isSetup())
+        si_->setup();
+
     if (states_.empty())
         return std::make_pair(true, true);
     if (states_.size() == 1)
