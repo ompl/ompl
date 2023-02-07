@@ -148,6 +148,18 @@ namespace ompl
             const base::State *startState = pis_.nextStart();
             const base::State *goalState = pis_.nextGoal(ptc);
 
+            if (startState == nullptr) {
+                OMPL_INFORM("RetrieveRepair::solve() start state pointer is null. Returning "
+                            "PlannerStatus::INVALID_START");
+                return base::PlannerStatus::INVALID_START;
+            }
+
+            if (goalState == nullptr) {
+                OMPL_INFORM("RetrieveRepair::solve() goal state pointer is null. Returning "
+                            "PlannerStatus::INVALID_GOAL");
+                return base::PlannerStatus::INVALID_GOAL;
+            }
+
             // Create solution path struct
             SPARSdb::CandidateSolution candidateSolution;
 
