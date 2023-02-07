@@ -43,25 +43,27 @@ ompl::base::PlannerDataStorage::PlannerDataStorage() = default;
 
 ompl::base::PlannerDataStorage::~PlannerDataStorage() = default;
 
-void ompl::base::PlannerDataStorage::store(const PlannerData &pd, const char *filename)
+bool ompl::base::PlannerDataStorage::store(const PlannerData &pd, const char *filename)
 {
     std::ofstream out(filename, std::ios::binary);
-    store(pd, out);
+    bool r = store(pd, out);
     out.close();
+
+    return r;
 }
 
-void ompl::base::PlannerDataStorage::store(const PlannerData &pd, std::ostream &out)
+bool ompl::base::PlannerDataStorage::store(const PlannerData &pd, std::ostream &out)
 {
     const SpaceInformationPtr &si = pd.getSpaceInformation();
     if (!out.good())
     {
         OMPL_ERROR("Failed to store PlannerData: output stream is invalid");
-        return;
+        return false;
     }
     if (!si)
     {
         OMPL_ERROR("Failed to store PlannerData: SpaceInformation is invalid");
-        return;
+        return false;
     }
     try
     {
@@ -81,17 +83,22 @@ void ompl::base::PlannerDataStorage::store(const PlannerData &pd, std::ostream &
     catch (boost::archive::archive_exception &ae)
     {
         OMPL_ERROR("Failed to store PlannerData: %s", ae.what());
+        return false;
     }
+
+    return true;
 }
 
-void ompl::base::PlannerDataStorage::load(const char *filename, PlannerData &pd)
+bool ompl::base::PlannerDataStorage::load(const char *filename, PlannerData &pd)
 {
     std::ifstream in(filename, std::ios::binary);
-    load(in, pd);
+    bool r = load(in, pd);
     in.close();
+
+    return r;
 }
 
-void ompl::base::PlannerDataStorage::load(std::istream &in, PlannerData &pd)
+bool ompl::base::PlannerDataStorage::load(std::istream &in, PlannerData &pd)
 {
     pd.clear();
 
@@ -99,12 +106,12 @@ void ompl::base::PlannerDataStorage::load(std::istream &in, PlannerData &pd)
     if (!in.good())
     {
         OMPL_ERROR("Failed to load PlannerData: input stream is invalid");
-        return;
+        return false;
     }
     if (!si)
     {
         OMPL_ERROR("Failed to load PlannerData: SpaceInformation is invalid");
-        return;
+        return false;
     }
     // Loading the planner data:
     try
@@ -119,7 +126,7 @@ void ompl::base::PlannerDataStorage::load(std::istream &in, PlannerData &pd)
         if (h.marker != OMPL_PLANNER_DATA_ARCHIVE_MARKER)
         {
             OMPL_ERROR("Failed to load PlannerData: PlannerData archive marker not found");
-            return;
+            return false;
         }
 
         // Verify that the state space is the same
@@ -128,7 +135,7 @@ void ompl::base::PlannerDataStorage::load(std::istream &in, PlannerData &pd)
         if (h.signature != sig)
         {
             OMPL_ERROR("Failed to load PlannerData: StateSpace signature mismatch");
-            return;
+            return false;
         }
 
         // File seems ok... loading vertices and edges
@@ -138,5 +145,8 @@ void ompl::base::PlannerDataStorage::load(std::istream &in, PlannerData &pd)
     catch (boost::archive::archive_exception &ae)
     {
         OMPL_ERROR("Failed to load PlannerData: %s", ae.what());
+        return false;
     }
+
+    return true;
 }
