@@ -58,20 +58,20 @@ namespace ompl
             ~PlannerDataStorage() override = default;
 
             /// \brief Load the PlannerData structure from the given filename.
-            void load(const char *filename, base::PlannerData &pd) override;
+            bool load(const char *filename, base::PlannerData &pd) override;
 
             /// \brief Deserializes the structure from the given stream.
-            void load(std::istream &in, base::PlannerData &pd) override;
+            bool load(std::istream &in, base::PlannerData &pd) override;
 
             /// \brief Store (serialize) the structure to the given filename.
             /// The StateSpace and ControlSpace that was used to store the data
             /// must match those inside of the argument PlannerData.
-            void store(const base::PlannerData &pd, const char *filename) override;
+            bool store(const base::PlannerData &pd, const char *filename) override;
 
             /// \brief Load the PlannerData structure from the given stream.
             /// The StateSpace and ControlSpace that was used to store the data
             /// must match those inside of the argument PlannerData.
-            void store(const base::PlannerData &pd, std::ostream &out) override;
+            bool store(const base::PlannerData &pd, std::ostream &out) override;
 
         protected:
             /// @cond IGNORE

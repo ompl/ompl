@@ -176,6 +176,11 @@ namespace ompl
              * which is sure to be an admissible heuristic if there are no negative costs. */
             virtual Cost motionCostHeuristic(const State *s1, const State *s2) const;
 
+            /** \brief Defines a possibly inadmissible estimate on the optimal cost on the motion between states \e s1 and \e s2.
+             * An inadmissible estimate does not always undervalue the true optimal cost of the motion. Used by some planners to
+             * speed up planning. The default implementation of this method returns this objective's identity cost. */
+            virtual Cost motionCostBestEstimate(const State *s1, const State *s2) const;
+
             /** \brief Returns this objective's SpaceInformation. Needed for operators in MultiOptimizationObjective */
             const SpaceInformationPtr &getSpaceInformation() const;
 
