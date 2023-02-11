@@ -667,8 +667,8 @@ class ompl_geometric_generator_t(code_generator_t):
             'def("getPlannerAllocator", &ompl::geometric::SimpleSetup::getPlannerAllocator, ' \
             'bp::return_value_policy< bp::copy_const_reference >())')
         self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::BITstar::Vertex> >').exclude()
-        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::AITstar::Vertex> >').exclude()
-        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::EITstar::Vertex> >').exclude()
+        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::aitstar::Vertex> >').exclude()
+        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::eitstar::Vertex> >').exclude()
         self.std_ns.class_('vector<const ompl::base::State *>').exclude()
 
         self.std_ns.class_('vector< std::shared_ptr<ompl::base::SpaceInformation> >').rename('vectorSpaceInformation')
@@ -778,6 +778,12 @@ class ompl_geometric_generator_t(code_generator_t):
         cls = self.ompl_ns.class_('AITstar')
         cls.member_function('getVerticesInQueue').exclude()
         cls.member_function('getVerticesInReverseSearchTree').exclude()
+        cls = self.ompl_ns.class_('EITstar')
+        cls.member_function('getForwardQueue').exclude()
+        cls.member_function('getReverseQueue').exclude()
+        cls.member_function('getReverseTree').exclude()
+        cls.member_function('getNextForwardEdge').exclude()
+        cls.member_function('getNextReverseEdge').exclude()
 
         # needed to able to set connection strategy for PRM
         # the PRM::Vertex type is typedef-ed to boost::graph_traits<Graph>::vertex_descriptor. This
@@ -802,7 +808,6 @@ class ompl_geometric_generator_t(code_generator_t):
             # Exclude some functions from BIT* that cause some Py++ compilation problems
             # (#I don't know why this doesn't work):
             self.ompl_ns.class_('BITstar').member_functions('getEdgeQueue').exclude()
-            self.ompl_ns.class_('EITstar').member_functions('getEdgeQueue').exclude()
         except declaration_not_found_t:
             pass
 
