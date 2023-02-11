@@ -664,7 +664,8 @@ class ompl_geometric_generator_t(code_generator_t):
             'def("getPlannerAllocator", &ompl::geometric::SimpleSetup::getPlannerAllocator, ' \
             'bp::return_value_policy< bp::copy_const_reference >())')
         self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::BITstar::Vertex> >').exclude()
-        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::aitstar::Vertex> >').exclude()
+        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::AITstar::Vertex> >').exclude()
+        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::EITstar::Vertex> >').exclude()
         self.std_ns.class_('vector<const ompl::base::State *>').exclude()
 
         self.std_ns.class_('vector< std::shared_ptr<ompl::base::SpaceInformation> >').rename('vectorSpaceInformation')
@@ -798,6 +799,7 @@ class ompl_geometric_generator_t(code_generator_t):
             # Exclude some functions from BIT* that cause some Py++ compilation problems
             # (#I don't know why this doesn't work):
             self.ompl_ns.class_('BITstar').member_functions('getEdgeQueue').exclude()
+            self.ompl_ns.class_('EITstar').member_functions('getEdgeQueue').exclude()
         except declaration_not_found_t:
             pass
 
