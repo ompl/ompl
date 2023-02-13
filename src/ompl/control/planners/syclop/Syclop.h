@@ -329,13 +329,13 @@ namespace ompl
                 }
                 /** \brief The cells of the underlying coverage grid that contain tree motions originating from
                     direct connections along this adjacency */
-                std::set<int> covGridCells = {0};
+                std::set<int> covGridCells = {};
                 /** \brief The source region of this adjacency edge */
-                const Region *source = {0};
+                const Region *source = {nullptr};
                 /** \brief The target region of this adjacency edge */
-                const Region *target = {0};
+                const Region *target = {nullptr};
                 /** \brief The cost of this adjacency edge, used in lead computations */
-                double cost = {0};
+                double cost = {0.};
                 /** \brief The number of times this adjacency has been included in a lead */
                 int numLeadInclusions = {0};
                 /** \brief The number of times the low-level tree planner has selected motions from the source region
@@ -343,7 +343,7 @@ namespace ompl
                 int numSelections = {0};
                 /** \brief This value is true if and only if this adjacency's source and target regions both contain
                  * zero tree motions. */
-                bool empty = {0};
+                bool empty = {false};
             };
 
             /** \brief Add State s as a new root in the low-level tree, and return the Motion corresponding to s. */
