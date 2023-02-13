@@ -425,5 +425,5 @@ namespace ompl
             s.print(out);
             return out;
         }
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl

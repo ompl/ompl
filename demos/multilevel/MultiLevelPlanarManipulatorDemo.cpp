@@ -161,25 +161,24 @@ int main()
     //#########################################################################
     //## Create task space [R2 BASE SPACE]
     //#########################################################################
-    // ompl::base::StateSpacePtr spaceR2(new RealVectorStateSpace(2));
-    // ompl::base::RealVectorBounds boundsR2(2);
-    // boundsR2.setLow(-2);
-    // boundsR2.setHigh(+2);
-    // spaceR2->as<RealVectorStateSpace>()->setBounds(boundsR2);
+    ompl::base::StateSpacePtr spaceR2(new RealVectorStateSpace(2));
+    ompl::base::RealVectorBounds boundsR2(2);
+    boundsR2.setLow(-2);
+    boundsR2.setHigh(+2);
+    spaceR2->as<RealVectorStateSpace>()->setBounds(boundsR2);
 
-    // SpaceInformationPtr siR2 = std::make_shared<SpaceInformation>(spaceR2);
-    // // siR2->setStateValidityChecker(std::make_shared<AllValidStateValidityChecker>(siR2));
-    // siR2->setStateValidityChecker(std::make_shared<R2CollisionChecker>(siR2, &world));
-    // siR2->setStateValidityCheckingResolution(0.001);
+    SpaceInformationPtr siR2 = std::make_shared<SpaceInformation>(spaceR2);
+    siR2->setStateValidityChecker(std::make_shared<AllValidStateValidityChecker>(siR2));
+    siR2->setStateValidityChecker(std::make_shared<R2CollisionChecker>(siR2, &world));
+    siR2->setStateValidityCheckingResolution(0.001);
 
     //#########################################################################
     //## Create mapping total to base space [PROJECTION]
     //#########################################################################
     ompl::multilevel::ProjectionPtr projAB = std::make_shared<ProjectionJointSpaceToSE2>(space, spaceSE2, &manipulator);
 
-    // ompl::multilevel::ProjectionPtr projBC = std::make_shared<ompl::multilevel::Projection_SE2_R2>(spaceSE2, spaceR2);
-
-    // std::static_pointer_cast<ompl::multilevel::FiberedProjection>(projBC)->makeFiberSpace();
+    ompl::multilevel::ProjectionPtr projBC = std::make_shared<ompl::multilevel::Projection_SE2_R2>(spaceSE2, spaceR2);
+    std::static_pointer_cast<ompl::multilevel::FiberedProjection>(projBC)->makeFiberSpace();
 
     //#########################################################################
     //## Put it all together
@@ -187,8 +186,8 @@ int main()
     std::vector<SpaceInformationPtr> siVec;
     std::vector<ompl::multilevel::ProjectionPtr> projVec;
 
-    // siVec.push_back(siR2);      // Base Space R2
-    // projVec.push_back(projBC);  // Projection R2 to SE2
+    siVec.push_back(siR2);      // Base Space R2
+    projVec.push_back(projBC);  // Projection R2 to SE2
     siVec.push_back(siSE2);     // Base Space SE2
     projVec.push_back(projAB);  // Projection SE2 to X
     siVec.push_back(si);        // State Space X
@@ -204,7 +203,6 @@ int main()
     for (int i = 0; i < numLinks; ++i)
     {
         start_angles[i] = 1e-1*(pow(-1,i)) + i*1e-3;
-        // start_angles[i] = 1e-7;//1e-1*(pow(-1,i)) + i*1e-3;
     }
 
     //#########################################################################
@@ -225,6 +223,9 @@ int main()
     goal_angles[5] = 0.16532;
     goal_angles[6] = -0.228314;
     goal_angles[7] = 0.172762;
+    goal_angles[8] = 0.0471638;
+    goal_angles[9] = 0.341137;
+    // 0.346324 0.0828153 2.96842 -2.17559 -0.718962 0.16532 -0.228314 0.172762 0.0471638 0.341137
 
     ProblemDefinitionPtr pdef = std::make_shared<ProblemDefinition>(si);
     pdef->addStartState(start);

@@ -719,7 +719,7 @@ namespace ompl
 
             /** @} */
 
-            void printState(const State *state, std::ostream &out) const override;
+            void printState(const State *state, std::ostream &out = std::cout) const override;
 
             void printSettings(std::ostream &out) const override;
 

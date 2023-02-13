@@ -50,6 +50,11 @@ Projection::Projection(ompl::base::StateSpacePtr bundleSpace, ompl::base::StateS
 bool Projection::isAdmissible() const
 {
     OMPL_WARN("NYI");
+    return true;
+}
+
+bool Projection::isCompound() const
+{
     return false;
 }
 
@@ -186,7 +191,7 @@ std::string Projection::getBundleTypeAsString() const
 
 void Projection::print(std::ostream &out) const
 {
-    out << getTypeAsString() << std::endl;
+    out << "[" << getTypeAsString() << "]";
 }
 
 namespace ompl
@@ -198,8 +203,8 @@ namespace ompl
             projection.print(out);
             return out;
         }
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 CompoundProjection::CompoundProjection(const StateSpacePtr &bundleSpace, const StateSpacePtr &baseSpace,
                                        const std::vector<ProjectionPtr> &components)
@@ -245,15 +250,25 @@ void CompoundProjection::project(const State *xBundle, State *xBase) const
     }
     else
     {
-        components_.front()->project(xBundle, xBase);
+        if (components_.front()->getBaseDimension() > 0)
+        {
+            components_.front()->project(xBundle, xBase);
+        }
     }
 }
 
 unsigned int CompoundProjection::getDimension() const
 {
-    if (components_.size() > 0)
+    unsigned int M = components_.size();
+
+    if (M > 0)
     {
-        return components_.front()->getDimension();
+        unsigned int dim = 0;
+        for (unsigned int m = 0; m < M; m++)
+        {
+            dim += components_.at(m)->getDimension();
+        }
+        return dim;
     }
     else
     {
@@ -286,11 +301,13 @@ unsigned int CompoundProjection::getBaseDimension() const
 
 bool CompoundProjection::isFibered() const
 {
-    for (unsigned int k = 0; k < components_.size(); k++)
-    {
-        if (!components_.at(k)->isFibered())
-            return false;
-    }
+    // For fibered compound projections,
+    // use ompl::multilevel::CompoundFiberedProjection
+    return false;
+}
+
+bool CompoundProjection::isCompound() const
+{
     return true;
 }
 
@@ -298,7 +315,6 @@ void CompoundProjection::print(std::ostream &out) const
 {
     for (unsigned int k = 0; k < components_.size(); k++)
     {
-        out << components_.at(k) << "|";
+        out << *(components_.at(k).get()) << (k < (components_.size() - 1) ? " | " : "");
     }
-    out << std::endl;
 }

@@ -38,6 +38,7 @@
 
 #include <ompl/multilevel/datastructures/BundleSpace.h>
 #include <ompl/multilevel/datastructures/Projection.h>
+#include <ompl/multilevel/datastructures/projections/FiberedProjection.h>
 
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/goals/GoalSampleableRegion.h>
@@ -67,10 +68,6 @@ BundleSpace::BundleSpace(const SpaceInformationPtr &si, BundleSpace *child)
         childBundleSpace_->setParent(this);
         xBaseTmp_ = getBase()->allocState();
     }
-
-    std::stringstream ss;
-    ss << (*this);
-    OMPL_DEBUG(ss.str().c_str());
 
     if (!Bundle_valid_sampler_)
     {
@@ -151,7 +148,7 @@ void BundleSpace::setup()
     else
     {
         OMPL_ERROR("Called without ProblemDefinitionPtr");
-        throw "NoProblemDef";
+        throw ompl::Exception("NoProblemDefinition");
     }
 }
 
@@ -182,6 +179,8 @@ void BundleSpace::sanityChecks() const
         checkBundleSpaceMeasure("Base", Base_space);
         if (getProjection()->getDimension() != getBundleDimension())
         {
+            OMPL_ERROR("Bundle space has %d dimensions, but projection has %d dimensions.",
+                       getProjection()->getDimension(), getBundleDimension());
             throw Exception("BundleSpace Dimensions are wrong.");
         }
     }
@@ -219,7 +218,7 @@ void BundleSpace::setProjection(ProjectionPtr projection)
     if (getProjection() == nullptr)
     {
         OMPL_ERROR("Projection is nullptr.");
-        throw "Projection is nullptr.";
+        throw ompl::Exception("Projection is nullptr.");
     }
 }
 
@@ -480,5 +479,5 @@ namespace ompl
             bundleSpace.print(out);
             return out;
         }
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl

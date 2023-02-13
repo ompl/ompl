@@ -36,37 +36,44 @@
 
 /* Author: Andreas Orthey */
 
-#pragma once
-#include <ompl/multilevel/datastructures/pathrestriction/Head.h>
+#include <ompl/multilevel/datastructures/graphsampler/VisibilityRegion.h>
 
-namespace ompl
+using namespace ompl::multilevel;
+using namespace ompl::base;
+
+BundleSpaceGraphSamplerVisibilityRegion::BundleSpaceGraphSamplerVisibilityRegion(BundleSpaceGraph *bundleSpaceGraph)
+  : BaseT(bundleSpaceGraph)
 {
-    namespace multilevel
+    epsilonGraphThickening_ = 0;
+    bundleSpaceGraphSparse_ = dynamic_cast<BundleSpaceGraphSparse *>(bundleSpaceGraph);
+    if (bundleSpaceGraphSparse_ == nullptr)
     {
-        /// @cond IGNORE
-        /** \brief Forward declaration of ompl::multilevel::Head */
-        OMPL_CLASS_FORWARD(Head);
-        /// @endcond
-        class HeadAnalyzer
-        {
-        public:
-            using OccurenceMap = std::map<std::string, int>;
+        OMPL_ERROR("Visibility Region Sampler only valid with sparse graph.");
+        throw ompl::Exception("Invalid Sampler");
+    }
+    regionBias_.setValueInit(0.0);
+    regionBias_.setValueTarget(1.0);
+    regionBias_.setCounterInit(0.0);
+    regionBias_.setCounterTarget(1000);
+}
 
-            /** \brief Simple debugger for the Head class to write information
-             * continuously onto the terminal */
-            HeadAnalyzer(HeadPtr &head);
+void BundleSpaceGraphSamplerVisibilityRegion::clear()
+{
+    regionBias_.reset();
+}
 
-            void operator()(std::string s);
-            void disable();
-            void clear();
-            void print();
+void BundleSpaceGraphSamplerVisibilityRegion::sampleImplementation(State *xRandom)
+{
+    BaseT::sampleImplementation(xRandom);
 
-        private:
-            OccurenceMap map_;
-            int samples_{0};
-            HeadPtr head_;
+    double bias = regionBias_();
 
-            bool enabled_{true};
-        };
+    double s = rng_.uniform01();
+    if (s < bias)
+    {
+        const double visibilityRadius = bias * bundleSpaceGraphSparse_->getSparseDelta();
+
+        bundleSpaceGraphSparse_->getBundleSamplerPtr()->sampleUniformNear(xRandom, xRandom, visibilityRadius);
     }
 }
+

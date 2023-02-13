@@ -34,39 +34,33 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey */
+/* Author: Andreas Orthey, Sohaib Akbar */
 
-#pragma once
-#include <ompl/multilevel/datastructures/pathrestriction/Head.h>
+#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_SMLR_
+#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_SMLR_
+
+#include <ompl/multilevel/datastructures/BundleSpaceSequence.h>
+#include <ompl/multilevel/planners/sparse/SMLRImpl.h>
 
 namespace ompl
 {
     namespace multilevel
     {
-        /// @cond IGNORE
-        /** \brief Forward declaration of ompl::multilevel::Head */
-        OMPL_CLASS_FORWARD(Head);
-        /// @endcond
-        class HeadAnalyzer
-        {
-        public:
-            using OccurenceMap = std::map<std::string, int>;
+        /**
+             @anchor SMLR
+             @par Short description
+             Sparse Multilevel Roadmap Planner (SMLR) algorithm,
+             generalizes the SPARS planner to bundle spaces.
 
-            /** \brief Simple debugger for the Head class to write information
-             * continuously onto the terminal */
-            HeadAnalyzer(HeadPtr &head);
+             @par External documentation
+             A. Orthey and M. Toussaint,
+             Sparse Multilevel Roadmaps on Fiber Bundles for High-Dimensional Motion Planning,
+             in arXiv:2011.00832 [cs.RO], 2020
+             [[PDF]](https://arxiv.org/pdf/2011.00832.pdf)
+        */
 
-            void operator()(std::string s);
-            void disable();
-            void clear();
-            void print();
-
-        private:
-            OccurenceMap map_;
-            int samples_{0};
-            HeadPtr head_;
-
-            bool enabled_{true};
-        };
+        /** \brief [S]parse [M]ulti[L]evel [R]oadmap planner (SMLR) Algorithm */
+        using SMLR = BundleSpaceSequence<SMLRImpl>;
     }
 }
+#endif

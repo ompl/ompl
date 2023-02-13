@@ -130,6 +130,8 @@ namespace ompl
                 /** \brief same as rrt*, connection cost with parent {qrrt*} */
                 base::Cost lineCost;
 
+                double importance;
+
                 /** \brief The set of motions descending from the current motion {qrrt*} */
                 std::vector<Configuration *> children;
 

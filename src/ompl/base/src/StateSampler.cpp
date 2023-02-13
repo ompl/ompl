@@ -37,6 +37,21 @@
 #include "ompl/base/StateSampler.h"
 #include "ompl/base/StateSpace.h"
 
+void ompl::base::StateSampler::sampleShell(State *state, const State *center, double innerRadius, double outerRadius)
+{
+    const int max_attempts = 10;
+    int attempts = 0;
+    while(attempts++ < max_attempts)
+    {
+        sampleUniformNear(state, center, outerRadius);
+        space_->enforceBounds(state);
+        if(space_->distance(center, state) >= innerRadius)
+        {
+          break;
+        }
+    }
+}
+
 void ompl::base::CompoundStateSampler::addSampler(const StateSamplerPtr &sampler, double weightImportance)
 {
     samplers_.push_back(sampler);
@@ -68,6 +83,14 @@ void ompl::base::CompoundStateSampler::sampleGaussian(State *state, const State 
     State **meanComps = mean->as<CompoundState>()->components;
     for (unsigned int i = 0; i < samplerCount_; ++i)
         samplers_[i]->sampleGaussian(comps[i], meanComps[i], stdDev * weightImportance_[i]);
+}
+
+void ompl::base::CompoundStateSampler::sampleShell(State *state, const State *center, double innerRadius, double outerRadius)
+{
+    State **comps = state->as<CompoundState>()->components;
+    State **centerComps = center->as<CompoundState>()->components;
+    for (unsigned int i = 0; i < samplerCount_; ++i)
+        samplers_[i]->sampleShell(comps[i], centerComps[i], innerRadius, outerRadius);
 }
 
 ompl::base::SubspaceStateSampler::SubspaceStateSampler(const StateSpace *space, const StateSpace *subspace,
@@ -105,5 +128,12 @@ void ompl::base::SubspaceStateSampler::sampleGaussian(State *state, const State 
 {
     copyStateData(subspace_, work2_, space_, mean);
     subspaceSampler_->sampleGaussian(work_, work2_, stdDev * weight_);
+    copyStateData(space_, state, subspace_, work_, subspaces_);
+}
+
+void ompl::base::SubspaceStateSampler::sampleShell(State *state, const State *center, double innerRadius, double outerRadius)
+{
+    copyStateData(subspace_, work2_, space_, center);
+    subspaceSampler_->sampleShell(work_, work2_, innerRadius, outerRadius);
     copyStateData(space_, state, subspace_, work_, subspaces_);
 }

@@ -50,7 +50,7 @@ namespace ompl
     {
         static const unsigned int PATH_SECTION_MAX_FIBER_SAMPLING = 10;
     }
-}
+}  // namespace ompl
 
 using namespace ompl::multilevel;
 
@@ -60,14 +60,15 @@ FindSection::FindSection(PathRestriction *restriction) : restriction_(restrictio
 
     if (!graph->getProjection()->isFibered())
     {
-        OMPL_DEBUG("Finding section with non-fibered projection.");
+        OMPL_DEBUG("Cannot init section module with non-fibered projection.");
         return;
     }
 
-    FiberedProjectionPtr projection = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+    projection_ = std::static_pointer_cast<FiberedProjection>(graph->getProjection());
+
     if (graph->getCoDimension() > 0)
     {
-        base::StateSpacePtr fiber = projection->getFiberSpace();
+        base::StateSpacePtr fiber = projection_->getFiberSpace();
         xFiberStart_ = fiber->allocState();
         xFiberGoal_ = fiber->allocState();
         xFiberTmp_ = fiber->allocState();
@@ -182,7 +183,8 @@ bool FindSection::tripleStep(HeadPtr &head, const ompl::base::State *sBundleGoal
     //     v
     // xBundleGoalTmp -------> xBundleGoal
 
-    while (!found && location >= 0)
+    double locationMin = std::max(0.0, location - 100 * validBaseSpaceSegmentLength_);
+    while (!found && location >= locationMin)
     {
         restriction_->interpolateBasePath(location, xBase);
 

@@ -57,6 +57,8 @@ namespace ompl
             void sampleUniformNear(State *state, const State *near, double distance) override;
 
             void sampleGaussian(State *state, const State *mean, double stdDev) override;
+
+            void sampleShell(State *state, const State *center, double innerRadius, double outerRadius) override;
         };
 
         class TorusStateSpace : public CompoundStateSpace

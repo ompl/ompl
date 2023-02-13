@@ -36,37 +36,36 @@
 
 /* Author: Andreas Orthey */
 
-#pragma once
-#include <ompl/multilevel/datastructures/pathrestriction/Head.h>
+#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_DATASTRUCTURES_GRAPHSAMPLER_VISIBILITY_REGION_
+#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_DATASTRUCTURES_GRAPHSAMPLER_VISIBILITY_REGION_
+#include <ompl/multilevel/datastructures/BundleSpaceGraphSparse.h>
+#include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
+#include <ompl/multilevel/datastructures/graphsampler/RandomEdge.h>
+#include <ompl/multilevel/datastructures/graphsampler/RandomVertex.h>
+#include <ompl/multilevel/datastructures/ParameterSmoothStep.h>
 
 namespace ompl
 {
     namespace multilevel
     {
-        /// @cond IGNORE
-        /** \brief Forward declaration of ompl::multilevel::Head */
-        OMPL_CLASS_FORWARD(Head);
-        /// @endcond
-        class HeadAnalyzer
+        class BundleSpaceGraphSamplerVisibilityRegion : public BundleSpaceGraphSamplerRandomEdge
         {
+            using BaseT = BundleSpaceGraphSamplerRandomEdge;
+
         public:
-            using OccurenceMap = std::map<std::string, int>;
+            BundleSpaceGraphSamplerVisibilityRegion() = delete;
+            BundleSpaceGraphSamplerVisibilityRegion(BundleSpaceGraph *);
 
-            /** \brief Simple debugger for the Head class to write information
-             * continuously onto the terminal */
-            HeadAnalyzer(HeadPtr &head);
+            virtual void clear() override;
 
-            void operator()(std::string s);
-            void disable();
-            void clear();
-            void print();
+        protected:
+            virtual void sampleImplementation(base::State *xRandom) override;
 
-        private:
-            OccurenceMap map_;
-            int samples_{0};
-            HeadPtr head_;
+            BundleSpaceGraphSparse *bundleSpaceGraphSparse_;
 
-            bool enabled_{true};
+            ParameterSmoothStep regionBias_;
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
+
+#endif

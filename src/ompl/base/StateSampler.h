@@ -98,6 +98,7 @@ namespace ompl
             about the distance between `state` and `mean`.
             */
             virtual void sampleGaussian(State *state, const State *mean, double stdDev) = 0;
+            virtual void sampleShell(State *state, const State *center, double innerRadius, double outerRadius);
 
         protected:
             /** \brief The state space this sampler samples */
@@ -136,6 +137,7 @@ namespace ompl
             /** \brief Call sampleGaussian for each of the subspace states
                 with stdDev scaled by the corresponding subspace weight. */
             void sampleGaussian(State *state, const State *mean, double stdDev) override;
+            void sampleShell(State *state, const State *center, double innerRadius, double outerRadius) override;
 
         protected:
             /** \brief The samplers that are composed */
@@ -164,6 +166,7 @@ namespace ompl
             void sampleUniformNear(State *state, const State *near, double distance) override;
 
             void sampleGaussian(State *state, const State *mean, double stdDev) override;
+            void sampleShell(State *state, const State *center, double innerRadius, double outerRadius) override;
 
         protected:
             /** \brief The subspace to sample */

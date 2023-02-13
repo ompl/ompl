@@ -1,8 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020,
- *  Max Planck Institute for Intelligent Systems (MPI-IS).
+ *  Copyright (c) 2019, University of Stuttgart
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -15,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the MPI-IS nor the names
+ *   * Neither the name of the University of Stuttgart nor the names
  *     of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written
  *     permission.
@@ -36,37 +35,45 @@
 
 /* Author: Andreas Orthey */
 
-#pragma once
-#include <ompl/multilevel/datastructures/pathrestriction/Head.h>
+#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BIQRRTIMPL_
+#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_BIQRRTIMPL_
+#include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
+#include <ompl/datastructures/PDF.h>
 
 namespace ompl
 {
+    namespace base
+    {
+        OMPL_CLASS_FORWARD(OptimizationObjective);
+    }
     namespace multilevel
     {
-        /// @cond IGNORE
-        /** \brief Forward declaration of ompl::multilevel::Head */
-        OMPL_CLASS_FORWARD(Head);
-        /// @endcond
-        class HeadAnalyzer
+        /** \brief Implementation of BundleSpace Rapidly-Exploring Random Trees Algorithm*/
+        class BiQRRTImpl : public ompl::multilevel::BundleSpaceGraph
         {
+            using BaseT = BundleSpaceGraph;
+
         public:
-            using OccurenceMap = std::map<std::string, int>;
+            BiQRRTImpl(const ompl::base::SpaceInformationPtr &si, BundleSpace *parent_);
+            ~BiQRRTImpl() override;
 
-            /** \brief Simple debugger for the Head class to write information
-             * continuously onto the terminal */
-            HeadAnalyzer(HeadPtr &head);
+            /** \brief One iteration of RRT with adjusted sampling function */
+            void grow() override;
 
-            void operator()(std::string s);
-            void disable();
-            void clear();
-            void print();
+            void init() override;
+            void setup() override;
+            void clear() override;
+            void getPlannerData(ompl::base::PlannerData &data) const override;
 
-        private:
-            OccurenceMap map_;
-            int samples_{0};
-            HeadPtr head_;
+        protected:
+            using TreeData = std::shared_ptr<NearestNeighbors<Configuration *>>;
+            TreeData treeStart_;
+            TreeData treeGoal_;
+            double distanceBetweenTrees_;
 
-            bool enabled_{true};
+            bool activeInitialTree_{true};
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
+
+#endif

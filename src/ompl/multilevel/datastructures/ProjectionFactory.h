@@ -50,6 +50,9 @@ namespace ompl
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::multilevel::Projection */
         OMPL_CLASS_FORWARD(Projection);
+        /** \brief Forward declaration of ompl::multilevel::FiberedProjection */
+        OMPL_CLASS_FORWARD(FiberedProjection);
+        OMPL_CLASS_FORWARD(CompoundFiberedProjection);
         /// @endcond
     }
     namespace multilevel
@@ -64,17 +67,10 @@ namespace ompl
             ProjectionFactory() = default;
 
             /** \brief Guess projection(s) between two SpaceInformationPtr Bundle and Base */
-            // std::vector<ProjectionPtr> MakeProjections(const base::SpaceInformationPtr &Bundle,
-            //                                            const base::SpaceInformationPtr &Base);
-
-            // std::vector<ProjectionPtr> MakeProjections(const base::SpaceInformationPtr &Bundle);
-
             ProjectionPtr makeProjection(const base::SpaceInformationPtr &Bundle,
                                          const base::SpaceInformationPtr &Base);
 
             ProjectionPtr makeProjection(const base::SpaceInformationPtr &Bundle);
-
-            // ProjectionPtr MakeProjections(const base::SpaceInformationPtr &Bundle);
 
         protected:
             ProjectionPtr makeProjection(const base::StateSpacePtr &BundleSpace, const base::StateSpacePtr &BaseSpace,

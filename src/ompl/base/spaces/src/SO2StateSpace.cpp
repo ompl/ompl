@@ -62,6 +62,20 @@ void ompl::base::SO2StateSampler::sampleGaussian(State *state, const State *mean
     space_->enforceBounds(state);
 }
 
+void ompl::base::SO2StateSampler::sampleShell(State *state, const State *center, double innerRadius, double outerRadius)
+{
+    double cv = center->as<SO2StateSpace::StateType>()->value;
+    double v = 0;
+    if(rng_.uniformBool())
+    {
+        v = rng_.uniformReal(cv + innerRadius, cv + outerRadius);
+    }else{
+        v = rng_.uniformReal(cv - innerRadius, cv - outerRadius);
+    }
+    state->as<SO2StateSpace::StateType>()->value = v;
+    space_->enforceBounds(state);
+}
+
 unsigned int ompl::base::SO2StateSpace::getDimension() const
 {
     return 1;

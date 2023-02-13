@@ -80,13 +80,13 @@ namespace ompl
             virtual bool isFibered() const;
 
             /* \brief Co-dimension of projection (dimension of null space) */
-            unsigned int getCoDimension() const;
+            virtual unsigned int getCoDimension() const;
 
             /* \brief Dimension of bundle space of projection */
-            unsigned int getDimension() const;
+            virtual unsigned int getDimension() const;
 
             /* \brief Dimension of base space */
-            unsigned int getBaseDimension() const;
+            virtual unsigned int getBaseDimension() const;
 
             /* \brief Get bundle space */
             base::StateSpacePtr getBundle() const;
@@ -96,6 +96,9 @@ namespace ompl
 
             /* \brief Check if projection is admissible (NYI) */
             virtual bool isAdmissible() const;
+
+            /* \brief Check if projection has components */
+            virtual bool isCompound() const;
 
             /* \brief Type of Bundle Space Projection */
             ProjectionType getType() const;
@@ -142,19 +145,22 @@ namespace ompl
              * */
             void lift(const ompl::base::State *xBase, ompl::base::State *xBundle) const override;
             /// Print to stream
-            virtual void print(std::ostream &out) const override;
+            void print(std::ostream &out) const override;
 
             /// Dimension of Base Space
-            unsigned int getBaseDimension() const;
+            unsigned int getBaseDimension() const override;
             /// Dimension of Bundle Space
-            unsigned int getDimension() const;
+            unsigned int getDimension() const override;
             /// Dimension of Bundle - Dimension of Base
-            unsigned int getCoDimension() const;
+            unsigned int getCoDimension() const override;
 
             /// Check that every compound has an explicit fiber representation
             bool isFibered() const override;
 
-        private:
+            bool isCompound() const override;
+
+
+        protected:
             std::vector<ProjectionType> types_;
 
             std::vector<ProjectionPtr> components_;

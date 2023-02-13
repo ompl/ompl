@@ -36,37 +36,43 @@
 
 /* Author: Andreas Orthey */
 
-#pragma once
-#include <ompl/multilevel/datastructures/pathrestriction/Head.h>
+#ifndef OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_RESTRICTION_FIND_SECTION_PATTERNDANCE_
+#define OMPL_MULTILEVEL_PLANNERS_BUNDLESPACE_PATH_RESTRICTION_FIND_SECTION_PATTERNDANCE_
+#include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
+#include <ompl/multilevel/datastructures/pathrestriction/FindSection.h>
+#include <ompl/multilevel/datastructures/ParameterSmoothStep.h>
 
 namespace ompl
 {
     namespace multilevel
     {
-        /// @cond IGNORE
-        /** \brief Forward declaration of ompl::multilevel::Head */
-        OMPL_CLASS_FORWARD(Head);
-        /// @endcond
-        class HeadAnalyzer
+        using Configuration = ompl::multilevel::BundleSpaceGraph::Configuration;
+
+        class FindSectionPatternDance : public FindSection
         {
+            using BaseT = FindSection;
+
         public:
-            using OccurenceMap = std::map<std::string, int>;
+            FindSectionPatternDance() = delete;
+            FindSectionPatternDance(PathRestriction *);
 
-            /** \brief Simple debugger for the Head class to write information
-             * continuously onto the terminal */
-            HeadAnalyzer(HeadPtr &head);
+            virtual ~FindSectionPatternDance();
 
-            void operator()(std::string s);
-            void disable();
-            void clear();
-            void print();
+            virtual bool solve(HeadPtr &head) override;
 
-        private:
-            OccurenceMap map_;
-            int samples_{0};
-            HeadPtr head_;
+            bool recursivePatternSearch(HeadPtr &head, bool interpolateFiberFirst = true,
+                                        unsigned int depth = 0);
 
-            bool enabled_{true};
+            bool sideStepAlongFiber(Configuration *&xOrigin, base::State *state);
+
+            bool wriggleFree(HeadPtr &head);
+
+            bool tunneling(HeadPtr &head);
+
+        protected:
+            base::State *xBaseFixed_;
         };
     }
 }
+
+#endif

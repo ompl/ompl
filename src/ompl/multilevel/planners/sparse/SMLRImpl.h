@@ -34,39 +34,57 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Andreas Orthey */
+/* Author: Andreas Orthey, Sohaib Akbar */
 
-#pragma once
-#include <ompl/multilevel/datastructures/pathrestriction/Head.h>
+#ifndef OMPL_MULTILEVEL_PLANNERS_BundleSpace_SMLRIMPL_
+#define OMPL_MULTILEVEL_PLANNERS_BundleSpace_SMLRIMPL_
+#include <ompl/multilevel/datastructures/BundleSpaceGraphSparse.h>
+#include <ompl/datastructures/PDF.h>
 
 namespace ompl
 {
+    namespace base
+    {
+        OMPL_CLASS_FORWARD(OptimizationObjective);
+    }
     namespace multilevel
     {
-        /// @cond IGNORE
-        /** \brief Forward declaration of ompl::multilevel::Head */
-        OMPL_CLASS_FORWARD(Head);
-        /// @endcond
-        class HeadAnalyzer
+        /** \brief Sparse Quotient-space roadMap Planner (SMLR) Algorithm*/
+        class SMLRImpl : public BundleSpaceGraphSparse
         {
+            using BaseT = BundleSpaceGraphSparse;
+
         public:
-            using OccurenceMap = std::map<std::string, int>;
+            SMLRImpl(const base::SpaceInformationPtr &si, BundleSpace *parent_);
 
-            /** \brief Simple debugger for the Head class to write information
-             * continuously onto the terminal */
-            HeadAnalyzer(HeadPtr &head);
+            virtual ~SMLRImpl() override;
 
-            void operator()(std::string s);
-            void disable();
-            void clear();
-            void print();
+            /** \brief One iteration of SPARS using restriction sampling with
+             * visibility regions */
+            virtual void grow() override;
 
-        private:
-            OccurenceMap map_;
-            int samples_{0};
-            HeadPtr head_;
+            /** \brief Check if number of consecutive failures is larger than
+             * maxFailures_ and no solution exists.*/
+            virtual bool isInfeasible() override;
 
-            bool enabled_{true};
+            /** \brief Check if number of consecutive failures is larger than
+             * maxFailures_ */
+            virtual bool hasConverged() override;
+
+            virtual void clear() override;
+
+            /** \brief Return estimate of free state space coverage using the
+             * formula $(1 / (M + 1))$ whereby $M$ is the number of
+             * consecutive failures to sample a feasible state */
+            virtual double getImportance() const override;
+
+        protected:
+
+            std::vector<base::State *> randomWorkStates_;
+
+            bool isInfeasible_{false};
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
+
+#endif

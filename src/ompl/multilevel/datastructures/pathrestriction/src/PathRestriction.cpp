@@ -40,6 +40,7 @@
 #include <ompl/multilevel/datastructures/pathrestriction/Head.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSection.h>
 #include <ompl/multilevel/datastructures/pathrestriction/FindSectionSideStep.h>
+#include <ompl/multilevel/datastructures/pathrestriction/FindSectionPatternDance.h>
 #include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 
@@ -61,6 +62,11 @@ void PathRestriction::setFindSectionStrategy(FindSectionType type)
     {
         case FindSectionType::SIDE_STEP:
             findSection_ = std::make_shared<FindSectionSideStep>(this);
+            OMPL_DEBUG("Set FindSection to SideStep.");
+            break;
+        case FindSectionType::PATTERN_DANCE:
+            findSection_ = std::make_shared<FindSectionPatternDance>(this);
+            OMPL_DEBUG("Set FindSection to PatternDance.");
             break;
         case FindSectionType::NONE:
             findSection_ = nullptr;
@@ -247,5 +253,5 @@ namespace ompl
             r.print(out);
             return out;
         }
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl

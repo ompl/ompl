@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020,
+ *  Copyright (c) 2021,
  *  Max Planck Institute for Intelligent Systems (MPI-IS).
  *  All rights reserved.
  *
@@ -36,37 +36,52 @@
 
 /* Author: Andreas Orthey */
 
-#pragma once
-#include <ompl/multilevel/datastructures/pathrestriction/Head.h>
+#include <ompl/multilevel/datastructures/pathrestriction/HeadAnalyzer.h>
 
-namespace ompl
+using namespace ompl::multilevel;
+
+HeadAnalyzer::HeadAnalyzer(HeadPtr &head)
 {
-    namespace multilevel
+    head_ = head;
+}
+
+void HeadAnalyzer::operator()(std::string s)
+{
+    if (enabled_)
     {
-        /// @cond IGNORE
-        /** \brief Forward declaration of ompl::multilevel::Head */
-        OMPL_CLASS_FORWARD(Head);
-        /// @endcond
-        class HeadAnalyzer
+        auto entry = map_.find(s);
+        if (entry == map_.end())
         {
-        public:
-            using OccurenceMap = std::map<std::string, int>;
+            map_[s] = 1;
+        }
+        else
+        {
+            map_[s] = map_[s] + 1;
+        }
+        samples_++;
+    }
+}
 
-            /** \brief Simple debugger for the Head class to write information
-             * continuously onto the terminal */
-            HeadAnalyzer(HeadPtr &head);
+void HeadAnalyzer::disable()
+{
+    enabled_ = false;
+}
 
-            void operator()(std::string s);
-            void disable();
-            void clear();
-            void print();
+void HeadAnalyzer::clear()
+{
+    map_.clear();
+}
 
-        private:
-            OccurenceMap map_;
-            int samples_{0};
-            HeadPtr head_;
-
-            bool enabled_{true};
-        };
+void HeadAnalyzer::print()
+{
+    if (enabled_)
+    {
+        OccurenceMap::iterator itr;
+        OMPL_DEBUG("%s", std::string(60, '-').c_str());
+        OMPL_DEBUG("HeadAnalyzer (%d samples, location: %f).", samples_, head_->getLocationOnBasePath());
+        for (itr = map_.begin(); itr != map_.end(); ++itr)
+        {
+            OMPL_DEBUG(" > %s:%d", itr->first.c_str(), itr->second);
+        }
     }
 }

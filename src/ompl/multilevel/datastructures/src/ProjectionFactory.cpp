@@ -64,6 +64,8 @@
 #include <ompl/multilevel/datastructures/projections/Identity.h>
 #include <ompl/multilevel/datastructures/projections/Relaxation.h>
 
+#include <ompl/multilevel/datastructures/projections/FiberedProjection.h>
+
 #include <ompl/util/Exception.h>
 
 using namespace ompl::multilevel;
@@ -74,7 +76,7 @@ ProjectionPtr ProjectionFactory::makeProjection(const SpaceInformationPtr &Bundl
     const base::StateSpacePtr Bundle_space = Bundle->getStateSpace();
     int nrProjections = GetNumberOfComponents(Bundle_space);
 
-    OMPL_DEBUG("Bundle components: %d", nrProjections);
+    OMPL_DEVMSG1("Bundle components: %d", nrProjections);
 
     if (nrProjections > 1)
     {
@@ -82,13 +84,27 @@ ProjectionPtr ProjectionFactory::makeProjection(const SpaceInformationPtr &Bundl
         const base::CompoundStateSpace *Bundle_compound = Bundle_space->as<base::CompoundStateSpace>();
         const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
 
+        bool fibered = true;
         for (int m = 0; m < nrProjections; m++)
         {
             const base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
             ProjectionPtr componentM = makeProjection(BundleM);
             components.push_back(componentM);
+            if (!componentM->isFibered())
+                fibered = false;
         }
-        return std::make_shared<CompoundProjection>(Bundle_space, nullptr, components);
+        if (fibered)
+        {
+            CompoundFiberedProjectionPtr proj =
+                std::make_shared<CompoundFiberedProjection>(Bundle_space, nullptr, components);
+            FiberedProjectionPtr cproj = std::static_pointer_cast<FiberedProjection>(proj);
+            return cproj;
+            // return std::make_shared<CompoundFiberedProjection>(Bundle_space, nullptr, components);
+        }
+        else
+        {
+            return std::make_shared<CompoundProjection>(Bundle_space, nullptr, components);
+        }
     }
     else
     {
@@ -109,7 +125,7 @@ ProjectionPtr ProjectionFactory::makeProjection(const SpaceInformationPtr &Bundl
     const base::StateSpacePtr Base_space = Base->getStateSpace();
     int baseSpaceComponents = GetNumberOfComponents(Base_space);
 
-    OMPL_DEBUG("Bundle components: %d", nrProjections);
+    OMPL_DEVMSG1("Bundle components: %d", nrProjections);
 
     if (baseSpaceComponents != nrProjections)
     {
@@ -135,15 +151,29 @@ ProjectionPtr ProjectionFactory::makeProjection(const SpaceInformationPtr &Bundl
         const std::vector<base::StateSpacePtr> Bundle_decomposed = Bundle_compound->getSubspaces();
         const std::vector<base::StateSpacePtr> Base_decomposed = Base_compound->getSubspaces();
 
+        bool fibered = true;
         for (int m = 0; m < nrProjections; m++)
         {
             base::StateSpacePtr BaseM = Base_decomposed.at(m);
             base::StateSpacePtr BundleM = Bundle_decomposed.at(m);
             ProjectionPtr componentM = makeProjection(BundleM, BaseM, areValidityCheckersEquivalent);
             components.push_back(componentM);
+            if (!componentM->isFibered())
+                fibered = false;
         }
 
-        return std::make_shared<CompoundProjection>(Bundle_space, Base_space, components);
+        if (fibered)
+        {
+            CompoundFiberedProjectionPtr proj =
+                std::make_shared<CompoundFiberedProjection>(Bundle_space, Base_space, components);
+            FiberedProjectionPtr cproj = std::static_pointer_cast<FiberedProjection>(proj);
+            cproj->makeFiberSpace();
+            return cproj;
+        }
+        else
+        {
+            return std::make_shared<CompoundProjection>(Bundle_space, Base_space, components);
+        }
     }
     else
     {
@@ -249,9 +279,9 @@ ProjectionPtr ProjectionFactory::makeProjection(const StateSpacePtr &Bundle, con
         OMPL_ERROR("NYI: %d", type);
         throw Exception("BundleSpaceType not yet implemented.");
     }
-    auto componentFiber = std::dynamic_pointer_cast<FiberedProjection>(component);
-    if (componentFiber != nullptr)
+    if (component->isFibered())
     {
+        auto componentFiber = std::static_pointer_cast<FiberedProjection>(component);
         componentFiber->makeFiberSpace();
     }
     return component;
