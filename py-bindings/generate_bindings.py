@@ -668,6 +668,7 @@ class ompl_geometric_generator_t(code_generator_t):
             'bp::return_value_policy< bp::copy_const_reference >())')
         self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::BITstar::Vertex> >').exclude()
         self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::aitstar::Vertex> >').exclude()
+        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::eitstar::Vertex> >').exclude()
         self.std_ns.class_('vector<const ompl::base::State *>').exclude()
 
         self.std_ns.class_('vector< std::shared_ptr<ompl::base::SpaceInformation> >').rename('vectorSpaceInformation')
@@ -777,6 +778,12 @@ class ompl_geometric_generator_t(code_generator_t):
         cls = self.ompl_ns.class_('AITstar')
         cls.member_function('getVerticesInQueue').exclude()
         cls.member_function('getVerticesInReverseSearchTree').exclude()
+        cls = self.ompl_ns.class_('EITstar')
+        cls.member_function('getForwardQueue').exclude()
+        cls.member_function('getReverseQueue').exclude()
+        cls.member_function('getReverseTree').exclude()
+        cls.member_function('getNextForwardEdge').exclude()
+        cls.member_function('getNextReverseEdge').exclude()
 
         # needed to able to set connection strategy for PRM
         # the PRM::Vertex type is typedef-ed to boost::graph_traits<Graph>::vertex_descriptor. This

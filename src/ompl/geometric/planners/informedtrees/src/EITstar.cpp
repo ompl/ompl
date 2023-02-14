@@ -403,17 +403,18 @@ namespace ompl
 
             // Define a helper that recursively gets all reverse edges of a vertex.
             const std::function<void(const std::shared_ptr<Vertex> &)> getEdgesRecursively =
-                [&edges, &getEdgesRecursively](const std::shared_ptr<Vertex> &vertex) {
-                    for (const auto &child : vertex->getChildren())
-                    {
-                        getEdgesRecursively(child);
-                    }
-                    // Catch the root case of the recursion.
-                    if (auto parent = vertex->getParent().lock())
-                    {
-                        edges.emplace_back(parent->getState(), vertex->getState());
-                    }
-                };
+                [&edges, &getEdgesRecursively](const std::shared_ptr<Vertex> &vertex)
+            {
+                for (const auto &child : vertex->getChildren())
+                {
+                    getEdgesRecursively(child);
+                }
+                // Catch the root case of the recursion.
+                if (auto parent = vertex->getParent().lock())
+                {
+                    edges.emplace_back(parent->getState(), vertex->getState());
+                }
+            };
 
             // Get the edges of all reverse roots recursively.
             for (const auto &root : goalVertices_)
@@ -573,9 +574,9 @@ namespace ompl
                     if (!graph_.isGoal(edge.target))
                     {
                         auto edges = expand(edge.target);
-                        edges.erase(std::remove_if(
-                                        edges.begin(), edges.end(),
-                                        [&edge](const auto &e) { return e.target->getId() == edge.source->getId(); }),
+                        edges.erase(std::remove_if(edges.begin(), edges.end(),
+                                                   [&edge](const auto &e)
+                                                   { return e.target->getId() == edge.source->getId(); }),
                                     edges.end());
                         forwardQueue_->insertOrUpdate(edges);
                     }
@@ -627,10 +628,10 @@ namespace ompl
             if (isInReverseTree(edge))
             {
                 auto outgoingEdges = expand(target);
-                outgoingEdges.erase(
-                    std::remove_if(outgoingEdges.begin(), outgoingEdges.end(),
-                                   [&source](const auto &e) { return e.target->getId() == source->getId(); }),
-                    outgoingEdges.end());
+                outgoingEdges.erase(std::remove_if(outgoingEdges.begin(), outgoingEdges.end(),
+                                                   [&source](const auto &e)
+                                                   { return e.target->getId() == source->getId(); }),
+                                    outgoingEdges.end());
 
                 // If there are no outoing edges from the target state, we can nosider it expanded.
                 if (outgoingEdges.empty())
@@ -701,7 +702,8 @@ namespace ompl
 
                     outgoingEdges.erase(
                         std::remove_if(outgoingEdges.begin(), outgoingEdges.end(),
-                                       [&source, this](const auto &e) {
+                                       [&source, this](const auto &e)
+                                       {
                                            if (e.target->getId() == source->getId())
                                            {
                                                return true;
@@ -1001,8 +1003,8 @@ namespace ompl
         {
             for (const auto &start : graph_.getStartStates())
             {
-                start->asForwardVertex()->callOnBranch(
-                    [this](const std::shared_ptr<eitstar::State> &state) -> void { updateApproximateSolution(state); });
+                start->asForwardVertex()->callOnBranch([this](const std::shared_ptr<eitstar::State> &state) -> void
+                                                       { updateApproximateSolution(state); });
             }
         }
 
@@ -1155,6 +1157,7 @@ namespace ompl
                 case ompl::base::PlannerStatus::StatusType::CRASH:
                 case ompl::base::PlannerStatus::StatusType::ABORT:
                 case ompl::base::PlannerStatus::StatusType::TYPE_COUNT:
+                case ompl::base::PlannerStatus::StatusType::INFEASIBLE:
                 {
                     OMPL_INFORM("%s (%u iterations): Unable to solve the given planning problem.", name_.c_str(),
                                 iteration_);

@@ -278,10 +278,12 @@ namespace ompl
 
             bool ForwardQueue::containsOpenTargets(std::size_t reverseSearchTag) const
             {
-                return std::find_if(queue_.begin(), queue_.end(), [reverseSearchTag](const auto &edge) {
-                           auto &a = edge.second;
-                           return a.second.target->asReverseVertex()->getExpandTag() != reverseSearchTag;
-                       }) != queue_.end();
+                return std::find_if(queue_.begin(), queue_.end(),
+                                    [reverseSearchTag](const auto &edge)
+                                    {
+                                        auto &a = edge.second;
+                                        return a.second.target->asReverseVertex()->getExpandTag() != reverseSearchTag;
+                                    }) != queue_.end();
             }
 
             void ForwardQueue::clear()
@@ -299,7 +301,7 @@ namespace ompl
             {
                 std::vector<Edge> edges;
                 edges.reserve(queue_.size());
-                for (const auto element : queue_)
+                for (const auto &element : queue_)
                 {
                     const auto &edge = element.second.second;
                     edges.emplace_back(edge);
@@ -329,41 +331,53 @@ namespace ompl
             ForwardQueue::Container::iterator ForwardQueue::getBestCostEstimateEdge()
             {
                 // Find the best estimate edge and corresponding cost.
-                return std::min_element(queue_.begin(), queue_.end(), [this](const auto &a, const auto &b) {
-                    const auto &aEdgeKey = a.second.first;
-                    const auto &bEdgeKey = b.second.first;
-                    return objective_->isCostBetterThan(aEdgeKey.estimatedCost, bEdgeKey.estimatedCost);
-                });
+                return std::min_element(queue_.begin(), queue_.end(),
+                                        [this](const auto &a, const auto &b)
+                                        {
+                                            const auto &aEdgeKey = a.second.first;
+                                            const auto &bEdgeKey = b.second.first;
+                                            return objective_->isCostBetterThan(aEdgeKey.estimatedCost,
+                                                                                bEdgeKey.estimatedCost);
+                                        });
             }
 
             ForwardQueue::Container::const_iterator ForwardQueue::getBestCostEstimateEdge() const
             {
                 // Find the best estimate edge and corresponding cost.
-                return std::min_element(queue_.cbegin(), queue_.cend(), [this](const auto &a, const auto &b) {
-                    const auto &aEdgeKey = a.second.first;
-                    const auto &bEdgeKey = b.second.first;
-                    return objective_->isCostBetterThan(aEdgeKey.estimatedCost, bEdgeKey.estimatedCost);
-                });
+                return std::min_element(queue_.cbegin(), queue_.cend(),
+                                        [this](const auto &a, const auto &b)
+                                        {
+                                            const auto &aEdgeKey = a.second.first;
+                                            const auto &bEdgeKey = b.second.first;
+                                            return objective_->isCostBetterThan(aEdgeKey.estimatedCost,
+                                                                                bEdgeKey.estimatedCost);
+                                        });
             }
 
             ForwardQueue::Container::iterator ForwardQueue::getLowerBoundCostEdge()
             {
-                auto it = std::max_element(queue_.begin(), queue_.end(), [this](const auto &a, const auto &b) {
-                    const auto &aEdgeKey = a.second.first;
-                    const auto &bEdgeKey = b.second.first;
-                    return !objective_->isCostBetterThan(aEdgeKey.lowerBoundCost, bEdgeKey.lowerBoundCost);
-                });
+                auto it = std::max_element(queue_.begin(), queue_.end(),
+                                           [this](const auto &a, const auto &b)
+                                           {
+                                               const auto &aEdgeKey = a.second.first;
+                                               const auto &bEdgeKey = b.second.first;
+                                               return !objective_->isCostBetterThan(aEdgeKey.lowerBoundCost,
+                                                                                    bEdgeKey.lowerBoundCost);
+                                           });
 
                 return it;
             }
 
             ForwardQueue::Container::const_iterator ForwardQueue::getLowerBoundCostEdge() const
             {
-                return std::max_element(queue_.cbegin(), queue_.cend(), [this](const auto &a, const auto &b) {
-                    const auto &aEdgeKey = a.second.first;
-                    const auto &bEdgeKey = b.second.first;
-                    return !objective_->isCostBetterThan(aEdgeKey.lowerBoundCost, bEdgeKey.lowerBoundCost);
-                });
+                return std::max_element(queue_.cbegin(), queue_.cend(),
+                                        [this](const auto &a, const auto &b)
+                                        {
+                                            const auto &aEdgeKey = a.second.first;
+                                            const auto &bEdgeKey = b.second.first;
+                                            return !objective_->isCostBetterThan(aEdgeKey.lowerBoundCost,
+                                                                                 bEdgeKey.lowerBoundCost);
+                                        });
             }
 
             ompl::base::Cost ForwardQueue::inflateCost(const ompl::base::Cost &cost, double factor) const

@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Matt Maly */
 
@@ -249,18 +249,17 @@ namespace ompl
             };
 
         protected:
-                       /** \brief Representation of a motion
+            /** \brief Representation of a motion
 
-                           A motion contains pointers to its state, its parent motion, and the control
-                           that was applied to get from its parent to its state. */
+                A motion contains pointers to its state, its parent motion, and the control
+                that was applied to get from its parent to its state. */
             class Motion
             {
             public:
                 Motion() = default;
 
                 /** \brief Constructor that allocates memory for the state and the control */
-                Motion(const SpaceInformation *si)
-                  : state(si->allocState()), control(si->allocControl())
+                Motion(const SpaceInformation *si) : state(si->allocState()), control(si->allocControl())
                 {
                 }
                 virtual ~Motion() = default;
@@ -330,21 +329,21 @@ namespace ompl
                 }
                 /** \brief The cells of the underlying coverage grid that contain tree motions originating from
                     direct connections along this adjacency */
-                std::set<int> covGridCells;
+                std::set<int> covGridCells = {};
                 /** \brief The source region of this adjacency edge */
-                const Region *source;
+                const Region *source = {nullptr};
                 /** \brief The target region of this adjacency edge */
-                const Region *target;
+                const Region *target = {nullptr};
                 /** \brief The cost of this adjacency edge, used in lead computations */
-                double cost;
+                double cost = {0.};
                 /** \brief The number of times this adjacency has been included in a lead */
-                int numLeadInclusions;
+                int numLeadInclusions = {0};
                 /** \brief The number of times the low-level tree planner has selected motions from the source region
                     when attempting to extend the tree toward the target region. */
-                int numSelections;
+                int numSelections = {0};
                 /** \brief This value is true if and only if this adjacency's source and target regions both contain
                  * zero tree motions. */
-                bool empty;
+                bool empty = {false};
             };
 
             /** \brief Add State s as a new root in the low-level tree, and return the Motion corresponding to s. */
@@ -591,7 +590,7 @@ namespace ompl
             /** \brief The set of all regions that contain goal states */
             RegionSet goalRegions_;
         };
-    }
-}
+    }  // namespace control
+}  // namespace ompl
 
 #endif

@@ -68,7 +68,7 @@ namespace ompl
     {
         OMPL_CLASS_FORWARD(Projection);
     }
-}
+}  // namespace ompl
 
 class ProjectionJointSpaceToSE2 : public ompl::multilevel::Projection
 {
@@ -104,7 +104,7 @@ public:
         getBase()->copyToReals(reals, xBase);
 
         // to Eigen
-        Eigen::Affine2d eeFrame;
+        Eigen::Affine2d eeFrame = Eigen::Affine2d::Identity();
         eeFrame.translation()(0) = reals.at(0);
         eeFrame.translation()(1) = reals.at(1);
         eeFrame.rotate(reals.at(2));
@@ -131,9 +131,9 @@ int main()
     PlanarManipulator manipulator = PlanarManipulator(numLinks, 1.0 / numLinks);
     PolyWorld world = createCorridorProblem(numLinks, baseFrame, goalFrame);
 
-    //#########################################################################
-    //## Create robot joint configuration space [TOTAL SPACE]
-    //#########################################################################
+    // #########################################################################
+    // ## Create robot joint configuration space [TOTAL SPACE]
+    // #########################################################################
     ompl::base::StateSpacePtr space(new PlanarManipulatorStateSpace(numLinks));
     ompl::base::RealVectorBounds bounds(numLinks);
     bounds.setLow(-M_PI);
@@ -145,9 +145,9 @@ int main()
     si->setStateValidityChecker(std::make_shared<PlanarManipulatorCollisionChecker>(si, manipulator, &world));
     si->setStateValidityCheckingResolution(0.001);
 
-    //#########################################################################
-    //## Create task space [SE2 BASE SPACE]
-    //#########################################################################
+    // #########################################################################
+    // ## Create task space [SE2 BASE SPACE]
+    // #########################################################################
     ompl::base::StateSpacePtr spaceSE2(new SE2StateSpace());
     ompl::base::RealVectorBounds boundsWorkspace(2);
     boundsWorkspace.setLow(-2);
@@ -158,32 +158,33 @@ int main()
     siSE2->setStateValidityChecker(std::make_shared<SE2CollisionChecker>(siSE2, &world));
     siSE2->setStateValidityCheckingResolution(0.001);
 
-    //#########################################################################
-    //## Create task space [R2 BASE SPACE]
-    //#########################################################################
-    // ompl::base::StateSpacePtr spaceR2(new RealVectorStateSpace(2));
-    // ompl::base::RealVectorBounds boundsR2(2);
-    // boundsR2.setLow(-2);
-    // boundsR2.setHigh(+2);
-    // spaceR2->as<RealVectorStateSpace>()->setBounds(boundsR2);
+    // #########################################################################
+    // ## Create task space [R2 BASE SPACE]
+    // #########################################################################
+    //  ompl::base::StateSpacePtr spaceR2(new RealVectorStateSpace(2));
+    //  ompl::base::RealVectorBounds boundsR2(2);
+    //  boundsR2.setLow(-2);
+    //  boundsR2.setHigh(+2);
+    //  spaceR2->as<RealVectorStateSpace>()->setBounds(boundsR2);
 
     // SpaceInformationPtr siR2 = std::make_shared<SpaceInformation>(spaceR2);
     // // siR2->setStateValidityChecker(std::make_shared<AllValidStateValidityChecker>(siR2));
     // siR2->setStateValidityChecker(std::make_shared<R2CollisionChecker>(siR2, &world));
     // siR2->setStateValidityCheckingResolution(0.001);
 
-    //#########################################################################
-    //## Create mapping total to base space [PROJECTION]
-    //#########################################################################
+    // #########################################################################
+    // ## Create mapping total to base space [PROJECTION]
+    // #########################################################################
     ompl::multilevel::ProjectionPtr projAB = std::make_shared<ProjectionJointSpaceToSE2>(space, spaceSE2, &manipulator);
 
-    // ompl::multilevel::ProjectionPtr projBC = std::make_shared<ompl::multilevel::Projection_SE2_R2>(spaceSE2, spaceR2);
+    // ompl::multilevel::ProjectionPtr projBC = std::make_shared<ompl::multilevel::Projection_SE2_R2>(spaceSE2,
+    // spaceR2);
 
     // std::static_pointer_cast<ompl::multilevel::FiberedProjection>(projBC)->makeFiberSpace();
 
-    //#########################################################################
-    //## Put it all together
-    //#########################################################################
+    // #########################################################################
+    // ## Put it all together
+    // #########################################################################
     std::vector<SpaceInformationPtr> siVec;
     std::vector<ompl::multilevel::ProjectionPtr> projVec;
 
@@ -195,22 +196,22 @@ int main()
 
     auto planner = std::make_shared<ompl::multilevel::QRRT>(siVec, projVec);
 
-    //#########################################################################
-    //## Set start state
-    //#########################################################################
+    // #########################################################################
+    // ## Set start state
+    // #########################################################################
     ompl::base::State *start = si->allocState();
     double *start_angles = start->as<PlanarManipulatorStateSpace::StateType>()->values;
 
     for (int i = 0; i < numLinks; ++i)
     {
-        start_angles[i] = 1e-1*(pow(-1,i)) + i*1e-3;
+        start_angles[i] = 1e-1 * (pow(-1, i)) + i * 1e-3;
         // start_angles[i] = 1e-7;//1e-1*(pow(-1,i)) + i*1e-3;
     }
 
-    //#########################################################################
-    //## Set goal state
-    //#########################################################################
-    // 0.346324 0.0828153 2.96842 -2.17559 -0.718962 0.16532 -0.228314 0.172762 0.0471638 0.341137
+    // #########################################################################
+    // ## Set goal state
+    // #########################################################################
+    //  0.346324 0.0828153 2.96842 -2.17559 -0.718962 0.16532 -0.228314 0.172762 0.0471638 0.341137
     ompl::base::State *goal = si->allocState();
 
     std::vector<double> goalJoints;
@@ -233,9 +234,9 @@ int main()
     si->freeState(start);
     si->freeState(goal);
 
-    //#########################################################################
-    //## Invoke planner
-    //#########################################################################
+    // #########################################################################
+    // ## Invoke planner
+    // #########################################################################
     planner->setProblemDefinition(pdef);
     planner->setup();
 
