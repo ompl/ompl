@@ -336,7 +336,7 @@ namespace ompl
 
                         // Count how many states we've checked.
                         ++numSampledStates_;
-                    } while (!spaceInformation_->getStateValidityChecker()->isValid(newSamples_.back()->getState()));
+                    } while (!spaceInformation_->getStateValidityChecker()->isValid(newSamples_.back()->getState()) && !terminationCondition);
 
                     // If this state happens to satisfy the goal condition, add it as such.
                     if (problemDefinition_->getGoal()->isSatisfied(newSamples_.back()->getState()))
