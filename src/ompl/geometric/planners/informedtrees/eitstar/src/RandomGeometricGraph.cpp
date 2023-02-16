@@ -209,7 +209,7 @@ namespace ompl
                     {
                         // Get a new goal. If there are none, or the underlying state is invalid this will be a nullptr.
                         const auto newGoalState =
-                            inputStates->nextGoal(ompl::base::plannerAlwaysTerminatingCondition());
+                            inputStates->nextGoal(terminationCondition);
 
                         // If there was a new valid goal, register it as such and remember that a goal has been added.
                         if (static_cast<bool>(newGoalState))
