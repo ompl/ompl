@@ -115,20 +115,35 @@ function(find_python_module module)
         # A module's location is usually a directory, but for binary modules
         # it's a .so file.
         if (_minversion STREQUAL "")
-            execute_process(COMMAND "${PYTHON_EXEC}" "-c"
-                "from importlib.util import find_spec; print(find_spec('${module}').submodule_search_locations[0])"
-                RESULT_VARIABLE _status OUTPUT_VARIABLE _location
-                ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+            if (${PYTHON_VERSION} VERSION_LESS_EQUAL "3.7")
+                execute_process(COMMAND "${PYTHON_EXEC}" "-c"
+                    "import re, inspect, ${module}; print(re.compile('/__init__.py.*').sub('',inspect.getfile(${module})))"
+                    RESULT_VARIABLE _status OUTPUT_VARIABLE _location
+                    ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+            else()
+                execute_process(COMMAND "${PYTHON_EXEC}" "-c"
+                    "from importlib.util import find_spec; print(find_spec('${module}').submodule_search_locations[0])"
+                    RESULT_VARIABLE _status OUTPUT_VARIABLE _location
+                    ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+            endif()
             if(NOT _status)
                 set(PY_${module_upper} ${_location} CACHE STRING
                     "Location of Python module ${module}")
             endif(NOT _status)
         else (_minversion STREQUAL "")
-            execute_process(COMMAND "${PYTHON_EXEC}" "-c"
-                "from importlib.metadata import version; from importlib.util import find_spec; print(version('${module}') + ';' + find_spec('${module}').submodule_search_locations[0])"
-                RESULT_VARIABLE _status
-                OUTPUT_VARIABLE _verloc
-                ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+            if (${PYTHON_VERSION} VERSION_LESS_EQUAL "3.7")
+                execute_process(COMMAND "${PYTHON_EXEC}" "-c"
+                    "import re, inspect, ${module}; print(re.compile('/__init__.py.*').sub('',${module}.__version__+';'+inspect.getfile(${module})))"
+                    RESULT_VARIABLE _status
+                    OUTPUT_VARIABLE _verloc
+                    ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+            else()
+                execute_process(COMMAND "${PYTHON_EXEC}" "-c"
+                    "from importlib.metadata import version; from importlib.util import find_spec; print(version('${module}') + ';' + find_spec('${module}').submodule_search_locations[0])"
+                    RESULT_VARIABLE _status
+                    OUTPUT_VARIABLE _verloc
+                    ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+            endif()
             if(NOT _status)
                 list(LENGTH _verloc _verloclength)
                 if(_verloclength GREATER 1)
