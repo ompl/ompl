@@ -784,6 +784,8 @@ class ompl_geometric_generator_t(code_generator_t):
         cls.member_function('getReverseTree').exclude()
         cls.member_function('getNextForwardEdge').exclude()
         cls.member_function('getNextReverseEdge').exclude()
+        cls.member_function('isStart').exclude()
+        cls.member_function('isGoal').exclude()
 
         # needed to able to set connection strategy for PRM
         # the PRM::Vertex type is typedef-ed to boost::graph_traits<Graph>::vertex_descriptor. This
