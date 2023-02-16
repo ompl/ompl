@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan, Jonathan Gammell*/
+/* Author: Ioan Sucan, Jonathan Gammell */
 
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/Exception.h"
@@ -55,7 +55,7 @@ namespace
     public:
         RNGSeedGenerator()
           : firstSeed_(std::chrono::duration_cast<std::chrono::microseconds>(
-                           std::chrono::system_clock::now() - std::chrono::system_clock::time_point::min())
+                           std::chrono::high_resolution_clock::now().time_since_epoch())
                            .count())
           , sGen_(firstSeed_)
           , sDist_(1, 1000000000)
