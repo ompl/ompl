@@ -494,7 +494,7 @@ namespace ompl
                 whitelistedStates_.push_back(state);
             }
 
-            std::shared_ptr<State> RandomGeometricGraph::getNewSample()
+            std::shared_ptr<State> RandomGeometricGraph::getNewSample(const ompl::base::PlannerTerminationCondition& terminationCondition)
             {
                 // Allocate a new state.
                 auto state = std::make_shared<State>(spaceInfo_, objective_);
@@ -510,6 +510,11 @@ namespace ompl
                 {
                     do  // Sample randomly until a valid state is found.
                     {
+                        if (!terminationCondition)
+                        {
+                            // We've been asked to stop.
+                            return nullptr;
+                        }
                         if (isMultiqueryEnabled_)
                         {
                             // If we are doing multiquery planning, we sample uniformly, and reject samples that can
@@ -555,11 +560,11 @@ namespace ompl
                 {
                     do
                     {
-                        const auto state = getNewSample();
+                        const auto state = getNewSample(terminationCondition);
 
                         // Since we do not do informed sampling, we need to check if the sample could improve
                         // the current solution.
-                        if (!canBePruned(state))
+                        if (state && !canBePruned(state))
                         {
                             newSamples_.emplace_back(state);
 

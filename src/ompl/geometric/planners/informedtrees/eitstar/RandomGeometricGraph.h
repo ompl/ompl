@@ -184,7 +184,7 @@ namespace ompl
 
             private:
                 /** \brief Returns a sample either from the buffer or a newly generated one. */
-                std::shared_ptr<State> getNewSample();
+                std::shared_ptr<State> getNewSample(const ompl::base::PlannerTerminationCondition& terminationCondition);
 
                 /** \brief Returns the number of states in the informed set. */
                 std::size_t countSamplesInInformedSet() const;
