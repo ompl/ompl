@@ -510,7 +510,7 @@ namespace ompl
                 {
                     do  // Sample randomly until a valid state is found.
                     {
-                        if (!terminationCondition)
+                        if (terminationCondition)
                         {
                             // We've been asked to stop.
                             return nullptr;
@@ -564,7 +564,7 @@ namespace ompl
 
                         // Since we do not do informed sampling, we need to check if the sample could improve
                         // the current solution.
-                        if (state && !canBePruned(state))
+                        if (state != nullptr && !canBePruned(state))
                         {
                             newSamples_.emplace_back(state);
 
