@@ -289,11 +289,11 @@ namespace ompl
 
             /** \brief Check if any pair of a start state and goal state are part of the same connected component.
                 If so, return the id of that component. Otherwise, return -1. */
-            long int solutionComponent(std::pair<std::size_t, std::size_t> *startGoalPair) const;
+            long int solutionComponent(Vertex &start, std::set<Vertex> &goals) const;
 
             /** \brief Given two milestones from the same connected component, construct a path connecting them and set
              * it as the solution */
-            ompl::base::PathPtr constructSolution(const Vertex &start, const Vertex &goal);
+            ompl::base::PathPtr constructSolution(const Vertex &start, const std::set<Vertex> &goal);
 
             /** \brief Compute distance between two milestones (this is simply distance between the states of the
              * milestones) */

@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2013, Willow Garage
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2013, Willow Garage
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan, Ryan Luna, Henning Kayser */
 
@@ -61,8 +61,8 @@ namespace ompl
             number of path segments to add before attempting a new optimized solution
             extraction */
         static const unsigned int MIN_ADDED_SEGMENTS_FOR_LAZY_OPTIMIZATION = 5;
-    }
-}
+    }  // namespace magic
+}  // namespace ompl
 
 ompl::geometric::LazyPRM::LazyPRM(const base::SpaceInformationPtr &si, bool starStrategy)
   : base::Planner(si, "LazyPRM")
@@ -83,22 +83,10 @@ ompl::geometric::LazyPRM::LazyPRM(const base::SpaceInformationPtr &si, bool star
         Planner::declareParam<unsigned int>("max_nearest_neighbors", this, &LazyPRM::setMaxNearestNeighbors,
                                             std::string("8:1000"));
 
-    addPlannerProgressProperty("iterations INTEGER", [this]
-                               {
-                                   return getIterationCount();
-                               });
-    addPlannerProgressProperty("best cost REAL", [this]
-                               {
-                                   return getBestCost();
-                               });
-    addPlannerProgressProperty("milestone count INTEGER", [this]
-                               {
-                                   return getMilestoneCountString();
-                               });
-    addPlannerProgressProperty("edge count INTEGER", [this]
-                               {
-                                   return getEdgeCountString();
-                               });
+    addPlannerProgressProperty("iterations INTEGER", [this] { return getIterationCount(); });
+    addPlannerProgressProperty("best cost REAL", [this] { return getBestCost(); });
+    addPlannerProgressProperty("milestone count INTEGER", [this] { return getMilestoneCountString(); });
+    addPlannerProgressProperty("edge count INTEGER", [this] { return getEdgeCountString(); });
 }
 
 ompl::geometric::LazyPRM::LazyPRM(const base::PlannerData &data, bool starStrategy)
@@ -109,7 +97,8 @@ ompl::geometric::LazyPRM::LazyPRM(const base::PlannerData &data, bool starStrate
         // mapping between vertex id from PlannerData and Vertex in Boost.Graph
         std::map<unsigned int, Vertex> vertices;
         // helper function to create vertices as needed and update the vertices mapping
-        const auto &getOrCreateVertex = [&](unsigned int vertex_index) {
+        const auto &getOrCreateVertex = [&](unsigned int vertex_index)
+        {
             if (!vertices.count(vertex_index))
             {
                 const auto &data_vertex = data.getVertex(vertex_index);
@@ -162,18 +151,12 @@ void ompl::geometric::LazyPRM::setup()
     if (!nn_)
     {
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
-        nn_->setDistanceFunction([this](const Vertex a, const Vertex b)
-                                 {
-                                     return distanceFunction(a, b);
-                                 });
+        nn_->setDistanceFunction([this](const Vertex a, const Vertex b) { return distanceFunction(a, b); });
     }
     if (!connectionStrategy_)
         setDefaultConnectionStrategy();
     if (!connectionFilter_)
-        connectionFilter_ = [](const Vertex &, const Vertex &)
-        {
-            return true;
-        };
+        connectionFilter_ = [](const Vertex &, const Vertex &) { return true; };
 
     // Setup optimization objective
     //
@@ -216,10 +199,7 @@ void ompl::geometric::LazyPRM::setMaxNearestNeighbors(unsigned int k)
     if (!nn_)
     {
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
-        nn_->setDistanceFunction([this](const Vertex a, const Vertex b)
-                                 {
-                                     return distanceFunction(a, b);
-                                 });
+        nn_->setDistanceFunction([this](const Vertex a, const Vertex b) { return distanceFunction(a, b); });
     }
     if (!userSetConnectionStrategy_)
         connectionStrategy_ = KBoundedStrategy<Vertex>(k, maxDistance_, nn_);
@@ -232,10 +212,7 @@ void ompl::geometric::LazyPRM::setDefaultConnectionStrategy()
     if (!nn_)
     {
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
-        nn_->setDistanceFunction([this](const Vertex a, const Vertex b)
-                                 {
-                                     return distanceFunction(a, b);
-                                 });
+        nn_->setDistanceFunction([this](const Vertex a, const Vertex b) { return distanceFunction(a, b); });
     }
 
     if (starStrategy_)
@@ -357,7 +334,9 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
 
     bestCost_ = opt_->infiniteCost();
     base::State *workState = si_->allocState();
-    std::pair<std::size_t, std::size_t> startGoalPair;
+
+    Vertex startPair;
+    std::set<Vertex> goalPair;
     base::PathPtr bestSolution;
     bool fullyOptimized = false;
     bool someSolutionFound = false;
@@ -367,10 +346,19 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
     while (!ptc)
     {
         ++iterations_;
+
+        if (goal->maxSampleCount() > goalM_.size())
+        {
+            const base::State *st = pis_.nextGoal(ptc);
+            if (st != nullptr)
+                goalM_.push_back(addMilestone(si_->cloneState(st)));
+        }
+
         sampler_->sampleUniform(workState);
         Vertex addedVertex = addMilestone(si_->cloneState(workState));
 
-        const long int solComponent = solutionComponent(&startGoalPair);
+        const long int solComponent = solutionComponent(startPair, goalPair);
+
         // If the start & goal are connected and we either did not find any solution
         // so far or the one we found still needs optimizing and we just added an edge
         // to the connected component that is used for the solution, we attempt to
@@ -387,13 +375,13 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
                     continue;
                 optimizingComponentSegments = 0;
             }
-            Vertex startV = startM_[startGoalPair.first];
-            Vertex goalV = goalM_[startGoalPair.second];
+
             base::PathPtr solution;
             do
             {
-                solution = constructSolution(startV, goalV);
-            } while (!solution && vertexComponentProperty_[startV] == vertexComponentProperty_[goalV] && !ptc);
+                solution = constructSolution(startPair, goalPair);
+            } while (!solution && !ptc);
+
             if (solution)
             {
                 someSolutionFound = true;
@@ -405,6 +393,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
                     bestCost_ = c;
                     break;
                 }
+
                 if (opt_->isCostBetterThan(c, bestCost_))
                 {
                     bestSolution = solution;
@@ -467,25 +456,28 @@ void ompl::geometric::LazyPRM::markComponent(Vertex v, unsigned long int newComp
     }
 }
 
-long int ompl::geometric::LazyPRM::solutionComponent(std::pair<std::size_t, std::size_t> *startGoalPair) const
+long int ompl::geometric::LazyPRM::solutionComponent(Vertex &start, std::set<Vertex> &goals) const
 {
-    for (std::size_t startIndex = 0; startIndex < startM_.size(); ++startIndex)
+    goals.clear();
+
+    // TODO: Still need to handle multiple starts, will choose first start that works
+    for (const auto &s : startM_)
     {
-        long int startComponent = vertexComponentProperty_[startM_[startIndex]];
-        for (std::size_t goalIndex = 0; goalIndex < goalM_.size(); ++goalIndex)
+        auto startComponent = vertexComponentProperty_[s];
+        std::copy_if(std::begin(goalM_), std::end(goalM_), std::inserter(goals, std::begin(goals)),
+                     [&](const auto &g) { return vertexComponentProperty_[g] == startComponent; });
+
+        if (not goals.empty())
         {
-            if (startComponent == (long int)vertexComponentProperty_[goalM_[goalIndex]])
-            {
-                startGoalPair->first = startIndex;
-                startGoalPair->second = goalIndex;
-                return startComponent;
-            }
+            start = s;
+            return startComponent;
         }
     }
+
     return -1;
 }
 
-ompl::base::PathPtr ompl::geometric::LazyPRM::constructSolution(const Vertex &start, const Vertex &goal)
+ompl::base::PathPtr ompl::geometric::LazyPRM::constructSolution(const Vertex &start, const std::set<Vertex> &goals)
 {
     // Need to update the index map here, becuse nodes may have been removed and
     // the numbering will not be 0 .. N-1 otherwise.
@@ -498,28 +490,39 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructSolution(const Vertex &st
     try
     {
         // Consider using a persistent distance_map if it's slow
-        boost::astar_search(g_, start,
-                            [this, goal](Vertex v)
-                            {
-                                return costHeuristic(v, goal);
-                            },
-                            boost::predecessor_map(prev)
-                                .distance_compare([this](base::Cost c1, base::Cost c2)
-                                                  {
-                                                      return opt_->isCostBetterThan(c1, c2);
-                                                  })
-                                .distance_combine([this](base::Cost c1, base::Cost c2)
-                                                  {
-                                                      return opt_->combineCosts(c1, c2);
-                                                  })
-                                .distance_inf(opt_->infiniteCost())
-                                .distance_zero(opt_->identityCost())
-                                .visitor(AStarGoalVisitor<Vertex>(goal)));
+        boost::astar_search(
+            g_, start,
+            [this, goals](Vertex v) {
+                base::Cost min = opt_->infiniteCost();
+                for (const auto &g : goals)
+                {
+                    auto c = costHeuristic(v, g);
+                    if (opt_->isCostBetterThan(c, min))
+                        min = c;
+                }
+
+                return min;
+            },
+            boost::predecessor_map(prev)
+                .distance_compare([this](base::Cost c1, base::Cost c2) { return opt_->isCostBetterThan(c1, c2); })
+                .distance_combine([this](base::Cost c1, base::Cost c2) { return opt_->combineCosts(c1, c2); })
+                .distance_inf(opt_->infiniteCost())
+                .distance_zero(opt_->identityCost())
+                .visitor(AStarGoalSetVisitor<Vertex>(goals)));
     }
     catch (AStarFoundGoal &)
     {
     }
-    if (prev[goal] == goal)
+
+    Vertex goal = start;
+    for (const auto &g : goals)
+        if (prev[g] != g)
+        {
+            goal = g;
+            break;
+        }
+
+    if (goal == start)
         throw Exception(name_, "Could not find solution path");
 
     // First, get the solution states without copying them, and check them for validity.
