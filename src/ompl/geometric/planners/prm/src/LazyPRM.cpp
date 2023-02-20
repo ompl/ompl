@@ -487,12 +487,16 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructSolution(const Vertex &st
         indexProperty_[*vi] = index;
 
     boost::property_map<Graph, boost::vertex_predecessor_t>::type prev;
+
+    std::vector<base::Cost> distances(boost::num_vertices(g_), opt_->identityCost());
+    auto dist_pmap = boost::make_iterator_property_map(distances.begin(), get(boost::vertex_index, g_));
+
     try
     {
-        // Consider using a persistent distance_map if it's slow
         boost::astar_search(
             g_, start,
-            [this, goals](Vertex v) {
+            [this, goals](Vertex v)
+            {
                 base::Cost min = opt_->infiniteCost();
                 for (const auto &g : goals)
                 {
@@ -504,6 +508,7 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructSolution(const Vertex &st
                 return min;
             },
             boost::predecessor_map(prev)
+                .distance_map(dist_pmap)
                 .distance_compare([this](base::Cost c1, base::Cost c2) { return opt_->isCostBetterThan(c1, c2); })
                 .distance_combine([this](base::Cost c1, base::Cost c2) { return opt_->combineCosts(c1, c2); })
                 .distance_inf(opt_->infiniteCost())
@@ -514,12 +519,13 @@ ompl::base::PathPtr ompl::geometric::LazyPRM::constructSolution(const Vertex &st
     {
     }
 
+    base::Cost md = opt_->infiniteCost();
     Vertex goal = start;
     for (const auto &g : goals)
-        if (prev[g] != g)
+        if (prev[g] != g && opt_->isCostBetterThan(dist_pmap[g], md))
         {
+            md = dist_pmap[g];
             goal = g;
-            break;
         }
 
     if (goal == start)
