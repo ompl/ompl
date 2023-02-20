@@ -508,13 +508,9 @@ namespace ompl
                 }
                 else
                 {
+                    bool foundValidSample = false;
                     do  // Sample randomly until a valid state is found.
                     {
-                        if (terminationCondition)
-                        {
-                            // We've been asked to stop.
-                            return nullptr;
-                        }
                         if (isMultiqueryEnabled_)
                         {
                             // If we are doing multiquery planning, we sample uniformly, and reject samples that can
@@ -530,7 +526,15 @@ namespace ompl
                         }
 
                         ++numSampledStates_;
-                    } while (!spaceInfo_->isValid(state->raw()));
+                        // Check if the sample is valid.
+                        foundValidSample = spaceInfo_->isValid(state->raw());
+                    } while (!foundValidSample && !terminationCondition);
+
+                    // The sample is invalid, but we have to return to respect the termination condition.
+                    if (!foundValidSample)
+                    {
+                        return nullptr;
+                    }
 
                     // We've found a valid sample.
                     ++numValidSamples_;
@@ -560,6 +564,8 @@ namespace ompl
                 {
                     do
                     {
+                        // This call can return nullptr if the termination condition is met
+                        // before a valid sample is found.
                         const auto state = getNewSample(terminationCondition);
 
                         // Since we do not do informed sampling, we need to check if the sample could improve
