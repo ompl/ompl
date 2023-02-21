@@ -203,9 +203,9 @@ namespace ompl
             graph_.clear();
             forwardQueue_.clear();
             reverseQueue_.clear();
-            solutionCost_ = objective_->infiniteCost();
-            approximateSolutionCost_ = objective_->infiniteCost();
-            approximateSolutionCostToGoal_ = objective_->infiniteCost();
+            solutionCost_ = ompl::base::Cost(std::numeric_limits<double>::signaling_NaN());
+            approximateSolutionCost_ = ompl::base::Cost(std::numeric_limits<double>::signaling_NaN());
+            approximateSolutionCostToGoal_ = ompl::base::Cost(std::numeric_limits<double>::signaling_NaN());
             numIterations_ = 0u;
             numInconsistentOrUnconnectedTargets_ = 0u;
             Planner::clear();
