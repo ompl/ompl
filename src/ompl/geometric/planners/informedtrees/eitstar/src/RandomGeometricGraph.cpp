@@ -209,7 +209,7 @@ namespace ompl
                     {
                         // Get a new goal. If there are none, or the underlying state is invalid this will be a nullptr.
                         const auto newGoalState =
-                            inputStates->nextGoal(ompl::base::plannerAlwaysTerminatingCondition());
+                            inputStates->nextGoal(terminationCondition);
 
                         // If there was a new valid goal, register it as such and remember that a goal has been added.
                         if (static_cast<bool>(newGoalState))
@@ -494,7 +494,7 @@ namespace ompl
                 whitelistedStates_.push_back(state);
             }
 
-            std::shared_ptr<State> RandomGeometricGraph::getNewSample()
+            std::shared_ptr<State> RandomGeometricGraph::getNewSample(const ompl::base::PlannerTerminationCondition& terminationCondition)
             {
                 // Allocate a new state.
                 auto state = std::make_shared<State>(spaceInfo_, objective_);
@@ -508,6 +508,7 @@ namespace ompl
                 }
                 else
                 {
+                    bool foundValidSample = false;
                     do  // Sample randomly until a valid state is found.
                     {
                         if (isMultiqueryEnabled_)
@@ -525,7 +526,15 @@ namespace ompl
                         }
 
                         ++numSampledStates_;
-                    } while (!spaceInfo_->isValid(state->raw()));
+                        // Check if the sample is valid.
+                        foundValidSample = spaceInfo_->isValid(state->raw());
+                    } while (!foundValidSample && !terminationCondition);
+
+                    // The sample is invalid, but we have to return to respect the termination condition.
+                    if (!foundValidSample)
+                    {
+                        return nullptr;
+                    }
 
                     // We've found a valid sample.
                     ++numValidSamples_;
@@ -555,11 +564,13 @@ namespace ompl
                 {
                     do
                     {
-                        const auto state = getNewSample();
+                        // This call can return nullptr if the termination condition is met
+                        // before a valid sample is found.
+                        const auto state = getNewSample(terminationCondition);
 
                         // Since we do not do informed sampling, we need to check if the sample could improve
                         // the current solution.
-                        if (!canBePruned(state))
+                        if (state != nullptr && !canBePruned(state))
                         {
                             newSamples_.emplace_back(state);
 

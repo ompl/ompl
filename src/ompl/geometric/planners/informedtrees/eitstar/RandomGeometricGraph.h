@@ -183,8 +183,10 @@ namespace ompl
                 unsigned int inadmissibleEffortToCome(const std::shared_ptr<State> &state) const;
 
             private:
-                /** \brief Returns a sample either from the buffer or a newly generated one. */
-                std::shared_ptr<State> getNewSample();
+                /** \brief Returns a sample either from the buffer or a newly generated one.
+                 * If the termination condition is met before a valid sample is found, nullptr is returned.
+                */
+                std::shared_ptr<State> getNewSample(const ompl::base::PlannerTerminationCondition& terminationCondition);
 
                 /** \brief Returns the number of states in the informed set. */
                 std::size_t countSamplesInInformedSet() const;
