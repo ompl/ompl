@@ -329,6 +329,7 @@ namespace ompl
                     // Create a new vertex.
                     newSamples_.emplace_back(std::make_shared<Vertex>(spaceInformation_, problemDefinition_, batchId_));
 
+                    bool foundValidSample = false;
                     do
                     {
                         // Sample the associated state uniformly within the informed set.
@@ -336,16 +337,28 @@ namespace ompl
 
                         // Count how many states we've checked.
                         ++numSampledStates_;
-                    } while (!spaceInformation_->getStateValidityChecker()->isValid(newSamples_.back()->getState()) && !terminationCondition);
 
-                    // If this state happens to satisfy the goal condition, add it as such.
-                    if (problemDefinition_->getGoal()->isSatisfied(newSamples_.back()->getState()))
+                        // Check if the sample is valid.
+                        foundValidSample = spaceInformation_->getStateValidityChecker()->isValid(newSamples_.back()->getState());
+                    } while (!foundValidSample && !terminationCondition);
+
+                    // The sample can be invalid if the termination condition is met.
+                    if (foundValidSample)
                     {
-                        goalVertices_.emplace_back(newSamples_.back());
-                        newSamples_.back()->setCostToComeFromGoal(objective_->identityCost());
-                    }
+                        // If this state happens to satisfy the goal condition, add it as such.
+                        if (problemDefinition_->getGoal()->isSatisfied(newSamples_.back()->getState()))
+                        {
+                            goalVertices_.emplace_back(newSamples_.back());
+                            newSamples_.back()->setCostToComeFromGoal(objective_->identityCost());
+                        }
 
-                    ++numValidSamples_;
+                        ++numValidSamples_;
+                    }
+                    else
+                    {
+                        // Remove the invalid sample.
+                        newSamples_.pop_back();
+                    }
                 } while (newSamples_.size() < numNewSamples && !terminationCondition);
 
                 if (newSamples_.size() == numNewSamples)
