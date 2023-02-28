@@ -203,9 +203,12 @@ namespace ompl
             graph_.clear();
             forwardQueue_.clear();
             reverseQueue_.clear();
-            solutionCost_ = objective_->infiniteCost();
-            approximateSolutionCost_ = objective_->infiniteCost();
-            approximateSolutionCostToGoal_ = objective_->infiniteCost();
+            if (objective_)
+            {
+                solutionCost_ = objective_->infiniteCost();
+                approximateSolutionCost_ = objective_->infiniteCost();
+                approximateSolutionCostToGoal_ = objective_->infiniteCost();
+            }
             numIterations_ = 0u;
             numInconsistentOrUnconnectedTargets_ = 0u;
             Planner::clear();
