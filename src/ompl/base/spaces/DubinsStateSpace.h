@@ -128,6 +128,8 @@ namespace ompl
                 return isSymmetric_;
             }
 
+            unsigned int validSegmentCount(const State *state1, const State *state2) const override;
+
             void sanityChecks() const override
             {
                 double zero = std::numeric_limits<double>::epsilon();
