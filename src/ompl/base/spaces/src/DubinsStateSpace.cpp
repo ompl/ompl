@@ -318,6 +318,12 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const DubinsPa
     freeState(s);
 }
 
+unsigned int ompl::base::DubinsStateSpace::validSegmentCount(const State *state1,
+                                                             const State *state2) const
+{
+    return StateSpace::validSegmentCount(state1, state2);
+}
+
 ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(const State *state1,
                                                                               const State *state2) const
 {
