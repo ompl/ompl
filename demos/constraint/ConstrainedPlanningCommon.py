@@ -264,7 +264,7 @@ class ConstrainedProblem(object):
     def setupBenchmark(self, planners, problem):
         if not ot:
             print("Benchmarking not available, no ompl.tools")
-            return
+            exit(0)
 
         self.bench = ot.Benchmark(self.ss, problem)
 
