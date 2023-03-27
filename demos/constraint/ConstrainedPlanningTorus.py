@@ -37,6 +37,8 @@
 # Author: Mark Moll
 
 from __future__ import print_function
+
+from os.path import dirname, join
 import argparse
 import math
 from functools import partial

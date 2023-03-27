@@ -60,6 +60,7 @@ except ImportError:
         from ompl import tools as ot
     except ImportError:
         pass
+
 import datetime
 
 
