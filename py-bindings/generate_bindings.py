@@ -331,17 +331,13 @@ class ompl_base_generator_t(code_generator_t):
 #                        self.ompl_ns.class_('ConstraintIntersection')]:
                 for method in ['function', 'jacobian']:
                     cls.member_function(method, arg_types=[
-                        '::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, '
-                        '0, Eigen::InnerStride<1> > const &',
+                        '::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0>, 0, Eigen::InnerStride<1>> const &',
                         None]).add_transformation(FT.input(0))
             cls = self.ompl_ns.class_('Constraint')
             for method in ['distance', 'isSatisfied']:
                 cls.member_function(method, arg_types=[
-                    '::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, '
-                    '0, Eigen::InnerStride<1> > const &']).add_transformation(FT.input(0))
-        except:
-            # python bindings for constrained planning code is only generated
-            # if boost.numpy was found
+                    '::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0>, 0, Eigen::InnerStride<1>> const &',]).add_transformation(FT.input(0))
+        except Exception as e:
             pass
 
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now

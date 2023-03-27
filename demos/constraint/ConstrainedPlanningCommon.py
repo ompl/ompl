@@ -41,7 +41,11 @@ try:
     from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
-    from ompl import tools as ot
+    try:
+        from ompl import tools as ot
+    except ImportError:
+        pass
+
 except ImportError:
     # if the ompl module is not in the PYTHONPATH assume it is installed in a
     # subdirectory of the parent directory called "py-bindings."
@@ -52,7 +56,10 @@ except ImportError:
     from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
-    from ompl import tools as ot
+    try:
+        from ompl import tools as ot
+    except ImportError:
+        pass
 import datetime
 
 
@@ -254,6 +261,10 @@ class ConstrainedProblem(object):
         return stat
 
     def setupBenchmark(self, planners, problem):
+        if ot:
+            print("Benchmarking not available, no ompl.tools")
+            return
+
         self.bench = ot.Benchmark(self.ss, problem)
 
         self.bench.addExperimentParameter(
