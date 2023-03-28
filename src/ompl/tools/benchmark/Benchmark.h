@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2010, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2010, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -54,29 +54,24 @@ namespace ompl
                 as which planner is currently being tested or how much */
             struct Status
             {
-                Status()
-                {
-                    running = false;
-                    activeRun = 0;
-                    progressPercentage = 0.0;
-                }
-
                 /// Flag indicating whether benchmarking is running
-                bool running;
+                bool running{false};
+
+                /// The number of the run currently being executed
+                unsigned int activeRun{0};
+
+                /// Total progress (0 to 100)
+                double progressPercentage{0.};
 
                 /// The name of the planner currently being tested
                 std::string activePlanner;
-
-                /// The number of the run currently being executed
-                unsigned int activeRun;
-
-                /// Total progress (0 to 100)
-                double progressPercentage;
             };
 
             /** \brief The data collected from a run of a planner is
                 stored as key-value pairs. */
-            using RunProperties = std::map<std::string, std::string>;
+            struct RunProperties : std::map<std::string, std::string>
+            {
+            };
 
             using RunProgressData = std::vector<std::map<std::string, std::string>>;
 
@@ -196,93 +191,48 @@ namespace ompl
 
             /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name
              * (\e name) can be specified */
-            Benchmark(geometric::SimpleSetup &setup, const std::string &name = std::string())
-              : gsetup_(&setup), csetup_(nullptr)
-            {
-                exp_.name = name;
-            }
+            Benchmark(geometric::SimpleSetup &setup, const std::string &name = std::string());
 
             /** \brief Constructor needs the SimpleSetup instance needed for planning. Optionally, the experiment name
              * (\e name) can be specified */
-            Benchmark(control::SimpleSetup &setup, const std::string &name = std::string())
-              : gsetup_(nullptr), csetup_(&setup)
-            {
-                exp_.name = name;
-            }
+            Benchmark(control::SimpleSetup &setup, const std::string &name = std::string());
 
             virtual ~Benchmark() = default;
 
             /** \brief Add an optional parameter's information to the benchmark output.  Useful for aggregating results
                  over different benchmark instances, e.g., parameter sweep.  \e type is typically "BOOLEAN", "INTEGER",
                  or "REAL". */
-            void addExperimentParameter(const std::string &name, const std::string &type, const std::string &value)
-            {
-                exp_.parameters[name + " " + type] = value;
-            }
+            void addExperimentParameter(const std::string &name, const std::string &type, const std::string &value);
 
             /** \brief Get all optional benchmark parameters.  The map key is 'name type'  */
-            const std::map<std::string, std::string> &getExperimentParameters() const
-            {
-                return exp_.parameters;
-            }
+            const std::map<std::string, std::string> &getExperimentParameters() const;
 
             /** \brief Return the number of optional benchmark parameters */
-            std::size_t numExperimentParameters() const
-            {
-                return exp_.parameters.size();
-            }
+            std::size_t numExperimentParameters() const;
 
             /** \brief Set the name of the experiment */
-            void setExperimentName(const std::string &name)
-            {
-                exp_.name = name;
-            }
+            void setExperimentName(const std::string &name);
 
             /** \brief Get the name of the experiment */
-            const std::string &getExperimentName() const
-            {
-                return exp_.name;
-            }
+            const std::string &getExperimentName() const;
 
             /** \brief Add a planner to use. */
-            void addPlanner(const base::PlannerPtr &planner)
-            {
-                if (planner &&
-                    planner->getSpaceInformation().get() !=
-                        (gsetup_ != nullptr ? gsetup_->getSpaceInformation().get() : csetup_->getSpaceInformation().get()))
-                    throw Exception("Planner instance does not match space information");
-                planners_.push_back(planner);
-            }
+            void addPlanner(const base::PlannerPtr &planner);
 
             /** \brief Add a planner allocator to use. */
-            void addPlannerAllocator(const base::PlannerAllocator &pa)
-            {
-                planners_.push_back(pa(gsetup_ != nullptr ? gsetup_->getSpaceInformation() : csetup_->getSpaceInformation()));
-            }
+            void addPlannerAllocator(const base::PlannerAllocator &pa);
 
             /** \brief Clear the set of planners to be benchmarked */
-            void clearPlanners()
-            {
-                planners_.clear();
-            }
+            void clearPlanners();
 
             /// Set the event to be called before any runs of a particular planner (when the planner is switched)
-            void setPlannerSwitchEvent(const PreSetupEvent &event)
-            {
-                plannerSwitch_ = event;
-            }
+            void setPlannerSwitchEvent(const PreSetupEvent &event);
 
             /// Set the event to be called before the run of a planner
-            void setPreRunEvent(const PreSetupEvent &event)
-            {
-                preRun_ = event;
-            }
+            void setPreRunEvent(const PreSetupEvent &event);
 
             /// Set the event to be called after the run of a planner
-            void setPostRunEvent(const PostSetupEvent &event)
-            {
-                postRun_ = event;
-            }
+            void setPostRunEvent(const PostSetupEvent &event);
 
             /** \brief Benchmark the added planners on the defined problem. Repeated calls clear previously gathered
                data.
@@ -300,19 +250,13 @@ namespace ompl
 
             /** \brief Get the status of the benchmarking code. This function can be called in a separate thread to
              * check how much progress has been made */
-            const Status &getStatus() const
-            {
-                return status_;
-            }
+            const Status &getStatus() const;
 
             /** \brief Return all the experiment data that would be
                 written to the results file. The data should not be
                 changed, but it could be useful to quickly extract cartain
                 statistics. */
-            const CompleteExperiment &getRecordedExperimentData() const
-            {
-                return exp_;
-            }
+            const CompleteExperiment &getRecordedExperimentData() const;
 
             /** \brief Save the results of the benchmark to a stream. */
             virtual bool saveResultsToStream(std::ostream &out = std::cout) const;
@@ -349,6 +293,6 @@ namespace ompl
             /// Event to be called after the run of a planner
             PostSetupEvent postRun_;
         };
-    }
-}
+    }  // namespace tools
+}  // namespace ompl
 #endif

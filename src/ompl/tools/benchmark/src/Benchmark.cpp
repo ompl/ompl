@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2010, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2010, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan, Luis G. Torres */
 
@@ -75,8 +75,7 @@ namespace ompl
         class RunPlanner
         {
         public:
-            RunPlanner(const Benchmark *benchmark)
-              : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0)
+            RunPlanner(const Benchmark *benchmark) : benchmark_(benchmark), timeUsed_(0.0), memUsed_(0)
             {
             }
 
@@ -116,9 +115,7 @@ namespace ompl
                 {
                     const time::point endtime = time::now() + maxDuration;
                     base::PlannerTerminationConditionFn ptc([maxMem, endtime]
-                                                            {
-                                                                return terminationCondition(maxMem, endtime);
-                                                            });
+                                                            { return terminationCondition(maxMem, endtime); });
                     solved_ = false;
                     // Only launch the planner progress property
                     // collector if there is any data for it to report
@@ -129,11 +126,10 @@ namespace ompl
                     // collector begins sampling
                     boost::scoped_ptr<std::thread> t;
                     if (planner->getPlannerProgressProperties().size() > 0)
-                        t.reset(new std::thread([this, &planner, timeBetweenUpdates]
-                                                {
-                                                    collectProgressProperties(planner->getPlannerProgressProperties(),
-                                                                              timeBetweenUpdates);
-                                                }));
+                        t.reset(new std::thread(
+                            [this, &planner, timeBetweenUpdates] {
+                                collectProgressProperties(planner->getPlannerProgressProperties(), timeBetweenUpdates);
+                            }));
                     status_ = planner->solve(ptc, 0.1);
                     solvedFlag_.lock();
                     solved_ = true;
@@ -192,9 +188,92 @@ namespace ompl
             std::mutex solvedFlag_;
             std::condition_variable solvedCondition_;
         };
-    }
-}
+    }  // namespace tools
+}  // namespace ompl
 /// @endcond
+
+ompl::tools::Benchmark::Benchmark(geometric::SimpleSetup &setup, const std::string &name)
+    : gsetup_(&setup), csetup_(nullptr)
+{
+    exp_.name = name;
+}
+
+ompl::tools::Benchmark::Benchmark(control::SimpleSetup &setup, const std::string &name)
+    : gsetup_(nullptr), csetup_(&setup)
+{
+    exp_.name = name;
+}
+
+void ompl::tools::Benchmark::addExperimentParameter(const std::string &name, const std::string &type,
+                                                    const std::string &value)
+{
+    exp_.parameters[name + " " + type] = value;
+}
+
+const std::map<std::string, std::string> &ompl::tools::Benchmark::getExperimentParameters() const
+{
+    return exp_.parameters;
+}
+
+std::size_t ompl::tools::Benchmark::numExperimentParameters() const
+{
+    return exp_.parameters.size();
+}
+
+void ompl::tools::Benchmark::setExperimentName(const std::string &name)
+{
+    exp_.name = name;
+}
+
+const std::string &ompl::tools::Benchmark::getExperimentName() const
+{
+    return exp_.name;
+}
+
+void ompl::tools::Benchmark::addPlanner(const base::PlannerPtr &planner)
+{
+    if (planner && planner->getSpaceInformation().get() != (gsetup_ != nullptr ? gsetup_->getSpaceInformation().get() :
+                                                                                 csetup_->getSpaceInformation().get()))
+        throw Exception("Planner instance does not match space information");
+    planners_.push_back(planner);
+}
+
+void ompl::tools::Benchmark::addPlannerAllocator(const base::PlannerAllocator &pa)
+{
+    planners_.push_back(pa(gsetup_ != nullptr ? gsetup_->getSpaceInformation() : csetup_->getSpaceInformation()));
+}
+
+void ompl::tools::Benchmark::clearPlanners()
+{
+    planners_.clear();
+}
+
+void ompl::tools::Benchmark::setPlannerSwitchEvent(const PreSetupEvent &event)
+{
+    plannerSwitch_ = event;
+}
+
+/// Set the event to be called before the run of a planner
+void ompl::tools::Benchmark::setPreRunEvent(const PreSetupEvent &event)
+{
+    preRun_ = event;
+}
+
+/// Set the event to be called after the run of a planner
+void ompl::tools::Benchmark::setPostRunEvent(const PostSetupEvent &event)
+{
+    postRun_ = event;
+}
+
+const ompl::tools::Benchmark::Status &ompl::tools::Benchmark::getStatus() const
+{
+    return status_;
+}
+
+const ompl::tools::Benchmark::CompleteExperiment &ompl::tools::Benchmark::getRecordedExperimentData() const
+{
+    return exp_;
+}
 
 bool ompl::tools::Benchmark::saveResultsToFile(const char *filename) const
 {
@@ -439,9 +518,11 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
     {
         std::cout << "Running experiment " << exp_.name << "." << std::endl;
         if (req.runCount)
-            std::cout << "Each planner will be executed " << req.runCount << " times for at most " << req.maxTime << " seconds.";
+            std::cout << "Each planner will be executed " << req.runCount << " times for at most " << req.maxTime
+                      << " seconds.";
         else
-            std::cout << "Each planner will be executed as many times as possible within " << req.maxTime << " seconds.";
+            std::cout << "Each planner will be executed as many times as possible within " << req.maxTime
+                      << " seconds.";
         std::cout << " Memory is limited at " << req.maxMem << "MB." << std::endl;
         progress.reset(new ompl::time::ProgressDisplay);
     }
@@ -492,9 +573,9 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
         while (true)
         {
             status_.activeRun = j;
-            status_.progressPercentage = req.runCount ?
-                (double)(100 * (req.runCount * i + j)) / (double)(planners_.size() * req.runCount) :
-                (double)(100 * i) / (double)(planners_.size());
+            status_.progressPercentage =
+                req.runCount ? (double)(100 * (req.runCount * i + j)) / (double)(planners_.size() * req.runCount) :
+                               (double)(100 * i) / (double)(planners_.size());
 
             if (req.displayProgress)
                 while (status_.progressPercentage > progress->count())
@@ -641,13 +722,13 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 // execute post-run event, if set
                 try
                 {
-                    if (postRun_)
-                    {
-                        OMPL_INFORM("Executing post-run event for run %d of planner %s ...", status_.activeRun,
-                                    status_.activePlanner.c_str());
-                        postRun_(planners_[i], run);
-                        OMPL_INFORM("Completed execution of post-run event");
-                    }
+                    // if (postRun_)
+                    // {
+                    //     OMPL_INFORM("Executing post-run event for run %d of planner %s ...", status_.activeRun,
+                    //                 status_.activePlanner.c_str());
+                    //     postRun_(planners_[i], run);
+                    //     OMPL_INFORM("Completed execution of post-run event");
+                    // }
                 }
                 catch (std::runtime_error &e)
                 {
