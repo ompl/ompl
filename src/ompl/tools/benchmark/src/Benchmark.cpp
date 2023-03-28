@@ -722,13 +722,13 @@ void ompl::tools::Benchmark::benchmark(const Request &req)
                 // execute post-run event, if set
                 try
                 {
-                    // if (postRun_)
-                    // {
-                    //     OMPL_INFORM("Executing post-run event for run %d of planner %s ...", status_.activeRun,
-                    //                 status_.activePlanner.c_str());
-                    //     postRun_(planners_[i], run);
-                    //     OMPL_INFORM("Completed execution of post-run event");
-                    // }
+                    if (postRun_)
+                    {
+                        OMPL_INFORM("Executing post-run event for run %d of planner %s ...", status_.activeRun,
+                                    status_.activePlanner.c_str());
+                        postRun_(planners_[i], run);
+                        OMPL_INFORM("Completed execution of post-run event");
+                    }
                 }
                 catch (std::runtime_error &e)
                 {
