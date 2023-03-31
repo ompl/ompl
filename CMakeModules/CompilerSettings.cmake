@@ -2,6 +2,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# force <boost/functional.hpp> to avoid deprecated use of
+# std::unary_function and std::binary_function
+add_compile_definitions(_HAS_AUTO_PTR_ETC=0)
+
 if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-W -Wall -Wextra -Wno-system-headers)
     # prepend optimizion flag (in case the default setting doesn't include one)

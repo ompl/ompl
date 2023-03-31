@@ -79,7 +79,6 @@ void ompl::base::PlannerData::clear()
 
 void ompl::base::PlannerData::decoupleFromPlanner()
 {
-    unsigned int count = 0;
     for (unsigned int i = 0; i < numVertices(); ++i)
     {
         PlannerDataVertex &vtx = getVertex(i);
@@ -96,7 +95,6 @@ void ompl::base::PlannerData::decoupleFromPlanner()
             stateIndexMap_.erase(oldState);
             // Add the new, cloned state to stateIndexMap
             stateIndexMap_[clone] = i;
-            count++;
         }
     }
 }
