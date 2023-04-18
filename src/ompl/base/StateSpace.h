@@ -376,28 +376,28 @@ namespace ompl
             virtual double *getValueAddressAtIndex(State *state, unsigned int index) const;
 
             /** \brief Const variant of the same function as above; */
-            const double *getValueAddressAtIndex(const State *state, unsigned int index) const;
+            virtual const double *getValueAddressAtIndex(const State *state, unsigned int index) const;
 
             /** \brief Get the locations of values of type double contained in a state from this space. The order of the
                values is
                 consistent with getValueAddressAtIndex(). The setup() function must have been previously called. */
-            const std::vector<ValueLocation> &getValueLocations() const;
+            virtual const std::vector<ValueLocation> &getValueLocations() const;
 
             /** \brief Get the named locations of values of type double contained in a state from this space.
                 The setup() function must have been previously called. */
-            const std::map<std::string, ValueLocation> &getValueLocationsByName() const;
+            virtual const std::map<std::string, ValueLocation> &getValueLocationsByName() const;
 
             /** \brief Get a pointer to the double value in \e state that \e loc points to */
-            double *getValueAddressAtLocation(State *state, const ValueLocation &loc) const;
+            virtual double *getValueAddressAtLocation(State *state, const ValueLocation &loc) const;
 
             /** \brief Const variant of the same function as above; */
-            const double *getValueAddressAtLocation(const State *state, const ValueLocation &loc) const;
+            virtual const double *getValueAddressAtLocation(const State *state, const ValueLocation &loc) const;
 
             /** \brief Get a pointer to the double value in \e state that \e name points to */
-            double *getValueAddressAtName(State *state, const std::string &name) const;
+            virtual double *getValueAddressAtName(State *state, const std::string &name) const;
 
             /** \brief Const variant of the same function as above; */
-            const double *getValueAddressAtName(const State *state, const std::string &name) const;
+            virtual const double *getValueAddressAtName(const State *state, const std::string &name) const;
 
             /** \brief Copy all the real values from a state \e source to the array \e reals using
              * getValueAddressAtLocation() */

@@ -324,37 +324,37 @@ namespace ompl
                 return space_->getValueAddressAtIndex(state->as<StateType>()->getState(), index);
             }
 
-            const double *getValueAddressAtIndex(const State *state, unsigned int index) const
+            const double *getValueAddressAtIndex(const State *state, unsigned int index) const override
             {
                 return space_->getValueAddressAtIndex(state->as<StateType>()->getState(), index);
             }
 
-            const std::vector<ValueLocation> &getValueLocations() const
+            const std::vector<ValueLocation> &getValueLocations() const override
             {
                 return space_->getValueLocations();
             }
 
-            const std::map<std::string, ValueLocation> &getValueLocationsByName() const
+            const std::map<std::string, ValueLocation> &getValueLocationsByName() const override
             {
                 return space_->getValueLocationsByName();
             }
 
-            double *getValueAddressAtLocation(State *state, const ValueLocation &loc) const
+            double *getValueAddressAtLocation(State *state, const ValueLocation &loc) const override
             {
                 return space_->getValueAddressAtLocation(state->as<StateType>()->getState(), loc);
             }
 
-            const double *getValueAddressAtLocation(const State *state, const ValueLocation &loc) const
+            const double *getValueAddressAtLocation(const State *state, const ValueLocation &loc) const override
             {
                 return space_->getValueAddressAtLocation(state->as<StateType>()->getState(), loc);
             }
 
-            double *getValueAddressAtName(State *state, const std::string &name) const
+            double *getValueAddressAtName(State *state, const std::string &name) const override
             {
                 return space_->getValueAddressAtName(state->as<StateType>()->getState(), name);
             }
 
-            const double *getValueAddressAtName(const State *state, const std::string &name) const
+            const double *getValueAddressAtName(const State *state, const std::string &name) const override
             {
                 return space_->getValueAddressAtName(state->as<StateType>()->getState(), name);
             }
