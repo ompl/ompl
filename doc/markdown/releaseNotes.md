@@ -1,5 +1,11 @@
 # Release Notes {#releaseNotes}
 
+## OMPL 1.6.1 (April 19, 2023)
+
+- Added [EIT*](\ref EITstar): an almost-surely asymptotically optimal path planner that exploits effort heuristics.
+- Various fixes to Python binding generation, particularly for `ompl.tools` and [constrained motion planning](constrainedPlanning.html).
+- Bug fixes.
+
 ## OMPL 1.6.0 (January 11, 2023)
 
 - A C++17 compiler is now required.
