@@ -10,5 +10,4 @@ setup(
     author_email='zak@rice.edu',
     url='https://ompl.kavrakilab.org',
     packages=['ompl'],
-    include_package_data=True,
 )
