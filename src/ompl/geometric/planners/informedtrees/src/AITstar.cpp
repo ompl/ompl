@@ -1159,6 +1159,15 @@ namespace ompl
                     // Let the problem definition know that a new solution exists.
                     pdef_->addSolutionPath(solution);
 
+                    // If enabled, pass the intermediate solution back through the callback:
+                    if (static_cast<bool>(pdef_->getIntermediateSolutionCallback()))
+                    {
+                        const auto& path = solution.path_->as<ompl::geometric::PathGeometric>()->getStates();
+                        // the callback requires a vector with const elements
+                        std::vector<const base::State *> const_path(path.begin(), path.end());
+                        pdef_->getIntermediateSolutionCallback()(this, const_path, solutionCost_);
+                    }
+
                     // Let the user know about the new solution.
                     informAboutNewSolution();
                 }
