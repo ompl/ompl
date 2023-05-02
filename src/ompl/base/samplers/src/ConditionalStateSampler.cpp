@@ -37,7 +37,7 @@
 #include "ompl/base/samplers/ConditionalStateSampler.h"
 
 ompl::base::ConditionalStateSampler::ConditionalStateSampler(const ompl::base::SpaceInformation *si,
-                                                             ompl::base::Motion *&startMotion,
+                                                             Motion *&startMotion,
                                                              std::vector<Motion *> &goalMotions,
                                                              std::vector<Motion *> &newBatchGoalMotions,
                                                              bool &sampleOldBatch)

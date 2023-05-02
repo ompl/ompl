@@ -164,10 +164,15 @@ class ompl_base_generator_t(code_generator_t):
             f'map< {self.string_decl}, std::shared_ptr< ompl::base::ProjectionEvaluator > >').rename(
                 'mapStringToProjectionEvaluator')
         self.std_ns.class_('vector< ompl::base::State * >').rename('vectorState')
+
         try:
             self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
         except declaration_not_found_t:
-            pass
+            try:
+                self.std_ns.class_('vector< const ompl::base::State const >').rename('vectorConstState')
+            except declaration_not_found_t:
+                pass
+
         self.std_ns.class_('vector< std::shared_ptr<ompl::base::StateSpace> >').rename(
             'vectorStateSpacePtr')
         #self.std_ns.class_('vector< <ompl::base::PlannerSolution> >').rename(
@@ -177,6 +182,9 @@ class ompl_base_generator_t(code_generator_t):
         self.std_ns.class_(f'map< {self.string_decl}, ompl::base::StateSpace::SubstateLocation >').rename(
             'mapStringToSubstateLocation')
         self.std_ns.class_('vector<ompl::base::PlannerSolution>').rename('vectorPlannerSolution')
+
+        self.std_ns.class_('vector< ompl::base::ConditionalStateSampler::Motion * >').rename(
+            'vectorConditionalStateSamplerMotionPtr')
 
         pairStateDouble = self.std_ns.class_('pair<ompl::base::State *, double>')
         pairStateDouble.rename('pairStateDouble')

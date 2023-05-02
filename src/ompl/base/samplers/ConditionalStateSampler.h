@@ -46,31 +46,35 @@ namespace ompl
 {
     namespace base
     {
-        /** \brief Representation of a motion */
-        class Motion
-        {
-        public:
-            Motion() = default;
-
-            explicit Motion(const SpaceInformationPtr &si) : state(si->allocState()) {}
-
-            ~Motion() = default;
-
-            const base::State *root{nullptr};
-            base::State *state{nullptr};
-            Motion *parent{nullptr};
-            /** \brief The set of motions descending from the current motion */
-            std::vector<Motion *> children{};
-            // only used by goal tree
-            Motion *connectionPoint{nullptr};  // the start tree motion, if there is a direct connection
-            int numConnections{0};  // number of connections to the start tree of self and all descendants
-        };
 
         /** \brief The Conditional Sampler samples feasible Space-Time States. First, a space configuration is
-         * sampled. Then, a feasible time conditioned on the start and goal states is sampled for the space configuration.*/
+         * sampled. Then, a feasible time conditioned on the start and goal states is sampled for the space
+         * configuration.*/
         class ConditionalStateSampler : public ValidStateSampler
         {
         public:
+            /** \brief Representation of a motion */
+            class Motion
+            {
+            public:
+                Motion() = default;
+
+                explicit Motion(const SpaceInformationPtr &si) : state(si->allocState())
+                {
+                }
+
+                ~Motion() = default;
+
+                const base::State *root{nullptr};
+                base::State *state{nullptr};
+                Motion *parent{nullptr};
+                /** \brief The set of motions descending from the current motion */
+                std::vector<Motion *> children{};
+                // only used by goal tree
+                Motion *connectionPoint{nullptr};  // the start tree motion, if there is a direct connection
+                int numConnections{0};  // number of connections to the start tree of self and all descendants
+            };
+
             /** \brief The constructor. */
             ConditionalStateSampler(const SpaceInformation *si, Motion *&startMotion,
                                     std::vector<Motion *> &goalMotions, std::vector<Motion *> &newBatchGoalMotions,
@@ -96,15 +100,13 @@ namespace ompl
             bool &sampleOldBatch_;
 
             /** \brief Maximum tries to sample a new state, if no new state could be sampled, force a new goal
-                 * sample. */
+             * sample. */
             int maxTries_ = 10;
 
             /** \brief The random number generator. */
             ompl::RNG rng_;
         };
-    }
-}
-
-
+    }  // namespace base
+}  // namespace ompl
 
 #endif  // OMPL_CONDITIONALSTATESAMPLER_H
