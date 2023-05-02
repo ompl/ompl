@@ -168,10 +168,7 @@ class ompl_base_generator_t(code_generator_t):
         try:
             self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
         except declaration_not_found_t:
-            try:
-                self.std_ns.class_('vector< const ompl::base::State const >').rename('vectorConstState')
-            except declaration_not_found_t:
-                pass
+            pass
 
         self.std_ns.class_('vector< std::shared_ptr<ompl::base::StateSpace> >').rename(
             'vectorStateSpacePtr')
