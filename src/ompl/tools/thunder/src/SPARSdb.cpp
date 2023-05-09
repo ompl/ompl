@@ -967,7 +967,8 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
         //this added call to findGraphNeighbors is very inexpensive when granularity is small enough (which it is meant to be).
         findGraphNeighbors(qNew, gnbhd, vnbhd, granularity_);
         // if roadmap has only one connected component when we try to add a node, skip the expensive attempt to add it as a connectivity node.
-        if (getNumConnectedComponents() == 1 && vnbhd.size()) {
+        const bool check_if_node_is_connecting {check_connected_components_ && getNumConnectedComponents() > 1};
+        if (!check_if_node_is_connecting && vnbhd.size()) {
             OMPL_DEBUG("NOT adding state!");
             return false;
         }

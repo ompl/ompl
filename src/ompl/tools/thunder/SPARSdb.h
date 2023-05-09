@@ -413,6 +413,11 @@ namespace ompl
                 maxFailures_ = m;
             }
 
+            void setCheckConnectedComponents(const bool check_connected_components)
+            {
+                check_connected_components_ = check_connected_components;
+            }
+
             void setDenseRoadmap(const bool denseRoadmap)
             {
                 denseRoadmap_ = denseRoadmap;
@@ -465,6 +470,11 @@ namespace ompl
             double getStretchFactor() const
             {
                 return stretchFactor_;
+            }
+
+            bool getCheckConnectedComponents() const
+            {
+                return check_connected_components_;
             }
 
             bool getDenseRoadmap() const
@@ -834,6 +844,9 @@ namespace ompl
 
             /** \brief A counter for the number of iterations of the algorithm */
             long unsigned int iterations_{0ul};
+
+            /** \brief When true, we insert a node if it decreases the number of connected components (results in the connection of otherwise disconnected subgraphs).  Warning: setting this true will make insertion computationally more expensive as it checks the number of connected components */
+            bool check_connected_components_ {true};
 
             /** \brief Maximum visibility range for nodes in the graph */
             double sparseDelta_{0.};
