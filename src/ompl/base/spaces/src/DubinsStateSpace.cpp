@@ -165,7 +165,12 @@ namespace
         return {};
     }
 
-    DubinsStateSpace::DubinsPath dubins(double d, double alpha, double beta)
+    bool is_longpath_case(double d, double alpha, double beta) {
+        return (std::abs(std::sin(alpha)) + std::abs(std::sin(beta)) 
+        + std::sqrt(4 - std::pow(std::cos(alpha) + std::sin(beta), 2)) - d) < 0;
+    }
+
+    DubinsStateSpace::DubinsPath dubins_exhaustive(const double d, const double alpha, const double beta)
     {
         if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
             return {DubinsStateSpace::dubinsPathType[0], 0, d, 0};
@@ -201,6 +206,20 @@ namespace
             path = tmp;
         return path;
     }
+}
+
+DubinsStateSpace::DubinsPath dubins_classification(const double d, const double alpha, const double beta) {
+    if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
+        return {DubinsStateSpace::dubinsPathType[0], 0, d, 0};
+    ///TODO: Implement dubins set classification
+    return ::dubins_exhaustive(d, alpha, beta);
+}
+
+DubinsStateSpace::DubinsPath dubins(double d, double alpha, double beta)
+{
+    if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
+        return {DubinsStateSpace::dubinsPathType[0], 0, d, 0};
+    return is_longpath_case(d, alpha, beta) ? ::dubins_classification(d, alpha, beta) : ::dubins_exhaustive(d, alpha, beta);
 }
 
 const ompl::base::DubinsStateSpace::DubinsPathSegmentType ompl::base::DubinsStateSpace::dubinsPathType[6][3] = {
