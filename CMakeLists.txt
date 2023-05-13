@@ -139,7 +139,7 @@ endif()
 set_package_properties(flann PROPERTIES
     URL "https://github.com/mariusmuja/flann"
     PURPOSE "If detetected, FLANN can be used for nearest neighbor queries by OMPL.")
-find_package(flann 1.8.3 QUIET)
+find_package(flann 1.9.2 QUIET)
 if (FLANN_FOUND)
     set(OMPL_HAVE_FLANN 1)
     include_directories(SYSTEM ${FLANN_INCLUDE_DIRS})
