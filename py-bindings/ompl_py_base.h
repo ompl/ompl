@@ -40,6 +40,7 @@
 #include "ompl/base/ScopedState.h"
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/spaces/SE3StateSpace.h"
+#include "ompl/base/spaces/SpaceTimeStateSpace.h"
 #include "ompl/base/spaces/DiscreteStateSpace.h"
 #include "ompl/base/spaces/TimeStateSpace.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"

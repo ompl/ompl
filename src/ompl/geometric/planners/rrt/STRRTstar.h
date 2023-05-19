@@ -65,6 +65,8 @@ namespace ompl
         class STRRTstar : public base::Planner
         {
         public:
+            using Motion = base::ConditionalStateSampler::Motion;
+
             /** \brief Constructor */
             explicit STRRTstar(const ompl::base::SpaceInformationPtr &si);
 
@@ -124,16 +126,15 @@ namespace ompl
 
             void setup() override;
 
-        protected:
-
             /** \brief A nearest-neighbor datastructure representing a tree of motions */
-            using TreeData = std::shared_ptr<ompl::NearestNeighbors<base::Motion *>>;
+            using TreeData = std::shared_ptr<ompl::NearestNeighbors<Motion *>>;
+        protected:
 
             /** \brief Information attached to growing a tree of motions (used internally) */
             struct TreeGrowingInfo
             {
                 base::State *xstate;
-                base::Motion *xmotion;
+                Motion *xmotion;
                 bool start;
             };
 
@@ -149,14 +150,14 @@ namespace ompl
             };
 
             /** \brief Grow a tree towards a random state for a single nearest state */
-            GrowState growTreeSingle(TreeData &tree, TreeGrowingInfo &tgi, base::Motion *rmotion, base::Motion *nmotion);
+            GrowState growTreeSingle(TreeData &tree, TreeGrowingInfo &tgi, Motion *rmotion, Motion *nmotion);
 
             /** \brief Attempt to grow a tree towards a random state for the neighborhood of the random state. The
              * neighborhood is determined by the used rewire state. For the start tree closest state with respect to
              * distance are tried first. For the goal tree states with the minimum time root node are tried first. If
              * connect is true, multiple vertices can be added to the tree until the random state is reached or an
              * basestacle is met. If connect is false, the tree is only extended by a single new state. */
-            GrowState growTree(TreeData &tree, TreeGrowingInfo &tgi, base::Motion *rmotion, std::vector<base::Motion *> &nbh,
+            GrowState growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *rmotion, std::vector<Motion *> &nbh,
                                bool connect);
 
             /** \brief  */
@@ -164,13 +165,13 @@ namespace ompl
                                    bool &startTree, unsigned int &batchSize, int &numBatchSamples);
 
             /** \brief Gets the neighbours of a given motion, using either k-nearest or radius_ as appropriate. */
-            void getNeighbors(TreeData &tree, base::Motion *motion, std::vector<base::Motion *> &nbh) const;
+            void getNeighbors(TreeData &tree, Motion *motion, std::vector<Motion *> &nbh) const;
 
             /** \brief Free the memory allocated by this planner */
             void freeMemory();
 
             /** \brief Compute distance between motions (actually distance between contained states) */
-            double distanceFunction(const base::Motion *a, const base::Motion *b) const
+            double distanceFunction(const Motion *a, const Motion *b) const
             {
                 return si_->distance(a->state, b->state);
             }
@@ -181,13 +182,13 @@ namespace ompl
             /** \brief Prune the goal tree after a solution was found.
              * Return the goal motion, that is connected to the start tree, if a new solution was found.
              * If no new solution was found, return nullpointer. */
-            base::Motion *pruneGoalTree();
+            Motion *pruneGoalTree();
 
             /** \brief Find the solution (connecting) motion for a motion that is indirectly connected. */
-            static base::Motion *computeSolutionMotion(base::Motion *motion);
+            static Motion *computeSolutionMotion(Motion *motion);
 
             /** \brief Remove invalid goal states from the goal set. */
-            void removeInvalidGoals(const std::vector<base::Motion *> &invalidGoals);
+            void removeInvalidGoals(const std::vector<Motion *> &invalidGoals);
 
             /** \brief State sampler */
             base::ConditionalStateSampler sampler_;
@@ -226,14 +227,14 @@ namespace ompl
             double optimumApproxFactor_ = 1.0;
 
             /** \brief The start Motion, used for conditional sampling and start tree pruning. */
-            base::Motion *startMotion_{nullptr};
+            Motion *startMotion_{nullptr};
 
             /** \brief The goal Motions, used for conditional sampling and pruning. */
-            std::vector<base::Motion *> goalMotions_{};
+            std::vector<Motion *> goalMotions_{};
 
             /** \brief The goal Motions, that were added in the current expansion step, used for uniform sampling over a
              * growing region. */
-            std::vector<base::Motion *> newBatchGoalMotions_{};
+            std::vector<Motion *> newBatchGoalMotions_{};
 
             /**
              * Goal Sampling is not handled by PlannerInputStates, but directly by the SpaceTimeRRT,
@@ -259,13 +260,13 @@ namespace ompl
             bool sampleGoalTime(base::State *goal, double oldBatchTimeBoundFactor, double newBatchTimeBoundFactor);
 
             /** \brief Removes the given motion from the parent's child list. */
-            static void removeFromParent(base::Motion *m);
+            static void removeFromParent(Motion *m);
 
             /** \brief Adds given all descendants of the given motion to given tree and checks whether one of the added
              * motions is the goal motion. */
-            static void addDescendants(base::Motion *m, const TreeData &tree);
+            static void addDescendants(Motion *m, const TreeData &tree);
 
-            void constructSolution(base::Motion *startMotion, base::Motion *goalMotion,
+            void constructSolution(Motion *startMotion, Motion *goalMotion,
                                    const base::ReportIntermediateSolutionFn &intermediateSolutionCallback,
                                    const ompl::base::PlannerTerminationCondition& ptc);
 
@@ -294,7 +295,7 @@ namespace ompl
             /** \brief Calculate the k_RRG* and r_RRG* terms */
             void calculateRewiringLowerBounds();
 
-            bool rewireGoalTree(base::Motion *addedMotion);
+            bool rewireGoalTree(Motion *addedMotion);
 
             /** \brief Whether the time is bounded or not. The first solution automatically bounds the time. */
             bool isTimeBounded_;

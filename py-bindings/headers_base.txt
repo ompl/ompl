@@ -28,6 +28,7 @@ src/ompl/base/goals/GoalSpace.h
 src/ompl/base/DiscreteMotionValidator.h
 src/ompl/base/OptimizationObjective.h
 src/ompl/base/objectives/MinimaxObjective.h
+src/ompl/base/objectives/MinimizeArrivalTime.h
 src/ompl/base/objectives/MaximizeMinClearanceObjective.h
 src/ompl/base/objectives/MechanicalWorkOptimizationObjective.h
 src/ompl/base/objectives/PathLengthOptimizationObjective.h
@@ -40,13 +41,13 @@ src/ompl/base/PlannerDataStorage.h
 src/ompl/base/PlannerStatus.h
 src/ompl/base/Planner.h
 src/ompl/base/SolutionNonExistenceProof.h
-src/ompl/base/samplers/UniformValidStateSampler.h
 src/ompl/base/spaces/RealVectorStateSpace.h
 src/ompl/base/spaces/RealVectorStateProjections.h
 src/ompl/base/spaces/SO2StateSpace.h
 src/ompl/base/spaces/SO3StateSpace.h
 src/ompl/base/spaces/SE2StateSpace.h
 src/ompl/base/spaces/SE3StateSpace.h
+src/ompl/base/spaces/SpaceTimeStateSpace.h
 src/ompl/base/spaces/DiscreteStateSpace.h
 src/ompl/base/spaces/TimeStateSpace.h
 src/ompl/base/spaces/DubinsStateSpace.h
@@ -58,6 +59,7 @@ src/ompl/base/spaces/constraint/AtlasChart.h
 src/ompl/base/spaces/constraint/TangentBundleStateSpace.h
 src/ompl/base/ConstrainedSpaceInformation.h
 src/ompl/base/spaces/constraint/ProjectedStateSpace.h
+src/ompl/base/samplers/ConditionalStateSampler.h
 src/ompl/base/samplers/BridgeTestValidStateSampler.h
 src/ompl/base/samplers/GaussianValidStateSampler.h
 src/ompl/base/samplers/MinimumClearanceValidStateSampler.h
