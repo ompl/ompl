@@ -421,6 +421,9 @@ class ompl_base_generator_t(code_generator_t):
             'CostToGoHeuristic', 'Cost-to-go heuristic for optimizing planners')
         self.add_function_wrapper('std::string()', 'PlannerProgressProperty', \
             'Function that returns stringified value of a property while a planner is running')
+        self.add_function_wrapper('void(const ompl::base::Planner*, ' \
+            'const std::vector<const ompl::base::State*>&, const ompl::base::Cost)', \
+            'ReportIntermediateSolutionFn', 'Intermediate solution callback function')
 
         # rename SamplerSelectors
         self.ompl_ns.class_('SamplerSelector< ompl::base::StateSampler >').rename(
