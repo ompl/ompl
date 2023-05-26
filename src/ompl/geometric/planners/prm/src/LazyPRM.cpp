@@ -336,7 +336,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
     base::State *workState = si_->allocState();
 
     Vertex startVertex;
-    std::set<Vertex> goalPair;
+    std::set<Vertex> goalSet;
     base::PathPtr bestSolution;
     bool fullyOptimized = false;
     bool someSolutionFound = false;
