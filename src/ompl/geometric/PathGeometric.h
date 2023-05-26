@@ -177,8 +177,7 @@ namespace ompl
                 \return A pair of boolean values is returned. The first
                 value represents the validity of the path before any
                 change was made. The second value represents the
-                validity of the path after changes were attempted. If
-                no changes are attempted, the both values are true.
+                validity of the path after changes were attempted.
 
                 \note If repairing a path fails, the path may still be altered */
             std::pair<bool, bool> checkAndRepair(unsigned int attempts);
