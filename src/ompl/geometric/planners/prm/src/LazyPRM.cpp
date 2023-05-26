@@ -357,7 +357,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
         sampler_->sampleUniform(workState);
         Vertex addedVertex = addMilestone(si_->cloneState(workState));
 
-        const long int solComponent = solutionComponent(startPair, goalPair);
+        const long int solComponent = solutionComponent(startVertex, goalSet);
 
         // If the start & goal are connected and we either did not find any solution
         // so far or the one we found still needs optimizing and we just added an edge
