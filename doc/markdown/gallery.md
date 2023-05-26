@@ -28,25 +28,6 @@ OMPL has support for [motion planning subject to hard constraints](constrainedPl
 </div>
 \endhtmlonly
 
-## Morse
-
-Morse is a robot simulator built on top of the 3D modeling program Blender. Caleb Voss has developed a plugin for Blender that allows you use OMPL to plan motions for Morse robots. There is [extensive documentation](morse.html) on how to use this plugin. Below are some example videos produced with this plugin.
-
-\htmlonly
-<div class="row">
-  <div class="col-md-6 col-sm-6">
-    <div class="embed-responsive embed-responsive-16by9">
-      <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/71580831?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
-    </div>
-  </div>
-  <div class="col-md-6 col-sm-6">
-    <div class="embed-responsive embed-responsive-16by9">
-      <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/72710651?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
-    </div>
-  </div>
-</div>
-\endhtmlonly
-
 ## Manipulation Planning
 
 An example of using OMPL on the PR2 from Willow Garage. The robot is asked to move the manipulate objects on the table. This demo is using [ROS](http://www.ros.org).

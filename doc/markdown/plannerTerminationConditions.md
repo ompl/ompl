@@ -20,5 +20,3 @@ OMPL implements several different conditions that you can use:
 - ompl::base::plannerAlwaysTerminatingCondition: a **function** that returns a PlannerTerminationCondition instance that causes the planner to immediately terminate.
 - ompl::base::plannerOrTerminationCondition: a **function** that, given two PlannerTerminationCondition instances c1 and c2, returns a PlannerTerminationCondition instance that causes the planner to terminate when either returns `true`.
 - ompl::base::plannerAndTerminationCondition: a **function** that, given two PlannerTerminationCondition instances c1 and c2, returns a PlannerTerminationCondition instance that causes the planner to terminate when both return `true`.
-
-If the MORSE extension is enabled, the ompl::base::MorseTerminationCondition is also available, which is a PlannerTerminationCondition-derived **class** that causes a planner to terminate if the user shuts down the MORSE simulation.

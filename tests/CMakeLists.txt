@@ -56,11 +56,6 @@ if (OMPL_BUILD_TESTS)
     # Test experience based planning
     add_ompl_test(test_experience_planning tools/test_experience_planning.cpp)
 
-    # Test planning via MORSE extension
-    if(OMPL_EXTENSION_MORSE)
-        add_ompl_test(test_morse_extension extensions/morse/morse_plan.cpp)
-    endif(OMPL_EXTENSION_MORSE)
-
     # Python unit tests
     if(PYTHON_FOUND AND OMPL_BUILD_PYTESTS)
         if (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/../py-bindings/bindings")
