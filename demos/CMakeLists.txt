@@ -77,10 +77,6 @@ if (OMPL_BUILD_DEMOS)
         target_link_libraries(demo_MultiLevelPlanarManipulator ${YAMLCPP_LIBRARIES})
     endif()
 
-    if (OMPL_EXTENSION_ODE)
-        add_ompl_demo(demo_OpenDERigidBodyPlanning OpenDERigidBodyPlanning.cpp)
-    endif()
-
     if (OMPL_EXTENSION_TRIANGLE)
         add_ompl_demo(demo_TriangulationDemo TriangulationDemo.cpp)
         add_ompl_demo(demo_LTLWithTriangulation LTLWithTriangulation.cpp)
