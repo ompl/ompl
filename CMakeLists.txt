@@ -112,15 +112,6 @@ set_package_properties(Eigen3 PROPERTIES
 find_package(Eigen3 REQUIRED)
 include_directories(SYSTEM "${EIGEN3_INCLUDE_DIR}")
 
-set_package_properties(ODE PROPERTIES
-    URL "http://ode.org"
-    PURPOSE "The Open Dynamics Engine can be used as a \"black box\" for kinodynamic planning.")
-find_package(ODE QUIET)
-set(OMPL_EXTENSION_ODE ${ODE_FOUND})
-if (OMPL_EXTENSION_ODE)
-  include_directories(SYSTEM ${ODE_INCLUDE_DIRS})
-endif()
-
 set_package_properties(Triangle PROPERTIES
     URL "http://www.cs.cmu.edu/~quake/triangle.html"
     PURPOSE "Used to create triangular decompositions of polygonal 2D environments.")
@@ -182,9 +173,6 @@ if(NOT MSVC)
     set(PKG_NAME "ompl")
     set(PKG_DESC "The Open Motion Planning Library")
     set(PKG_EXTERNAL_DEPS "eigen3 ${ompl_PKG_DEPS}")
-    if(OMPL_EXTENSION_ODE)
-        set(PKG_EXTERNAL_DEPS "${PKG_EXTERNAL_DEPS}")
-    endif()
     set(PKG_OMPL_LIBS "-lompl ${ompl_LINK_FLAGS}")
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc.in"
                    "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc" @ONLY)

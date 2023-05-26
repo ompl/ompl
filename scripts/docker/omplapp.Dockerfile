@@ -22,7 +22,6 @@ RUN apt-get update && \
         libexpat1 \
         libfcl-dev \
         libflann-dev \
-        libode-dev \
         libtriangle-dev \
         ninja-build \
         pkg-config \
@@ -73,7 +72,6 @@ RUN apt-get update && \
         libeigen3-dev \
         libfcl-dev \
         libflann-dev \
-        libode-dev \
         libtriangle-dev \
         ninja-build \
         pkg-config \

@@ -15,7 +15,6 @@ matrix:
         - libboost-test-dev
         - libeigen3-dev
         - libflann-dev
-        - libode-dev
         - ninja-build
   - os: linux
     dist: xenial
@@ -30,7 +29,6 @@ matrix:
         - libboost-test-dev
         - libeigen3-dev
         - libflann-dev
-        - libode-dev
         - ninja-build
   - os: osx
     osx_image: xcode10.3

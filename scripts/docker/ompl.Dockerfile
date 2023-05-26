@@ -17,7 +17,6 @@ RUN apt-get update && \
         libeigen3-dev \
         libexpat1 \
         libflann-dev \
-        libode-dev \
         libtriangle-dev \
         ninja-build \
         pkg-config \
@@ -58,7 +57,6 @@ RUN apt-get update && \
         libboost-system-dev \
         libeigen3-dev \
         libflann-dev \
-        libode-dev \
         libtriangle-dev \
         ninja-build \
         pkg-config \

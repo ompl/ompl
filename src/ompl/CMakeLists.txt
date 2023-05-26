@@ -22,14 +22,6 @@ file(GLOB_RECURSE OMPL_HEADERS datastructures/*.h util/*.h base/*.h
 #
 #endif()
 
-if (OMPL_EXTENSION_ODE)
-    file(GLOB_RECURSE OMPL_ODE_EXTENSION_SOURCE_CODE extensions/ode/*.cpp)
-    file(GLOB_RECURSE OMPL_ODE_EXTENSION_HEADERS extensions/ode/*.h)
-    set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_ODE_EXTENSION_SOURCE_CODE})
-    set(OMPL_HEADERS ${OMPL_HEADERS} ${OMPL_ODE_EXTENSION_HEADERS})
-    list(APPEND OMPL_LINK_LIBRARIES "${ODE_LIBRARIES}")
-endif()
-
 if (OMPL_EXTENSION_TRIANGLE)
     file(GLOB_RECURSE OMPL_TRIANGLE_EXTENSION_SOURCE_CODE extensions/triangle/*.cpp)
     file(GLOB_RECURSE OMPL_TRIANGLE_EXTENSION_HEADERS extensions/triangle/*.h)
@@ -53,14 +45,6 @@ target_link_libraries(ompl
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT})
-
-if (OMPL_EXTENSION_ODE)
-    if (NOT CMAKE_VERSION VERSION_LESS 3.13)
-        target_link_directories(ompl PUBLIC ${ODE_LIBRARY_DIRS})
-    else()
-        link_directories(ompl ${ODE_LIBRARY_DIRS})
-    endif()
-endif()
 
 if (OMPL_HAVE_SPOT)
     target_link_libraries(ompl ${SPOT_LIBRARIES})
