@@ -3,16 +3,13 @@ set(CPACK_PACKAGE_VENDOR "Rice University")
 set(CPACK_PACKAGE_CONTACT "Mark Moll <mmoll@rice.edu>")
 
 # component list
-set(CPACK_COMPONENTS_ALL ompl python morse)
+set(CPACK_COMPONENTS_ALL ompl python)
 # display names for components
 set(CPACK_COMPONENT_OMPL_DISPLAY_NAME "OMPL library, headers, and demos")
 set(CPACK_COMPONENT_PYTHON_DISPLAY_NAME "Python bindings")
-set(CPACK_COMPONENT_MORSE_DISPLAY_NAME "Blender/MORSE plugin")
 # descriptions of components
-set(CPACK_COMPONENT_MORSE_DESCRIPTION "The Blender/MORSE plugin allows one to plan paths using the MORSE robot simulator. MORSE is built on top of Blender and uses its built-in physics engine to compute physically realistic motions.")
 # intercomponent dependencies
 set(CPACK_COMPONENT_PYTHON_DEPENDS ompl)
-set(CPACK_COMPONENT_MORSE_DEPENDS python)
 # core library is required
 set(CPACK_COMPONENT_OMPL_REQUIRED ON)
 

@@ -48,9 +48,6 @@
                              + OMPL_MINOR_VERSION * 1000        \
                              + OMPL_PATCH_VERSION)
 
-/** \brief Specify whether the MORSE extension is built */
-#cmakedefine01 OMPL_EXTENSION_MORSE
-
 /** \brief Specify whether the ODE extension is built */
 #cmakedefine01 OMPL_EXTENSION_ODE
 
