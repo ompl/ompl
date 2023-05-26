@@ -379,7 +379,7 @@ ompl::base::PlannerStatus ompl::geometric::LazyPRM::solve(const base::PlannerTer
             base::PathPtr solution;
             do
             {
-                solution = constructSolution(startPair, goalPair);
+                solution = constructSolution(startVertex, goalSet);
             } while (!solution && !ptc);
 
             if (solution)
