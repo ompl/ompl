@@ -174,7 +174,7 @@ namespace ompl
             {
             }
 
-            const auto &operator()(const Milestone &m)
+            const std::vector<Milestone> &operator()(const Milestone &m)
             {
                 auto &result = KStrategy<Milestone>::neighbors_;
                 KStrategy<Milestone>::nn_->nearestK(m, KStrategy<Milestone>::k_, result);

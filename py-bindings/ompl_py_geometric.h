@@ -56,7 +56,10 @@ namespace ompl
         {
             NearestNeighborsLinear<PRM::Vertex> nn;
             std::shared_ptr<NearestNeighbors<PRM::Vertex> > nnPtr(&nn);
-            return sizeof(KStrategy<PRM::Vertex>(1, nnPtr)) + sizeof(KStarStrategy<PRM::Vertex>(dummyFn, nnPtr, 1)) + sizeof(nn);
+            return sizeof(KStrategy<PRM::Vertex>(1, nnPtr)) +
+                sizeof(KStarStrategy<PRM::Vertex>(dummyFn, nnPtr, 1)) +
+                sizeof(KBoundedStrategy<PRM::Vertex>(1, 1., nnPtr)) +
+                sizeof(nn);
         }
         inline int dummySTLContainerSize()
         {
