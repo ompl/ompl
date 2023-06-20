@@ -161,7 +161,6 @@ namespace ompl
                     ar &endpoints_;
                     ar &weight_;
                 }
-
                 const PlannerDataEdge *e_;
                 std::pair<unsigned int, unsigned int> endpoints_;
                 double weight_;
@@ -248,6 +247,7 @@ namespace ompl
                     ia >> edgeData;
                     pd.addEdge(edgeData.endpoints_.first, edgeData.endpoints_.second, *edgeData.e_,
                                Cost(edgeData.weight_));
+                    OMPL_DEBUG("Loading edge (%i to %i) with weight %f", edgeData.endpoints_.first, edgeData.endpoints_.second, edgeData.weight_);
 
                     // We deserialized the edge object pointer, and we own it.
                     // Since addEdge copies the object, it is safe to free here.
@@ -268,12 +268,13 @@ namespace ompl
                     for (unsigned int toVertex : edgeList)
                     {
                         // Get cost
-                        Cost weight;
-                        if (!pd.getEdgeWeight(fromVertex, toVertex, &weight))
+                        std::optional<Cost> weight_opt {pd.getEdgeWeightIfExists(fromVertex, toVertex)};
+                        if (!weight_opt.has_value())
                             OMPL_ERROR("Unable to get edge weight");
-
+                        Cost weight {weight_opt.value()};
+                        OMPL_DEBUG("Storing edge (%i to %i) with weight %f", fromVertex, toVertex, weight.value());
                         // Convert to new structure
-                        PlannerDataEdgeData edgeData;
+                        auto edgeData {PlannerDataEdgeData()};
                         edgeData.e_ = &pd.getEdge(fromVertex, toVertex);
                         edgeData.endpoints_.first = fromVertex;
                         edgeData.endpoints_.second = toVertex;

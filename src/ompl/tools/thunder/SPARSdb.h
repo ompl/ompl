@@ -507,6 +507,16 @@ namespace ompl
                 return pathSamplingFactor_;
             }
 
+            bool getMigrateRoadmapOnLoad() const
+            {
+                return migrateRoadmapOnLoad_;
+            }
+
+            void setMigrateRoadmapOnLoad(const bool migrateRoadmapOnLoad)
+            {
+                migrateRoadmapOnLoad_ = migrateRoadmapOnLoad;
+            }
+
             bool getGuardSpacingFactor(double pathLength, double &numGuards, double &spacingFactor);
 
             /**
@@ -727,7 +737,7 @@ namespace ompl
             Vertex addGuard(base::State *state, GuardType type);
 
             /** \brief Connect two guards in the roadmap */
-            void connectGuards(Vertex v, Vertex vp);
+            void connectGuards(Vertex v, Vertex vp, std::optional<ompl::base::Cost> edge_weight = std::nullopt, const bool compute_edge_cost = false);
 
             /** \brief Check if there exists a solution, i.e., there exists a pair of milestones such that the first is
              * in \e start and the second is in \e goal, and the two milestones are in the same connected component. If
@@ -770,9 +780,9 @@ namespace ompl
                 return si_->distance(stateProperty_[a], stateProperty_[b]);
             }
 
-            double costFunction(const Vertex a, const Vertex b) const
+            double costFunction(const Vertex a, const Vertex b, const bool compute_cost = false) const
             {
-                return useCostInRoadmap_ && pdef_->getOptimizationObjective() ? pdef_->getOptimizationObjective()->motionCost(stateProperty_[a], stateProperty_[b]).value() : distanceFunction(a, b);
+                return compute_cost && pdef_->getOptimizationObjective() ? pdef_->getOptimizationObjective()->motionCost(stateProperty_[a], stateProperty_[b]).value() : distanceFunction(a, b);
             }
 
             /** \brief Sampler user for generating valid samples in the state space */
@@ -862,6 +872,11 @@ namespace ompl
 
             /** \brief Flag to indicate wheter or not we do collision checking for paths retrieved from the database */
             bool collisionCheckOnRecall_ {false};
+
+            /** \brief When loading the roadmap nodes and edges, validate them. Skip adding invalid nodes and edges, and recompute weights for all others 
+             *  This slows down the load and should only be used offline.
+            */
+            bool migrateRoadmapOnLoad_ {false};
 
             /** \brief Used by getSimilarPaths */
             std::vector<Vertex> startVertexCandidateNeighbors_;

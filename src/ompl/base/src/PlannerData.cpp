@@ -46,6 +46,7 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/property_map/function_property_map.hpp>
 #include <utility>
+#include <optional>
 
 // This is a convenient macro to cast the void* graph pointer as the
 // Boost.Graph structure from PlannerDataGraph.h
@@ -166,8 +167,26 @@ bool ompl::base::PlannerData::getEdgeWeight(unsigned int v1, unsigned int v2, Co
         *weight = edges[e];
         return true;
     }
-
     return false;
+}
+
+std::optional<ompl::base::Cost> ompl::base::PlannerData::getEdgeWeightIfExists(unsigned int v1, unsigned int v2) const
+{
+    Graph::Edge e;
+    Cost weight {};
+    bool exists;
+    boost::tie(e, exists) = boost::edge(boost::vertex(v1, *graph_), boost::vertex(v2, *graph_), *graph_);
+
+    if (exists)
+    {
+        boost::property_map<Graph::Type, boost::edge_weight_t>::type edges = get(boost::edge_weight, *graph_);
+        weight = edges[e];
+        return weight;
+    }
+    else {
+        OMPL_INFORM("Edge between %i and %i does not exist!", v1, v2);
+    }
+    return std::nullopt;
 }
 
 bool ompl::base::PlannerData::setEdgeWeight(unsigned int v1, unsigned int v2, Cost weight)

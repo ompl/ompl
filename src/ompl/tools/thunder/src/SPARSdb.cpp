@@ -67,7 +67,6 @@ double ompl::geometric::SPARSdb::edgeWeightMap::get(Edge e) const
     // Get the status of collision checking for this edge
     if (collisionStates_[e] == IN_COLLISION)
         return std::numeric_limits<double>::infinity();
-
     return boost::get(boost::edge_weight, g_, e);
 }
 
@@ -948,7 +947,6 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
     bool stateAdded = false;
     // Check that the query vertex is initialized (used for internal nearest neighbor searches)
     checkQueryStateInitialization();
-
     // Deep copy
     base::State *qNew = si_->cloneState(newState);
     base::State *workState = si_->allocState();
@@ -1099,7 +1097,7 @@ bool ompl::geometric::SPARSdb::checkAddCoverage(const base::State *qNew, std::ve
             // DTC: this should actually never happen - we just created the new vertex so
             // why would it be connected to anything?
             if (!boost::edge(v, neighbor, g_).second) {
-                connectGuards(v, neighbor);
+                connectGuards(v, neighbor, std::nullopt, useCostInRoadmap_);
             }
         }
     }
@@ -1152,7 +1150,7 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
                 {
                     // The components haven't been united by previous links
                     if (!sameComponent(statesInDiffConnectedComponent, newVertex))
-                        connectGuards(newVertex, statesInDiffConnectedComponent);
+                        connectGuards(newVertex, statesInDiffConnectedComponent, std::nullopt, useCostInRoadmap_);
                 }
             }
 
@@ -1180,7 +1178,7 @@ bool ompl::geometric::SPARSdb::checkAddInterface(const base::State *qNew, std::v
                     // Connect them
                     if (verbose_)
                         OMPL_INFORM(" ---   INTERFACE: directly connected nodes ");
-                    connectGuards(visibleNeighborhood[0], visibleNeighborhood[1]);
+                    connectGuards(visibleNeighborhood[0], visibleNeighborhood[1], std::nullopt, useCostInRoadmap_);
                     // And report that we added to the roadmap
                     resetFailures();
                     // Report success
@@ -1192,8 +1190,8 @@ bool ompl::geometric::SPARSdb::checkAddInterface(const base::State *qNew, std::v
                     if (verbose_)
                         OMPL_INFORM(" --- Adding node for INTERFACE  ");
                     Vertex v = addGuard(si_->cloneState(qNew), INTERFACE);
-                    connectGuards(v, visibleNeighborhood[0]);
-                    connectGuards(v, visibleNeighborhood[1]);
+                    connectGuards(v, visibleNeighborhood[0], std::nullopt, useCostInRoadmap_);
+                    connectGuards(v, visibleNeighborhood[1], std::nullopt, useCostInRoadmap_);
                     if (verbose_)
                         OMPL_INFORM(" ---   INTERFACE: connected two neighbors through new interface node ");
                     // Report success
@@ -1244,7 +1242,7 @@ bool ompl::geometric::SPARSdb::checkAddPath(Vertex v)
             {
                 spannerPropertyWasViolated = true;  // Report that we added for the path
                 if (si_->checkMotion(stateProperty_[r], stateProperty_[rp]))
-                    connectGuards(r, rp);
+                    connectGuards(r, rp, std::nullopt, useCostInRoadmap_);
                 else
                 {
                     auto p(std::make_shared<PathGeometric>(si_));
@@ -1281,12 +1279,12 @@ bool ompl::geometric::SPARSdb::checkAddPath(Vertex v)
                                 OMPL_INFORM(" --- Adding node for QUALITY");
                             vnew = addGuard(st, QUALITY);
 
-                            connectGuards(prior, vnew);
+                            connectGuards(prior, vnew, std::nullopt, useCostInRoadmap_);
                             prior = vnew;
                         }
                         // clear the states, so memory is not freed twice
                         states.clear();
-                        connectGuards(prior, rp);
+                        connectGuards(prior, rp, std::nullopt, useCostInRoadmap_);
                     }
                 }
             }
@@ -1667,7 +1665,7 @@ ompl::geometric::SPARSdb::Vertex ompl::geometric::SPARSdb::addGuard(base::State 
     return m;
 }
 
-void ompl::geometric::SPARSdb::connectGuards(Vertex v, Vertex vp)
+void ompl::geometric::SPARSdb::connectGuards(Vertex v, Vertex vp, std::optional<ompl::base::Cost> edge_weight, const bool compute_edge_cost)
 {
     // OMPL_INFORM("connectGuards called ---------------------------------------------------------------- ");
     assert(v <= getNumVertices());
@@ -1682,7 +1680,12 @@ void ompl::geometric::SPARSdb::connectGuards(Vertex v, Vertex vp)
     Edge e = (boost::add_edge(v, vp, g_)).first;
 
     // Add associated properties to the edge
-    edgeWeightProperty_[e] = costFunction(v, vp);  // TODO: use this value with astar
+    if (edge_weight.has_value()) {
+        edgeWeightProperty_[e] = edge_weight.value().value();
+    } else {
+        // returns edge cost when compute_edge_cost is TRUE, and edge length otherwise.
+        edgeWeightProperty_[e] = costFunction(v, vp, compute_edge_cost);
+    }
     edgeCollisionStateProperty_[e] = NOT_CHECKED;
 
     // Add the edge to the incrementeal connected components datastructure
@@ -1793,8 +1796,10 @@ void ompl::geometric::SPARSdb::getPlannerData(base::PlannerData &data) const
             const Vertex v2 = boost::target(e, g_);
 
             // TODO save weights!
+            auto my_edge {ompl::base::PlannerDataEdge()};
+            
             data.addEdge(base::PlannerDataVertex(stateProperty_[v1], (int)colorProperty_[v1]),
-                         base::PlannerDataVertex(stateProperty_[v2], (int)colorProperty_[v2]));
+                         base::PlannerDataVertex(stateProperty_[v2], (int)colorProperty_[v2]), my_edge, ompl::base::Cost(edgeWeightProperty_[e]));
 
             // OMPL_INFORM("Adding edge from vertex of type %d to vertex of type %d", colorProperty_[v1],
             // colorProperty_[v2]);
@@ -1830,6 +1835,7 @@ void ompl::geometric::SPARSdb::setPlannerData(const base::PlannerData &data)
     verbose_ = false;
 
     OMPL_INFORM("Loading vertices:");
+    std::vector<std::size_t> invalid_vertices {};
     // Add the nodes to the graph
     for (std::size_t vertexID = 0; vertexID < data.numVertices(); ++vertexID)
     {
@@ -1840,6 +1846,14 @@ void ompl::geometric::SPARSdb::setPlannerData(const base::PlannerData &data)
         // Get the tag, which in this application represents the vertex type
         auto type = static_cast<GuardType>(data.getVertex(vertexID).getTag());
 
+        if (migrateRoadmapOnLoad_ && !si_->isValid(state)) {
+            // State not valid, do not add it. Remember it now, remove edges connected to it later.
+            OMPL_INFORM("Removing vertex %i as it is invalid", vertexID);
+            invalid_vertices.push_back(vertexID);
+            Vertex v;
+            idToVertex.push_back(v);
+            continue;
+        }
         // ADD GUARD
         idToVertex.push_back(addGuard(state, type));
     }
@@ -1848,7 +1862,12 @@ void ompl::geometric::SPARSdb::setPlannerData(const base::PlannerData &data)
     // Add the corresponding edges to the graph
     std::vector<unsigned int> edgeList;
     for (std::size_t fromVertex = 0; fromVertex < data.numVertices(); ++fromVertex)
-    {
+    {   
+        if (migrateRoadmapOnLoad_ && (std::find(invalid_vertices.begin(), invalid_vertices.end(), fromVertex) != invalid_vertices.end())) {
+            // edge connected to invalid node
+            OMPL_INFORM("Removing edge as it is connected to the invalid vertex %i", fromVertex);
+            continue;
+        }
         edgeList.clear();
 
         // Get the edges
@@ -1859,16 +1878,36 @@ void ompl::geometric::SPARSdb::setPlannerData(const base::PlannerData &data)
         // Process edges
         for (unsigned int toVertex : edgeList)
         {
+            if (migrateRoadmapOnLoad_ && (std::find(invalid_vertices.begin(), invalid_vertices.end(), toVertex) != invalid_vertices.end())) {
+                // edge connected to invalid node
+                OMPL_INFORM("Removing edge between (%i, %i) as vertex %i is invalid", fromVertex, toVertex, toVertex);
+                continue;
+            }
             Vertex n = idToVertex[toVertex];
 
             // Add the edge to the graph
-            const base::Cost weight(0);
-            if (verbose_ && false)
+            auto edge_weight {data.getEdgeWeightIfExists(fromVertex,toVertex)};
+            if (migrateRoadmapOnLoad_) {
+                // skip adding invalid edge
+                const base::State *fromState = data.getVertex(fromVertex).getState();
+                const base::State *toState = data.getVertex(toVertex).getState();
+                if (!si_->checkMotion(fromState, toState)) {
+                    // edge invalid, skip.
+                    OMPL_INFORM("Removing edge between (%i, %i) as it is invalid", fromVertex, toVertex);
+                    continue;
+                }
+                // need to recalculate edge weight
+                if (useCostInRoadmap_) {
+                    edge_weight = std::nullopt;
+                }
+            }
+            if (edge_weight.has_value())
             {
-                OMPL_INFORM("    Adding edge from vertex id %d to id %d into edgeList", fromVertex, toVertex);
+                OMPL_INFORM("    Adding edge from vertex id %d to id %d into edgeList, with edge weight %f", fromVertex, toVertex, edge_weight.value().value());
                 OMPL_INFORM("      Vertex %d to %d", m, n);
             }
-            connectGuards(m, n);
+            // add edge
+            connectGuards(m, n, edge_weight, useCostInRoadmap_);
         }
     }  // for
 
