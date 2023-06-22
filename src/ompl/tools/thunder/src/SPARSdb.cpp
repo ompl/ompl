@@ -1848,7 +1848,7 @@ void ompl::geometric::SPARSdb::setPlannerData(const base::PlannerData &data)
 
         if (migrateRoadmapOnLoad_ && !si_->isValid(state)) {
             // State not valid, do not add it. Remember it now, remove edges connected to it later.
-            OMPL_INFORM("Removing vertex %i as it is invalid", vertexID);
+            OMPL_DEBUG("Removing vertex %i as it is invalid", vertexID);
             invalid_vertices.push_back(vertexID);
             Vertex v;
             idToVertex.push_back(v);
@@ -1865,7 +1865,7 @@ void ompl::geometric::SPARSdb::setPlannerData(const base::PlannerData &data)
     {   
         if (migrateRoadmapOnLoad_ && (std::find(invalid_vertices.begin(), invalid_vertices.end(), fromVertex) != invalid_vertices.end())) {
             // edge connected to invalid node
-            OMPL_INFORM("Removing edge as it is connected to the invalid vertex %i", fromVertex);
+            OMPL_DEBUG("Removing edge as it is connected to the invalid vertex %i", fromVertex);
             continue;
         }
         edgeList.clear();
@@ -1880,7 +1880,7 @@ void ompl::geometric::SPARSdb::setPlannerData(const base::PlannerData &data)
         {
             if (migrateRoadmapOnLoad_ && (std::find(invalid_vertices.begin(), invalid_vertices.end(), toVertex) != invalid_vertices.end())) {
                 // edge connected to invalid node
-                OMPL_INFORM("Removing edge between (%i, %i) as vertex %i is invalid", fromVertex, toVertex, toVertex);
+                OMPL_DEBUG("Removing edge between (%i, %i) as vertex %i is invalid", fromVertex, toVertex, toVertex);
                 continue;
             }
             Vertex n = idToVertex[toVertex];
@@ -1893,7 +1893,7 @@ void ompl::geometric::SPARSdb::setPlannerData(const base::PlannerData &data)
                 const base::State *toState = data.getVertex(toVertex).getState();
                 if (!si_->checkMotion(fromState, toState)) {
                     // edge invalid, skip.
-                    OMPL_INFORM("Removing edge between (%i, %i) as it is invalid", fromVertex, toVertex);
+                    OMPL_DEBUG("Removing edge between (%i, %i) as it is invalid", fromVertex, toVertex);
                     continue;
                 }
                 // need to recalculate edge weight
@@ -1901,7 +1901,7 @@ void ompl::geometric::SPARSdb::setPlannerData(const base::PlannerData &data)
                     edge_weight = std::nullopt;
                 }
             }
-            if (edge_weight.has_value())
+            if (verbose_ && edge_weight.has_value())
             {
                 OMPL_INFORM("    Adding edge from vertex id %d to id %d into edgeList, with edge weight %f", fromVertex, toVertex, edge_weight.value().value());
                 OMPL_INFORM("      Vertex %d to %d", m, n);

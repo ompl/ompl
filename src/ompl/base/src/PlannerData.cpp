@@ -183,9 +183,7 @@ std::optional<ompl::base::Cost> ompl::base::PlannerData::getEdgeWeightIfExists(u
         weight = edges[e];
         return weight;
     }
-    else {
-        OMPL_INFORM("Edge between %i and %i does not exist!", v1, v2);
-    }
+    OMPL_DEBUG("Edge between %i and %i does not exist!", v1, v2);
     return std::nullopt;
 }
 
