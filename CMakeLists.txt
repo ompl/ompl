@@ -199,6 +199,15 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
     COMPONENT ompl)
+install(TARGETS ompl
+    EXPORT omplExport
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT ompl)
+install(EXPORT omplExport
+    NAMESPACE ompl::
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake)
+export(EXPORT omplExport
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/omplExport.cmake")
 
 # script to install ompl on Ubuntu
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/install-ompl-ubuntu.sh.in"

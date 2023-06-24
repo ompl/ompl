@@ -39,6 +39,7 @@ if(MSVC)
 else()
     add_library(ompl SHARED ${OMPL_SOURCE_CODE})
 endif()
+add_library(ompl::ompl ALIAS ompl)
 target_link_libraries(ompl
     ${OMPL_LINK_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
@@ -61,10 +62,6 @@ else (MSVC)
     set_target_properties(ompl PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${OMPL_ABI_VERSION}")
 endif (MSVC)
 
-# install the library
-install(TARGETS ompl
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT ompl)
 if (NOT MSVC)
     add_custom_command(TARGET ompl POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:ompl>"
