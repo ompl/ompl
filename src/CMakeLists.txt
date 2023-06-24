@@ -8,3 +8,9 @@ install(DIRECTORY ompl/ DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ompl"
     REGEX "/src$" EXCLUDE
     REGEX "/doc$" EXCLUDE
     REGEX "/tests$" EXCLUDE)
+
+target_include_directories(ompl
+    PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
