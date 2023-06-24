@@ -41,15 +41,11 @@ else()
 endif()
 target_link_libraries(ompl
     ${OMPL_LINK_LIBRARIES}
-    ${Boost_SERIALIZATION_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
     Boost::filesystem
+    Boost::program_options
     Boost::serialization
-    Boost::filesystem
-    Boost::system
-    Boost::program_options)
+    Boost::system)
 
 if (OMPL_HAVE_SPOT)
     target_link_libraries(ompl ${SPOT_LIBRARIES})
