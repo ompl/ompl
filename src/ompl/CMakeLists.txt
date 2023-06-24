@@ -36,15 +36,16 @@ source_group("OMPL Headers" FILES "${OMPL_HEADERS}")
 # build the library
 if(MSVC)
     add_library(ompl STATIC ${OMPL_SOURCE_CODE})
-else(MSVC)
+else()
     add_library(ompl SHARED ${OMPL_SOURCE_CODE})
-endif(MSVC)
+endif()
 target_link_libraries(ompl
     ${OMPL_LINK_LIBRARIES}
-    ${Boost_SERIALIZATION_LIBRARY}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
-    ${CMAKE_THREAD_LIBS_INIT})
+    ${CMAKE_THREAD_LIBS_INIT}
+    Boost::filesystem
+    Boost::program_options
+    Boost::serialization
+    Boost::system)
 
 if (OMPL_HAVE_SPOT)
     target_link_libraries(ompl ${SPOT_LIBRARIES})
