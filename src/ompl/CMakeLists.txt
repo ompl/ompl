@@ -15,18 +15,18 @@ file(GLOB_RECURSE OMPL_HEADERS datastructures/*.h util/*.h base/*.h
 ## replace XXX by the extension
 #if (OMPL_EXTENSION_XXX)
 #    file(GLOB_RECURSE OMPL_XXX_EXTENSION_SOURCE_CODE extensions/XXX/*.cpp)
-#    set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_XXX_EXTENSION_SOURCE_CODE})
+#    list(APPEND OMPL_SOURCE_CODE ${OMPL_XXX_EXTENSION_SOURCE_CODE})
 #
-##    if additional libraries need to be linked, they are added to manifest.xml for ROS
-##    or they are added to the list of OMPL_LINK_LIBRARIES
+##    if additional libraries need to be linked, they are added to package.xml for ROS
+##    or they are added to the list of targets linked to ompl
 #
 #endif()
 
 if (OMPL_EXTENSION_TRIANGLE)
     file(GLOB_RECURSE OMPL_TRIANGLE_EXTENSION_SOURCE_CODE extensions/triangle/*.cpp)
     file(GLOB_RECURSE OMPL_TRIANGLE_EXTENSION_HEADERS extensions/triangle/*.h)
-    set(OMPL_SOURCE_CODE ${OMPL_SOURCE_CODE} ${OMPL_TRIANGLE_EXTENSION_SOURCE_CODE})
-    set(OMPL_HEADERS ${OMPL_HEADERS} ${OMPL_TRIANGLE_EXTENSION_HEADERS})
+    list(APPEND OMPL_SOURCE_CODE ${OMPL_TRIANGLE_EXTENSION_SOURCE_CODE})
+    list(APPEND OMPL_HEADERS ${OMPL_TRIANGLE_EXTENSION_HEADERS})
     list(APPEND OMPL_LINK_LIBRARIES "${TRIANGLE_LIBRARY}")
 endif()
 
@@ -41,18 +41,16 @@ else()
 endif()
 add_library(ompl::ompl ALIAS ompl)
 target_link_libraries(ompl
-    ${OMPL_LINK_LIBRARIES}
-    ${CMAKE_THREAD_LIBS_INIT}
     Boost::filesystem
     Boost::program_options
     Boost::serialization
     Boost::system
     Eigen3::Eigen
-    flann::flann)
+    $<$<BOOL:${OMPL_EXTENSION_TRIANGLE}>:${TRIANGLE_LIBRARY}>
+    $<$<BOOL:${Threads_FOUND}>:Threads::Threads>
+    $<$<BOOL:${OMPL_HAVE_FLANN}>:flann::flann>
+    $<$<BOOL:${OMPL_HAVE_SPOT}>:${SPOT_LIBRARIES}>)
 
-if (OMPL_HAVE_SPOT)
-    target_link_libraries(ompl ${SPOT_LIBRARIES})
-endif()
 if (MSVC)
     set_target_properties(ompl PROPERTIES VERSION "${PROJECT_VERSION}" STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")
 else (MSVC)
