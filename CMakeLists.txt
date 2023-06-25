@@ -108,10 +108,6 @@ set_package_properties(Eigen3 PROPERTIES
     URL "http://eigen.tuxfamily.org"
     PURPOSE "A linear algebra library used throughout OMPL.")
 find_package(Eigen3 REQUIRED)
-if (NOT DEFINED EIGEN3_INCLUDE_DIR)
-    get_target_property(EIGEN3_INCLUDE_DIR Eigen3::Eigen INTERFACE_INCLUDE_DIRECTORIES)
-endif ()
-include_directories(SYSTEM "${EIGEN3_INCLUDE_DIR}")
 
 set_package_properties(Triangle PROPERTIES
     URL "http://www.cs.cmu.edu/~quake/triangle.html"
@@ -125,11 +121,9 @@ endif()
 set_package_properties(flann PROPERTIES
     URL "https://github.com/mariusmuja/flann"
     PURPOSE "If detetected, FLANN can be used for nearest neighbor queries by OMPL.")
-find_package(flann 1.8.3 QUIET)
+find_package(flann CONFIG 1.9.2 QUIET)
 if (FLANN_FOUND)
     set(OMPL_HAVE_FLANN 1)
-    include_directories(SYSTEM ${FLANN_INCLUDE_DIRS})
-    link_directories(${FLANN_LIBRARY_DIRS})
 endif()
 
 set_package_properties(spot PROPERTIES
@@ -173,7 +167,7 @@ if(NOT MSVC)
     target_link_flags(ompl)
     set(PKG_NAME "ompl")
     set(PKG_DESC "The Open Motion Planning Library")
-    set(PKG_EXTERNAL_DEPS "eigen3 ${ompl_PKG_DEPS}")
+    set(PKG_EXTERNAL_DEPS "Eigen3::Eigen ${ompl_PKG_DEPS}")
     set(PKG_OMPL_LIBS "-lompl ${ompl_LINK_FLAGS}")
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc.in"
                    "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc" @ONLY)
