@@ -46,7 +46,9 @@ target_link_libraries(ompl
     Boost::filesystem
     Boost::program_options
     Boost::serialization
-    Boost::system)
+    Boost::system
+    Eigen3::Eigen
+    flann::flann)
 
 if (OMPL_HAVE_SPOT)
     target_link_libraries(ompl ${SPOT_LIBRARIES})
