@@ -967,7 +967,6 @@ bool ompl::geometric::SPARSdb::addStateToRoadmap(const base::PlannerTerminationC
         // if roadmap has only one connected component when we try to add a node, skip the expensive attempt to add it as a connectivity node.
         const bool check_if_node_is_connecting {check_connected_components_ && getNumConnectedComponents() > 1};
         if (!check_if_node_is_connecting && vnbhd.size()) {
-            OMPL_DEBUG("NOT adding state!");
             return false;
         }
         OMPL_DEBUG("Trying to add state! CCs: %d", getNumConnectedComponents());
@@ -1097,7 +1096,7 @@ bool ompl::geometric::SPARSdb::checkAddCoverage(const base::State *qNew, std::ve
             // DTC: this should actually never happen - we just created the new vertex so
             // why would it be connected to anything?
             if (!boost::edge(v, neighbor, g_).second) {
-                connectGuards(v, neighbor, std::nullopt, useCostInRoadmap_);
+                connectGuards(v, neighbor, std::nullopt, addEdgeWithCost_);
             }
         }
     }
@@ -1150,7 +1149,7 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
                 {
                     // The components haven't been united by previous links
                     if (!sameComponent(statesInDiffConnectedComponent, newVertex))
-                        connectGuards(newVertex, statesInDiffConnectedComponent, std::nullopt, useCostInRoadmap_);
+                        connectGuards(newVertex, statesInDiffConnectedComponent, std::nullopt, addEdgeWithCost_);
                 }
             }
 
@@ -1178,7 +1177,7 @@ bool ompl::geometric::SPARSdb::checkAddInterface(const base::State *qNew, std::v
                     // Connect them
                     if (verbose_)
                         OMPL_INFORM(" ---   INTERFACE: directly connected nodes ");
-                    connectGuards(visibleNeighborhood[0], visibleNeighborhood[1], std::nullopt, useCostInRoadmap_);
+                    connectGuards(visibleNeighborhood[0], visibleNeighborhood[1], std::nullopt, addEdgeWithCost_);
                     // And report that we added to the roadmap
                     resetFailures();
                     // Report success
@@ -1190,8 +1189,8 @@ bool ompl::geometric::SPARSdb::checkAddInterface(const base::State *qNew, std::v
                     if (verbose_)
                         OMPL_INFORM(" --- Adding node for INTERFACE  ");
                     Vertex v = addGuard(si_->cloneState(qNew), INTERFACE);
-                    connectGuards(v, visibleNeighborhood[0], std::nullopt, useCostInRoadmap_);
-                    connectGuards(v, visibleNeighborhood[1], std::nullopt, useCostInRoadmap_);
+                    connectGuards(v, visibleNeighborhood[0], std::nullopt, addEdgeWithCost_);
+                    connectGuards(v, visibleNeighborhood[1], std::nullopt, addEdgeWithCost_);
                     if (verbose_)
                         OMPL_INFORM(" ---   INTERFACE: connected two neighbors through new interface node ");
                     // Report success
