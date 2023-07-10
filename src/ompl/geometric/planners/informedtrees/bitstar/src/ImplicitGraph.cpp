@@ -527,6 +527,9 @@ namespace ompl
                         // Add it back to the vector
                         startVertices_.push_back(*prunedStartIter);
 
+                        // Add as a sample
+                        this->addToSamples(*prunedStartIter);
+
                         // Add this vertex to the queue.
                         // queuePtr_->enqueueVertex(*prunedStartIter);
 
@@ -1093,8 +1096,14 @@ namespace ompl
                 // Run until at the end:
                 while (goalIter != goalEnd)
                 {
-                    // Check if this goal has met the criteria to be pruned
-                    if (this->canSampleBePruned(*goalIter))
+                    // Check if this goal has met the criteria to be pruned, but make sure it is not the goal that is
+                    // the current best solution. The current goal can satisfy the condition for pruning if the
+                    // heuristic is perfect, since samples are pruned unless the combined costs of the heuristic
+                    // cost-to-come and heuristic cost-to-go is (strictly) lower than the current solution cost. If the
+                    // heuristic is perfect, then the heuristic cost-to-come is equal to the solution cost (and the
+                    // heuristic cost-to-go is zero, since this is a goal).
+                    if (this->canSampleBePruned(*goalIter) &&
+                        costHelpPtr_->isCostNotEquivalentTo((*goalIter)->getCost(), solutionCost_))
                     {
                         // It has, remove the goal vertex completely
                         // Check if this vertex is in the tree
