@@ -527,6 +527,9 @@ namespace ompl
                         // Add it back to the vector
                         startVertices_.push_back(*prunedStartIter);
 
+                        // Add as a sample
+                        this->addToSamples(*prunedStartIter);
+
                         // Add this vertex to the queue.
                         // queuePtr_->enqueueVertex(*prunedStartIter);
 
