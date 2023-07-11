@@ -1900,7 +1900,7 @@ void ompl::geometric::SPARSdb::setPlannerData(const base::PlannerData &data)
                     edge_weight = std::nullopt;
                 }
             }
-            if (verbose_ && edge_weight.has_value())
+            if (false && verbose_ && edge_weight.has_value())
             {
                 OMPL_INFORM("    Adding edge from vertex id %d to id %d into edgeList, with edge weight %f", fromVertex, toVertex, edge_weight.value().value());
                 OMPL_INFORM("      Vertex %d to %d", m, n);
