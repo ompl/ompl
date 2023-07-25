@@ -673,6 +673,8 @@ DubinsStateSpace::DubinsPath dubins(double d, double alpha, double beta)
 {
     if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
         return {DubinsStateSpace::dubinsPathType[0], 0, d, 0};
+    alpha = mod2pi(alpha);
+    beta = mod2pi(beta);
     return is_longpath_case(d, alpha, beta) ? ::dubins_classification(d, alpha, beta) :
                                               ::dubins_exhaustive(d, alpha, beta);
 }
