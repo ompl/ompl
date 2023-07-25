@@ -71,6 +71,26 @@ namespace ompl
                 DUBINS_STRAIGHT = 1,
                 DUBINS_RIGHT = 2
             };
+
+            enum DubinsClass
+            {
+                A11 = 0,
+                A12 = 1,
+                A13 = 2,
+                A14 = 3,
+                A21 = 4,
+                A22 = 5,
+                A23 = 6,
+                A24 = 7,
+                A31 = 8,
+                A32 = 9,
+                A33 = 10,
+                A34 = 11,
+                A41 = 12,
+                A42 = 13,
+                A43 = 14,
+                A44 = 15
+            };
             /** \brief Dubins path types */
             static const DubinsPathSegmentType dubinsPathType[6][3];
             /** \brief Complete description of a Dubins path */
