@@ -48,6 +48,26 @@ namespace
     const double DUBINS_EPS = 1e-6;
     const double DUBINS_ZERO = -1e-7;
 
+    enum DubinsClass
+    {
+        A11 = 0,
+        A12 = 1,
+        A13 = 2,
+        A14 = 3,
+        A21 = 4,
+        A22 = 5,
+        A23 = 6,
+        A24 = 7,
+        A31 = 8,
+        A32 = 9,
+        A33 = 10,
+        A34 = 11,
+        A41 = 12,
+        A42 = 13,
+        A43 = 14,
+        A44 = 15
+    };
+
     inline double mod2pi(double x)
     {
         if (x < 0 && x > DUBINS_ZERO)
@@ -376,7 +396,7 @@ namespace
         return path;
     }
 
-    DubinsStateSpace::DubinsClass getDubinsClass(const double d, const double alpha, const double beta)
+    DubinsClass getDubinsClass(const double d, const double alpha, const double beta)
     {
         int row(0), column(0);
         if (0 <= alpha && alpha <= boost::math::constants::half_pi<double>())
@@ -420,7 +440,7 @@ namespace
                "beta is not in the range of [0,2pi] in classifyPath(double alpha, double beta).");
         assert((column - 1) + 4 * (row - 1) >= 0 && (column - 1) + 4 * (row - 1) <= 15 &&
                "class is not in range [0,15].");
-        return (DubinsStateSpace::DubinsClass)((column - 1) + 4 * (row - 1));
+        return (DubinsClass)((column - 1) + 4 * (row - 1));
     }
 }  // namespace
 
@@ -438,12 +458,12 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
     auto dubins_class = getDubinsClass(d, alpha, beta);
     switch (dubins_class)
     {
-        case DubinsStateSpace::DubinsClass::A11:
+        case DubinsClass::A11:
         {
             path = dubinsRSL(d, alpha, beta);
             break;
         }
-        case DubinsStateSpace::DubinsClass::A12:
+        case DubinsClass::A12:
         {
             if (s_13(d, alpha, beta) < 0.0)
             {
@@ -460,7 +480,7 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
             }
             break;
         }
-        case DubinsStateSpace::DubinsClass::A13:
+        case DubinsClass::A13:
         {
             if (s_13(d, alpha, beta) < 0.0)
             {
@@ -472,7 +492,7 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
             }
             break;
         }
-        case DubinsStateSpace::DubinsClass::A14:
+        case DubinsClass::A14:
         {
             if (s_14_1(d, alpha, beta) > 0.0)
             {
@@ -488,7 +508,7 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
             }
             break;
         }
-        case DubinsStateSpace::DubinsClass::A21:
+        case DubinsClass::A21:
         {
             if (s_31(d, alpha, beta) < 0.0)
             {
@@ -512,7 +532,7 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
             }
             break;
         }
-        case DubinsStateSpace::DubinsClass::A22:
+        case DubinsClass::A22:
         {
             if (alpha > beta)
             {
@@ -524,12 +544,12 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
             }
             break;
         }
-        case DubinsStateSpace::DubinsClass::A23:
+        case DubinsClass::A23:
         {
             path = dubinsRSR(d, alpha, beta);
             break;
         }
-        case DubinsStateSpace::DubinsClass::A24:
+        case DubinsClass::A24:
         {
             if (s_24(d, alpha, beta) < 0.0)
             {
@@ -541,7 +561,7 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
             }
             break;
         }
-        case DubinsStateSpace::DubinsClass::A31:
+        case DubinsClass::A31:
         {
             if (s_31(d, alpha, beta) < 0.0)
             {
@@ -553,12 +573,12 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
             }
             break;
         }
-        case DubinsStateSpace::DubinsClass::A32:
+        case DubinsClass::A32:
         {
             path = dubinsLSL(d, alpha, beta);
             break;
         }
-        case DubinsStateSpace::DubinsClass::A33:
+        case DubinsClass::A33:
         {
             if (alpha < beta)
             {
@@ -584,7 +604,7 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
             }
             break;
         }
-        case DubinsStateSpace::DubinsClass::A34:
+        case DubinsClass::A34:
         {
             if (s_24(d, alpha, beta) < 0.0)
             {
@@ -608,7 +628,7 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
             }
             break;
         }
-        case DubinsStateSpace::DubinsClass::A41:
+        case DubinsClass::A41:
         {
             if (s_41_1(d, alpha, beta) > 0.0)
             {
@@ -624,7 +644,7 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
             }
             break;
         }
-        case DubinsStateSpace::DubinsClass::A42:
+        case DubinsClass::A42:
         {
             if (s_42(d, alpha, beta) < 0.0)
             {
@@ -636,7 +656,7 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
             }
             break;
         }
-        case DubinsStateSpace::DubinsClass::A43:
+        case DubinsClass::A43:
         {
             if (s_42(d, alpha, beta) < 0.0)
             {
@@ -660,7 +680,7 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
             }
             break;
         }
-        case DubinsStateSpace::DubinsClass::A44:
+        case DubinsClass::A44:
         {
             path = dubinsLSR(d, alpha, beta);
             break;
