@@ -71,6 +71,7 @@ namespace ompl
                 DUBINS_STRAIGHT = 1,
                 DUBINS_RIGHT = 2
             };
+
             /** \brief Dubins path types */
             static const DubinsPathSegmentType dubinsPathType[6][3];
             /** \brief Complete description of a Dubins path */
