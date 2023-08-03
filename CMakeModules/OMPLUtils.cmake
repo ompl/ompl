@@ -1,6 +1,7 @@
 macro(add_ompl_test test_name)
   add_executable(${ARGV})
   target_link_libraries(${test_name}
+    flann::flann
     ompl::ompl
     Boost::program_options
     Boost::serialization
