@@ -54,9 +54,11 @@ script:
   - if [ -n "$DOCKERFILE" ]; then
       docker run "$DOCKERFILE"  /bin/sh -c "cmake -DOMPL_REGISTRATION=OFF .. && make -j `nproc` && ctest";
     else
-      mkdir -p build &&
-      cd build &&
-      cmake -G Ninja -DOMPL_REGISTRATION=OFF .. &&
-      cmake --build . &&
-      ctest;
+      cmake -B build -G Ninja -DOMPL_REGISTRATION=OFF &&
+      cmake --build build &&
+      cmake --build build &&
+      ctest && 
+      cd tests/cmake_export && 
+      cmake -B build -DCMAKE_INSTALL_PREFIX=../../install &&
+      cmake --build build;
     fi

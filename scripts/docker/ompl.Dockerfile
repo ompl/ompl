@@ -32,16 +32,19 @@ RUN apt-get update && \
     apt-get install -y libspot-dev && \
     pip3 install pygccxml pyplusplus
 COPY . /ompl
-WORKDIR /build
+WORKDIR /ompl
+RUN echo $PATH
 RUN cmake \
+        -G Ninja \
+        -B build \
         -DPYTHON_EXEC=/usr/bin/python3 \
         -DOMPL_REGISTRATION=OFF \
-        -DCMAKE_INSTALL_PREFIX=/usr \
-        -G Ninja \
-        /ompl && \
-    ninja update_bindings -j `nproc` && \
-    ninja -j `nproc` && \
-    ninja install
+        -DCMAKE_INSTALL_PREFIX=/usr && \
+    cmake --build build && \
+    cmake --install build && \
+    cd tests/cmake_export && \
+    cmake -B build -DCMAKE_INSTALL_PREFIX=../../install && \
+    cmake --build build
 
 FROM ubuntu:jammy
 ENV DEBIAN_FRONTEND=noninteractive
