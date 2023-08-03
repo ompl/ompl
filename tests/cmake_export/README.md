@@ -2,6 +2,8 @@ This folder is for testing the CMake export of ompl is working. TODO add this to
 
 ```bash
 cd ompl
+# First, try default options.
+# For maximium robustness, set up a matrix of options to check.
 cmake -B build
 cmake --build build
 cmake --install build --prefix install
