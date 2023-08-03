@@ -17,8 +17,9 @@ file(GLOB_RECURSE OMPL_HEADERS datastructures/*.h util/*.h base/*.h
 #    file(GLOB_RECURSE OMPL_XXX_EXTENSION_SOURCE_CODE extensions/XXX/*.cpp)
 #    list(APPEND OMPL_SOURCE_CODE ${OMPL_XXX_EXTENSION_SOURCE_CODE})
 #
-##    if additional libraries need to be linked, they are added to package.xml for ROS
-##    or they are added to the list of targets linked to ompl
+##    If additional libraries need to be linked, they are added to package.xml for ROS,
+##    or, they are added to the list of targets linked to ompl. Finally, add them to
+##    the config script as dependencies
 #
 #endif()
 
