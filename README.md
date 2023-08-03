@@ -20,6 +20,7 @@ The following dependencies are optional:
 * [Doxygen](http://www.doxygen.org) (needed to create a local copy of the documentation at
   https://ompl.kavrakilab.org/core)
 * [Flann](https://github.com/flann-lib/flann/tree/1.9.2) (FLANN can be used for nearest neighbor queries by OMPL)
+* [Spot](http://spot.lrde.epita.fr) (Used for constructing finite automata from LTL formulae.)
 
 Once dependencies are installed, you can build OMPL on Linux, macOS,
 and MS Windows. Go to the top-level directory of OMPL and type the

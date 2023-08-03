@@ -34,3 +34,7 @@ endif()
 if(@Threads_FOUND@) # if(Threads_FOUND)
     find_dependency(Threads QUIET)
 endif()
+
+if(@OMPL_HAVE_SPOT@) # if(OMPL_HAVE_SPOT)
+    find_dependency(spot MODULE QUIET)
+endif()
