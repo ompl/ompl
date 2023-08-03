@@ -48,10 +48,10 @@ target_link_libraries(ompl
         Boost::serialization
         Boost::system
         Eigen3::Eigen
-        $<$<BOOL:${OMPL_EXTENSION_TRIANGLE}>:${TRIANGLE_LIBRARY}>
-        $<$<BOOL:${Threads_FOUND}>:Threads::Threads>
-        $<$<BOOL:${OMPL_HAVE_FLANN}>:flann::flann>
-        $<$<BOOL:${OMPL_HAVE_SPOT}>:${SPOT_LIBRARIES}>)
+        "$<$<BOOL:${OMPL_EXTENSION_TRIANGLE}>:${TRIANGLE_LIBRARY}>"
+        "$<$<BOOL:${Threads_FOUND}>:Threads::Threads>"
+        "$<$<BOOL:${OMPL_HAVE_FLANN}>:flann::flann>"
+        "$<$<BOOL:${OMPL_HAVE_SPOT}>:${SPOT_LIBRARIES}>")
 
 if (MSVC)
     set_target_properties(ompl PROPERTIES VERSION "${PROJECT_VERSION}" STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")
