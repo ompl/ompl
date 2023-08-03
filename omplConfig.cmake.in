@@ -9,7 +9,7 @@
 
 include ("${CMAKE_CURRENT_LIST_DIR}/omplExport.cmake" )
 include(CMakeFindDependencyMacro)
-find_dependency(Boost REQUIRED COMPONENTS serialization filesystem system)
+find_dependency(Boost REQUIRED COMPONENTS serialization filesystem system program_options)
 find_dependency(Eigen3 REQUIRED)
 
 if(@OMPL_HAVE_FLANN@) # if(OMPL_HAVE_FLANN)
@@ -24,6 +24,6 @@ endif()
 
 if(@OMPL_EXTENSION_TRIANGLE@) # if(OMPL_EXTENSION_TRIANGLE)
     # If OMPL was build with TRIANGLE support,
-    then it's required to have TRIANGLE to consume OMPL.
+    # then it's required to have TRIANGLE to consume OMPL.
     find_dependency(Triangle REQUIRED)
 endif()
