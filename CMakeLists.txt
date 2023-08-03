@@ -128,8 +128,6 @@ set_package_properties(spot PROPERTIES
 find_package(spot)
 if (spot_FOUND)
     set(OMPL_HAVE_SPOT 1)
-    include_directories(SYSTEM "${SPOT_INCLUDE_DIRS}")
-    link_directories(${SPOT_LIBRARY_DIRS})
 endif()
 
 set_package_properties(Doxygen PROPERTIES

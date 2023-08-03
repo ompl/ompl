@@ -48,8 +48,9 @@ target_link_libraries(ompl
         Eigen3::Eigen
         "$<$<BOOL:${Threads_FOUND}>:Threads::Threads>"
         "$<$<BOOL:${OMPL_HAVE_FLANN}>:flann::flann>"
-        "$<$<BOOL:${OMPL_HAVE_SPOT}>:${SPOT_LIBRARIES}>"
-        "$<$<BOOL:${OMPL_EXTENSION_TRIANGLE}>:Triangle::Triangle>")
+        "$<$<BOOL:${OMPL_EXTENSION_TRIANGLE}>:Triangle::Triangle>"
+    PRIVATE
+        "$<$<BOOL:${OMPL_HAVE_SPOT}>:Spot::Spot>")
 
 if (MSVC)
     set_target_properties(ompl PROPERTIES VERSION "${PROJECT_VERSION}" STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")
