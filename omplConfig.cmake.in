@@ -27,3 +27,7 @@ if(@OMPL_EXTENSION_TRIANGLE@) # if(OMPL_EXTENSION_TRIANGLE)
     # then it's required to have TRIANGLE to consume OMPL.
     find_dependency(Triangle REQUIRED)
 endif()
+
+if(@Threads_FOUND@) # if(Threads_FOUND)
+    find_dependency(Threads QUIET)
+endif()
