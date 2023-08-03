@@ -43,7 +43,6 @@ add_library(ompl::ompl ALIAS ompl)
 target_link_libraries(ompl
     PUBLIC
         Boost::filesystem
-        Boost::program_options
         Boost::serialization
         Boost::system
         Eigen3::Eigen

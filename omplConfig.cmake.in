@@ -9,7 +9,7 @@
 
 include ("${CMAKE_CURRENT_LIST_DIR}/omplExport.cmake" )
 include(CMakeFindDependencyMacro)
-find_dependency(Boost REQUIRED COMPONENTS serialization filesystem system program_options)
+find_dependency(Boost REQUIRED COMPONENTS serialization filesystem system)
 find_dependency(Eigen3 REQUIRED)
 
 # Add OMPL's find modules to the search path so consumers can also find them.
