@@ -10,3 +10,11 @@
 include ("${CMAKE_CURRENT_LIST_DIR}/omplExport.cmake" )
 include(CMakeFindDependencyMacro)
 find_dependency(Boost REQUIRED COMPONENTS serialization filesystem system)
+
+# TODO find_dependency flann
+find_dependency(flann)
+if(flann_FOUND)
+    if(NOT TARGET flann::flann and TARGET flann)
+        add_library(flann::flann ALIAS flan)
+    endif()
+endif()
