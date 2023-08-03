@@ -15,8 +15,7 @@ endif()
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
-set(CMAKE_MODULE_PATH
-    "${CMAKE_MODULE_PATH}"
+list(APPEND CMAKE_MODULE_PATH
     "${CMAKE_ROOT_DIR}/cmake/Modules"
     "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 include(GNUInstallDirs)
@@ -114,9 +113,6 @@ set_package_properties(Triangle PROPERTIES
     PURPOSE "Used to create triangular decompositions of polygonal 2D environments.")
 find_package(Triangle QUIET)
 set(OMPL_EXTENSION_TRIANGLE ${TRIANGLE_FOUND})
-if (OMPL_EXTENSION_TRIANGLE)
-  include_directories(SYSTEM ${TRIANGLE_INCLUDE_DIR})
-endif()
 
 set_package_properties(flann PROPERTIES
     URL "https://github.com/mariusmuja/flann"
@@ -193,6 +189,10 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
     COMPONENT ompl)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
+    COMPONENT ompl
+    FILES_MATCHING PATTERN "Find*.cmake")
 install(TARGETS ompl
     EXPORT omplExport
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
