@@ -28,7 +28,6 @@ if (OMPL_EXTENSION_TRIANGLE)
     file(GLOB_RECURSE OMPL_TRIANGLE_EXTENSION_HEADERS extensions/triangle/*.h)
     list(APPEND OMPL_SOURCE_CODE ${OMPL_TRIANGLE_EXTENSION_SOURCE_CODE})
     list(APPEND OMPL_HEADERS ${OMPL_TRIANGLE_EXTENSION_HEADERS})
-    list(APPEND OMPL_LINK_LIBRARIES "${TRIANGLE_LIBRARY}")
 endif()
 
 source_group("OMPL Source" FILES "${OMPL_SOURCE_CODE}")
@@ -48,10 +47,10 @@ target_link_libraries(ompl
         Boost::serialization
         Boost::system
         Eigen3::Eigen
-        "$<$<BOOL:${OMPL_EXTENSION_TRIANGLE}>:${TRIANGLE_LIBRARY}>"
         "$<$<BOOL:${Threads_FOUND}>:Threads::Threads>"
         "$<$<BOOL:${OMPL_HAVE_FLANN}>:flann::flann>"
-        "$<$<BOOL:${OMPL_HAVE_SPOT}>:${SPOT_LIBRARIES}>")
+        "$<$<BOOL:${OMPL_HAVE_SPOT}>:${SPOT_LIBRARIES}>"
+        "$<$<BOOL:${OMPL_EXTENSION_TRIANGLE}>:Triangle::Triangle>")
 
 if (MSVC)
     set_target_properties(ompl PROPERTIES VERSION "${PROJECT_VERSION}" STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")
