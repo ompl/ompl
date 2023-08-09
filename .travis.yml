@@ -56,7 +56,6 @@ script:
     else
       cmake -B build -G Ninja -DOMPL_REGISTRATION=OFF &&
       cmake --build build &&
-      cmake --build build &&
       ctest && 
       cd tests/cmake_export && 
       cmake -B build -DCMAKE_INSTALL_PREFIX=../../install &&
