@@ -173,8 +173,8 @@ class ConstrainedProblem(object):
             self.css.setAlpha(options.alpha)
             self.css.setMaxChartsPerExtension(options.charts)
             if options.bias:
-                self.css.setBiasFunction(lambda c, atlas=self.css:
-                                         atlas.getChartCount() - c.getNeighborCount() + 1.)
+                self.css.setBiasFunction(ob.AtlasChartBiasFunction(lambda c, atlas=self.css:
+                                         atlas.getChartCount() - c.getNeighborCount() + 1.))
             if spaceType == "AT":
                 self.css.setSeparated(not options.no_separate)
             self.css.setup()
@@ -250,7 +250,7 @@ class ConstrainedProblem(object):
             if output:
                 ou.OMPL_INFORM("Dumping path to `%s_path.txt`." % name)
                 with open('%s_path.txt' % name, 'w') as pathfile:
-                    print(path.printAsMatrix, file=pathfile)
+                    print(path.printAsMatrix(), file=pathfile)
 
                 ou.OMPL_INFORM(
                     "Dumping simplified path to `%s_simplepath.txt`." % name)
