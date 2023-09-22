@@ -37,6 +37,14 @@
 #ifndef PY_BINDINGS_OMPL_PY_TOOLS_
 #define PY_BINDINGS_OMPL_PY_TOOLS_
 
+#include <boost/graph/adjacency_list.hpp>
 #include "py_std_function.hpp"
+
+namespace ompl
+{
+    namespace tools
+    {
+    }
+}
 
 #endif
