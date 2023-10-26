@@ -40,7 +40,7 @@ RUN cmake \
         -DPYTHON_EXEC=/usr/bin/python3 \
         -DOMPL_REGISTRATION=OFF \
         -DCMAKE_INSTALL_PREFIX=/usr && \
-    cmake --build build && \
+    cmake --build build -t update_bindings && \
     cmake --install build && \
     cd tests/cmake_export && \
     cmake -B build -DCMAKE_INSTALL_PREFIX=../../install && \
