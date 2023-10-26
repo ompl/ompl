@@ -7,6 +7,7 @@ endif()
 add_feature_info(OMPL_BUILD_TESTS "${OMPL_BUILD_TESTS}" "Whether to build the unit tests.")
 
 if (OMPL_BUILD_TESTS)
+
     file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/resources" TEST_RESOURCES_DIR)
     string(REPLACE "\\" "\\\\" TEST_RESOURCES_DIR "${TEST_RESOURCES_DIR}")
     add_definitions(-DTEST_RESOURCES_DIR=\"${TEST_RESOURCES_DIR}\")
@@ -18,8 +19,8 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_gridb datastructures/gridb.cpp)
     add_ompl_test(test_nearestneighbors datastructures/nearestneighbors.cpp)
     if(OMPL_HAVE_FLANN)
-        target_link_libraries(test_nearestneighbors ${FLANN_LIBRARIES})
         # FLANN uses std::random_shuffle in a header file which is removed in C++17
+        # https://github.com/flann-lib/flann/issues/387
         set_target_properties(test_nearestneighbors PROPERTIES CXX_STANDARD 14)
     endif()
     add_ompl_test(test_pdf datastructures/pdf.cpp)

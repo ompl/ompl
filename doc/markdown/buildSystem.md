@@ -9,16 +9,23 @@ When developing your own code that relies on OMPL, you have several options:
 
    See [Build Options](buildOptions.html) for details on how to enable/disable different OMPL-specific features. Below are the specifics for different build systems:
 
-   - __CMake:__ For ease of use with CMake, we have included a CMake module. This normally gets installed in the CMake module path, so if you use CMake in your own project, you can simply use this command in your CMakeLists.txt: `find_package(ompl)`. This will define the following variables:
+   - __CMake:__ For ease of use with CMake, we have included a CMake module for finding in `CONFIG`` mode. If you use CMake in your own project, you can simply use the following commands in your CMakeLists.txt to find and link to the OMPL target.
+   
+      ```cmake
+      find_package(ompl CONFIG)
+      target_link_libraries(your_library PUBLIC ompl::ompl)
+      ```
+      
+      To support the previous CMake module behavior, the following variables are defined. These are for backwards compatability, but not recommended anymore.
 
-      - `OMPL_FOUND`         - `TRUE`
-      - `OMPL_INCLUDE_DIRS`  - The OMPL include directory
-      - `OMPL_LIBRARIES`     - The OMPL library
-      - `OMPLAPP_LIBRARIES`  - The OMPL.app libraries (if installed)
-      - `OMPL_VERSION`       - The OMPL version in the form <major>.<minor>.<patchlevel>
-      - `OMPL_MAJOR_VERSION` - Major version
-      - `OMPL_MINOR_VERSION` - Minor version
-      - `OMPL_PATCH_VERSION` - Patch version
+         - `OMPL_FOUND`         - `TRUE`
+         - `OMPL_INCLUDE_DIRS`  - The OMPL include directory
+         - `OMPL_LIBRARIES`     - The OMPL library
+         - `OMPLAPP_LIBRARIES`  - The OMPL.app libraries (if installed)
+         - `OMPL_VERSION`       - The OMPL version in the form <major>.<minor>.<patchlevel>
+         - `OMPL_MAJOR_VERSION` - Major version
+         - `OMPL_MINOR_VERSION` - Minor version
+         - `OMPL_PATCH_VERSION` - Patch version
 
    - __Makefiles:__ If you use Makefiles, add “`-I/usr/local/include`” (or, e.g., “`-I${HOME}/ompl/src`”) to your compile flags, and “`-L/usr/local/lib -lompl`” (or, e.g., “`-L${HOME}/ompl/build/Release/lib -lompl`”) to your link flags. The compile and link flags can also be obtained using  “`pkg-config --cflags ompl`” and  “`pkg-config --libs ompl`”, respectively.
    - __Autotools:__ Use the pkg-config autoconf macro PKG_CHECK_MODULES([OMPL],[ompl >= 0.10]). This is will define `OMPL_LIBS` and `OMPL_CFLAGS` if OMPL was found.
