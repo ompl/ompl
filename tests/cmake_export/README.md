@@ -1,4 +1,4 @@
-This folder is for testing the CMake export of ompl is working. TODO add this to CI. 
+This folder is for testing the CMake export of ompl is working. 
 
 ```bash
 cd ompl
