@@ -43,7 +43,6 @@
 #include <cstdint>
 #include <algorithm>
 
-#include "ompl/config.h"
 #include "ompl/util/ProlateHyperspheroid.h"
 
 namespace ompl
