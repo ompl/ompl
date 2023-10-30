@@ -32,6 +32,8 @@ Planners in this category only accounts for the geometric and kinematic constrai
     This is one of the first single query planners. The algorithm is easy to understand and easy to implement. Many, many variants of RRT have been proposed. OMPL contains several RRT variants:
     - [RRT Connect (RRTConnect)](\ref gRRTC)<br>
       This planner is a bidirectional version of RRT (i.e., it grows two trees). It usually outperforms the original RRT algorithm.
+    - [RRT Rope (RRTRope)](\ref gRRTRope)<br>
+      This planner uses an altered version of RRT-connect (without infinitesimal step size and with intermediate nodes), and a deterministic shortening technique once a feasible path is found. It usually outperforms other algorithms in large uncluttered environments in R3 state space.
     - [RRT*](\ref gRRTstar)<br>
       An asymptotically optimal version of RRT: the algorithm converges on the optimal path as a function of time. This was the first provably asymptotically planner (together with PRM). Since its publication, several other algorithms have appeared that improve on RRT*'s convergence rate, such as [RRT#](\ref gRRTsharp) and [RRTX](\ref gRRTXstatic).
     - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT)<br>

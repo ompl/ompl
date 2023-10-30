@@ -60,6 +60,7 @@ OMPL_POP_CLANG
 #include "ompl/geometric/planners/sbl/pSBL.h"
 #include "ompl/geometric/planners/rrt/RRT.h"
 #include "ompl/geometric/planners/rrt/RRTConnect.h"
+#include "ompl/geometric/planners/rrt/RRTRope.h"
 #include "ompl/geometric/planners/rrt/pRRT.h"
 #include "ompl/geometric/planners/rrt/LazyRRT.h"
 #include "ompl/geometric/planners/prm/PRM.h"
@@ -113,6 +114,8 @@ void addAllPlanners(Benchmark &b, geometric::SimpleSetup &ss)
     addPlanner<geometric::RRT, PROBLEM>(b, ss.getSpaceInformation());
     // RRTConnect
     addPlanner<geometric::RRTConnect, PROBLEM>(b, ss.getSpaceInformation());
+    // RRT-Rope
+    addPlanner<geometric::RRTRope, PROBLEM>(b, ss.getSpaceInformation());
 
     // KPIECE
     addPlanner<geometric::KPIECE1, PROBLEM>(b, ss.getSpaceInformation());
