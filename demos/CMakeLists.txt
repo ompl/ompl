@@ -64,6 +64,12 @@ if (OMPL_BUILD_DEMOS)
         # https://github.com/jbeder/yaml-cpp/issues/1025
         # https://github.com/jbeder/yaml-cpp/pull/1196
         if(NOT TARGET yaml-cpp::yaml-cpp AND TARGET yaml-cpp)
+            # Aliasing local imported targets is only supported in CMake >=3.18.
+            # Promoting yaml-cpp to the global scope here prevents errors on
+            # older CMake versions.
+            # (see: https://cmake.org/cmake/help/latest/command/add_library.html#alias-libraries)
+            set_target_properties(yaml-cpp PROPERTIES IMPORTED_GLOBAL TRUE)
+
             add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
         endif()
 
