@@ -138,7 +138,7 @@ ompl::geometric::PRM::PRM(const base::PlannerData &data, bool starStrategy)
                 totalConnectionAttemptsProperty_[n]++;
                 successfulConnectionAttemptsProperty_[n]++;
 
-                ob::Cost weight;
+                base::Cost weight;
                 data.getEdgeWeight(vertex_index, neighbor_index,
                                    &weight);  // Get the weight of the edge
                 const Graph::edge_property_type properties(weight);
