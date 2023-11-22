@@ -96,9 +96,11 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
 ompl::geometric::PRM::PRM(const base::PlannerData &data, bool starStrategy)
   : PRM(data.getSpaceInformation(), starStrategy)
 {
-    if (data.numVertices() > 0)
+    if (data.numVertices() > 0)          
     {
+        // mapping between vertex id from PlannerData and Vertex in Boost.Graph
         std::map<unsigned int, Vertex> vertices;
+        // helper function to create vertices as needed and update the vertices mapping
         const auto &getOrCreateVertex = [&](unsigned int vertex_index)
         {
             if (!vertices.count(vertex_index))
@@ -647,8 +649,8 @@ ompl::base::Cost ompl::geometric::PRM::constructApproximateSolution(const std::v
                     boost::predecessor_map(prev)
                         .distance_map(dist)
                         .rank_map(rank)
-                        .distance_compare([this](base::Cost c1, base::Cost c2)
-                                          { return opt_->isCostBetterThan(c1, c2); })
+                        .distance_compare(
+                            [this](base::Cost c1, base::Cost c2){ return opt_->isCostBetterThan(c1, c2); })
                         .distance_combine([this](base::Cost c1, base::Cost c2) { return opt_->combineCosts(c1, c2); })
                         .distance_inf(opt_->infiniteCost())
                         .distance_zero(opt_->identityCost())
