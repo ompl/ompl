@@ -650,7 +650,7 @@ ompl::base::Cost ompl::geometric::PRM::constructApproximateSolution(const std::v
                         .distance_map(dist)
                         .rank_map(rank)
                         .distance_compare(
-                            [this](base::Cost c1, base::Cost c2){ return opt_->isCostBetterThan(c1, c2); })
+                            [this](base::Cost c1, base::Cost c2) { return opt_->isCostBetterThan(c1, c2); })
                         .distance_combine([this](base::Cost c1, base::Cost c2) { return opt_->combineCosts(c1, c2); })
                         .distance_inf(opt_->infiniteCost())
                         .distance_zero(opt_->identityCost())
