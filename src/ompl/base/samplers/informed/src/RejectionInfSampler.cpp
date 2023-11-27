@@ -46,7 +46,7 @@ namespace ompl
           : InformedSampler(probDefn, maxNumberCalls)
         {
             // Create the basic sampler
-            baseSampler_ = InformedSampler::space_->allocDefaultStateSampler();
+            baseSampler_ = InformedSampler::space_->allocStateSampler();
 
             // Warn if a cost-to-go heuristic is not defined
             if (!InformedSampler::opt_->hasCostToGoHeuristic())

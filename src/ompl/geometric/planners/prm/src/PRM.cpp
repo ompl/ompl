@@ -96,12 +96,13 @@ ompl::geometric::PRM::PRM(const base::SpaceInformationPtr &si, bool starStrategy
 ompl::geometric::PRM::PRM(const base::PlannerData &data, bool starStrategy)
   : PRM(data.getSpaceInformation(), starStrategy)
 {
-    if (data.numVertices() > 0)
+    if (data.numVertices() > 0)          
     {
         // mapping between vertex id from PlannerData and Vertex in Boost.Graph
         std::map<unsigned int, Vertex> vertices;
         // helper function to create vertices as needed and update the vertices mapping
-        const auto &getOrCreateVertex = [&](unsigned int vertex_index) {
+        const auto &getOrCreateVertex = [&](unsigned int vertex_index)
+        {
             if (!vertices.count(vertex_index))
             {
                 const auto &data_vertex = data.getVertex(vertex_index);
@@ -119,30 +120,37 @@ ompl::geometric::PRM::PRM(const base::PlannerData &data, bool starStrategy)
         specs_.multithreaded = true;
         nn_->setDistanceFunction([this](const Vertex a, const Vertex b) { return distanceFunction(a, b); });
 
+        // Initialize Disjoint Sets
+        for (size_t vertex_index = 0; vertex_index < data.numVertices(); ++vertex_index)
+        {
+            Vertex m = getOrCreateVertex(vertex_index);
+            disjointSets_.make_set(m);  // Initialize each vertex as a separate set
+        }
+
         for (size_t vertex_index = 0; vertex_index < data.numVertices(); ++vertex_index)
         {
             Vertex m = getOrCreateVertex(vertex_index);
             std::vector<unsigned int> neighbor_indices;
             data.getEdges(vertex_index, neighbor_indices);
-            if (neighbor_indices.empty())
+
+            for (const unsigned int neighbor_index : neighbor_indices)
             {
-                disjointSets_.make_set(m);
+                Vertex n = getOrCreateVertex(neighbor_index);
+
+                totalConnectionAttemptsProperty_[n]++;
+                successfulConnectionAttemptsProperty_[n]++;
+
+                base::Cost weight;
+                data.getEdgeWeight(vertex_index, neighbor_index,
+                                   &weight);  // Get the weight of the edge
+                const Graph::edge_property_type properties(weight);
+
+                boost::add_edge(m, n, properties, g_);  // Add the edge to the graph
+
+                uniteComponents(m, n);
             }
-            else
-            {
-                for (const unsigned int neighbor_index : neighbor_indices)
-                {
-                    Vertex n = getOrCreateVertex(neighbor_index);
-                    totalConnectionAttemptsProperty_[n]++;
-                    successfulConnectionAttemptsProperty_[n]++;
-                    base::Cost weight;
-                    data.getEdgeWeight(vertex_index, neighbor_index, &weight);
-                    const Graph::edge_property_type properties(weight);
-                    boost::add_edge(m, n, properties, g_);
-                    uniteComponents(m, n);
-                }
-            }
-            nn_->add(m);
+
+            nn_->add(m);  // Add the vertex to the nearest neighbor data structure
         }
     }
 }
