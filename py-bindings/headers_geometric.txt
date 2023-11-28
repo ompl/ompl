@@ -1,4 +1,6 @@
 py-bindings/stdsize.h
+src/ompl/datastructures/NearestNeighbors.h
+src/ompl/datastructures/NearestNeighborsLinear.h
 src/ompl/geometric/PathGeometric.h
 src/ompl/geometric/PathSimplifier.h
 src/ompl/geometric/PathHybridization.h
@@ -36,7 +38,5 @@ src/ompl/geometric/planners/sbl/SBL.h
 src/ompl/geometric/planners/stride/STRIDE.h
 src/ompl/geometric/planners/fmt/FMT.h
 src/ompl/geometric/planners/fmt/BFMT.h
-src/ompl/datastructures/NearestNeighbors.h
-src/ompl/datastructures/NearestNeighborsLinear.h
 src/ompl/geometric/planners/sst/SST.h
 py-bindings/ompl_py_geometric.h
