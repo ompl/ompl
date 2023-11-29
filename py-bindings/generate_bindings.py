@@ -703,10 +703,15 @@ class ompl_geometric_generator_t(code_generator_t):
         self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::eitstar::Vertex> >').exclude()
         self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::eitstar::State> >').exclude()
 
-        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::BITstar::Vertex> >').rename("vectorBITstarVertex")
-        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::aitstar::Vertex> >').rename("vectorAITstarVertex")
-        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::eitstar::Vertex> >').rename("vectorEITstarVertex")
-        self.std_ns.class_('vector< std::shared_ptr<ompl::geometric::eitstar::State> >').rename("vectorEITstarState")
+        try:
+            self.ompl_ns.class_(f'NearestNeighbors<std::shared_ptr<ompl::geometric::aitstar::Vertex>>').exclude()
+        except:
+            pass
+
+        try:
+            self.ompl_ns.class_(f'NearestNeighbors<std::shared_ptr<ompl::geometric::eitstar::State>>').exclude()
+        except:
+            pass
 
         # Using nullptr as a default value in method arguments causes
         # problems with Boost.Python.
@@ -744,15 +749,30 @@ class ompl_geometric_generator_t(code_generator_t):
             # structures being leaked into the main namespace
             try:
                 mc = planner.class_("Motion")
-                mc.rename(f"{planner.name}Motion")
                 mc.exclude()
-                vc = self.std_ns.class_(f'vector< ompl::geometric::{planner.name}::Motion * >')
-                vc.rename(f"vector{planner.name}Motion")
-                vc.exclude()
+
+                try:
+                    vc = self.std_ns.class_(f'vector< ompl::geometric::{planner.name}::Motion * >')
+                    vc.exclude()
+                except:
+                    pass
+
+                try:
+                    nn = self.ompl_ns.class_(f'NearestNeighbors<ompl::geometric::{planner.name}::Motion *>')
+                    nn.exclude()
+                except:
+                    pass
 
                 planner.class_('BiDirMotion').exclude()
             except:
                 pass
+
+
+        try:
+            nn = self.ompl_ns.class_(f'NearestNeighbors<void *>')
+            nn.exclude()
+        except:
+            pass
 
         # The OMPL implementation of PRM uses two threads: one for constructing
         # the roadmap and another for checking for a solution. This causes
