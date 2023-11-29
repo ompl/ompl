@@ -88,9 +88,14 @@ namespace ompl
             virtual bool isValid(const base::State *state) const
             {
                 /* planning is done in a continuous space, but our collision space representation is discrete */
-                int x = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[0]);
-                int y = (int)(state->as<base::RealVectorStateSpace::StateType>()->values[1]);
-                return grid_[x][y] == 0; // 0 means valid state
+                auto as = state->as<base::RealVectorStateSpace::StateType>();
+                auto x = static_cast<unsigned int>(as->values[0]);
+                auto y = static_cast<unsigned int>(as->values[1]);
+
+                if (x >= grid_.size() or y >= grid_[x].size())
+                    return false;
+
+                return grid_[x][y] == 0;  // 0 means valid state
             }
 
         protected:

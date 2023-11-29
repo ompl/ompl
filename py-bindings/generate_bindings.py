@@ -169,6 +169,10 @@ class ompl_base_generator_t(code_generator_t):
         try:
             self.std_ns.class_('vector< ompl::base::State const* >').rename('vectorConstState')
         except declaration_not_found_t:
+            try:
+                self.std_ns.class_('vector< const ompl::base::State * >').rename('vectorConstState')
+            except declaration_not_found_t:
+                pass
             pass
 
         self.std_ns.class_('vector< std::shared_ptr<ompl::base::StateSpace> >').rename(
@@ -198,11 +202,17 @@ class ompl_base_generator_t(code_generator_t):
         self.ompl_ns.class_('SpecificParam< double >').rename('SpecificParamDouble')
         self.ompl_ns.class_('SpecificParam< long double >').rename('SpecificParamLongDouble')
         try:
-            self.ompl_ns.class_(f'SpecificParam< std::string >').rename('SpecificParamString')
+            self.ompl_ns.class_(f'SpecificParam< {self.string_decl} >').rename('SpecificParamString')
         except:
-            self.ompl_ns.class_(f'SpecificParam< std::basic_string< char > >').rename('SpecificParamString')
+            try:
+                self.ompl_ns.class_(f'SpecificParam< std::string >').rename('SpecificParamString')
+            except:
+                self.ompl_ns.class_(f'SpecificParam< std::basic_string< char > >').rename('SpecificParamString')
+
         for cls in self.ompl_ns.classes(lambda decl: decl.name.startswith('SpecificParam')):
             cls.constructors().exclude()
+            cls.operators('=').exclude()
+
         # don't export variables that need a wrapper
         self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
         # force StateSpace::allocState to be exported.
@@ -892,21 +902,38 @@ class ompl_tools_generator_t(code_generator_t):
             replacement, 1)
     def filter_declarations(self):
         code_generator_t.filter_declarations(self)
+        self.ompl_ns.variables(lambda decl: decl.is_wrapper_needed()).exclude()
+
         # rename STL vectors/maps of certain types
         try:
             self.std_ns.class_('vector< ompl::tools::Benchmark::PlannerExperiment >').rename(
                 'vectorPlannerExperiment')
+        except:
+            pass
+
+        try:
             self.std_ns.class_(f'vector< std::vector< std::map< {self.string_decl}, {self.string_decl} > > >').rename(
                 'vectorRunProgressData')
         except:
             pass
+
+        try:
+            self.std_ns.class_(f'vector< ompl::tools::Benchmark::RunProperties >').rename(
+                'vectorRunProperties')
+        except:
+            pass
+
         # make objects printable that have a print function
         self.replace_member_functions(self.ompl_ns.member_functions('print'))
 
         benchmark_cls = self.ompl_ns.class_('Benchmark')
         self.replace_member_function(benchmark_cls.member_function('saveResultsToStream'))
-        for constructor in benchmark_cls.constructors(arg_types=[None, "::std::string const &"]):
-            constructor.add_transformation(FT.input(1))
+        try:
+            for constructor in benchmark_cls.constructors(arg_types=[None, "{self.string_decl} const &"]):
+                constructor.add_transformation(FT.input(1))
+        except:
+            for constructor in benchmark_cls.constructors(arg_types=[None, "::std::string const &"]):
+                constructor.add_transformation(FT.input(1))
 
         self.ompl_ns.member_functions('addPlannerAllocator').exclude()
         self.replace_member_functions(benchmark_cls.member_functions(
