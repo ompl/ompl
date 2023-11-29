@@ -34,20 +34,20 @@ jobs:
           name: wheels
           path: wheelhouse
 
-  pre-release:
-    name: Pre Release
+  prerelease:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
     concurrency:
       group: push-${{ github.ref_name }}-prerelease
       cancel-in-progress: true
     needs: [build_wheels]
-    runs-on: "ubuntu-latest"
     steps:
       - uses: actions/download-artifact@v3
         with:
           name: wheels
           path: wheelhouse
 
-      - name: Publish artifacts
+      - name: GitHub release
         uses: ncipollo/release-action@v1.12.0
         with:
           prerelease: true
