@@ -38,7 +38,6 @@
 #define OMPL_GEOMETRIC_PATH_GEOMETRIC_
 
 #include "ompl/base/SpaceInformation.h"
-#include <ompl/base/spaces/RealVectorStateSpace.h>
 #include "ompl/base/Path.h"
 #include <vector>
 #include <utility>
@@ -194,12 +193,6 @@ namespace ompl
                 and \e startIndex is 0, this function's result will be the same
                 as with operator=() */
             void overlay(const PathGeometric &over, unsigned int startIndex = 0);
-
-            /** \brief Remove n states starting at index \e startIndex, with n = \e count */
-            void removeStates(unsigned int startIndex, unsigned int count);
-
-            /** \brief Insert \e state at index \e along the path. */
-            void insert(const base::State *state, unsigned int index);
 
             /** \brief Append \e state to the end of this path. The memory for \e state is copied. */
             void append(const base::State *state);

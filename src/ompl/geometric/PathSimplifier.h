@@ -94,11 +94,49 @@ namespace ompl
                                 double rangeRatio = 0.33);
 
             /** \brief Given a path, attempt to shorten it while maintaining its validity. This is an iterative process
+                that attempts to do "short-cutting" on the path. Connection is attempted in a deterministic order between
+                non-consecutive states, considering the furthest states first. Unlike the reduceVertices() function, this 
+                function does not sample only vertices produced by the planner, but intermediate points on the path. If 
+                the connection is successful, the path is shortened by removing the in-between states (and new vertices 
+                are created on the new segment). This function returns true if changes were made to the path. Unlike the 
+                shortcutPath() function, this function uses a deterministic order of connection attempts, which makes it
+                more efficient. This function uses the optimization process of RRT-Rope and works well with a path produced
+                with RRTConnect. 
+                @par External documentation
+                L. Petit and A. L. Desbiens, RRT-Rope: A deterministic shortening approach for fast near-optimal path planning in large-scale uncluttered 3D environments,
+                in <em>2021 IEEE International Conference on Systems, Man, and Cybernetics (SMC)</em>, Melbourne, Australia, 2021, pp. 1111-1118. DOI: 
+                [10.1109/SMC52423.2021.9659071](http://dx.doi.org/10.1109/SMC52423.2021.9659071)<br>
+                [[PDF]](https://www.researchgate.net/publication/357636884_RRT-Rope_A_deterministic_shortening_approach_for_fast_near-optimal_path_planning_in_large-scale_uncluttered_3D_environments)
+                [[more]](https://www.edu.louispetit.be/rrt-rope)
+
+                \param path the path to shorten
+                
+                \param delta the step size between two consecutive states on the path. This parameter also influences 
+                the runtime of the algorithm. See the RRT-Rope paper for more details. The default value is 1.0.
+
+                \note This function assumes that improvements are only made within the convex hull of the path. If the
+                triangle inequality does not holds for the optimization objective, this will not perform well without
+                being run with conjunction with perturbPath.
+            */
+            bool ropeShortcutPath(PathGeometric &path, double delta = 1.0);
+
+
+            /** \brief Given a path, attempt to shorten it while maintaining its validity. This is an iterative process
                 that attempts to do "short-cutting" on the path. Connection is attempted between random points along the
                 path segments. Unlike the reduceVertices() function, this function does not sample only vertices
                 produced by the planner, but intermediate points on the path. If the connection is successful, the path
                 is shortened by removing the in-between states (and new vertices are created when needed). This function
-                returns true if changes were made to the path.
+                returns true if changes were made to the path. This function uses Partial-Shortcut. This may lead to irrelevant
+                shortcuts (for either a portion of path that is already straight, or for a portion of path that is intended
+                to be pruned in the future). Also, the undeterministic approach does not provide a clear point at which 
+                the shortcutting process is finished, besides the max number of steps set by the user. Setting maxSteps to 
+                infinity will produce the same path as ropeShortcutPath, but with a longer runtime.
+                If \e maxSteps is large, ropeShortcutPath will statistically produce an equal or shorter path, in a shorter 
+                computation time.
+                If \e maxSteps is small, ropeShortcutPath will statistically produce a shorter path.
+                @par External documentation
+                R. Geraerts and M. H. Overmars, Clearance based path optimizationfor motion planning, 
+                in <em>IEEE International Conference on Robotics and Automation</em>, 2004, vol. 3, pp. 2386–2392.
 
                 \param path the path to reduce vertices from
 

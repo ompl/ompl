@@ -470,22 +470,6 @@ void ompl::geometric::PathGeometric::overlay(const PathGeometric &over, unsigned
     }
 }
 
-void ompl::geometric::PathGeometric::removeStates(unsigned int startIndex, unsigned int count)
-{
-    if (startIndex + count > states_.size())
-        throw Exception("Index on path is out of bounds");
-    for (unsigned int i = 0; i < count; ++i)
-        si_->freeState(states_[startIndex + i]);
-    states_.erase(states_.begin() + startIndex, states_.begin() + startIndex + count);
-}
-
-void ompl::geometric::PathGeometric::insert(const base::State *state, unsigned int index)
-{
-    if (index > states_.size())
-        throw Exception("Index on path is out of bounds");
-    states_.insert(states_.begin() + index, si_->cloneState(state));
-}
-
 void ompl::geometric::PathGeometric::append(const base::State *state)
 {
     states_.push_back(si_->cloneState(state));

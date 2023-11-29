@@ -20,7 +20,6 @@ src/ompl/geometric/planners/kpiece/LBKPIECE1.h
 src/ompl/geometric/planners/pdst/PDST.h
 src/ompl/geometric/planners/rrt/RRT.h
 src/ompl/geometric/planners/rrt/RRTConnect.h
-src/ompl/geometric/planners/rrt/RRTRope.h
 src/ompl/geometric/planners/rrt/LazyRRT.h
 src/ompl/geometric/planners/rrt/TRRT.h
 src/ompl/geometric/planners/rrt/RRTstar.h
