@@ -42,21 +42,12 @@ jobs:
     needs: [build_wheels]
     runs-on: "ubuntu-latest"
     steps:
-      - uses: dev-drprasad/delete-tag-and-release@v0.2.1
-        with:
-          tag_name: prerelease
-          delete_release: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - uses: actions/download-artifact@v3
         with:
           name: wheels
           path: wheelhouse
 
-      # Create the actual prerelease
-      # https://github.com/ncipollo/release-action
-      - name: GitHub Release
+      - name: Publish artifacts
         uses: ncipollo/release-action@v1.12.0
         with:
           prerelease: true
