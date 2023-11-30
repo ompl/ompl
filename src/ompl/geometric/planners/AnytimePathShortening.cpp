@@ -228,7 +228,7 @@ void ompl::geometric::AnytimePathShortening::threadSolve(base::Planner *planner,
             geometric::PathGeometric *sln = static_cast<geometric::PathGeometric *>(pdef->getSolutionPath().get());
             auto pathCopy(std::make_shared<geometric::PathGeometric>(*sln));
             if (shortcut_)  // Shortcut the path
-                ps.shortcutPath(*pathCopy);
+                ps.partialShortcutPath(*pathCopy);
             addPath(pathCopy, planner);
         }
 

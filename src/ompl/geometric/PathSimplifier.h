@@ -99,7 +99,7 @@ namespace ompl
                 function does not sample only vertices produced by the planner, but intermediate points on the path. If 
                 the connection is successful, the path is shortened by removing the in-between states (and new vertices 
                 are created on the new segment). This function returns true if changes were made to the path. Unlike the 
-                shortcutPath() function, this function uses a deterministic order of connection attempts, which makes it
+                partialShortcutPath() function, this function uses a deterministic order of connection attempts, which makes it
                 more efficient. This function uses the optimization process of RRT-Rope and works well with a path produced
                 with RRTConnect. 
                 @par External documentation
@@ -160,11 +160,11 @@ namespace ompl
                 triangle inequality does not holds for the optimization objective, this will not perform well without
                 being run with conjunction with perturbPath.
             */
-            bool shortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0,
+            bool partialShortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0,
                               double rangeRatio = 0.33, double snapToVertex = 0.005);
 
             /** \brief Given a path, attempt to improve the cost by randomly perturbing a randomly selected point on
-                the path. This is an iterative process that should ideally be run in conjunction with shortcutPath.
+                the path. This is an iterative process that should ideally be run in conjunction with partialShortcutPath.
                 This function is not called by any of the 'simplify*' funcions because it is only effective when used
                 with a non-metric cost. The default cost used is path length, on which perturbPath is not as performant.
                 This function returns true if changes were make to the path.

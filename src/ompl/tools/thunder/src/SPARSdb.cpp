@@ -1231,7 +1231,7 @@ bool ompl::geometric::SPARSdb::checkAddPath(Vertex v)
                     }
 
                     psimp_->reduceVertices(*p, 10);
-                    psimp_->shortcutPath(*p, 50);
+                    psimp_->partialShortcutPath(*p, 50);
 
                     if (p->checkAndRepair(100).second)
                     {

@@ -81,7 +81,7 @@ public:
             for (int i = 0; i < runs; i++)
             {
                 path = new geometric::PathGeometric(*paths_[path_idx]);
-                simplifier.shortcutPath(*path, 100, 100, 0.33, 0.005);
+                simplifier.partialShortcutPath(*path, 100, 100, 0.33, 0.005);
                 avg_costs += path->cost(obj).value();
             }
             avg_costs /= runs;

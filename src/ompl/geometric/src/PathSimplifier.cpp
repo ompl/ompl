@@ -289,7 +289,7 @@ bool ompl::geometric::PathSimplifier::ropeShortcutPath(PathGeometric &path, doub
     return result;
 }
 
-bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned int maxSteps,
+bool ompl::geometric::PathSimplifier::partialShortcutPath(PathGeometric &path, unsigned int maxSteps,
                                                    unsigned int maxEmptySteps, double rangeRatio, double snapToVertex)
 {
     if (path.getStateCount() < 3)
@@ -795,7 +795,7 @@ bool ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
             unsigned int times = 0;
             do
             {
-                bool shortcut = shortcutPath(path);  // split path segments, not just vertices
+                bool shortcut = partialShortcutPath(path);  // split path segments, not just vertices
                 bool better_goal =
                     gsr_ ? findBetterGoal(path, ptc) : false;  // Try to connect the path to a closer goal
 
