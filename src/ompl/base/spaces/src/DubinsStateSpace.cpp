@@ -396,7 +396,7 @@ namespace
         return path;
     }
 
-    DubinsClass getDubinsClass(const double d, const double alpha, const double beta)
+    DubinsClass getDubinsClass(const double alpha, const double beta)
     {
         int row(0), column(0);
         if (0 <= alpha && alpha <= boost::math::constants::half_pi<double>())
@@ -455,7 +455,7 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
     //   Workshop on Energy Efficient Aerial Robotic Systems, International Conference on Robotics and Automation 2023.
     //   2023.
     DubinsStateSpace::DubinsPath path;
-    auto dubins_class = getDubinsClass(d, alpha, beta);
+    auto dubins_class = getDubinsClass(alpha, beta);
     switch (dubins_class)
     {
         case DubinsClass::A11:
