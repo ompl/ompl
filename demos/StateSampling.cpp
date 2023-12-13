@@ -79,8 +79,8 @@ public:
             {
                 case 0: val[0]=x-1;  val[1]=y-1;  break;
                 case 1: val[0]=x-.8; val[1]=y+.8; break;
-                case 2: val[0]=y-1;  val[1]=x-1;  break;
-                case 3: val[0]=y+.8; val[1]=x-.8; break;
+                case 2: val[0]=y-1;  val[1]=x-.8;  break;
+                case 3: val[0]=y+.8; val[1]=x-1; break;
             }
         }
         else
