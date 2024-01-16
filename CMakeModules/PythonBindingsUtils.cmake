@@ -110,9 +110,24 @@ function(create_module_target module)
         target_link_libraries(py_ompl_${module}
             ompl
             ${_extra_libs}
-            ${Boost_PYTHON_LIBRARY}
-            ${PYTHON_LIBRARIES})
+            ${Boost_PYTHON_LIBRARY})
         add_dependencies(py_ompl py_ompl_${module})
+
+        if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
+            # This supresses linker errors caused by not dynamically linking to
+            # libpython. Linux doesn't seem to care, but Apple complains without
+            # these flags.
+            set_target_properties(py_ompl_${module}
+                PROPERTIES LINK_FLAGS
+                "-undefined suppress -flat_namespace")
+
+            # std::unary_function and std::binary_function are removed in XCode
+            # 12.4 with C++17 and C++20. They are needed to compile the Python
+            # modules, and can be brought back with this #define.
+            target_compile_definitions(py_ompl_${module}
+                PUBLIC _LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION=1)
+        endif()
+
         if(WIN32)
             add_custom_command(TARGET py_ompl_${module} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:py_ompl_${module}>"
