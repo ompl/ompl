@@ -78,11 +78,6 @@ bool ompl::base::OptimizationObjective::isCostEquivalentTo(Cost c1, Cost c2) con
     return !isCostBetterThan(c1, c2) && !isCostBetterThan(c2, c1);
 }
 
-bool ompl::base::OptimizationObjective::isCostEquivalentTo(Cost c1, Cost c2, double threshold) const
-{
-    return isCostEquivalentTo(c1, c2) || (std::fabs(c1.value() - c2.value()) < threshold);
-}
-
 bool ompl::base::OptimizationObjective::isFinite(Cost cost) const
 {
     return isCostBetterThan(cost, infiniteCost());
@@ -105,7 +100,7 @@ ompl::base::Cost ompl::base::OptimizationObjective::combineCosts(Cost c1, Cost c
 
 ompl::base::Cost ompl::base::OptimizationObjective::subtractCosts(Cost c1, Cost c2) const
 {
-    return Cost(c2.value() - c1.value());
+    return Cost(c1.value() - c2.value());
 }
 
 ompl::base::Cost ompl::base::OptimizationObjective::identityCost() const

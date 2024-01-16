@@ -114,11 +114,15 @@ namespace ompl
                 \param delta the step size between two consecutive states on the path. This parameter also influences 
                 the runtime of the algorithm. See the RRT-Rope paper for more details. The default value is 1.0.
 
+                \param equivalenceTolerance the tolerance used to determine if a path segment cost is equivalent to the optimal
+                shortcut segment cost. This parameter is relative to delta. For example, if equivalenceTolerance is 0.1, then 
+                two segments are considered equivalent if they are within 10% of delta of each other. The default value is 0.1.
+
                 \note This function assumes that improvements are only made within the convex hull of the path. If the
                 triangle inequality does not holds for the optimization objective, this will not perform well without
                 being run with conjunction with perturbPath.
             */
-            bool ropeShortcutPath(PathGeometric &path, double delta = 1.0);
+            bool ropeShortcutPath(PathGeometric &path, double delta = 1.0, double equivalenceTolerance = 0.1);
 
 
             /** \brief Given a path, attempt to shorten it while maintaining its validity. This is an iterative process

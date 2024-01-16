@@ -107,9 +107,6 @@ namespace ompl
              * better than c1, then they are equal. */
             virtual bool isCostEquivalentTo(Cost c1, Cost c2) const;
 
-            /** \brief Compare whether cost \e c1 and cost \e c2 are equivalent, with a threshold. */
-            virtual bool isCostEquivalentTo(Cost c1, Cost c2, double threshold) const;
-
             /** \brief Returns whether the cost is finite or not. */
             virtual bool isFinite(Cost cost) const;
 
@@ -133,7 +130,7 @@ namespace ompl
              * defines this combination as an addition. */
             virtual Cost combineCosts(Cost c1, Cost c2) const;
 
-            /** \brief Get the cost that corresponds to subtracting the cost \e c1 from \e c2. */
+            /** \brief Get the cost that corresponds to subtracting the cost \e c2 from \e c1. */
             virtual Cost subtractCosts(Cost c1, Cost c2) const;
 
             /** \brief Get the identity cost value. The identity cost value is the cost c_i such that, for all costs c,
