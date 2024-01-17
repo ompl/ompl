@@ -200,7 +200,7 @@ bool ompl::geometric::PathSimplifier::ropeShortcutPath(PathGeometric &path, doub
         double dist = si->distance(states[i], states[i + 1]);
         if (dist > delta)
         {
-            std::size_t numIntermediateStates = (int)(floor(dist / delta));
+            std::size_t numIntermediateStates = static_cast<std::size_t>(floor(dist / delta));
             double t = 1.0 / (numIntermediateStates + 1);
             for (std::size_t j = 0; j < numIntermediateStates; ++j)
             {
@@ -222,7 +222,6 @@ bool ompl::geometric::PathSimplifier::ropeShortcutPath(PathGeometric &path, doub
 
     bool result = false;
     ompl::base::Cost equivalenceCost(equivalenceTolerance * delta);
-    obj_->setCostThreshold(equivalenceCost);
 
     // Loops through the path nodes to perform shortcutting, considering the farthest nodes first.
     for (std::size_t i = 0; i < states.size() - 2; ++i)
@@ -237,7 +236,7 @@ bool ompl::geometric::PathSimplifier::ropeShortcutPath(PathGeometric &path, doub
                 base::Cost alongPath = obj_->subtractCosts(costs[j], costs[i]);
 
                 // Check if the path segment i-j is already optimal and break out of j loop if it is.
-                if (obj_->isSatisfied(obj_->subtractCosts(alongPath, shortcutCost)))
+                if (obj_->isCostBetterThan(obj_->subtractCosts(alongPath, shortcutCost), equivalenceCost))
                 {
                     if(j == states.size() - 1) // if there is a straight line between i and the last point, we are done
                         return result;
