@@ -46,7 +46,7 @@
 #include <utility>
 
 ompl::geometric::PathSimplifier::PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr &goal,
-                                                const base::OptimizationObjectivePtr& obj)
+                                                const base::OptimizationObjectivePtr &obj)
   : si_(std::move(si)), freeStates_(true)
 {
     if (goal)
@@ -186,7 +186,6 @@ bool ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
 
 bool ompl::geometric::PathSimplifier::ropeShortcutPath(PathGeometric &path, double delta, double equivalenceTolerance)
 {
-
     if (path.getStateCount() < 3)
         return false;
 
@@ -238,7 +237,8 @@ bool ompl::geometric::PathSimplifier::ropeShortcutPath(PathGeometric &path, doub
                 // Check if the path segment i-j is already optimal and break out of j loop if it is.
                 if (obj_->isCostBetterThan(obj_->subtractCosts(alongPath, shortcutCost), equivalenceCost))
                 {
-                    if(j == states.size() - 1) // if there is a straight line between i and the last point, we are done
+                    if (j == states.size() - 1)  // if there is a straight line between i and the last point, we are
+                                                 // done
                         return result;
                     break;
                 }
@@ -266,7 +266,7 @@ bool ompl::geometric::PathSimplifier::ropeShortcutPath(PathGeometric &path, doub
                         }
                     }
 
-                    // Update the cumulative costs 
+                    // Update the cumulative costs
                     costs.resize(states.size(), obj_->identityCost());
                     for (std::size_t k = i + 1; k < costs.size(); ++k)
                     {
@@ -274,7 +274,7 @@ bool ompl::geometric::PathSimplifier::ropeShortcutPath(PathGeometric &path, doub
                     }
                     result = true;
 
-                    if(j == states.size() - 1) // if we just made a shortcut between i and the last point, we are done
+                    if (j == states.size() - 1)  // if we just made a shortcut between i and the last point, we are done
                         return result;
 
                     // Set i to -1 so that it starts again at the first node
@@ -291,7 +291,8 @@ bool ompl::geometric::PathSimplifier::ropeShortcutPath(PathGeometric &path, doub
 }
 
 bool ompl::geometric::PathSimplifier::partialShortcutPath(PathGeometric &path, unsigned int maxSteps,
-                                                   unsigned int maxEmptySteps, double rangeRatio, double snapToVertex)
+                                                          unsigned int maxEmptySteps, double rangeRatio,
+                                                          double snapToVertex)
 {
     if (path.getStateCount() < 3)
         return false;
@@ -507,7 +508,8 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
 
     std::vector<std::tuple<double, base::Cost, unsigned int>> distCostIndices;
     for (unsigned int i = 0; i < states.size() - 1; i++)
-        distCostIndices.emplace_back(si->distance(states[i], states[i + 1]), obj_->motionCost(states[i], states[i + 1]), i);
+        distCostIndices.emplace_back(si->distance(states[i], states[i + 1]), obj_->motionCost(states[i], states[i + 1]),
+                                     i);
 
     // Sort so highest costs are first
     std::sort(distCostIndices.begin(), distCostIndices.end(),
@@ -687,7 +689,7 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
             distCostIndices.clear();
             for (unsigned int i = 0; i < states.size() - 1; i++)
                 distCostIndices.emplace_back(si->distance(states[i], states[i + 1]),
-                                                          obj_->motionCost(states[i], states[i + 1]), i);
+                                             obj_->motionCost(states[i], states[i + 1]), i);
 
             // Sort so highest costs are first
             std::sort(
