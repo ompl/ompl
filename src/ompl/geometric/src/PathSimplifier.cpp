@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan, Ryan Luna */
+/* Author: Ioan Sucan, Ryan Luna, Louis Petit */
 
 #include "ompl/geometric/PathSimplifier.h"
 #include "ompl/tools/config/MagicConstants.h"
@@ -46,7 +46,7 @@
 #include <utility>
 
 ompl::geometric::PathSimplifier::PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr &goal,
-                                                const base::OptimizationObjectivePtr& obj)
+                                                const base::OptimizationObjectivePtr &obj)
   : si_(std::move(si)), freeStates_(true)
 {
     if (goal)
@@ -184,8 +184,115 @@ bool ompl::geometric::PathSimplifier::reduceVertices(PathGeometric &path, unsign
     return result;
 }
 
-bool ompl::geometric::PathSimplifier::shortcutPath(PathGeometric &path, unsigned int maxSteps,
-                                                   unsigned int maxEmptySteps, double rangeRatio, double snapToVertex)
+bool ompl::geometric::PathSimplifier::ropeShortcutPath(PathGeometric &path, double delta, double equivalenceTolerance)
+{
+    if (path.getStateCount() < 3)
+        return false;
+
+    const base::SpaceInformationPtr &si = path.getSpaceInformation();
+    std::vector<base::State *> &states = path.getStates();
+
+    // Loops through the path segments to add intermediate nodes seperated by a distance delta apart.
+    // This is done by linearly interpolating between the two nodes
+    for (std::size_t i = 0; i < states.size() - 1; ++i)
+    {
+        double dist = si->distance(states[i], states[i + 1]);
+        if (dist > delta)
+        {
+            std::size_t numIntermediateStates = static_cast<std::size_t>(floor(dist / delta));
+            double t = 1.0 / (numIntermediateStates + 1);
+            for (std::size_t j = 0; j < numIntermediateStates; ++j)
+            {
+                base::State *newState = si->allocState();
+                si->getStateSpace()->interpolate(states[i], states[i + 1 + j], t * (j + 1), newState);
+                states.insert(states.begin() + i + 1 + j, newState);
+            }
+            i = i + numIntermediateStates;
+        }
+    }
+
+    // Store the cumulative costs
+    // costs[i] contains the cumulative cost of the path up to and including state i
+    std::vector<base::Cost> costs(states.size(), obj_->identityCost());
+    for (std::size_t i = 1; i < costs.size(); ++i)
+    {
+        costs[i] = obj_->combineCosts(costs[i - 1], obj_->motionCost(states[i - 1], states[i]));
+    }
+
+    bool result = false;
+    ompl::base::Cost equivalenceCost(equivalenceTolerance * delta);
+
+    // Loops through the path nodes to perform shortcutting, considering the farthest nodes first.
+    for (std::size_t i = 0; i < states.size() - 2; ++i)
+    {
+        // std::cout << "i = " << i << "/" << states.size() - 1 << std::endl;
+        for (std::size_t j = states.size() - 1; j > i + 1; --j)
+        {
+            // Check if the shortcut is valid
+            if (si->checkMotion(states[i], states[j]))
+            {
+                base::Cost shortcutCost = obj_->motionCost(states[i], states[j]);
+                base::Cost alongPath = obj_->subtractCosts(costs[j], costs[i]);
+
+                // Check if the path segment i-j is already optimal and break out of j loop if it is.
+                if (obj_->isCostBetterThan(obj_->subtractCosts(alongPath, shortcutCost), equivalenceCost))
+                {
+                    if (j == states.size() - 1)  // if there is a straight line between i and the last point, we are
+                                                 // done
+                        return result;
+                    break;
+                }
+
+                // Check if the shortcut i-j is better than the current path between i and j
+                if (obj_->isCostBetterThan(shortcutCost, alongPath))
+                {
+                    // The shortcut is better than the current path, so remove the nodes in between
+                    if (freeStates_)
+                        for (std::size_t k = i + 1; k < j; ++k)
+                            si->freeState(states[k]);
+                    states.erase(states.begin() + i + 1, states.begin() + j);
+
+                    // Add intermediate states between i and j
+                    double dist = si->distance(states[i], states[j]);
+                    if (dist > delta)
+                    {
+                        std::size_t numIntermediateStates = (int)(floor(dist / delta));
+                        double t = 1.0 / (numIntermediateStates + 1);
+                        for (std::size_t k = 0; k < numIntermediateStates; ++k)
+                        {
+                            base::State *newState = si->allocState();
+                            si->getStateSpace()->interpolate(states[i], states[i + 1 + k], t * (k + 1), newState);
+                            states.insert(states.begin() + i + 1 + k, newState);
+                        }
+                    }
+
+                    // Update the cumulative costs
+                    costs.resize(states.size(), obj_->identityCost());
+                    for (std::size_t k = i + 1; k < costs.size(); ++k)
+                    {
+                        costs[k] = obj_->combineCosts(costs[k - 1], obj_->motionCost(states[k - 1], states[k]));
+                    }
+                    result = true;
+
+                    if (j == states.size() - 1)  // if we just made a shortcut between i and the last point, we are done
+                        return result;
+
+                    // Set i to -1 so that it starts again at the first node
+                    i = -1;
+
+                    // Break out of j loop
+                    break;
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+bool ompl::geometric::PathSimplifier::partialShortcutPath(PathGeometric &path, unsigned int maxSteps,
+                                                          unsigned int maxEmptySteps, double rangeRatio,
+                                                          double snapToVertex)
 {
     if (path.getStateCount() < 3)
         return false;
@@ -401,7 +508,8 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
 
     std::vector<std::tuple<double, base::Cost, unsigned int>> distCostIndices;
     for (unsigned int i = 0; i < states.size() - 1; i++)
-        distCostIndices.emplace_back(si->distance(states[i], states[i + 1]), obj_->motionCost(states[i], states[i + 1]), i);
+        distCostIndices.emplace_back(si->distance(states[i], states[i + 1]), obj_->motionCost(states[i], states[i + 1]),
+                                     i);
 
     // Sort so highest costs are first
     std::sort(distCostIndices.begin(), distCostIndices.end(),
@@ -581,7 +689,7 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
             distCostIndices.clear();
             for (unsigned int i = 0; i < states.size() - 1; i++)
                 distCostIndices.emplace_back(si->distance(states[i], states[i + 1]),
-                                                          obj_->motionCost(states[i], states[i + 1]), i);
+                                             obj_->motionCost(states[i], states[i + 1]), i);
 
             // Sort so highest costs are first
             std::sort(
@@ -690,7 +798,7 @@ bool ompl::geometric::PathSimplifier::simplify(PathGeometric &path, const base::
             unsigned int times = 0;
             do
             {
-                bool shortcut = shortcutPath(path);  // split path segments, not just vertices
+                bool shortcut = partialShortcutPath(path);  // split path segments, not just vertices
                 bool better_goal =
                     gsr_ ? findBetterGoal(path, ptc) : false;  // Try to connect the path to a closer goal
 

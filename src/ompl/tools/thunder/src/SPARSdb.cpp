@@ -77,7 +77,7 @@ namespace boost
     {
         return m.get(e);
     }
-}
+}  // namespace boost
 
 // CustomVisitor methods ////////////////////////////////////////////////////////////////////////////
 
@@ -136,10 +136,7 @@ void ompl::geometric::SPARSdb::setup()
     Planner::setup();
     if (!nn_)
         nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Vertex>(this));
-    nn_->setDistanceFunction([this](const Vertex a, const Vertex b)
-                             {
-                                 return distanceFunction(a, b);
-                             });
+    nn_->setDistanceFunction([this](const Vertex a, const Vertex b) { return distanceFunction(a, b); });
     double maxExt = si_->getMaximumExtent();
     sparseDelta_ = sparseDeltaFraction_ * maxExt;
     denseDelta_ = denseDeltaFraction_ * maxExt;
@@ -423,17 +420,15 @@ bool ompl::geometric::SPARSdb::constructSolution(const Vertex start, const Verte
 
     try
     {
-        boost::astar_search(g_,     // graph
-                            start,  // start state
-                            [this, goal](const Vertex v)
-                            {
-                                return distanceFunction(v, goal);
-                            },  // the heuristic
-                            // ability to disable edges (set cost to inifinity):
-                            boost::weight_map(edgeWeightMap(g_, edgeCollisionStateProperty_))
-                                .predecessor_map(vertexPredecessors)
-                                .distance_map(&vertexDistances[0])
-                                .visitor(CustomVisitor(goal)));
+        boost::astar_search(
+            g_,                                                                  // graph
+            start,                                                               // start state
+            [this, goal](const Vertex v) { return distanceFunction(v, goal); },  // the heuristic
+            // ability to disable edges (set cost to inifinity):
+            boost::weight_map(edgeWeightMap(g_, edgeCollisionStateProperty_))
+                .predecessor_map(vertexPredecessors)
+                .distance_map(&vertexDistances[0])
+                .visitor(CustomVisitor(goal)));
     }
     catch (ompl::geometric::SPARSdb::foundGoalException &)
     {
@@ -1082,8 +1077,8 @@ bool ompl::geometric::SPARSdb::checkAddConnectivity(const base::State *qNew, std
     // and connect them
 
     std::vector<Vertex> statesInDiffConnectedComponents;  // links
-    if (visibleNeighborhood.size() >
-        1)  // if less than 2 there is no way to find a pair of nodes in different connected components
+    if (visibleNeighborhood.size() > 1)  // if less than 2 there is no way to find a pair of nodes in different
+                                         // connected components
     {
         // For each neighbor
         for (std::size_t i = 0; i < visibleNeighborhood.size(); ++i)
@@ -1231,7 +1226,7 @@ bool ompl::geometric::SPARSdb::checkAddPath(Vertex v)
                     }
 
                     psimp_->reduceVertices(*p, 10);
-                    psimp_->shortcutPath(*p, 50);
+                    psimp_->partialShortcutPath(*p, 50);
 
                     if (p->checkAndRepair(100).second)
                     {

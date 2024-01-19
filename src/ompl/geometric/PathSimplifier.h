@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2008, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2008, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan, Ryan Luna */
 
@@ -67,7 +67,8 @@ namespace ompl
         public:
             /** \brief Create an instance for a specified space information. Optionally, a GoalSampleableRegion may be
             passed in to attempt improvements at the end of the path as well. */
-            PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr &goal = ompl::base::GoalPtr(), const base::OptimizationObjectivePtr& obj=nullptr);
+            PathSimplifier(base::SpaceInformationPtr si, const base::GoalPtr &goal = ompl::base::GoalPtr(),
+                           const base::OptimizationObjectivePtr &obj = nullptr);
 
             virtual ~PathSimplifier() = default;
 
@@ -94,11 +95,54 @@ namespace ompl
                                 double rangeRatio = 0.33);
 
             /** \brief Given a path, attempt to shorten it while maintaining its validity. This is an iterative process
+                that attempts to do "short-cutting" on the path. Connection is attempted in a deterministic order
+               between non-consecutive states, considering the furthest states first. Unlike the reduceVertices()
+               function, this function does not sample only vertices produced by the planner, but intermediate points on
+               the path. If the connection is successful, the path is shortened by removing the in-between states (and
+               new vertices are created on the new segment). This function returns true if changes were made to the
+               path. Unlike the partialShortcutPath() function, this function uses a deterministic order of connection
+               attempts, which makes it more efficient. This function uses the optimization process of RRT-Rope and
+               works well with a path produced with RRTConnect.
+                @par External documentation
+                L. Petit and A. L. Desbiens, RRT-Rope: A deterministic shortening approach for fast near-optimal path
+               planning in large-scale uncluttered 3D environments, in <em>2021 IEEE International Conference on
+               Systems, Man, and Cybernetics (SMC)</em>, Melbourne, Australia, 2021, pp. 1111-1118. DOI:
+                [10.1109/SMC52423.2021.9659071](http://dx.doi.org/10.1109/SMC52423.2021.9659071)<br>
+                [[PDF]](https://www.researchgate.net/publication/357636884_RRT-Rope_A_deterministic_shortening_approach_for_fast_near-optimal_path_planning_in_large-scale_uncluttered_3D_environments)
+                [[more]](https://www.edu.louispetit.be/rrt-rope)
+
+                \param path the path to shorten
+
+                \param delta the step size between two consecutive states on the path. This parameter also influences
+                the runtime of the algorithm. See the RRT-Rope paper for more details. The default value is 1.0.
+
+                \param equivalenceTolerance the tolerance used to determine if a path segment cost is equivalent to the
+               optimal shortcut segment cost. This parameter is relative to delta. For example, if equivalenceTolerance
+               is 0.1, then two segments are considered equivalent if they are within 10% of delta of each other. The
+               default value is 0.1.
+
+                \note This function assumes that improvements are only made within the convex hull of the path. If the
+                triangle inequality does not holds for the optimization objective, this will not perform well without
+                being run with conjunction with perturbPath.
+            */
+            bool ropeShortcutPath(PathGeometric &path, double delta = 1.0, double equivalenceTolerance = 0.1);
+
+            /** \brief Given a path, attempt to shorten it while maintaining its validity. This is an iterative process
                 that attempts to do "short-cutting" on the path. Connection is attempted between random points along the
                 path segments. Unlike the reduceVertices() function, this function does not sample only vertices
                 produced by the planner, but intermediate points on the path. If the connection is successful, the path
                 is shortened by removing the in-between states (and new vertices are created when needed). This function
-                returns true if changes were made to the path.
+                returns true if changes were made to the path. This function uses Partial-Shortcut. This may lead to
+               irrelevant shortcuts (for either a portion of path that is already straight, or for a portion of path
+               that is intended to be pruned in the future). Also, the undeterministic approach does not provide a clear
+               point at which the shortcutting process is finished, besides the max number of steps set by the user.
+               Setting maxSteps to infinity will produce the same path as ropeShortcutPath, but with a longer runtime.
+                If \e maxSteps is large, ropeShortcutPath will statistically produce an equal or shorter path, in a
+               shorter computation time. If \e maxSteps is small, ropeShortcutPath will statistically produce a shorter
+               path.
+                @par External documentation
+                R. Geraerts and M. H. Overmars, Clearance based path optimizationfor motion planning,
+                in <em>IEEE International Conference on Robotics and Automation</em>, 2004, vol. 3, pp. 2386–2392.
 
                 \param path the path to reduce vertices from
 
@@ -122,14 +166,14 @@ namespace ompl
                 triangle inequality does not holds for the optimization objective, this will not perform well without
                 being run with conjunction with perturbPath.
             */
-            bool shortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0,
-                              double rangeRatio = 0.33, double snapToVertex = 0.005);
+            bool partialShortcutPath(PathGeometric &path, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0,
+                                     double rangeRatio = 0.33, double snapToVertex = 0.005);
 
             /** \brief Given a path, attempt to improve the cost by randomly perturbing a randomly selected point on
-                the path. This is an iterative process that should ideally be run in conjunction with shortcutPath.
-                This function is not called by any of the 'simplify*' funcions because it is only effective when used
-                with a non-metric cost. The default cost used is path length, on which perturbPath is not as performant.
-                This function returns true if changes were make to the path.
+                the path. This is an iterative process that should ideally be run in conjunction with
+               partialShortcutPath. This function is not called by any of the 'simplify*' funcions because it is only
+               effective when used with a non-metric cost. The default cost used is path length, on which perturbPath is
+               not as performant. This function returns true if changes were make to the path.
 
                 \param path the path to reduce vertices from
 
@@ -137,8 +181,8 @@ namespace ompl
                 and its position after perturbation. Also used to determine how far the points on either side of the
                 selected configuration are (stepSize / 2).
 
-                \param maxSteps the maximum number of attemps to perturb the path. If this value is set to 0 (the default),
-                the number of attempts made is equal to the sumber of of states in the \e path (not suggested).
+                \param maxSteps the maximum number of attemps to perturb the path. If this value is set to 0 (the
+               default), the number of attempts made is equal to the sumber of of states in the \e path (not suggested).
 
                 \param maxEmptySteps not all iterations of this function produce an improvement. If an iteration does
                 not produce an improvement, it is called an empty step. \e maxEmptySteps denotes the maximum
@@ -157,7 +201,8 @@ namespace ompl
                 DOI: [10.1109/ICRA.2011.5980048](http://dx.doi.org/10.1109/ICRA.2011.5980048)<br>
                 [[PDF]](http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=5980048)
             */
-            bool perturbPath(PathGeometric &path, double stepSize, unsigned int maxSteps = 0, unsigned int maxEmptySteps = 0, double snapToVertex = 0.005);
+            bool perturbPath(PathGeometric &path, double stepSize, unsigned int maxSteps = 0,
+                             unsigned int maxEmptySteps = 0, double snapToVertex = 0.005);
 
             /** \brief Given a path, attempt to remove vertices from it while keeping the path valid. This is an
                 iterative process that attempts to do "short-cutting" on the path. Connection is attempted between
@@ -246,9 +291,8 @@ namespace ompl
             bool freeStates() const;
 
         protected:
-
-            int selectAlongPath(std::vector<double> dists, std::vector<base::State *> states,
-                    double distTo, double threshold, base::State *select_state, int &pos);
+            int selectAlongPath(std::vector<double> dists, std::vector<base::State *> states, double distTo,
+                                double threshold, base::State *select_state, int &pos);
 
             /** \brief The space information this path simplifier uses */
             base::SpaceInformationPtr si_;
@@ -266,7 +310,7 @@ namespace ompl
             /** \brief Instance of random number generator */
             RNG rng_;
         };
-    }
-}
+    }  // namespace geometric
+}  // namespace ompl
 
 #endif

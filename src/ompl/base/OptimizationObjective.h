@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2012, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2012, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Luis G. Torres, Ioan Sucan, Jonathan Gammell */
 
@@ -121,14 +121,17 @@ namespace ompl
 
 // This is needed to correctly generate the python bindings
 #ifndef __castxml__
-            /** \brief Get the cost that corresponds to the motion created by a control \e c applied for duration \e steps.
-             * The default implementation uses the identityCost. */
+            /** \brief Get the cost that corresponds to the motion created by a control \e c applied for duration \e
+             * steps. The default implementation uses the identityCost. */
             virtual Cost controlCost(const control::Control *c, unsigned int steps) const;
 #endif
 
             /** \brief Get the cost that corresponds to combining the costs \e c1 and \e c2. Default implementation
              * defines this combination as an addition. */
             virtual Cost combineCosts(Cost c1, Cost c2) const;
+
+            /** \brief Get the cost that corresponds to subtracting the cost \e c2 from \e c1. */
+            virtual Cost subtractCosts(Cost c1, Cost c2) const;
 
             /** \brief Get the identity cost value. The identity cost value is the cost c_i such that, for all costs c,
              * combineCosts(c, c_i) = combineCosts(c_i, c) = c. In other words, combining a cost with the identity cost
@@ -176,8 +179,9 @@ namespace ompl
              * which is sure to be an admissible heuristic if there are no negative costs. */
             virtual Cost motionCostHeuristic(const State *s1, const State *s2) const;
 
-            /** \brief Defines a possibly inadmissible estimate on the optimal cost on the motion between states \e s1 and \e s2.
-             * An inadmissible estimate does not always undervalue the true optimal cost of the motion. Used by some planners to
+            /** \brief Defines a possibly inadmissible estimate on the optimal cost on the motion between states \e s1
+             * and \e s2. An inadmissible estimate does not always undervalue the true optimal cost of the motion. Used
+             * by some planners to
              * speed up planning. The default implementation of this method returns this objective's identity cost. */
             virtual Cost motionCostBestEstimate(const State *s1, const State *s2) const;
 
@@ -275,7 +279,6 @@ namespace ompl
             /** \brief Whether this multiobjective is locked from further additions */
             bool locked_;
 
-
             // Friend functions for operator overloads for easy multiobjective creation
             friend OptimizationObjectivePtr operator+(const OptimizationObjectivePtr &a,
                                                       const OptimizationObjectivePtr &b);
@@ -286,18 +289,17 @@ namespace ompl
         };
 
         /** \brief Given two optimization objectives, returns a MultiOptimizationObjective that combines the two
-          * objectives with both weights equal to 1.0. */
-        OptimizationObjectivePtr operator+(const OptimizationObjectivePtr &a,
-                                                  const OptimizationObjectivePtr &b);
+         * objectives with both weights equal to 1.0. */
+        OptimizationObjectivePtr operator+(const OptimizationObjectivePtr &a, const OptimizationObjectivePtr &b);
 
         /** \brief Given a weighing factor and an optimization objective, returns a MultiOptimizationObjective
-          * containing only this objective weighted by the given weight */
+         * containing only this objective weighted by the given weight */
         OptimizationObjectivePtr operator*(double weight, const OptimizationObjectivePtr &a);
 
         /** \brief Given a weighing factor and an optimization objective, returns a MultiOptimizationObjective
          * containing only this objective weighted by the given weight */
         OptimizationObjectivePtr operator*(const OptimizationObjectivePtr &a, double weight);
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 
 #endif
