@@ -41,6 +41,7 @@ RUN cmake \
         -DOMPL_REGISTRATION=OFF \
         -DCMAKE_INSTALL_PREFIX=/usr && \
     cmake --build build -t update_bindings && \
+    cmake --build build && \
     cmake --install build && \
     cd tests/cmake_export && \
     cmake -B build -DCMAKE_INSTALL_PREFIX=../../install && \
