@@ -191,7 +191,7 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
             priorityQueue_.push(kBundle);
 
         ompl::base::PlannerTerminationCondition ptcOrSolutionFound(
-            [this, &ptc] { return ptc || foundKLevelSolution_; });
+            [this, &ptc, k] { return ptc || (foundKLevelSolution_ && k < bundleSpaces_.size() - 1); });
 
         while (!ptcOrSolutionFound())
         {
