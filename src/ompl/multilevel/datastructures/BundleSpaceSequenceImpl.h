@@ -190,10 +190,10 @@ ompl::multilevel::BundleSpaceSequence<T>::solve(const ompl::base::PlannerTermina
         if (priorityQueue_.size() <= currentBundleSpaceLevel_)
             priorityQueue_.push(kBundle);
 
-        ompl::base::PlannerTerminationCondition ptcAndSolutionFound(
-            [this, &ptc] { return ptc && foundKLevelSolution_; });
+        ompl::base::PlannerTerminationCondition ptcOrSolutionFound(
+            [this, &ptc, k] { return ptc || (foundKLevelSolution_ && k < bundleSpaces_.size() - 1); });
 
-        while (!ptcAndSolutionFound())
+        while (!ptcOrSolutionFound())
         {
             BundleSpace *jBundle = priorityQueue_.top();
             priorityQueue_.pop();
