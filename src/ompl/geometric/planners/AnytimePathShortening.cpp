@@ -223,13 +223,23 @@ void ompl::geometric::AnytimePathShortening::threadSolve(base::Planner *planner,
     planner->setProblemDefinition(pdef);
     while (!ptc)
     {
-        if (planner->solve(ptc) == base::PlannerStatus::EXACT_SOLUTION)
+        const base::PlannerStatus &status = planner->solve(ptc);
+        if (status == base::PlannerStatus::EXACT_SOLUTION)
         {
             geometric::PathGeometric *sln = static_cast<geometric::PathGeometric *>(pdef->getSolutionPath().get());
             auto pathCopy(std::make_shared<geometric::PathGeometric>(*sln));
             if (shortcut_)  // Shortcut the path
                 ps.partialShortcutPath(*pathCopy);
             addPath(pathCopy, planner);
+        }
+        else if ((status == base::PlannerStatus::INVALID_START)
+                || (status == base::PlannerStatus::INVALID_GOAL)
+                || (status == base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE))
+        {
+            // there is not point in trying again with these error types that will repeat.
+            planner->clear();
+            pdef->clearSolutionPaths();
+            break;
         }
 
         planner->clear();
