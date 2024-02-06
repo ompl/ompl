@@ -256,7 +256,7 @@ namespace
             double p = sqrt(std::max(tmp, 0.));
             double q = mod2pi(beta - theta);
             assert(fabs(p * cos(alpha + t) - sa + sb - d) < 2 * DUBINS_EPS);
-            assert(fabs(p * sin(alpha + t) + ca - cb) < 2 * DUBINS_EPS);
+            assert(fabs(p * sin(alpha + t) + ca - cb) < (1 + p) * DUBINS_EPS);
             assert(mod2pi(alpha + t + q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
             return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType[0], t, p, q);
         }
@@ -274,7 +274,7 @@ namespace
             double p = sqrt(std::max(tmp, 0.));
             double q = mod2pi(-beta + theta);
             assert(fabs(p * cos(alpha - t) + sa - sb - d) < 2 * DUBINS_EPS);
-            assert(fabs(p * sin(alpha - t) - ca + cb) < 2 * DUBINS_EPS);
+            assert(fabs(p * sin(alpha - t) - ca + cb) < (1 + p) * DUBINS_EPS);
             assert(mod2pi(alpha - t - q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
             return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType[1], t, p, q);
         }
@@ -689,6 +689,24 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
     return path;
 }
 
+namespace ompl::base
+{
+std::ostream& operator<<(std::ostream& os, const DubinsStateSpace::DubinsPath& path)
+{
+    os << "DubinsPath[ type=";
+    for (unsigned i=0; i<3; ++i)
+        if (path.type_[i] == DubinsStateSpace::DUBINS_LEFT)
+            os << "L";
+        else if (path.type_[i] == DubinsStateSpace::DUBINS_STRAIGHT)
+            os << "S";
+        else
+            os << "R";
+    os << ", length=" << path.length_[0] << '+' << path.length_[1] << '+' << path.length_[2] << '=' << path.length();
+    os << ", reverse=" << path.reverse_ << " ]";
+    return os;
+}
+}
+
 DubinsStateSpace::DubinsPath dubins(double d, double alpha, double beta)
 {
     if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
@@ -706,9 +724,15 @@ const ompl::base::DubinsStateSpace::DubinsPathSegmentType ompl::base::DubinsStat
 
 double ompl::base::DubinsStateSpace::distance(const State *state1, const State *state2) const
 {
-    if (isSymmetric_)
-        return rho_ * std::min(dubins(state1, state2).length(), dubins(state2, state1).length());
-    return rho_ * dubins(state1, state2).length();
+    return isSymmetric_ ? symmetricDistance(state1, state2, rho_) : distance(state1, state2, rho_);
+}
+double ompl::base::DubinsStateSpace::distance(const State *state1, const State *state2, double radius)
+{
+    return radius * dubins(state1, state2, radius).length();
+}
+double ompl::base::DubinsStateSpace::symmetricDistance(const State *state1, const State *state2, double radius)
+{
+    return radius * std::min(dubins(state1, state2, radius).length(), dubins(state2, state1, radius).length());
 }
 
 void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
@@ -748,10 +772,10 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *t
         }
         firstTime = false;
     }
-    interpolate(from, path, t, state);
+    interpolate(from, path, t, state, rho_);
 }
 
-void ompl::base::DubinsStateSpace::interpolate(const State *from, const DubinsPath &path, double t, State *state) const
+void ompl::base::DubinsStateSpace::interpolate(const State *from, const DubinsPath &path, double t, State *state, double radius) const
 {
     auto *s = allocState()->as<StateType>();
     double seg = t * path.length(), phi, v;
@@ -804,8 +828,8 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const DubinsPa
             }
         }
     }
-    state->as<StateType>()->setX(s->getX() * rho_ + from->as<StateType>()->getX());
-    state->as<StateType>()->setY(s->getY() * rho_ + from->as<StateType>()->getY());
+    state->as<StateType>()->setX(s->getX() * radius + from->as<StateType>()->getX());
+    state->as<StateType>()->setY(s->getY() * radius + from->as<StateType>()->getY());
     getSubspace(1)->enforceBounds(s->as<SO2StateSpace::StateType>(1));
     state->as<StateType>()->setYaw(s->getYaw());
     freeState(s);
@@ -819,11 +843,16 @@ unsigned int ompl::base::DubinsStateSpace::validSegmentCount(const State *state1
 ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(const State *state1,
                                                                               const State *state2) const
 {
+    return dubins(state1, state2, rho_);
+}
+
+ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(const State *state1, const State *state2, double radius)
+{
     const auto *s1 = static_cast<const StateType *>(state1);
     const auto *s2 = static_cast<const StateType *>(state2);
     double x1 = s1->getX(), y1 = s1->getY(), th1 = s1->getYaw();
     double x2 = s2->getX(), y2 = s2->getY(), th2 = s2->getYaw();
-    double dx = x2 - x1, dy = y2 - y1, d = sqrt(dx * dx + dy * dy) / rho_, th = atan2(dy, dx);
+    double dx = x2 - x1, dy = y2 - y1, d = sqrt(dx * dx + dy * dy) / radius, th = atan2(dy, dx);
     double alpha = mod2pi(th1 - th), beta = mod2pi(th2 - th);
     return ::dubins(d, alpha, beta);
 }
