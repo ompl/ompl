@@ -91,6 +91,7 @@ namespace ompl
                     return length_[0] + length_[1] + length_[2];
                 }
 
+                friend std::ostream& operator<<(std::ostream& os, const DubinsPath& path);
                 /** Path segment types */
                 const DubinsPathSegmentType *type_;
                 /** Path segment lengths */
@@ -102,6 +103,7 @@ namespace ompl
             DubinsStateSpace(double turningRadius = 1.0, bool isSymmetric = false)
               : rho_(turningRadius), isSymmetric_(isSymmetric)
             {
+                setName("Dubins" + getName());
                 type_ = STATE_SPACE_DUBINS;
             }
 
@@ -111,6 +113,8 @@ namespace ompl
             }
 
             double distance(const State *state1, const State *state2) const override;
+            static double distance(const State *state1, const State *state2, double radius);
+            static double symmetricDistance(const State *state1, const State *state2, double radius);
 
             void interpolate(const State *from, const State *to, double t, State *state) const override;
             virtual void interpolate(const State *from, const State *to, double t, bool &firstTime,
@@ -140,9 +144,13 @@ namespace ompl
 
             /** \brief Return a shortest Dubins path from SE(2) state state1 to SE(2) state state2 */
             DubinsPath dubins(const State *state1, const State *state2) const;
+            /** \brief Return a shortest Dubins path for a vehicle with given turning radius */
+            static DubinsPath dubins(const State *state1, const State *state2, double radius);
 
         protected:
-            virtual void interpolate(const State *from, const DubinsPath &path, double t, State *state) const;
+            friend class VanaStateSpace;
+
+            virtual void interpolate(const State *from, const DubinsPath &path, double t, State *state, double radius) const;
 
             /** \brief Turning radius */
             double rho_;
