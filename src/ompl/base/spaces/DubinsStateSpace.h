@@ -119,6 +119,7 @@ namespace ompl
             void interpolate(const State *from, const State *to, double t, State *state) const override;
             virtual void interpolate(const State *from, const State *to, double t, bool &firstTime,
                                      DubinsPath &path, State *state) const;
+            virtual void interpolate(const State *from, const DubinsPath &path, double t, State *state, double radius) const;
 
             bool hasSymmetricDistance() const override
             {
@@ -148,10 +149,6 @@ namespace ompl
             static DubinsPath dubins(const State *state1, const State *state2, double radius);
 
         protected:
-            friend class VanaStateSpace;
-
-            virtual void interpolate(const State *from, const DubinsPath &path, double t, State *state, double radius) const;
-
             /** \brief Turning radius */
             double rho_;
 

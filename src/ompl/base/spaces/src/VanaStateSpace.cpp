@@ -45,7 +45,7 @@ using namespace ompl::base;
 namespace
 {
     // max # iterations for doubling turning radius for initial solution path
-    const unsigned int MAX_ITER = 32;
+    constexpr unsigned int MAX_ITER = 32;
 }  // namespace
 
 VanaStateSpace::VanaStateSpace(double turningRadius, double maxPitch)
@@ -101,7 +101,7 @@ void VanaStateSpace::registerProjections()
         void project(const State *state, Eigen::Ref<Eigen::VectorXd> projection) const override
         {
             projection = Eigen::Map<const Eigen::VectorXd>(
-                state->as<VanaStateSpace::StateType>()->as<RealVectorStateSpace::StateType>(0)->values, 3);
+                state->as<StateType>()->as<RealVectorStateSpace::StateType>(0)->values, 3);
         }
     };
 
@@ -119,8 +119,8 @@ DubinsStateSpace::StateType *VanaStateSpace::get2DPose(double x, double y, doubl
 bool VanaStateSpace::decoupled(const State *state1, const State *state2, double radius, VanaPath &result,
                                DubinsStateSpace::StateType *endSZ) const
 {
-    auto s1 = state1->as<VanaStateSpace::StateType>();
-    auto s2 = state2->as<VanaStateSpace::StateType>();
+    auto s1 = state1->as<StateType>();
+    auto s2 = state2->as<StateType>();
 
     result.horizontalRadius_ = radius;
     // note that we are exploiting properties of the memory layout of state types
@@ -235,7 +235,7 @@ void VanaStateSpace::interpolate(const State *from, const State *to, const doubl
 void VanaStateSpace::interpolate(const State *from, const VanaPath &path, double t, State *state) const
 {
     auto intermediate = (from==state) ? dubinsSpace_.allocState() : state;
-    auto s = state->as<VanaStateSpace::StateType>();
+    auto s = state->as<StateType>();
     auto i = intermediate->as<DubinsStateSpace::StateType>();
     // This is exploiting internal properties of compound state spaces like DubinsStateSpace
     // and VanaStateSpace
