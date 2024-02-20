@@ -34,6 +34,7 @@
 
 /* Author: Mark Moll */
 
+#include <ompl/base/spaces/OwenStateSpace.h>
 #include <ompl/base/spaces/VanaStateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
@@ -50,18 +51,18 @@ namespace ob = ompl::base;
 namespace og = ompl::geometric;
 namespace po = boost::program_options;
 
-std::string toString(ob::State const *state)
+std::string toString(ob::State const *state, unsigned int numDims)
 {
     const auto &st = *state->as<ob::VanaStateSpace::StateType>();
     std::stringstream s;
-    for (unsigned int i = 0; i < 4; ++i)
+    for (unsigned int i = 0; i < numDims; ++i)
         s << st[i] << ' ';
     s << st.yaw() << '\n';
     return s.str();
 }
 std::string toString(ob::ScopedState<> const &state)
 {
-    return toString(state.get());
+    return toString(state.get(), state.getSpace()->getDimension() - 1);
 }
 
 // This function models a world tiled by 3D spheres. The speres are 2*radius apart along the X-, Y-, and Z-axis.
@@ -79,26 +80,15 @@ bool isValid(const ob::State *state, double radius)
     return std::sqrt(dist) > .75 * radius;
 }
 
-double dist(const ob::State *state, double radius)
-{
-    auto s = state->as<ob::VanaStateSpace::StateType>();
-    double dist = 0., d;
-    for (unsigned int i = 0; i < 3; ++i)
-    {
-        d = std::fmod(std::abs((*s)[i]), 2. * radius) - radius;
-        dist += d * d;
-    }
-    return std::sqrt(dist) - .75 * radius;
-}
-
 bool checkPath(og::PathGeometric &path, double radius)
 {
     bool result = true;
+    unsigned int numDims = path.getSpaceInformation()->getStateDimension() - 1;
     for (auto const &state : path.getStates())
         if (!isValid(state, radius))
         {
             result = false;
-            std::cout << toString(state);
+            std::cout << toString(state, numDims);
         }
     if (!result)
         std::cout << "Path is not valid!" << std::endl;
@@ -133,7 +123,37 @@ ob::PlannerPtr allocPlanner(ob::SpaceInformationPtr const &si, std::string const
     return std::make_shared<og::RRT>(si);
 }
 
-void computePath(ob::ScopedState<> const& start, ob::ScopedState<>& goal, std::string const& pathName)
+void computeOwenPath(ob::ScopedState<> const& start, ob::ScopedState<>& goal, std::string const& pathName)
+{
+    auto const& space = start.getSpace()->as<ob::OwenStateSpace>();
+    ob::ScopedState<> state(start);
+    auto path = space->owenPath(start.get(), goal.get());
+
+    std::cout << "Owen path:\n" << path << '\n';
+    double dist = path.length(), d1, d2;
+    for (unsigned i=1; i<100; ++i)
+    {
+        space->interpolate(start.get(), goal.get(), (double)i/100., path, state.get());
+        d1 = space->distance(start.get(), state.get());
+        d2 = space->distance(state.get(), goal.get());
+        if (std::abs(d1 + d2 - dist) > .01)
+        {
+            std::cout << i << "," << dist << "," << d1 << "," << d2 << "," << d1+d2-dist << "," << toString(state) << '\n';
+        }
+    }
+
+    if (!pathName.empty())
+    {
+        std::ofstream outfile(pathName);
+        for (double t = 0.; t <= 1.01; t += .01)
+        {
+            space->interpolate(start.get(), goal.get(), t, path, state.get());
+            outfile << toString(state);
+        }
+    }
+}
+
+void computeVanaPath(ob::ScopedState<> const& start, ob::ScopedState<>& goal, std::string const& pathName)
 {
     auto const& space = start.getSpace()->as<ob::VanaStateSpace>();
     ob::ScopedState<> state(start);
@@ -144,6 +164,20 @@ void computePath(ob::ScopedState<> const& start, ob::ScopedState<>& goal, std::s
         std::cout << "goal:  " << toString(goal);
         throw std::runtime_error("Could not find a valid Vana path");
     }
+    std::cout << "Vana path:\n" << *path << '\n';
+
+    // double dist = path->length(), d1, d2;
+    // for (unsigned i=1; i<100; ++i)
+    // {
+    //     space->interpolate(start.get(), *path, (double)i/100., state.get());
+    //     d1 = space->distance(start.get(), state.get());
+    //     d2 = space->distance(state.get(), goal.get());
+    //     if (std::abs(d1 + d2 - dist) > .01)
+    //     {
+    //         std::cout << i << "," << dist << "," << d1 << "," << d2 << "," << d1+d2-dist << "," << toString(state) << '\n';
+    //     }
+    // }
+
     if (!pathName.empty())
     {
         std::ofstream outfile(pathName);
@@ -201,13 +235,14 @@ int main(int argc, char *argv[])
         // clang-format off
         desc.add_options()
             ("help", "show help message")
-            ("path", "generate a Vana path starting from (x,y,z,pitch,yaw)=(0,0,0,0,0) to a random pose")
+            ("owen", "generate a owen path starting from (x,y,z,yaw)=(0,0,0,0) to a random pose")
+            ("vana", "generate a Vana path starting from (x,y,z,pitch,yaw)=(0,0,0,0,0) to a random pose")
             ("plan", "use a planner to plan a path to a random pose in space with obstacles")
             ("savepath", po::value<std::string>(&pathName), "save an (approximate) solution path to file") 
             ("start", po::value<std::vector<double>>()->multitoken(),
-                "use (x,y,z,pitch,yaw) as the start instead of (0,0,0,0,0)")
+                "use (x,y,z,[pitch,]yaw) as the start")
             ("goal", po::value<std::vector<double>>()->multitoken(),
-                "use (x,y,z,pitch,yaw) as the goal instead of a random state")
+                "use (x,y,z,[pitch,]yaw) as the goal instead of a random state")
             ("radius", po::value<double>(&radius)->default_value(1.), "turn radius")
             ("maxpitch", po::value<double>(&maxPitch)->default_value(.5), "maximum pitch angle")
             ("planner",  po::value<std::string>(&plannerName)->default_value("kpiece"),
@@ -227,24 +262,37 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        auto space = std::make_shared<ob::VanaStateSpace>(radius, maxPitch);
-        // set the bounds for the R^3 part of the space
-        ob::RealVectorBounds bounds(3);
-        bounds.setLow(-10);
-        bounds.setHigh(10);
-        space->setBounds(bounds);
-
+        ob::StateSpacePtr space = [&]() -> ob::StateSpacePtr {
+            // set the bounds for the R^3 part of the space
+            ob::RealVectorBounds bounds(3);
+            bounds.setLow(-10);
+            bounds.setHigh(10);
+            if (vm.count("vana") !=0)
+            {
+                auto space = std::make_shared<ob::VanaStateSpace>(radius, maxPitch);
+                space->setTolerance(1e-16);
+                space->setBounds(bounds);
+                return space;
+            }
+            else
+            {
+                auto space = std::make_shared<ob::OwenStateSpace>(radius, maxPitch);
+                space->setBounds(bounds);
+                return space;
+            }
+        }();
         ob::ScopedState<> start(space);
         ob::ScopedState<> goal(space);
 
         if (vm.count("start") == 0u)
         {
-            start[0] = start[1] = start[2] = start[3] = start[4] = 0.;
+            for (unsigned int i = 0; i < space->getDimension(); ++i)
+                start[i] = 0.;
         }
         else
         {
             auto startVec = vm["start"].as<std::vector<double>>();
-            for (unsigned int i = 0; i < 5; ++i)
+            for (unsigned int i = 0; i < space->getDimension(); ++i)
                 start[i] = startVec[i];
         }
 
@@ -261,15 +309,19 @@ int main(int argc, char *argv[])
         else
         {
             auto goalVec = vm["goal"].as<std::vector<double>>();
-            for (unsigned int i = 0; i < 5; ++i)
+            for (unsigned int i = 0; i < space->getDimension(); ++i)
                 goal[i] = goalVec[i];
         }
 
-        if (vm.count("path") != 0u)
-            computePath(start, goal, pathName);
-
         if (vm.count("plan") != 0u)
             computePlan(start, goal, radius, timeLimit, plannerName, pathName);
+        else
+        {
+            if (vm.count("vana") != 0u)
+                computeVanaPath(start, goal, pathName);
+            else
+                computeOwenPath(start, goal, pathName);
+        }
     }
     catch (std::exception &e)
     {
