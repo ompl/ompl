@@ -62,7 +62,7 @@ def readPath(path_file):
                      for line in open(path_file).readlines()
                      if len(line)>1])
 
-# Run demo_Vana, print the output on stdout and return the path that was computed
+# Run demo_DubinsAirplane, print the output on stdout and return the path that was computed
 # as an nx5 numpy array, where n is the number of waypoints and the columns
 # represent X, Y, Z, pitch, and yaw.
 def getPath(exec_path, **kwargs):
@@ -96,19 +96,21 @@ def plotPath(path, radius, spheres=True):
     px, = axs[1].plot(path[:,0], color=cmap(0), label='X')
     py, = axs[1].plot(path[:,1], color=cmap(1), label='Y')
     pz, = axs[1].plot(path[:,2], color=cmap(2), label='Z')
-    #axs[1].set_ylabel('x, y, z')
     axs[1].legend(handles=[px, py, pz])
-    ppitch, = axs[2].plot(path[:,3], color=cmap(0), label='pitch')
-    pyaw, = axs[2].plot(path[:,4], color=cmap(1), label='yaw')
-    #axs[2].set_ylabel('pitch & yaw')
-    axs[2].legend(handles=[ppitch, pyaw])
-
+    if path.shape[1]>4:
+        ppitch, = axs[2].plot(path[:,3], color=cmap(0), label='pitch')
+        pyaw, = axs[2].plot(path[:,4], color=cmap(1), label='yaw')
+        axs[2].legend(handles=[ppitch, pyaw])
+    else:
+        axs[2].plot(path[:,3], color=cmap(0), label='yaw')
+        axs[2].set_ylabel('yaw')
     plt.grid()
     plt.show()
+    return axs
 
-# return the full path to the demo_Vana executable or exit
-def findExecutable(exec_name='demo_Vana'):
-    # check if demo_Vana is in the $PATH already
+# return the full path to the demo_DubinsAirplane executable or exit
+def findExecutable(exec_name='demo_DubinsAirplane'):
+    # check if demo_DubinsAirplane is in the $PATH already
     executable = shutil.which(exec_name)
     # If not check in the current directory, parent directory, and "grandparent" directory (recursively)
     # (This should discover demo_Veno for in-source builds.)
@@ -130,10 +132,10 @@ def findExecutable(exec_name='demo_Vana'):
     return executable
 
 if __name__ == "__main__":
-    # hard code path to demo_Vana executable here if findExecutable() fails to find it
+    # hard code path to demo_DubinsAirplane executable here if findExecutable() fails to find it
     exec_path = findExecutable()
     radius = 2
-    # change command line arguments for demo_Vana as needed here
+    # change command line arguments for demo_DubinsAirplane as needed here
     path = getPath(exec_path, 
                    plan='',
                    radius=radius,
