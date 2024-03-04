@@ -81,7 +81,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
     checkValidity();
     auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
-    if (!goal)
+    if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;

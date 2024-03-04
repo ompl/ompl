@@ -134,7 +134,7 @@ ompl::base::PlannerStatus ompl::geometric::RLRT::solve(const base::PlannerTermin
     std::pair<ompl::base::State *, double> lastValid;
     lastValid.first = si_->allocState();
 
-    while (ptc == false)
+    while (!ptc)
     {
         // Sample a state in the tree uniformly
         Motion *random = motions_[rng_.uniformInt(0, motions_.size() - 1)];

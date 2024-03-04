@@ -236,7 +236,7 @@ ompl::base::PlannerStatus ompl::geometric::VFRRT::solve(const base::PlannerTermi
     base::State *rstate = rmotion->state;
     base::State *xstate = si_->allocState();
 
-    while (ptc == false)
+    while (!ptc)
     {
         // Sample random state (with goal biasing)
         if (rng_.uniform01() < goalBias_ && goal_s->canSample())

@@ -244,7 +244,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTXstatic::solve(const base::Planner
             std::min(maxDistance_, r_rrt_ * std::pow(log((double)(nn_->size() + 1u)) / ((double)(nn_->size() + 1u)),
                                                      1 / (double)(si_->getStateDimension()))));
 
-    while (ptc == false)
+    while (!ptc)
     {
         iterations_++;
 

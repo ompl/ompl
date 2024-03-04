@@ -175,7 +175,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     unsigned int statesGenerated = 0;
 
     bestCost_ = lastGoalMotion_ != nullptr ? lastGoalMotion_->costApx_ : std::numeric_limits<double>::infinity();
-    while (!ptc())
+    while (!ptc)
     {
         iterations_++;
         /* sample random state (with goal biasing) */

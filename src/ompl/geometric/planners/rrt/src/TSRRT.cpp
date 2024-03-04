@@ -138,7 +138,7 @@ ompl::base::PlannerStatus ompl::geometric::TSRRT::solve(const base::PlannerTermi
     auto &r_proj = rmotion->proj;
     r_proj.resize(task_space_->getDimension());
 
-    while (ptc == false)
+    while (!ptc)
     {
         // Nearest state in the tree to the configuration we're about to sample.
         Motion *nmotion = nullptr;

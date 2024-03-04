@@ -149,7 +149,7 @@ void ompl::geometric::TRRT::freeMemory()
 }
 
 ompl::base::PlannerStatus
-ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTerminationCondition)
+ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &ptc)
 {
     // Basic error checking
     checkValidity();
@@ -231,7 +231,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
     base::State *newState;
 
     // Begin sampling --------------------------------------------------------------------------------------
-    while (plannerTerminationCondition() == false)
+    while (!ptc)
     {
         // I.
 
