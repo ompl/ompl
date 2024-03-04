@@ -348,7 +348,7 @@ ompl::base::PlannerStatus ompl::geometric::BiTRRT::solve(const base::PlannerTerm
     if (gsr == nullptr)
     {
         OMPL_ERROR("%s: Goal object does not derive from GoalSampleableRegion", getName().c_str());
-        return base::PlannerStatus::INVALID_GOAL;
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
     // Loop through the (valid) input states and add them to the start tree

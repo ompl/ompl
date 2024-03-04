@@ -197,6 +197,18 @@ ompl::base::PlannerStatus ompl::geometric::VFRRT::solve(const base::PlannerTermi
     base::Goal *goal = pdef_->getGoal().get();
     auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
+    if (goal_s == nullptr)
+    {
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
+    }
+
+    if (!goal_s->couldSample())
+    {
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
+        return base::PlannerStatus::INVALID_GOAL;
+    }
+
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
 
@@ -227,7 +239,7 @@ ompl::base::PlannerStatus ompl::geometric::VFRRT::solve(const base::PlannerTermi
     while (ptc == false)
     {
         // Sample random state (with goal biasing)
-        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
+        if (rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
         else
             sampler_->sampleUniform(rstate);

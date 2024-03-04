@@ -298,6 +298,12 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
+    if (!goal->couldSample())
+    {
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
+        return base::PlannerStatus::INVALID_GOAL;
+    }
+
     // Add start states to V (nn_) and Open
     while (const base::State *st = pis_.nextStart())
     {

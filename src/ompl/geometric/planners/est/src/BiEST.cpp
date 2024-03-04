@@ -160,6 +160,7 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
 
     bool startTree = true;
     bool solved = false;
+    base::PlannerStatus::StatusType status = base::PlannerStatus::TIMEOUT;
 
     while (!ptc && !solved)
     {
@@ -180,6 +181,7 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
             if (goalMotions_.empty())
             {
                 OMPL_ERROR("%s: Unable to sample any valid states for goal tree", getName().c_str());
+                status = base::PlannerStatus::INVALID_GOAL;
                 break;
             }
         }
@@ -273,7 +275,7 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
 
     OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(),
                 startMotions_.size() + goalMotions_.size(), startMotions_.size(), goalMotions_.size());
-    return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
+    return solved ? base::PlannerStatus::EXACT_SOLUTION : status;
 }
 
 void ompl::geometric::BiEST::addMotion(Motion *motion, std::vector<Motion *> &motions, PDF<Motion *> &pdf,

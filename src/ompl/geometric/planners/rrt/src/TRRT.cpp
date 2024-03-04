@@ -158,6 +158,18 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
     base::Goal *goal = pdef_->getGoal().get();
     auto *goalRegion = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
+    if (goalRegion == nullptr)
+    {
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
+    }
+
+    if (!goalRegion->couldSample())
+    {
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
+        return base::PlannerStatus::INVALID_GOAL;
+    }
+
     // Input States ---------------------------------------------------------------------------------
 
     // Loop through valid input states and add to tree
@@ -224,7 +236,7 @@ ompl::geometric::TRRT::solve(const base::PlannerTerminationCondition &plannerTer
         // I.
 
         // Sample random state (with goal biasing probability)
-        if (goalRegion && rng_.uniform01() < goalBias_ && goalRegion->canSample())
+        if (rng_.uniform01() < goalBias_ && goalRegion->canSample())
         {
             // Bias sample towards goal
             goalRegion->sampleGoal(randState);

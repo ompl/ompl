@@ -217,7 +217,10 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
             addMotion(tGoal_, motion);
         }
         else
-            OMPL_ERROR("%s: Goal state is invalid!", getName().c_str());
+            {
+                OMPL_ERROR("%s: Goal state is invalid!", getName().c_str());
+                return base::PlannerStatus::INVALID_GOAL;
+            }
     }
 
     if (tStart_.size == 0)

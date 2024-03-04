@@ -214,6 +214,7 @@ ompl::base::PlannerStatus ompl::geometric::BiRLRT::solve(const base::PlannerTerm
     tree = &tStart_;
     otherTree = &tGoal_;
     bool solved = false;
+    base::PlannerStatus::StatusType status = base::PlannerStatus::TIMEOUT;
 
     auto xmotion = new Motion(si_);
 
@@ -236,6 +237,7 @@ ompl::base::PlannerStatus ompl::geometric::BiRLRT::solve(const base::PlannerTerm
             if (tGoal_.size() == 0)
             {
                 OMPL_ERROR("%s: Unable to sample any valid states for goal tree", getName().c_str());
+                status = base::PlannerStatus::INVALID_GOAL;
                 break;
             }
         }
@@ -293,7 +295,7 @@ ompl::base::PlannerStatus ompl::geometric::BiRLRT::solve(const base::PlannerTerm
     OMPL_INFORM("%s: Created %u states (%u start + %u goal)", getName().c_str(), tStart_.size() + tGoal_.size(),
                 tStart_.size(), tGoal_.size());
 
-    return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
+    return solved ? base::PlannerStatus::EXACT_SOLUTION : status;
 }
 
 void ompl::geometric::BiRLRT::getPlannerData(base::PlannerData &data) const

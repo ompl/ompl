@@ -126,9 +126,15 @@ ompl::base::PlannerStatus ompl::geometric::LazyLBTRRT::solve(const base::Planner
     base::Goal *goal = pdef_->getGoal().get();
     auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
-    if (goal == nullptr)
+    if (goal == nullptr || goal_s == nullptr)
     {
-        OMPL_ERROR("%s: Goal undefined", getName().c_str());
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
+    }
+
+    if (!goal_s->couldSample())
+    {
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
 
