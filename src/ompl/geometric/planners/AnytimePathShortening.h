@@ -215,6 +215,15 @@ namespace ompl
             /// \brief The list of planners used for solving the problem.
             std::vector<base::PlannerPtr> planners_;
 
+            /// \brief The number of times (1 per planner) INVALID_START_STATE is returned by a planner.
+            unsigned int invalidStartStateCount_{0};
+
+            /// \brief The number of times (1 per planner) INVALID_GOAL is returned by a planner.
+            unsigned int invalidGoalCount_{0};
+
+            /// \brief Mutex for `invalidStartStateCount_`, `invalidGoalCount_`.
+            std::mutex invalidStartOrGoalLock_;
+
             /// \brief Flag indicating whether to shortcut paths
             bool shortcut_{true};
 

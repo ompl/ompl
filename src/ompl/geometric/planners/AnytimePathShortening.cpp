@@ -210,7 +210,12 @@ ompl::geometric::AnytimePathShortening::solve(const ompl::base::PlannerTerminati
         thread.join();
 
     msg::setLogLevel(currentLogLevel);
-    return pdef_->getSolutionCount() > 0 ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::UNKNOWN;
+    base::PlannerStatus::StatusType status = base::PlannerStatus::UNKNOWN;
+    if (invalidStartStateCount_ > 0)
+        status = base::PlannerStatus::INVALID_START;
+    else if (invalidGoalCount_ > 0)
+        status = base::PlannerStatus::INVALID_GOAL;
+    return (pdef_->getSolutionCount() > 0) ? base::PlannerStatus::EXACT_SOLUTION : status;
 }
 
 void ompl::geometric::AnytimePathShortening::threadSolve(base::Planner *planner,
@@ -237,6 +242,17 @@ void ompl::geometric::AnytimePathShortening::threadSolve(base::Planner *planner,
                 || (status == base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE))
         {
             // there is not point in trying again with these error types that will repeat.
+            {
+                std::lock_guard<std::mutex> _(invalidStartOrGoalLock_);
+                if (status == base::PlannerStatus::INVALID_START)
+                {
+                    ++invalidStartStateCount_;
+                }
+                else if (status == base::PlannerStatus::INVALID_GOAL)
+                {
+                    ++invalidGoalCount_;
+                }
+            }
             planner->clear();
             pdef->clearSolutionPaths();
             break;
@@ -253,6 +269,8 @@ void ompl::geometric::AnytimePathShortening::clear()
     for (auto &planner : planners_)
         planner->clear();
     bestCost_ = base::Cost(std::numeric_limits<double>::quiet_NaN());
+    invalidStartStateCount_ = 0;
+    invalidGoalCount_ = 0;
 }
 
 void ompl::geometric::AnytimePathShortening::getPlannerData(ompl::base::PlannerData &data) const
