@@ -191,7 +191,7 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
 
     auto *goal = dynamic_cast<base::GoalState *>(pdef_->getGoal().get());
 
-    if (!goal)
+    if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
@@ -217,7 +217,10 @@ ompl::base::PlannerStatus ompl::geometric::pSBL::solve(const base::PlannerTermin
             addMotion(tGoal_, motion);
         }
         else
-            OMPL_ERROR("%s: Goal state is invalid!", getName().c_str());
+            {
+                OMPL_ERROR("%s: Goal state is invalid!", getName().c_str());
+                return base::PlannerStatus::INVALID_GOAL;
+            }
     }
 
     if (tStart_.size == 0)

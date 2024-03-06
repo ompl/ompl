@@ -119,6 +119,18 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     if (goal == nullptr)
     {
         OMPL_ERROR("%s: Goal undefined", getName().c_str());
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
+    }
+
+    if (goal_s == nullptr)
+    {
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
+    }
+
+    if (!goal_s->couldSample())
+    {
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
 
@@ -163,7 +175,7 @@ ompl::base::PlannerStatus ompl::geometric::LBTRRT::solve(const base::PlannerTerm
     unsigned int statesGenerated = 0;
 
     bestCost_ = lastGoalMotion_ != nullptr ? lastGoalMotion_->costApx_ : std::numeric_limits<double>::infinity();
-    while (!ptc())
+    while (!ptc)
     {
         iterations_++;
         /* sample random state (with goal biasing) */

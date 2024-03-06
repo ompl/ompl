@@ -157,6 +157,18 @@ ompl::base::PlannerStatus ompl::geometric::RRTXstatic::solve(const base::Planner
     base::Goal *goal = pdef_->getGoal().get();
     auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
+    if (goal_s == nullptr)
+    {
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
+    }
+
+    if (!goal_s->couldSample())
+    {
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
+        return base::PlannerStatus::INVALID_GOAL;
+    }
+
     // Check if there are more starts
     if (pis_.haveMoreStartStates() == true)
     {
@@ -232,7 +244,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTXstatic::solve(const base::Planner
             std::min(maxDistance_, r_rrt_ * std::pow(log((double)(nn_->size() + 1u)) / ((double)(nn_->size() + 1u)),
                                                      1 / (double)(si_->getStateDimension()))));
 
-    while (ptc == false)
+    while (!ptc)
     {
         iterations_++;
 
@@ -242,7 +254,7 @@ ompl::base::PlannerStatus ompl::geometric::RRTXstatic::solve(const base::Planner
         // sample random state (with goal biasing)
         // Goal samples are only sampled until maxSampleCount() goals are in the tree, to prohibit duplicate goal
         // states.
-        if (goal_s && goalMotions_.size() < goal_s->maxSampleCount() && rng_.uniform01() < goalBias_ &&
+        if (goalMotions_.size() < goal_s->maxSampleCount() && rng_.uniform01() < goalBias_ &&
             goal_s->canSample())
             goal_s->sampleGoal(rstate);
         else

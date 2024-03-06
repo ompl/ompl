@@ -60,6 +60,18 @@ ompl::base::PlannerStatus ompl::control::PDST::solve(const base::PlannerTerminat
     base::Goal *goal = pdef_->getGoal().get();
     goalSampler_ = dynamic_cast<ompl::base::GoalSampleableRegion *>(goal);
 
+    if (goalSampler_ == nullptr)
+    {
+        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
+        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
+    }
+
+    if (!goalSampler_->couldSample())
+    {
+        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
+        return base::PlannerStatus::INVALID_GOAL;
+    }
+
     // Ensure that we have a state sampler AND a control sampler
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
