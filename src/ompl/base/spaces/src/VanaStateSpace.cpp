@@ -116,21 +116,21 @@ DubinsStateSpace::StateType *VanaStateSpace::get2DPose(double x, double y, doubl
     return state;
 }
 
-bool VanaStateSpace::decoupled(const State *state1, const State *state2, double radius, VanaPath &result,
+bool VanaStateSpace::decoupled(const State *state1, const State *state2, double radius, PathType &result,
                                DubinsStateSpace::StateType *endSZ) const
 {
+    result.verticalRadius_ = 1. / std::sqrt(1. / (rho_ * rho_) - 1. / (radius * radius));
+    if (!std::isfinite(result.verticalRadius_))
+    {
+        return false;
+    }
+
     auto s1 = state1->as<StateType>();
     auto s2 = state2->as<StateType>();
 
     result.horizontalRadius_ = radius;
     // note that we are exploiting properties of the memory layout of state types
     result.pathXY_ = dubinsSpace_.dubins(state1, state2, radius);
-
-    result.verticalRadius_ = 1. / std::sqrt(1. / (rho_ * rho_) - 1. / (radius * radius));
-    if (!std::isfinite(result.verticalRadius_))
-    {
-        return false;
-    }
 
     result.startSZ_->setXY(0., (*s1)[2]);
     result.startSZ_->setYaw(s1->pitch());
@@ -154,11 +154,11 @@ bool VanaStateSpace::decoupled(const State *state1, const State *state2, double 
     return true;
 }
 
-std::optional<VanaStateSpace::VanaPath> VanaStateSpace::vanaPath(const State *state1, const State *state2) const
+std::optional<VanaStateSpace::PathType> VanaStateSpace::getPath(const State *state1, const State *state2) const
 {
     double radiusMultiplier = 2.;
     auto scratch = dubinsSpace_.allocState()->as<DubinsStateSpace::StateType>();
-    VanaPath path;
+    PathType path;
 
     unsigned int iter = 0;
     while (!decoupled(state1, state2, rho_ * radiusMultiplier, path, scratch) && iter++ < MAX_ITER)
@@ -167,14 +167,14 @@ std::optional<VanaStateSpace::VanaPath> VanaStateSpace::vanaPath(const State *st
     }
     if (iter >= MAX_ITER)
     {
-        OMPL_ERROR("Maximum number of iterations exceeded in VanaStateSpace::VanaPath");
+        OMPL_ERROR("Maximum number of iterations exceeded in VanaStateSpace::PathType");
         dubinsSpace_.freeState(scratch);
         return {};
     }
 
     // Local optimalization between horizontal and vertical radii
     double step = .1, radiusMultiplier2;
-    VanaPath path2;
+    PathType path2;
     while (std::abs(step) > tolerance_)
     {
         radiusMultiplier2 = std::max(1., radiusMultiplier + step);
@@ -194,7 +194,7 @@ std::optional<VanaStateSpace::VanaPath> VanaStateSpace::vanaPath(const State *st
 
 double VanaStateSpace::distance(const State *state1, const State *state2) const
 {
-    if (auto path = vanaPath(state1, state2))
+    if (auto path = getPath(state1, state2))
         return path->length();
     return getMaximumExtent();
 }
@@ -206,14 +206,14 @@ unsigned int VanaStateSpace::validSegmentCount(const State *state1, const State 
 
 void VanaStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
 {
-    if (auto path = vanaPath(from, to))
+    if (auto path = getPath(from, to))
         interpolate(from, to, t, *path, state);
     else
         if (from != state)
             copyState(state, from);
 }
 
-void VanaStateSpace::interpolate(const State *from, const State *to, const double t, VanaPath &path,
+void VanaStateSpace::interpolate(const State *from, const State *to, const double t, PathType &path,
                                  State *state) const
 {
     if (t >= 1.)
@@ -232,7 +232,7 @@ void VanaStateSpace::interpolate(const State *from, const State *to, const doubl
     interpolate(from, path, t, state);
 }
 
-void VanaStateSpace::interpolate(const State *from, const VanaPath &path, double t, State *state) const
+void VanaStateSpace::interpolate(const State *from, const PathType &path, double t, State *state) const
 {
     auto intermediate = (from==state) ? dubinsSpace_.allocState() : state;
     auto s = state->as<StateType>();
@@ -247,19 +247,19 @@ void VanaStateSpace::interpolate(const State *from, const VanaPath &path, double
         dubinsSpace_.freeState(intermediate);
 }
 
-VanaStateSpace::VanaPath::~VanaPath()
+VanaStateSpace::PathType::~PathType()
 {
     static const DubinsStateSpace dubinsStateSpace_;
     dubinsStateSpace_.freeState(startSZ_);
 }
 
-VanaStateSpace::VanaPath::VanaPath()
+VanaStateSpace::PathType::PathType()
 {
     static const DubinsStateSpace dubinsStateSpace_;
     startSZ_ = dubinsStateSpace_.allocState()->as<DubinsStateSpace::StateType>();
 }
 
-VanaStateSpace::VanaPath::VanaPath(const VanaStateSpace::VanaPath &path)
+VanaStateSpace::PathType::PathType(const VanaStateSpace::PathType &path)
   : horizontalRadius_(path.horizontalRadius_)
   , verticalRadius_(path.verticalRadius_)
   , pathXY_(path.pathXY_)
@@ -270,7 +270,7 @@ VanaStateSpace::VanaPath::VanaPath(const VanaStateSpace::VanaPath &path)
     dubinsStateSpace_.copyState(startSZ_, path.startSZ_);
 }
 
-VanaStateSpace::VanaPath &VanaStateSpace::VanaPath::operator=(const VanaStateSpace::VanaPath &path)
+VanaStateSpace::PathType &VanaStateSpace::PathType::operator=(const VanaStateSpace::PathType &path)
 {
     static const DubinsStateSpace dubinsStateSpace_;
     horizontalRadius_ = path.horizontalRadius_;
@@ -281,14 +281,14 @@ VanaStateSpace::VanaPath &VanaStateSpace::VanaPath::operator=(const VanaStateSpa
     return *this;
 }
 
-double VanaStateSpace::VanaPath::length() const
+double VanaStateSpace::PathType::length() const
 {
     return verticalRadius_ * pathSZ_.length();
 }
 
 namespace ompl::base
 {
-    std::ostream &operator<<(std::ostream &os, const VanaStateSpace::VanaPath &path)
+    std::ostream &operator<<(std::ostream &os, const VanaStateSpace::PathType &path)
     {
         static const DubinsStateSpace dubinsStateSpace;
 
@@ -310,7 +310,7 @@ void ompl::base::VanaMotionValidator::defaultSettings()
 bool ompl::base::VanaMotionValidator::checkMotion(const State *s1, const State *s2,
                                                   std::pair<State *, double> &lastValid) const
 {
-    auto path = stateSpace_->vanaPath(s1, s2);
+    auto path = stateSpace_->getPath(s1, s2);
     if (!path)
         return false;
 
@@ -360,7 +360,7 @@ bool ompl::base::VanaMotionValidator::checkMotion(const State *s1, const State *
     /* assume motion starts in a valid configuration so s1 is valid */
     if (!si_->isValid(s2))
         return false;
-    auto path = stateSpace_->vanaPath(s1, s2);
+    auto path = stateSpace_->getPath(s1, s2);
     if (!path)
         return false;
 

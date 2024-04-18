@@ -36,6 +36,8 @@
 
 #include <ompl/base/spaces/OwenStateSpace.h>
 #include <ompl/base/spaces/VanaStateSpace.h>
+#include <ompl/base/spaces/VanaOwenStateSpace.h>
+#include <ompl/base/objectives/StateCostIntegralObjective.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
@@ -65,30 +67,63 @@ std::string toString(ob::ScopedState<> const &state)
     return toString(state.get(), state.getSpace()->getDimension() - 1);
 }
 
-// This function models a world tiled by 3D spheres. The speres are 2*radius apart along the X-, Y-, and Z-axis.
-// The radius of each sphere is .75*radius. The spheres are positioned at ((2*i+1)*radius, (2*j+1)*radius,
-// (2*k+1)*radius), for i,j,k = ... , -2, -1, 0, 1, 2, ...
-bool isValid(const ob::State *state, double radius)
+// This class models a world tiled by 3D spheres. The speres are 2*radius apart along
+// the X-, Y-, and Z-axis.
+// The radius of each sphere is .75*radius.
+// The spheres are positioned at ((2*i+1)*radius, (2*j+1)*radius, (2*k+1)*radius),
+// for i,j,k = ... , -2, -1, 0, 1, 2, ...
+class Environment
 {
-    auto s = state->as<ob::VanaStateSpace::StateType>();
-    double dist = 0., d;
-    for (unsigned int i = 0; i < 3; ++i)
+public:
+    Environment(Environment const&) = default;
+    Environment(double radius) : radius_{radius}
     {
-        d = std::fmod(std::abs((*s)[i]), 2. * radius) - radius;
-        dist += d * d;
     }
-    return std::sqrt(dist) > .75 * radius;
-}
 
-bool checkPath(og::PathGeometric &path, double radius)
+    double distance(const ob::State *state) const
+    {
+        auto s = state->as<ob::VanaStateSpace::StateType>();
+        double dist = 0., d;
+        for (unsigned int i = 0; i < 3; ++i)
+        {
+            d = std::fmod(std::abs((*s)[i]), 2. * radius_) - radius_;
+            dist += d * d;
+        }
+        return std::sqrt(dist);
+    }
+    bool isValid(const ob::State *state) const
+    {
+        return distance(state) > .75 * radius_;
+    }
+protected:
+    double radius_;
+};
+
+class OptObjective : public ob::StateCostIntegralObjective
+{
+public:
+    OptObjective(const ob::SpaceInformationPtr &si, const Environment& env, bool enableMotionCostInterpolation = false)
+    : ob::StateCostIntegralObjective(si, enableMotionCostInterpolation), env_(env)
+    {
+    }
+    ob::Cost stateCost(ob::State const* state) const override
+    {
+        return ob::Cost(1./(env_.distance(state) + .1));
+    }
+protected:
+    Environment env_;
+};
+
+
+bool checkPath(og::PathGeometric &path, Environment const& env)
 {
     bool result = true;
     unsigned int numDims = path.getSpaceInformation()->getStateDimension() - 1;
     for (auto const &state : path.getStates())
-        if (!isValid(state, radius))
+        if (!env.isValid(state))
         {
             result = false;
-            std::cout << toString(state, numDims);
+            std::cout << env.distance(state) << ' ' << toString(state, numDims);
         }
     if (!result)
         std::cout << "Path is not valid!" << std::endl;
@@ -98,7 +133,11 @@ bool checkPath(og::PathGeometric &path, double radius)
 ob::PlannerPtr allocPlanner(ob::SpaceInformationPtr const &si, std::string const &plannerName)
 {
     if (plannerName == "rrtstar")
-        return std::make_shared<og::RRTstar>(si);
+    {
+        auto planner(std::make_shared<og::RRTstar>(si));
+        planner->setRange(1);
+        return planner;
+    } 
     if (plannerName == "est")
         return std::make_shared<og::EST>(si);
     if (plannerName == "kpiece")
@@ -123,53 +162,34 @@ ob::PlannerPtr allocPlanner(ob::SpaceInformationPtr const &si, std::string const
     return std::make_shared<og::RRT>(si);
 }
 
-void computeOwenPath(ob::ScopedState<> const& start, ob::ScopedState<>& goal, std::string const& pathName)
+template<class Space>
+typename Space::PathType getPath(ob::ScopedState<> const& start, ob::ScopedState<> const& goal)
 {
-    auto const& space = start.getSpace()->as<ob::OwenStateSpace>();
-    ob::ScopedState<> state(start);
-    auto path = space->owenPath(start.get(), goal.get());
-
-    std::cout << "Owen path:\n" << path << '\n';
-    double dist = path.length(), d1, d2;
-    for (unsigned i=1; i<100; ++i)
+    auto path = start.getSpace()->as<Space>()->getPath(start.get(), goal.get());
+    if constexpr (std::is_same_v<ob::VanaStateSpace, Space>)
     {
-        space->interpolate(start.get(), goal.get(), (double)i/100., path, state.get());
-        d1 = space->distance(start.get(), state.get());
-        d2 = space->distance(state.get(), goal.get());
-        if (std::abs(d1 + d2 - dist) > .01)
+        if (!path)
         {
-            std::cout << i << "," << dist << "," << d1 << "," << d2 << "," << d1+d2-dist << "," << toString(state) << '\n';
+            std::cout << "start: " << toString(start);
+            std::cout << "goal:  " << toString(goal);
+            throw std::runtime_error("Could not find a valid Vana path");
         }
+        return *path;
     }
-
-    if (!pathName.empty())
-    {
-        std::ofstream outfile(pathName);
-        for (double t = 0.; t <= 1.01; t += .01)
-        {
-            space->interpolate(start.get(), goal.get(), t, path, state.get());
-            outfile << toString(state);
-        }
-    }
+    else
+        return path;
 }
 
-void computeVanaPath(ob::ScopedState<> const& start, ob::ScopedState<>& goal, std::string const& pathName)
+template<class Space>
+void savePath(ob::ScopedState<> const& start, ob::ScopedState<> const& goal, std::string const& pathName)
 {
-    auto const& space = start.getSpace()->as<ob::VanaStateSpace>();
-    ob::ScopedState<> state(start);
-    auto path = space->vanaPath(start.get(), goal.get());
-    if (!path)
-    {
-        std::cout << "start: " << toString(start);
-        std::cout << "goal:  " << toString(goal);
-        throw std::runtime_error("Could not find a valid Vana path");
-    }
-    std::cout << "Vana path:\n" << *path << '\n';
-
-    // double dist = path->length(), d1, d2;
+    auto path = getPath<Space>(start, goal);
+    auto space = start.getSpace()->as<Space>();
+    ob::ScopedState<Space> state(start);
+    // double dist = path.length(), d1, d2;
     // for (unsigned i=1; i<100; ++i)
     // {
-    //     space->interpolate(start.get(), *path, (double)i/100., state.get());
+    //     space->interpolate(start.get(), goal.get(), (double)i/50., path, st);
     //     d1 = space->distance(start.get(), state.get());
     //     d2 = space->distance(state.get(), goal.get());
     //     if (std::abs(d1 + d2 - dist) > .01)
@@ -181,12 +201,13 @@ void computeVanaPath(ob::ScopedState<> const& start, ob::ScopedState<>& goal, st
     if (!pathName.empty())
     {
         std::ofstream outfile(pathName);
-        for (double t = 0.; t <= 1.01; t += .01)
+        for (double t = 0.; t <= 1.01; t += .001)
         {
-            space->interpolate(start.get(), *path, t, state.get());
+            space->interpolate(start.get(), goal.get(), t, path, state.get());
             outfile << toString(state);
         }
     }
+    std::cout << "start: " << toString(start) << "goal: " << toString(goal) << "path: " << path << '\n'; 
 }
 
 void computePlan(ob::ScopedState<> const& start, ob::ScopedState<>& goal, double radius,
@@ -194,22 +215,27 @@ void computePlan(ob::ScopedState<> const& start, ob::ScopedState<>& goal, double
 {
     auto const& space = start.getSpace();
     og::SimpleSetup setup(space);
+    Environment env(radius);
+
     setup.setStartAndGoalStates(start, goal);
-    setup.setStateValidityChecker([radius](const ob::State *state) { return isValid(state, radius); });
+    setup.setStateValidityChecker([env](const ob::State *state) { return env.isValid(state); });
+    //setup.setStateValidityChecker([](const ob::State*){ return true; });
+    //setup.setOptimizationObjective(std::make_shared<OptObjective>(setup.getSpaceInformation(), env));
+    setup.getSpaceInformation()->setStateValidityCheckingResolution(0.001);
     setup.setPlanner(allocPlanner(setup.getSpaceInformation(), plannerName));
     setup.setup();
     setup.print();
     auto result = setup.solve(timeLimit);
     if (result)
     {
-        setup.simplifySolution();
+        //setup.simplifySolution();
         if (!pathName.empty())
         {
             auto path = setup.getSolutionPath();
-            if (!path.check())
-                std::cout << "Path is not valid!" << std::endl;
+            if (!path.checkAndRepair(100).second)
+                std::cout << "Path is in collision!" << std::endl;
             path.interpolate();
-            if (checkPath(path, radius))
+            if (true) //checkPath(path, radius))
             {
                 std::ofstream outfile(pathName);
                 path.printAsMatrix(outfile);
@@ -237,6 +263,7 @@ int main(int argc, char *argv[])
             ("help", "show help message")
             ("owen", "generate a owen path starting from (x,y,z,yaw)=(0,0,0,0) to a random pose")
             ("vana", "generate a Vana path starting from (x,y,z,pitch,yaw)=(0,0,0,0,0) to a random pose")
+            ("vanaowen", "generate a Vana-Owen path starting from (x,y,z,pitch,yaw)=(0,0,0,0,0) to a random pose")
             ("plan", "use a planner to plan a path to a random pose in space with obstacles")
             ("savepath", po::value<std::string>(&pathName), "save an (approximate) solution path to file") 
             ("start", po::value<std::vector<double>>()->multitoken(),
@@ -267,10 +294,17 @@ int main(int argc, char *argv[])
             ob::RealVectorBounds bounds(3);
             bounds.setLow(-10);
             bounds.setHigh(10);
-            if (vm.count("vana") !=0)
+            if (vm.count("vana") != 0)
             {
                 auto space = std::make_shared<ob::VanaStateSpace>(radius, maxPitch);
-                space->setTolerance(1e-16);
+                //space->setTolerance(1e-16);
+                space->setBounds(bounds);
+                return space;
+            }
+            else if (vm.count("vanaowen") != 0)
+            {
+                auto space = std::make_shared<ob::VanaOwenStateSpace>(radius, maxPitch);
+                //space->setTolerance(1e-16);
                 space->setBounds(bounds);
                 return space;
             }
@@ -299,10 +333,11 @@ int main(int argc, char *argv[])
         if (vm.count("goal") == 0u)
         {
             unsigned i = 100;
+            Environment env(radius);
             do
             {
                 goal.random();
-            } while (--i > 0 && !isValid(goal.get(), radius));
+            } while (--i > 0 && !env.isValid(goal.get()));
             if (i == 0)
                 throw std::runtime_error("Could not sample a valid goal state");
         }
@@ -318,9 +353,11 @@ int main(int argc, char *argv[])
         else
         {
             if (vm.count("vana") != 0u)
-                computeVanaPath(start, goal, pathName);
+                savePath<ob::VanaStateSpace>(start, goal, pathName);
+            else if (vm.count("vanaowen") != 0u)
+                savePath<ob::VanaOwenStateSpace>(start, goal, pathName);
             else
-                computeOwenPath(start, goal, pathName);
+                savePath<ob::OwenStateSpace>(start, goal, pathName);
         }
     }
     catch (std::exception &e)

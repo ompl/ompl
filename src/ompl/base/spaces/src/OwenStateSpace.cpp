@@ -45,10 +45,11 @@ using namespace ompl::base;
 
 namespace
 {
+    constexpr double onepi = boost::math::constants::pi<double>();
     constexpr double twopi = 2. * boost::math::constants::pi<double>();
 
     // tolerance for boost root finding algorithm
-    boost::math::tools::eps_tolerance<double> TOLERANCE(20);
+    const boost::math::tools::eps_tolerance<double> TOLERANCE(20);
 
     // max # iterations for searching for roots
     constexpr std::uintmax_t MAX_ITER = 32;
@@ -104,7 +105,7 @@ void OwenStateSpace::registerProjections()
     registerDefaultProjection(std::make_shared<OwenDefaultProjection>(this));
 }
 
-OwenStateSpace::OwenPath OwenStateSpace::owenPath(const State *state1, const State *state2) const
+OwenStateSpace::PathType OwenStateSpace::getPath(const State *state1, const State *state2) const
 {
     auto s1 = state1->as<StateType>();
     auto s2 = state2->as<StateType>();
@@ -113,13 +114,11 @@ OwenStateSpace::OwenPath OwenStateSpace::owenPath(const State *state1, const Sta
     if (std::abs(dz) <= len * tanMaxPitch_)
     {
         // low altitude path
-        //std::cout<<"low"<<std::endl;
         return {path, rho_, dz};
     }
     else if (std::abs(dz) > (len + twopi * rho_) * tanMaxPitch_)
     {
         // high altitude path
-        //std::cout<<"high"<<std::endl;
         unsigned int k = std::floor((std::abs(dz)/tanMaxPitch_ - len) / (twopi * rho_));
         auto radius = rho_;
         auto radiusFun = [&, this](double r) {
@@ -135,18 +134,33 @@ OwenStateSpace::OwenPath OwenStateSpace::owenPath(const State *state1, const Sta
 
     // medium altitude path
     {
-        //std::cout<<"medium"<<std::endl;
         auto zi = dubinsSpace_.allocState()->as<DubinsStateSpace::StateType>();
-        auto phi = 0.;
+        auto phi = 0.1;
         auto phiFun = [&, this](double phi) {
             turn(state1, rho_, phi, zi);
-            return (phi + dubinsSpace_.dubins(zi, state2).length()) * rho_ * tanMaxPitch_ - std::abs(dz);
+            return (std::abs(phi) + dubinsSpace_.dubins(zi, state2).length()) * rho_ * tanMaxPitch_ - std::abs(dz);
         };
-        // for (int i=-10; i<=10; ++i)
-        //     std::cout<< "i=" << i << " phi=" << (double)i * boost::math::constants::pi<double>() *.2 << " phifun="<<phiFun((double)i * boost::math::constants::pi<double>() *.2)<<std::endl;
-        std::uintmax_t iter = MAX_ITER;
-        auto result = boost::math::tools::toms748_solve(phiFun, -twopi, twopi, TOLERANCE, iter);
-        phi = .5 * (result.first + result.second);
+
+        try {
+            std::uintmax_t iter = MAX_ITER;
+            auto result = boost::math::tools::bracket_and_solve_root(phiFun, phi, 2., true, TOLERANCE, iter);
+            phi = .5 * (result.first + result.second);
+            if (std::abs(phiFun(phi)) > 1e-5)
+                throw std::domain_error("fail");
+        }
+        catch (std::domain_error& e)
+        {
+            try {
+                std::uintmax_t iter = MAX_ITER;
+                phi = -.1;
+                auto result = boost::math::tools::bracket_and_solve_root(phiFun, phi, 2., true, TOLERANCE, iter);
+                phi = .5 * (result.first + result.second);
+            }
+            catch (std::domain_error& e)
+            {
+                OMPL_ERROR("this shouldn't be happening!");
+            }
+        }
         assert(std::abs(phiFun(phi)) < 1e-5);
         turn(state1, rho_, phi, zi);
         path = dubinsSpace_.dubins(zi, state2, rho_);
@@ -167,7 +181,7 @@ void OwenStateSpace::turn(const State* from, double turnRadius, double angle, St
 
 double OwenStateSpace::distance(const State *state1, const State *state2) const
 {
-    return owenPath(state1, state2).length();
+    return getPath(state1, state2).length();
 }
 
 unsigned int OwenStateSpace::validSegmentCount(const State *state1, const State *state2) const
@@ -177,11 +191,11 @@ unsigned int OwenStateSpace::validSegmentCount(const State *state1, const State 
 
 void OwenStateSpace::interpolate(const State *from, const State *to, double t, State *state) const
 {
-    auto path = owenPath(from, to);
+    auto path = getPath(from, to);
     interpolate(from, to, t, path, state);
 }
 
-void OwenStateSpace::interpolate(const State *from, const State *to, double t, OwenPath &path,
+void OwenStateSpace::interpolate(const State *from, const State *to, double t, PathType &path,
                                  State *state) const
 {
     if (t >= 1.)
@@ -234,14 +248,17 @@ void OwenStateSpace::interpolate(const State *from, const State *to, double t, O
         }
         else
         {
-            turn(from, path.turnRadius_, dist / path.turnRadius_, state);
+            auto angle = dist / path.turnRadius_;
+            if (path.phi_ < 0)
+                angle = -angle;
+            turn(from, path.turnRadius_, angle, state);
         }
     }
 
     getSubspace(1)->enforceBounds(state->as<CompoundStateSpace::StateType>()->as<SO2StateSpace::StateType>(1));
 }
 
-double OwenStateSpace::OwenPath::length() const
+double OwenStateSpace::PathType::length() const
 {
     double hlen = turnRadius_ * (path_.length() + twopi * numTurns_ + phi_); 
     return std::sqrt(hlen * hlen + deltaZ_ * deltaZ_);
@@ -249,7 +266,7 @@ double OwenStateSpace::OwenPath::length() const
 
 namespace ompl::base
 {
-    std::ostream &operator<<(std::ostream &os, const OwenStateSpace::OwenPath &path)
+    std::ostream &operator<<(std::ostream &os, const OwenStateSpace::PathType &path)
     {
         static const DubinsStateSpace dubinsStateSpace;
 
@@ -270,7 +287,7 @@ void ompl::base::OwenMotionValidator::defaultSettings()
 bool ompl::base::OwenMotionValidator::checkMotion(const State *s1, const State *s2,
                                                   std::pair<State *, double> &lastValid) const
 {
-    auto path = stateSpace_->owenPath(s1, s2);
+    auto path = stateSpace_->getPath(s1, s2);
 
     /* assume motion starts in a valid configuration so s1 is valid */
     bool result = true;
@@ -318,7 +335,7 @@ bool ompl::base::OwenMotionValidator::checkMotion(const State *s1, const State *
     /* assume motion starts in a valid configuration so s1 is valid */
     if (!si_->isValid(s2))
         return false;
-    auto path = stateSpace_->owenPath(s1, s2);
+    auto path = stateSpace_->getPath(s1, s2);
 
     bool result = true;
     int nd = stateSpace_->validSegmentCount(s1, s2);
