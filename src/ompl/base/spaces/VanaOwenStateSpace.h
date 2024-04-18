@@ -34,14 +34,14 @@
 
 /* Author: Mark Moll */
 
-#ifndef OMPL_BASE_SPACES_OWEN_STATE_SPACE_
-#define OMPL_BASE_SPACES_OWEN_STATE_SPACE_
+#ifndef OMPL_BASE_SPACES_VANAOWEN_STATE_SPACE_
+#define OMPL_BASE_SPACES_VANAOWEN_STATE_SPACE_
 
 #include "ompl/base/spaces/DubinsStateSpace.h"
 
 namespace ompl::base
 {
-    /** \brief An R^3 x SO(2) state space where distance is measured by the
+    /** \brief An R^4 x SO(2) state space where distance is measured by the
         length of a type Dubins airplane curves.
 
         Note that distance in this space is \b not a proper distance metric,
@@ -51,37 +51,40 @@ namespace ompl::base
 
         See the following reference for details:
 
-       [1] M. Owen, R. W. Beard, and T. W. McLain, “Implementing Dubins
-       airplane paths on fixed-wing UAVs,” in Handbook of Unmanned Aerial
-       Vehicles, Springer, 2014, pp. 1677–1701.
-       doi: 10.1007/978-90-481-9707-1 120
+        [1] P. Váňa, A. Alves Neto, J. Faigl, and D. G. Macharet, “Minimal 3D Dubins
+        Path with Bounded Curvature and Pitch Angle,” in 2020 IEEE International
+        Conference on Robotics and Automation (ICRA), May 2020, pp. 8497–8503.
+        doi: 10.1109/ICRA40945.2020.9197084.
     */
-    class OwenStateSpace : public CompoundStateSpace
+    class VanaOwenStateSpace : public CompoundStateSpace
     {
     public:
+        enum PathCategory : char { LOW_ALTITUDE='L', MEDIUM_ALTITUDE='M', HIGH_ALTITUDE='H', UNKNOWN='?' };
+
         class PathType
         {
         public:
-            PathType(DubinsStateSpace::DubinsPath const& path, double turnRadius, double deltaZ, unsigned int numTurns = 0)
-            : path_(path), turnRadius_(turnRadius), deltaZ_(deltaZ), numTurns_(numTurns)
-            {
-            }
-            PathType(DubinsStateSpace::DubinsPath const& path, double turnRadius, double deltaZ, double phi)
-            : path_(path), turnRadius_(turnRadius), deltaZ_(deltaZ), phi_(phi)
-            {
-            }
+            PathType();
+            PathType(const PathType &path);
+            ~PathType();
             double length() const;
+            PathType &operator=(const PathType &path);
+
+            PathCategory category() const;
 
             friend std::ostream &operator<<(std::ostream &os, const PathType &path);
 
-            DubinsStateSpace::DubinsPath path_;
-            double turnRadius_{1.};
-            double deltaZ_;
+            DubinsStateSpace::DubinsPath pathXY_;
+            DubinsStateSpace::DubinsPath pathSZ_;
+            DubinsStateSpace::StateType *startSZ_{nullptr};
+            double horizontalRadius_{1.};
+            double verticalRadius_{1.};
+            double deltaZ_{0.};
             double phi_{0.};
             unsigned int numTurns_{0};
         };
 
-        /** A state in R^3 x SO(2): (x, y, z, yaw) */
+        /** A state in R^4 x SO(2): (x, y, z, pitch, yaw) */
         class StateType : public CompoundStateSpace::StateType
         {
         public:
@@ -102,10 +105,19 @@ namespace ompl::base
             {
                 return as<SO2StateSpace::StateType>(1)->value;
             }
+            double pitch() const
+            {
+                return as<RealVectorStateSpace::StateType>(0)->values[3];
+            }
+            double &pitch()
+            {
+                return as<RealVectorStateSpace::StateType>(0)->values[3];
+            }
         };
 
-        OwenStateSpace(double turningRadius = 1.0, double maxPitch = boost::math::constants::sixth_pi<double>());
-        ~OwenStateSpace() override = default;
+        VanaOwenStateSpace(double turningRadius = 1.0, double maxPitch = boost::math::constants::sixth_pi<double>());
+        VanaOwenStateSpace(double turningRadius, std::pair<double, double> pitchRange);
+        ~VanaOwenStateSpace() override = default;
 
         bool isMetricSpace() const override
         {
@@ -133,7 +145,14 @@ namespace ompl::base
         /** \copydoc RealVectorStateSpace::setBounds() */
         void setBounds(const RealVectorBounds &bounds)
         {
-            as<RealVectorStateSpace>(0)->setBounds(bounds);
+            RealVectorBounds b(bounds);
+            if (bounds.low.size() < 4)
+            {
+                b.resize(4);
+                b.low[3] = minPitch_;
+                b.high[3] = maxPitch_;
+            }
+            as<RealVectorStateSpace>(0)->setBounds(b);
         }
 
         /** \copydoc RealVectorStateSpace::getBounds() */
@@ -177,7 +196,7 @@ namespace ompl::base
                                  State *state) const;
 
         /**
-         * \brief Compute a 3D Dubins path using the model and algorithm proposed by Owen et al.
+         * \brief Compute a 3D Dubins path using the model and algorithm proposed by VanaOwen et al.
          *
          * \param state1 start state
          * \param state2 end state
@@ -185,16 +204,38 @@ namespace ompl::base
          */
         PathType getPath(const State *state1, const State *state2) const;
 
+        /**
+         * \brief Helper function used by getPath
+         *
+         * \param state1 start state
+         * \param state2 end state
+         * \param radius turning radius for the motion in the XY plane
+         * \param path resulting path
+         * \param endSZ working memory
+         * \return true iff a feasible solution was found
+         */
+        bool decoupled(const StateType *state1, const StateType *state2, double radius, PathType &path,
+                       std::array<DubinsStateSpace::StateType*, 3>& scratch) const;
+
     protected:
         /**
-         * \brief Compute the SE(2) state after making a turn
+         * \brief Allocate a DubinsSpace state and initialize it
+         *
+         * \param x initial X coordinate of allocated state
+         * \param y initial Y coordinate of allocated state
+         * \param yaw initial yaw coordinate of allocated state
+         * \return new allocated and initialized state
          */
-        void turn(const State* from, double turnRadius, double angle, State* state) const;
+        DubinsStateSpace::StateType *get2DPose(double x, double y, double yaw) const;
+
+        bool isLowAltitude(DubinsStateSpace::DubinsPath const& path, StateType const* state) const;
 
         /** Turning radius */
         double rho_;
-        /** Tan(pitch), where pitch is the maximum pitch in radians */
-        double tanMaxPitch_;
+        /** Minimum pitch in radians */
+        double minPitch_;
+        /** Maximum pitch in radians */
+        double maxPitch_;
         /** Tolerance used to determine convergence when searching for optimal turning radius */
         double tolerance_{1e-8};
         /** Auxiliary space to compute paths in SE(2) slices of state space */
@@ -207,23 +248,23 @@ namespace ompl::base
         This motion validator is almost identical to the DiscreteMotionValidator
         except that it remembers the optimal PathType between different calls to
         interpolate. */
-    class OwenMotionValidator : public MotionValidator
+    class VanaOwenMotionValidator : public MotionValidator
     {
     public:
-        OwenMotionValidator(SpaceInformation *si) : MotionValidator(si)
+        VanaOwenMotionValidator(SpaceInformation *si) : MotionValidator(si)
         {
             defaultSettings();
         }
-        OwenMotionValidator(const SpaceInformationPtr &si) : MotionValidator(si)
+        VanaOwenMotionValidator(const SpaceInformationPtr &si) : MotionValidator(si)
         {
             defaultSettings();
         }
-        ~OwenMotionValidator() override = default;
+        ~VanaOwenMotionValidator() override = default;
         bool checkMotion(const State *s1, const State *s2) const override;
         bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
 
     private:
-        OwenStateSpace *stateSpace_;
+        VanaOwenStateSpace *stateSpace_;
         void defaultSettings();
     };
 }  // namespace ompl::base
