@@ -59,16 +59,16 @@ namespace ompl::base
     class VanaStateSpace : public CompoundStateSpace
     {
     public:
-        class VanaPath
+        class PathType
         {
         public:
-            VanaPath();
-            VanaPath(const VanaPath &path);
-            ~VanaPath();
+            PathType();
+            PathType(const PathType &path);
+            ~PathType();
             double length() const;
-            VanaPath &operator=(const VanaPath &path);
+            PathType &operator=(const PathType &path);
 
-            friend std::ostream &operator<<(std::ostream &os, const VanaPath &path);
+            friend std::ostream &operator<<(std::ostream &os, const PathType &path);
 
             double horizontalRadius_{1.};
             double verticalRadius_{1.};
@@ -186,7 +186,7 @@ namespace ompl::base
          * \param state the state that lies on the segment at fraction @e t of the distance between
          * @e from and @e to.
          */
-        virtual void interpolate(const State *from, const State *to, double t, VanaPath &path,
+        virtual void interpolate(const State *from, const State *to, double t, PathType &path,
                                  State *state) const;
         /**
          * \brief Compute the state that lies at time @e t in [0,1] on the segment @e path starting from state @e from.
@@ -197,7 +197,7 @@ namespace ompl::base
          * \param state the state that lies on the segment at fraction @e t of the distance along @e path,
          * starting from state @e from.
          */
-        virtual void interpolate(const State *from, const VanaPath &path, double t, State *state) const;
+        virtual void interpolate(const State *from, const PathType &path, double t, State *state) const;
 
         /**
          * \brief Compute a 3D Dubins path using the model and algorithm proposed by Vana et al.
@@ -206,10 +206,10 @@ namespace ompl::base
          * \param state2 end state
          * \return a 3D Dubins path if one was found, std::nullopt_t otherwise
          */
-        std::optional<VanaPath> vanaPath(const State *state1, const State *state2) const;
+        std::optional<PathType> getPath(const State *state1, const State *state2) const;
 
         /**
-         * \brief Helper function used by vanaPath
+         * \brief Helper function used by getPath
          *
          * \param state1 start state
          * \param state2 end state
@@ -218,7 +218,7 @@ namespace ompl::base
          * \param endSZ working memory
          * \return true iff a feasible solution was found
          */
-        bool decoupled(const State *state1, const State *state2, double radius, VanaStateSpace::VanaPath &path,
+        bool decoupled(const State *state1, const State *state2, double radius, PathType &path,
                        DubinsStateSpace::StateType *endSZ) const;
 
     protected:
@@ -248,7 +248,7 @@ namespace ompl::base
         Motions are checked for validity at a specified resolution.
 
         This motion validator is almost identical to the DiscreteMotionValidator
-        except that it remembers the optimal VanaPath between different calls to
+        except that it remembers the optimal PathType between different calls to
         interpolate. */
     class VanaMotionValidator : public MotionValidator
     {

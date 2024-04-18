@@ -93,6 +93,9 @@ namespace ompl
             /** \brief ompl::base::OwenStateSpace */
             STATE_SPACE_OWEN = 15,
 
+            /** \brief ompl::base::VanaOwenStateSpace */
+            STATE_SPACE_VANA_OWEN = 16,
+
             /** \brief Number of state space types; To add new types,
                 use values that are larger than the count*/
             STATE_SPACE_TYPE_COUNT
