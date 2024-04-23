@@ -6,7 +6,6 @@ AlignEscapedNewlinesLeft: false
 AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortIfStatementsOnASingleLine: false
-AllowShortLoopsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AllowShortBlocksOnASingleLine: false 

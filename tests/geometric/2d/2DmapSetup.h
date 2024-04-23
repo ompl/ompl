@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2010, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2010, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -58,7 +58,6 @@ namespace ompl
         class StateSpace2DMap : public base::RealVectorStateSpace
         {
         public:
-
             StateSpace2DMap() : base::RealVectorStateSpace(2)
             {
             }
@@ -66,9 +65,9 @@ namespace ompl
             virtual double distance(const base::State *state1, const base::State *state2) const
             {
                 double dx = state1->as<base::RealVectorStateSpace::StateType>()->values[0] -
-                    state2->as<base::RealVectorStateSpace::StateType>()->values[0];
+                            state2->as<base::RealVectorStateSpace::StateType>()->values[0];
                 double dy = state1->as<base::RealVectorStateSpace::StateType>()->values[1] -
-                    state2->as<base::RealVectorStateSpace::StateType>()->values[1];
+                            state2->as<base::RealVectorStateSpace::StateType>()->values[1];
 
                 return sqrt(dx * dx + dy * dy);
             }
@@ -79,9 +78,8 @@ namespace ompl
         class StateValidityChecker2DMap : public base::StateValidityChecker
         {
         public:
-
-            StateValidityChecker2DMap(const base::SpaceInformationPtr &si, const std::vector< std::vector<int> > &grid) :
-                base::StateValidityChecker(si), grid_(grid)
+            StateValidityChecker2DMap(const base::SpaceInformationPtr &si, const std::vector<std::vector<int>> &grid)
+              : base::StateValidityChecker(si), grid_(grid)
             {
             }
 
@@ -92,31 +90,27 @@ namespace ompl
                 auto x = static_cast<unsigned int>(as->values[0]);
                 auto y = static_cast<unsigned int>(as->values[1]);
 
-                if (x >= grid_.size() or y >= grid_[x].size())
+                if ((x >= grid_.size()) || (y >= grid_[x].size()))
                     return false;
 
                 return grid_[x][y] == 0;  // 0 means valid state
             }
 
         protected:
-
             /** \brief Map of environment */
-            std::vector< std::vector<int> > grid_;
+            std::vector<std::vector<int>> grid_;
         };
 
         /** \brief Given a description of the environment, construct a complete planning context */
         class SimpleSetup2DMap : public SimpleSetup
         {
         public:
-
-            SimpleSetup2DMap(const std::string &fileName)
-                : SimpleSetup(std::make_shared<StateSpace2DMap>())
+            SimpleSetup2DMap(const std::string &fileName) : SimpleSetup(std::make_shared<StateSpace2DMap>())
             {
                 loadTestFile(fileName);
             }
 
-            SimpleSetup2DMap(const Environment2D &env)
-                : SimpleSetup(std::make_shared<StateSpace2DMap>()), env_(env)
+            SimpleSetup2DMap(const Environment2D &env) : SimpleSetup(std::make_shared<StateSpace2DMap>()), env_(env)
             {
                 configure2DMap();
             }
@@ -132,7 +126,6 @@ namespace ompl
             }
 
         protected:
-
             /** \brief Set the bounds and the state validity checker */
             void configure2DMap()
             {
@@ -151,8 +144,7 @@ namespace ompl
 
                 getStateSpace()->as<StateSpace2DMap>()->setBounds(sbounds);
                 getSpaceInformation()->setStateValidityCheckingResolution(0.016);
-                setStateValidityChecker(std::make_shared<StateValidityChecker2DMap>(
-                    getSpaceInformation(), env_.grid));
+                setStateValidityChecker(std::make_shared<StateValidityChecker2DMap>(getSpaceInformation(), env_.grid));
 
                 /* set the initial state; the memory for this is automatically cleaned by SpaceInformation */
                 base::ScopedState<base::RealVectorStateSpace> state(getStateSpace());
@@ -166,16 +158,14 @@ namespace ompl
                 gstate->values[0] = env_.goal.first;
                 gstate->values[1] = env_.goal.second;
                 goal->setState(gstate);
-                goal->setThreshold(1e-3); // this basically means 0, but we want to account for numerical instabilities
+                goal->setThreshold(1e-3);  // this basically means 0, but we want to account for numerical instabilities
                 setGoal(goal);
                 // we could have used setGoalState() as well
             }
 
             /** \brief Representation of environment */
             Environment2D env_;
-
         };
-
 
         /** \brief Construct an instance of space information (done automatically when using SimpleSetup) */
         static base::SpaceInformationPtr spaceInformation2DMap(const Environment2D &env)
@@ -208,7 +198,8 @@ namespace ompl
         }
 
         /** \brief Construct a problem definition  (done automatically when using SimpleSetup) */
-        static base::ProblemDefinitionPtr problemDefinition2DMap(const base::SpaceInformationPtr &si, const Environment2D &env)
+        static base::ProblemDefinitionPtr problemDefinition2DMap(const base::SpaceInformationPtr &si,
+                                                                 const Environment2D &env)
         {
             auto pdef(std::make_shared<base::ProblemDefinition>(si));
 
@@ -224,14 +215,14 @@ namespace ompl
             gstate->values[0] = env.goal.first;
             gstate->values[1] = env.goal.second;
             goal->setState(gstate);
-            goal->setThreshold(1e-3); // this is basically 0, but we want to account for numerical instabilities
+            goal->setThreshold(1e-3);  // this is basically 0, but we want to account for numerical instabilities
             pdef->setGoal(goal);
 
             return pdef;
         }
 
-    }
+    }  // namespace geometric
 
-}
+}  // namespace ompl
 
 #endif
