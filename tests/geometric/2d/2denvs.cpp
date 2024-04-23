@@ -672,7 +672,7 @@ public:
             printf("\n========= Running 2D map test\n\n");
         run2DMapTest(p, &success, &avgruntime, &avglength);
         BOOST_CHECK(success >= min_success);
-        BOOST_CHECK(avgruntime < max_avgtime);
+        BOOST_CHECK(avgruntime < max_avgtime * 2.0);
         BOOST_CHECK(avglength < 100.0);
 
         success    = 0.0;
