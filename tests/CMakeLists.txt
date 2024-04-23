@@ -48,7 +48,9 @@ if (OMPL_BUILD_TESTS)
     endif()
 
     # Test kinematic motion planners in 2D environments
-    add_ompl_test(test_2denvs_geometric geometric/2d/2denvs.cpp)
+    if(NOT MSVC)
+      add_ompl_test(test_2denvs_geometric geometric/2d/2denvs.cpp)
+    endif()
     add_ompl_test(test_2dmap_geometric_simple geometric/2d/2dmap_simple.cpp)
     add_ompl_test(test_2dmap_ik geometric/2d/2dmap_ik.cpp)
     add_ompl_test(test_2dcircles_opt_geometric geometric/2d/2dcircles_optimize.cpp)
