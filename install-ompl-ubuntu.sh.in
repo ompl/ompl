@@ -71,7 +71,7 @@ install_ompl()
         OMPL="omplapp"
     fi
     if [ -z $GITHUB ]; then
-        if [ -z $APP]; then
+        if [ -z $APP ]; then
             wget -O - https://github.com/ompl/${OMPL}/archive/@PROJECT_VERSION@.tar.gz | tar zxf -
             cd ${OMPL}-@PROJECT_VERSION@
         else
