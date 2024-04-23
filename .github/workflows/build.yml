@@ -40,10 +40,9 @@ jobs:
 
     - name: "Install Windows dependencies"
       if: runner.os == 'Windows'
-      uses: lukka/run-vcpkg@v6
+      uses: lukka/run-vcpkg@v11
       id: runvcpkg
       with:
-          vcpkgGitCommitId: ec6fe06e8da05a8157dc8581fa96b36b571c1bd5
           vcpkgTriplet: 'x64-windows'
           vcpkgArguments: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-system boost-test eigen3 flann'
 
@@ -53,7 +52,7 @@ jobs:
       with:
         build-dir: ${{ runner.workspace }}/build
         build-type: Release
-        configure-options: -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python
+        configure-options: -DOMPL_REGISTRATION=OFF -DOMPL_BUILD_DEMOS=OFF -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python
         run-test: true
         ctest-options: --output-on-failure
         install-build: true
@@ -64,7 +63,7 @@ jobs:
       with:
         build-dir: ${{ runner.workspace }}/build
         build-type: Release
-        configure-options: -DOMPL_REGISTRATION=OFF -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/ompl/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_GENERATOR_PLATFORM=x64
+        configure-options: -DOMPL_REGISTRATION=OFF -DOMPL_BUILD_DEMOS=OFF -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/ompl/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_GENERATOR_PLATFORM=x64
         run-test: true
         ctest-options: --output-on-failure
         install-build: true
