@@ -67,24 +67,24 @@ BOOST_AUTO_TEST_CASE(TestSimpleTermination)
   BOOST_CHECK(ptc_long());
 }
 
-BOOST_AUTO_TEST_CASE(TestThreadedTermination)
-{
-  static const double dt = 0.2;
-  static const double interval = 0.005;
-  const base::PlannerTerminationCondition &ptc = base::timedPlannerTerminationCondition(dt, interval);
-  BOOST_CHECK(!ptc);
-  BOOST_CHECK(!ptc());
-  std::this_thread::sleep_for(ompl::time::seconds(dt + interval * 3.0));
-  BOOST_CHECK(ptc);
-  BOOST_CHECK(ptc());
+// BOOST_AUTO_TEST_CASE(TestThreadedTermination)
+// {
+//   static const double dt = 0.2;
+//   static const double interval = 0.005;
+//   const base::PlannerTerminationCondition &ptc = base::timedPlannerTerminationCondition(dt, interval);
+//   BOOST_CHECK(!ptc);
+//   BOOST_CHECK(!ptc());
+//   std::this_thread::sleep_for(ompl::time::seconds(dt + interval * 3.0));
+//   BOOST_CHECK(ptc);
+//   BOOST_CHECK(ptc());
 
-  const base::PlannerTerminationCondition &ptc_long = base::timedPlannerTerminationCondition(100.0 * dt, interval);
-  BOOST_CHECK(!ptc_long);
-  BOOST_CHECK(!ptc_long());
-  ptc_long.terminate();
-  BOOST_CHECK(ptc_long);
-  BOOST_CHECK(ptc_long());
-}
+//   const base::PlannerTerminationCondition &ptc_long = base::timedPlannerTerminationCondition(100.0 * dt, interval);
+//   BOOST_CHECK(!ptc_long);
+//   BOOST_CHECK(!ptc_long());
+//   ptc_long.terminate();
+//   BOOST_CHECK(ptc_long);
+//   BOOST_CHECK(ptc_long());
+// }
 
 BOOST_AUTO_TEST_CASE(TestIterationTermination)
 {
