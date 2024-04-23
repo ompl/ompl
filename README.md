@@ -1,8 +1,14 @@
 The Open Motion Planning Library (OMPL)
 =======================================
 
-Linux / macOS [![Build Status](https://travis-ci.org/ompl/ompl.svg?branch=main)](https://travis-ci.org/ompl/ompl)
-Windows [![Build status](https://ci.appveyor.com/api/projects/status/valuv9sabye1y35n/branch/main?svg=true)](https://ci.appveyor.com/project/mamoll/ompl/branch/main)
+Continuous Integration Status
+-----------------------------
+
+[![Build](https://github.com/ompl/ompl/actions/workflows/build.yml/badge.svg?branch=pr-github-actions)](https://github.com/ompl/ompl/actions/workflows/build.yml)
+[![Format](https://github.com/ompl/ompl/actions/workflows/format.yml/badge.svg?branch=pr-github-actions)](https://github.com/ompl/ompl/actions/workflows/format.yml?branch=pr-github-actions)
+
+Installation
+------------
 
 Visit the [OMPL installation page](https://ompl.kavrakilab.org/core/installation.html) for
 detailed installation instructions.
