@@ -43,6 +43,7 @@ jobs:
       uses: lukka/run-vcpkg@v11
       id: runvcpkg
       with:
+          vcpkgGitCommitId: da4b78d35084ec4e9808aa02017028da03b8d2ab
           vcpkgTriplet: 'x64-windows'
           vcpkgArguments: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-system boost-test eigen3 flann'
 
