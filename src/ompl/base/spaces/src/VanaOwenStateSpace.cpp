@@ -166,7 +166,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
     {
         if (std::abs(result.deltaZ_) < 1e-8 && std::abs(to->pitch() - from->pitch()) < 1e-8)
         {
-            result.pathSZ_.type_ = DubinsStateSpace::dubinsPathType[0];
+            result.pathSZ_.type_ = DubinsStateSpace::dubinsPathType[0]; // LSL type
             result.pathSZ_.length_[0] = result.pathSZ_.length_[2] = 0.;
             result.pathSZ_.length_[1] = result.deltaZ_;
             return true;
@@ -228,10 +228,12 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
         try
         {
             auto root = boost::math::tools::toms748_solve(radiusFun, radius, 3. * radius, TOLERANCE, iter);
-            radiusFun(.5 * (root.first + root.second));
+            auto rval = radiusFun(.5 * (root.first + root.second));
             if (iter >= MAX_ITER)
                 OMPL_WARN("Maximum number of iterations exceeded for high altitude Vana-Owen path");
-            return true;
+            //std::cerr << "rval = " << rval << std::endl;
+            //assert(std::abs(rval) < 1e-4);
+            return std::abs(rval) < 1e-4;
         }
         catch (std::domain_error& e)
         {
@@ -244,31 +246,48 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
         auto zi = scratch[1];
         auto phiFun = [&, this](double phi)
         {
+            if (std::abs(phi)>twopi)
+                throw std::domain_error("phi too large");
             turn(from, radius, phi, zi);
-            return (std::abs(phi) + dubinsSpace_.dubins(zi, to).length()) * radius * tanPitch - result.deltaZ_;
+            //std::cerr << "phifun " << phi << ' ' << (std::abs(phi) + dubinsSpace_.dubins(zi, to).length()) * radius * std::abs(tanPitch) - std::abs(result.deltaZ_) << std::endl;
+            return (std::abs(phi) + dubinsSpace_.dubins(zi, to).length()) * radius * std::abs(tanPitch) - std::abs(result.deltaZ_);
         };
-        std::uintmax_t iter = MAX_ITER;
+
+        //for (double x = -2.; x<=2; x+=.02) phiFun(x);
+
         try
         {
-            auto root = boost::math::tools::toms748_solve(phiFun, -twopi, twopi, TOLERANCE, iter);
+            std::uintmax_t iter = MAX_ITER;
+            result.phi_ = 0.1;
+            auto root = boost::math::tools::bracket_and_solve_root(phiFun, result.phi_, 2., true, TOLERANCE, iter);
             result.phi_ = .5 * (root.first + root.second);
-            phiFun(result.phi_);
-            if (iter >= MAX_ITER)
-                OMPL_WARN("Maximum number of iterations exceeded for medium altitude Vana-Owen path");
-            result.pathXY_ = dubinsSpace_.dubins(zi, to, radius);
-            endSZ->setX((result.pathXY_.length() + result.phi_) * radius);
-            result.pathSZ_ = dubinsSpace_.dubins(startSZ, endSZ, result.verticalRadius_);
-            return true;
+            if (std::abs(phiFun(result.phi_)) > 1e-5)
+                throw std::domain_error("fail");
         }
-        catch (std::domain_error& e)
+        catch (...)
         {
-            return false;
+            try {
+                std::uintmax_t iter = MAX_ITER;
+                result.phi_ = -.1;
+                auto root = boost::math::tools::bracket_and_solve_root(phiFun, result.phi_, 2., true, TOLERANCE, iter);
+                result.phi_ = .5 * (root.first + root.second);
+            }
+            catch (...)
+            {
+                //OMPL_ERROR("this shouldn't be happening!");
+                return false;
+            }
         }
+        //assert(std::abs(phiFun(result.phi_)) < 1e-5);
+        result.pathXY_ = dubinsSpace_.dubins(zi, to, radius);
+        endSZ->setX((result.pathXY_.length() + result.phi_) * radius);
+        result.pathSZ_ = dubinsSpace_.dubins(startSZ, endSZ, result.verticalRadius_);
+        return std::abs(phiFun(result.phi_)) < 1e-5;
     }
     return true;
 }
 
-VanaOwenStateSpace::PathType VanaOwenStateSpace::getPath(const State *state1, const State *state2) const
+std::optional<VanaOwenStateSpace::PathType> VanaOwenStateSpace::getPath(const State *state1, const State *state2) const
 {
     auto from = state1->as<StateType>(), to = state2->as<StateType>();
     double radiusMultiplier = 1.5;
@@ -292,21 +311,23 @@ VanaOwenStateSpace::PathType VanaOwenStateSpace::getPath(const State *state1, co
     }
 
     // Local optimalization between horizontal and vertical radii
-    double step = .1, radiusMultiplier2;
+    double step = .1, radiusMultiplier2, minLength = path.length(), length;
     PathType path2;
     while (std::abs(step) > tolerance_)
     {
         radiusMultiplier2 = std::max(1., radiusMultiplier + step);
-        if (decoupled(from, to, rho_ * radiusMultiplier2, path2, scratch) && path2.length() < path.length())
+        if (decoupled(from, to, rho_ * radiusMultiplier2, path2, scratch) && (length = path2.length()) < minLength)
         {
             radiusMultiplier = radiusMultiplier2;
             path = path2;
+            //if ((length - minLength) / minLength < tolerance_) break;
+            minLength = length;
             step *= 2.;
         }
         else
             step *= -.1;
-        std::cout << "radius multiplier & pathlength & step: " << (char)path.category() << ' ' << radiusMultiplier2
-        << '\t' << path2.length() << '\t' << step << std::endl;
+        // std::cout << "radius multiplier & pathlength & step: " << (char)path.category() << ' ' << radiusMultiplier
+        //           << '\t' << path.length() << '\t' << step << std::endl;
     }
 
     for (auto s : scratch)
@@ -316,7 +337,9 @@ VanaOwenStateSpace::PathType VanaOwenStateSpace::getPath(const State *state1, co
 
 double VanaOwenStateSpace::distance(const State *state1, const State *state2) const
 {
-    return getPath(state1, state2).length();
+    if (auto path = getPath(state1, state2))
+        return path->length();
+    return getMaximumExtent();
 }
 
 unsigned int VanaOwenStateSpace::validSegmentCount(const State *state1, const State *state2) const
@@ -326,8 +349,11 @@ unsigned int VanaOwenStateSpace::validSegmentCount(const State *state1, const St
 
 void VanaOwenStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
 {
-    auto path = getPath(from, to);
-    interpolate(from, to, t, path, state);
+    if (auto path = getPath(from, to))
+        interpolate(from, to, t, *path, state);
+    else
+        if (from != state)
+            copyState(state, from);
 }
 
 void VanaOwenStateSpace::interpolate(const State *from, const State *to, const double t, PathType &path,
@@ -479,7 +505,7 @@ namespace ompl::base
            << "\n\trv = " << path.verticalRadius_ << "\n\tdeltaZ = " << path.deltaZ_ << "\n\tphi = " << path.phi_
            << "\n\tnumTurns = " << path.numTurns_ << "\n\tstartSZ = ";
         dubinsStateSpace.printState(path.startSZ_, os);
-        os << " ]";
+        os << "]";
         return os;
     }
 }  // namespace ompl::base
@@ -495,6 +521,8 @@ bool ompl::base::VanaOwenMotionValidator::checkMotion(const State *s1, const Sta
                                                       std::pair<State *, double> &lastValid) const
 {
     auto path = stateSpace_->getPath(s1, s2);
+    if (!path)
+        return false;
 
     /* assume motion starts in a valid configuration so s1 is valid */
     bool result = true;
@@ -507,12 +535,12 @@ bool ompl::base::VanaOwenMotionValidator::checkMotion(const State *s1, const Sta
 
         for (int j = 1; j < nd; ++j)
         {
-            stateSpace_->interpolate(s1, s2, (double)j / (double)nd, path, test);
+            stateSpace_->interpolate(s1, s2, (double)j / (double)nd, *path, test);
             if (!si_->isValid(test))
             {
                 lastValid.second = (double)(j - 1) / (double)nd;
                 if (lastValid.first != nullptr)
-                    stateSpace_->interpolate(s1, s2, lastValid.second, path, lastValid.first);
+                    stateSpace_->interpolate(s1, s2, lastValid.second, *path, lastValid.first);
                 result = false;
                 break;
             }
@@ -525,7 +553,7 @@ bool ompl::base::VanaOwenMotionValidator::checkMotion(const State *s1, const Sta
         {
             lastValid.second = (double)(nd - 1) / (double)nd;
             if (lastValid.first != nullptr)
-                stateSpace_->interpolate(s1, s2, lastValid.second, path, lastValid.first);
+                stateSpace_->interpolate(s1, s2, lastValid.second, *path, lastValid.first);
             result = false;
         }
 
@@ -562,7 +590,7 @@ bool ompl::base::VanaOwenMotionValidator::checkMotion(const State *s1, const Sta
             std::pair<int, int> x = pos.front();
 
             int mid = (x.first + x.second) / 2;
-            stateSpace_->interpolate(s1, s2, (double)mid / (double)nd, path, test);
+            stateSpace_->interpolate(s1, s2, (double)mid / (double)nd, *path, test);
 
             if (!si_->isValid(test))
             {

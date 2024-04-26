@@ -166,18 +166,13 @@ template<class Space>
 typename Space::PathType getPath(ob::ScopedState<> const& start, ob::ScopedState<> const& goal)
 {
     auto path = start.getSpace()->as<Space>()->getPath(start.get(), goal.get());
-    if constexpr (std::is_same_v<ob::VanaStateSpace, Space>)
+    if (!path)
     {
-        if (!path)
-        {
-            std::cout << "start: " << toString(start);
-            std::cout << "goal:  " << toString(goal);
-            throw std::runtime_error("Could not find a valid Vana path");
-        }
-        return *path;
+        std::cout << "start: " << toString(start);
+        std::cout << "goal:  " << toString(goal);
+        throw std::runtime_error("Could not find a valid path");
     }
-    else
-        return path;
+    return *path;
 }
 
 template<class Space>
@@ -201,10 +196,10 @@ void savePath(ob::ScopedState<> const& start, ob::ScopedState<> const& goal, std
     if (!pathName.empty())
     {
         std::ofstream outfile(pathName);
-        for (double t = 0.; t <= 1.01; t += .001)
+        for (double t = 0.; t <= 1.001; t += .001)
         {
             space->interpolate(start.get(), goal.get(), t, path, state.get());
-            outfile << toString(state);
+            outfile << t << ' ' << toString(state);
         }
     }
     std::cout << "start: " << toString(start) << "goal: " << toString(goal) << "path: " << path << '\n'; 

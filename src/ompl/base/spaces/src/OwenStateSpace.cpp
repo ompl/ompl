@@ -105,7 +105,7 @@ void OwenStateSpace::registerProjections()
     registerDefaultProjection(std::make_shared<OwenDefaultProjection>(this));
 }
 
-OwenStateSpace::PathType OwenStateSpace::getPath(const State *state1, const State *state2) const
+std::optional<OwenStateSpace::PathType> OwenStateSpace::getPath(const State *state1, const State *state2) const
 {
     auto s1 = state1->as<StateType>();
     auto s2 = state2->as<StateType>();
@@ -114,7 +114,7 @@ OwenStateSpace::PathType OwenStateSpace::getPath(const State *state1, const Stat
     if (std::abs(dz) <= len * tanMaxPitch_)
     {
         // low altitude path
-        return {path, rho_, dz};
+        return PathType{path, rho_, dz};
     }
     else if (std::abs(dz) > (len + twopi * rho_) * tanMaxPitch_)
     {
@@ -128,8 +128,8 @@ OwenStateSpace::PathType OwenStateSpace::getPath(const State *state1, const Stat
         auto result = boost::math::tools::bracket_and_solve_root(radiusFun, radius, 2., true, TOLERANCE, iter);
         radius = .5 * (result.first + result.second);
         assert(std::abs(radiusFun(radius)) < 1e-5);
-        path = dubinsSpace_.dubins(state1, state2, radius);        
-        return {path, radius, dz, k};
+        path = dubinsSpace_.dubins(state1, state2, radius);
+        return PathType{path, radius, dz, k};
     }
 
     // medium altitude path
@@ -148,7 +148,7 @@ OwenStateSpace::PathType OwenStateSpace::getPath(const State *state1, const Stat
             if (std::abs(phiFun(phi)) > 1e-5)
                 throw std::domain_error("fail");
         }
-        catch (std::domain_error& e)
+        catch (...)
         {
             try {
                 std::uintmax_t iter = MAX_ITER;
@@ -156,16 +156,17 @@ OwenStateSpace::PathType OwenStateSpace::getPath(const State *state1, const Stat
                 auto result = boost::math::tools::bracket_and_solve_root(phiFun, phi, 2., true, TOLERANCE, iter);
                 phi = .5 * (result.first + result.second);
             }
-            catch (std::domain_error& e)
+            catch (...)
             {
-                OMPL_ERROR("this shouldn't be happening!");
+                //OMPL_ERROR("this shouldn't be happening!");
+                return {};
             }
         }
         assert(std::abs(phiFun(phi)) < 1e-5);
         turn(state1, rho_, phi, zi);
         path = dubinsSpace_.dubins(zi, state2, rho_);
         dubinsSpace_.freeState(zi);
-        return {path, rho_, dz, phi};
+        return PathType{path, rho_, dz, phi};
     }
 }
 
@@ -181,7 +182,9 @@ void OwenStateSpace::turn(const State* from, double turnRadius, double angle, St
 
 double OwenStateSpace::distance(const State *state1, const State *state2) const
 {
-    return getPath(state1, state2).length();
+    if (auto path = getPath(state1, state2))
+        return path->length();
+    return getMaximumExtent();
 }
 
 unsigned int OwenStateSpace::validSegmentCount(const State *state1, const State *state2) const
@@ -191,8 +194,11 @@ unsigned int OwenStateSpace::validSegmentCount(const State *state1, const State 
 
 void OwenStateSpace::interpolate(const State *from, const State *to, double t, State *state) const
 {
-    auto path = getPath(from, to);
-    interpolate(from, to, t, path, state);
+    if (auto path = getPath(from, to))
+        interpolate(from, to, t, *path, state);
+    else
+        if (from != state)
+            copyState(state, from);
 }
 
 void OwenStateSpace::interpolate(const State *from, const State *to, double t, PathType &path,
@@ -264,15 +270,33 @@ double OwenStateSpace::PathType::length() const
     return std::sqrt(hlen * hlen + deltaZ_ * deltaZ_);
 }
 
+OwenStateSpace::PathCategory OwenStateSpace::PathType::category() const
+{
+    if (phi_ == 0.)
+    {
+        if (numTurns_ == 0)
+            return PathCategory::LOW_ALTITUDE;
+        else
+            return PathCategory::HIGH_ALTITUDE;
+    }
+    else
+    {
+        if (numTurns_ == 0)
+            return PathCategory::MEDIUM_ALTITUDE;
+        else
+            return PathCategory::UNKNOWN;
+    }
+}
+
 namespace ompl::base
 {
     std::ostream &operator<<(std::ostream &os, const OwenStateSpace::PathType &path)
     {
         static const DubinsStateSpace dubinsStateSpace;
 
-        os << "OwenPath[ length = " << path.length() << ", turnRadius=" << path.turnRadius_ << ", deltaZ=" << path.deltaZ_
-           << ", phi=" << path.phi_ << ", numTurns=" << path.numTurns_ << ", path=" << path.path_;
-        os << " ]";
+        os << "OwenPath[ category = " << (char)path.category() << "\n\tlength = " << path.length() << "\n\tturnRadius=" << path.turnRadius_ << "\n\tdeltaZ=" << path.deltaZ_
+           << "\n\tphi=" << path.phi_ << "\n\tnumTurns=" << path.numTurns_ << "\n\tpath=" << path.path_;
+        os << "]";
         return os;
     }
 }  // namespace ompl::base
@@ -288,6 +312,8 @@ bool ompl::base::OwenMotionValidator::checkMotion(const State *s1, const State *
                                                   std::pair<State *, double> &lastValid) const
 {
     auto path = stateSpace_->getPath(s1, s2);
+    if (!path)
+        return false;
 
     /* assume motion starts in a valid configuration so s1 is valid */
     bool result = true;
@@ -300,12 +326,12 @@ bool ompl::base::OwenMotionValidator::checkMotion(const State *s1, const State *
 
         for (int j = 1; j < nd; ++j)
         {
-            stateSpace_->interpolate(s1, s2, (double)j / (double)nd, path, test);
+            stateSpace_->interpolate(s1, s2, (double)j / (double)nd, *path, test);
             if (!si_->isValid(test))
             {
                 lastValid.second = (double)(j - 1) / (double)nd;
                 if (lastValid.first != nullptr)
-                    stateSpace_->interpolate(s1, s2, lastValid.second, path, lastValid.first);
+                    stateSpace_->interpolate(s1, s2, lastValid.second, *path, lastValid.first);
                 result = false;
                 break;
             }
@@ -318,7 +344,7 @@ bool ompl::base::OwenMotionValidator::checkMotion(const State *s1, const State *
         {
             lastValid.second = (double)(nd - 1) / (double)nd;
             if (lastValid.first != nullptr)
-                stateSpace_->interpolate(s1, s2, lastValid.second, path, lastValid.first);
+                stateSpace_->interpolate(s1, s2, lastValid.second, *path, lastValid.first);
             result = false;
         }
 
@@ -336,6 +362,8 @@ bool ompl::base::OwenMotionValidator::checkMotion(const State *s1, const State *
     if (!si_->isValid(s2))
         return false;
     auto path = stateSpace_->getPath(s1, s2);
+    if (!path)
+        return false;
 
     bool result = true;
     int nd = stateSpace_->validSegmentCount(s1, s2);
@@ -355,7 +383,7 @@ bool ompl::base::OwenMotionValidator::checkMotion(const State *s1, const State *
             std::pair<int, int> x = pos.front();
 
             int mid = (x.first + x.second) / 2;
-            stateSpace_->interpolate(s1, s2, (double)mid / (double)nd, path, test);
+            stateSpace_->interpolate(s1, s2, (double)mid / (double)nd, *path, test);
 
             if (!si_->isValid(test))
             {
