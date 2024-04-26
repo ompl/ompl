@@ -292,10 +292,10 @@ namespace ompl::base
     {
         static const DubinsStateSpace dubinsStateSpace;
 
-        os << "VanaPath[ length = " << path.length() << ", XY=" << path.pathXY_ << ", SZ=" << path.pathSZ_
-           << ", rh = " << path.horizontalRadius_ << ", rv = " << path.verticalRadius_ << ", startSZ=";
+        os << "VanaPath[\n\tlength = " << path.length() << "\n\tXY=" << path.pathXY_ << "\n\tSZ=" << path.pathSZ_
+           << "\n\trh = " << path.horizontalRadius_ << "\n\trv = " << path.verticalRadius_ << "\n\tstartSZ=";
         dubinsStateSpace.printState(path.startSZ_, os);
-        os << " ]";
+        os << "]";
         return os;
     }
 }  // namespace ompl::base
