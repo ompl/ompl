@@ -59,6 +59,8 @@ namespace ompl::base
     class OwenStateSpace : public CompoundStateSpace
     {
     public:
+        enum PathCategory : char { LOW_ALTITUDE='L', MEDIUM_ALTITUDE='M', HIGH_ALTITUDE='H', UNKNOWN='?' };
+
         class PathType
         {
         public:
@@ -71,6 +73,8 @@ namespace ompl::base
             {
             }
             double length() const;
+
+            PathCategory category() const;
 
             friend std::ostream &operator<<(std::ostream &os, const PathType &path);
 
@@ -183,7 +187,7 @@ namespace ompl::base
          * \param state2 end state
          * \return a 3D Dubins path if one was found, std::nullopt_t otherwise
          */
-        PathType getPath(const State *state1, const State *state2) const;
+        std::optional<PathType> getPath(const State *state1, const State *state2) const;
 
     protected:
         /**

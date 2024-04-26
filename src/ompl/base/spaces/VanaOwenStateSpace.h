@@ -202,7 +202,7 @@ namespace ompl::base
          * \param state2 end state
          * \return a 3D Dubins path if one was found, std::nullopt_t otherwise
          */
-        PathType getPath(const State *state1, const State *state2) const;
+        std::optional<PathType> getPath(const State *state1, const State *state2) const;
 
         /**
          * \brief Helper function used by getPath
