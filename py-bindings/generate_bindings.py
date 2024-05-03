@@ -245,8 +245,9 @@ class ompl_base_generator_t(code_generator_t):
             try:
                 # create a python type for each of their corresponding state types
                 state = self.ompl_ns.class_('ScopedState< ompl::base::%sStateSpace >' % stype)
-            except:
+            except Exception as e:
                 # ignore errors because of missing Boost.Numpy
+                print(f"Ignoring error due to missing Boost.Numpy: {e}")
                 continue
             state.rename(stype+'State')
             state.operator('=', arg_types=['::ompl::base::State const &']).exclude()
@@ -355,6 +356,7 @@ class ompl_base_generator_t(code_generator_t):
                         try:
                             cls.member_function(method, arg_types=[signature, None]).add_transformation(FT.input(0))
                         except Exception as e:
+                            print(f"Ignoring constraint signature rewrite exception: {e}")
                             pass
 
             cls = self.ompl_ns.class_('Constraint')
@@ -364,9 +366,11 @@ class ompl_base_generator_t(code_generator_t):
                     try:
                         cls.member_function(method, arg_types=[signature]).add_transformation(FT.input(0))
                     except Exception as e:
+                        print(f"Ignoring constraint signature rewrite exception: {e}")
                         pass
 
         except Exception as e:
+            print(f"Ignoring generation exception: {e}")
             pass
 
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now
