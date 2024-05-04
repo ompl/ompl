@@ -94,12 +94,6 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
     base::Goal *goal = pdef_->getGoal().get();
     auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
-    if (goal_s == nullptr)
-    {
-        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
-        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
-    }
-
     Discretization<Motion>::Coord xcoord(projectionEvaluator_->getDimension());
 
     while (const base::State *st = pis_.nextStart())
@@ -138,7 +132,7 @@ ompl::base::PlannerStatus ompl::geometric::KPIECE1::solve(const base::PlannerTer
         assert(existing);
 
         /* sample random state (with goal biasing) */
-        if (rng_.uniform01() < goalBias_ && goal_s->canSample())
+        if ((goal_s != nullptr) && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(xstate);
         else
             sampler_->sampleUniformNear(xstate, existing->state, maxDistance_);
