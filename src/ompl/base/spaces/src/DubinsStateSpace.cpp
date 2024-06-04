@@ -255,7 +255,7 @@ namespace
             double t = mod2pi(-alpha + theta);
             double p = sqrt(std::max(tmp, 0.));
             double q = mod2pi(beta - theta);
-            assert(fabs(p * cos(alpha + t) - sa + sb - d) < 2 * DUBINS_EPS);
+            assert(fabs(p * cos(alpha + t) - sa + sb - d) < (1 + p) * DUBINS_EPS);
             assert(fabs(p * sin(alpha + t) + ca - cb) < (1 + p) * DUBINS_EPS);
             assert(mod2pi(alpha + t + q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
             return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType[0], t, p, q);
@@ -273,7 +273,7 @@ namespace
             double t = mod2pi(alpha - theta);
             double p = sqrt(std::max(tmp, 0.));
             double q = mod2pi(-beta + theta);
-            assert(fabs(p * cos(alpha - t) + sa - sb - d) < 2 * DUBINS_EPS);
+            assert(fabs(p * cos(alpha - t) + sa - sb - d) < (1 + p) * DUBINS_EPS);
             assert(fabs(p * sin(alpha - t) - ca + cb) < (1 + p) * DUBINS_EPS);
             assert(mod2pi(alpha - t - q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
             return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType[1], t, p, q);
@@ -848,8 +848,8 @@ ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(co
 
 ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(const State *state1, const State *state2, double radius)
 {
-    const auto *s1 = static_cast<const StateType *>(state1);
-    const auto *s2 = static_cast<const StateType *>(state2);
+    const auto *s1 = static_cast<const ompl::base::DubinsStateSpace::StateType *>(state1);
+    const auto *s2 = static_cast<const ompl::base::DubinsStateSpace::StateType *>(state2);
     double x1 = s1->getX(), y1 = s1->getY(), th1 = s1->getYaw();
     double x2 = s2->getX(), y2 = s2->getY(), th2 = s2->getYaw();
     double dx = x2 - x1, dy = y2 - y1, d = sqrt(dx * dx + dy * dy) / radius, th = atan2(dy, dx);
