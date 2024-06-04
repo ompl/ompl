@@ -228,7 +228,7 @@ namespace ompl::base
          */
         DubinsStateSpace::StateType *get2DPose(double x, double y, double yaw) const;
 
-        bool isLowAltitude(DubinsStateSpace::DubinsPath const& path, StateType const* state) const;
+        bool isValid(DubinsStateSpace::DubinsPath const& path, StateType const* state) const;
 
         /** Turning radius */
         double rho_;

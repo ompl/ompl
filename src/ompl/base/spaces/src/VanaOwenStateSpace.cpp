@@ -134,7 +134,7 @@ DubinsStateSpace::StateType *VanaOwenStateSpace::get2DPose(double x, double y, d
     return state;
 }
 
-bool VanaOwenStateSpace::isLowAltitude(DubinsStateSpace::DubinsPath const &path, StateType const *state) const
+bool VanaOwenStateSpace::isValid(DubinsStateSpace::DubinsPath const &path, StateType const *state) const
 {
     // in three cases the result is invalid:
     // 1. path of type CCC (i.e., RLR or LRL)
@@ -183,8 +183,9 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
     endSZ->setXY(len, (*to)[2]);
     endSZ->setYaw(to->pitch());
     result.pathSZ_ = dubinsSpace_.dubins(startSZ, endSZ, result.verticalRadius_);
-    if (isLowAltitude(result.pathSZ_, from))
+    if (isValid(result.pathSZ_, from))
     {
+        // low altitude path
         return true;
     }
 
@@ -253,15 +254,13 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
             return (std::abs(phi) + dubinsSpace_.dubins(zi, to).length()) * radius * std::abs(tanPitch) - std::abs(result.deltaZ_);
         };
 
-        //for (double x = -2.; x<=2; x+=.02) phiFun(x);
-
         try
         {
             std::uintmax_t iter = MAX_ITER;
             result.phi_ = 0.1;
             auto root = boost::math::tools::bracket_and_solve_root(phiFun, result.phi_, 2., true, TOLERANCE, iter);
             result.phi_ = .5 * (root.first + root.second);
-            if (std::abs(phiFun(result.phi_)) > 1e-5)
+            if (std::abs(phiFun(result.phi_)) > .01)
                 throw std::domain_error("fail");
         }
         catch (...)
@@ -282,7 +281,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
         result.pathXY_ = dubinsSpace_.dubins(zi, to, radius);
         endSZ->setX((result.pathXY_.length() + result.phi_) * radius);
         result.pathSZ_ = dubinsSpace_.dubins(startSZ, endSZ, result.verticalRadius_);
-        return std::abs(phiFun(result.phi_)) < 1e-5;
+        return std::abs(phiFun(result.phi_)) < .01 && isValid(result.pathSZ_, from);
     }
     return true;
 }
