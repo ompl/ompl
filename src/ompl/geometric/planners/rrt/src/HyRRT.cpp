@@ -85,7 +85,7 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
     // Make sure the planner is configured correctly
     // Ensures that there is at least one input state and a goal object specified
     checkValidity();
-    checkAllParametersSet();
+    checkMandatoryParametersSet();
 
     const unsigned int TF_INDEX = si_->getStateDimension() - 2; // Second to last column
     const unsigned int TJ_INDEX = si_->getStateDimension() - 1; // Last column
@@ -159,11 +159,9 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
                 intermediateStates->push_back(intermediateState);
 
                 // Collision Checking
-                std::vector<double> startPoint = stateToVector(parentMotion->state);
-                std::vector<double> endPoint = stateToVector(intermediateState);
-
-                double ts = startPoint[TF_INDEX];
-                double tf = endPoint[TF_INDEX];
+                double ts = parentMotion->state->as<base::RealVectorStateSpace::StateType>()->values[TF_INDEX];
+                double tf = intermediateState->as<base::RealVectorStateSpace::StateType>()->values[TF_INDEX];
+                // double tf = tFlow;
 
                 collision = collisionChecker_(intermediateStates, jumpSet_, ts, tf, intermediateState, TF_INDEX);
 
@@ -226,14 +224,14 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
 
         // If state is within goal set, construct path
         if (distanceFunc_(newMotion->state, pdef_->getGoal()->as<base::GoalState>()->getState()) <= tolerance_)
-            return constructPath(newMotion);
+            return constructSolution(newMotion);
     }
 
     // Path generation failed
     return base::PlannerStatus::INFEASIBLE; // If failed to find a path within the specified max number of iterations, then path generation has failed
 }
 
-base::PlannerStatus ompl::geometric::HyRRT::constructPath(Motion *last_motion)
+base::PlannerStatus ompl::geometric::HyRRT::constructSolution(Motion *last_motion)
 {
     vector<Motion *> trajectory;
     nn_->list(trajectory);
@@ -255,7 +253,6 @@ base::PlannerStatus ompl::geometric::HyRRT::constructPath(Motion *last_motion)
 
     // Create a new path object to store the solution path
     auto path(std::make_shared<PathGeometric>(si_));
-    trajectoryMatrix_ = {};
 
     // Reserve space for the path states
     path->getStates().reserve(pathSize);
@@ -270,15 +267,14 @@ base::PlannerStatus ompl::geometric::HyRRT::constructPath(Motion *last_motion)
             for (auto state : *(mpath[i]->edge))
             {
                 path->append(state); // Need to make a new motion to append to trajectory matrix
-                trajectoryMatrix_.push_back(state);
             }
         }
     }
-    path->append(mpath[0]->state); // append goal state to the path
-    trajectoryMatrix_.push_back(mpath[0]->state);
 
     // Add the solution path to the problem definition
     pdef_->addSolutionPath(path, finalDistance > 0.0, finalDistance, getName());
+     pdef_->getSolutionPath()->as<ompl::geometric::PathGeometric>()->printAsMatrix(
+      std::cout);
 
     // Return a status indicating that an exact solution has been found
     if (finalDistance > 0.0)

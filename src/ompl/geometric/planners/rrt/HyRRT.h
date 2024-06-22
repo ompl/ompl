@@ -123,12 +123,6 @@ namespace ompl
                 std::vector<base::State *> *edge{nullptr};
             };
 
-            /** \brief Get trajectory matrix from trajectoryMatrix_*/
-            std::vector<base::State *> getTrajectoryMatrix(void) const
-            {
-                return trajectoryMatrix_;
-            }
-
             /** \brief Free the memory allocated by this planner */
             void freeMemory();
 
@@ -331,7 +325,7 @@ namespace ompl
             }
 
             /** \brief Check if all required parameters have been set. */
-            void checkAllParametersSet(void) const
+            void checkMandatoryParametersSet(void) const
             {
                 if (!discreteSimulator_)
                     throw Exception("Jump map not set");
@@ -355,15 +349,6 @@ namespace ompl
                     throw Exception("Min input value (minFlowInputValue) not set");
                 if (!flowStepDuration_)
                     throw Exception("Flow step length (flowStepDuration_) not set");
-            }
-
-            /** \brief Convert states to vector form. */
-            std::vector<double> stateToVector(base::State *state)
-            {
-                std::vector<double> stateVector;
-                for (unsigned int i = 0; i < si_->getStateDimension(); i++)
-                    stateVector.push_back(state->as<base::RealVectorStateSpace::StateType>()->values[i]);
-                return stateVector;
             }
 
         protected:
@@ -429,10 +414,6 @@ namespace ompl
             /** \brief Sample the random motion. */
             void randomSample(Motion *randomMotion);
 
-            /** \brief Used to acquire the trajectory as a C++ vector, to be used for
-             * visualization and other purposes. */
-            std::vector<base::State *> trajectoryMatrix_{nullptr};
-
             /** \brief A nearest-neighbors datastructure containing the tree of motions */
             std::shared_ptr<NearestNeighbors<Motion *>> nn_;
 
@@ -493,7 +474,7 @@ namespace ompl
             RNG *randomSampler_ = new RNG();
 
             /** \brief Construct the path, starting at the last edge. */
-            base::PlannerStatus constructPath(Motion *lastMotion);
+            base::PlannerStatus constructSolution(Motion *lastMotion);
 
             /** \brief Name of input sampling method, default is "uniform" */
             std::vector<double> inputSamplingParameters_{};
