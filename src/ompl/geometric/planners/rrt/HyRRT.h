@@ -67,6 +67,10 @@ namespace ompl
                    is in collision, proceed to jump.
             3. Return the solution.
 
+            IMPORTANT: When initializing a new StateSpace for HyRRT, the user must 
+            add two dimensions, in addition to the number of dimensions required 
+            to represent the state space, to represent the flow and jump time.
+
            @par External documentation: https://ieeexplore.ieee.org/document/9992444
            DOI: [10.1109/CDC51059.2022.9992444]
         */
