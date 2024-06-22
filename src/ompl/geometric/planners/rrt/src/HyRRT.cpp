@@ -165,6 +165,8 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
                 double ts = startPoint[TF_INDEX];
                 double tf = endPoint[TF_INDEX];
 
+                collision = collisionChecker_(intermediateStates, jumpSet_, ts, tf, intermediateState, TF_INDEX);
+
                 // State has passed all tests so update parent, edge, and temporary states
                 si_->copyState(newMotion->state, intermediateState); // Set parent state for next iterations
                 si_->copyState(previousState, intermediateState);
@@ -248,7 +250,6 @@ base::PlannerStatus ompl::geometric::HyRRT::constructPath(Motion *last_motion)
         mpath.push_back(solution);
         if (solution->edge != nullptr)              // A jump motion does not contain an edge
             pathSize += solution->edge->size() + 1; // +1 for the end state
-
         solution = solution->parent;
     }
 
