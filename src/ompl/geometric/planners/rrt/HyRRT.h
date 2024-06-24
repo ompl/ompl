@@ -437,8 +437,6 @@ namespace ompl
              * regarded as a valid final state. Default is .1 */
             double tolerance_{.1};
 
-            double minStepLength = 1e-06;
-
             /** \brief The flow time for a given integration step, within a flow
              * propagation step. Must be set by user */
             double flowStepDuration_;
