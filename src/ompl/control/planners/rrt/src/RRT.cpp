@@ -96,12 +96,6 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
     base::Goal *goal = pdef_->getGoal().get();
     auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
 
-    if (goal_s == nullptr)
-    {
-        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
-        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
-    }
-
     while (const base::State *st = pis_.nextStart())
     {
         auto *motion = new Motion(siC_);
@@ -114,12 +108,6 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
     {
         OMPL_ERROR("%s: There are no valid initial states!", getName().c_str());
         return base::PlannerStatus::INVALID_START;
-    }
-
-    if (!goal_s->couldSample())
-    {
-        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
-        return base::PlannerStatus::INVALID_GOAL;
     }
 
     if (!sampler_)
@@ -138,10 +126,10 @@ ompl::base::PlannerStatus ompl::control::RRT::solve(const base::PlannerTerminati
     Control *rctrl = rmotion->control;
     base::State *xstate = si_->allocState();
 
-    while (!ptc)
+    while (ptc == false)
     {
         /* sample random state (with goal biasing) */
-        if (rng_.uniform01() < goalBias_ && goal_s->canSample())
+        if (goal_s && rng_.uniform01() < goalBias_ && goal_s->canSample())
             goal_s->sampleGoal(rstate);
         else
             sampler_->sampleUniform(rstate);

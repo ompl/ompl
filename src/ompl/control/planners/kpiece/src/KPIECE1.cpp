@@ -214,7 +214,7 @@ ompl::base::PlannerStatus ompl::control::KPIECE1::solve(const base::PlannerTermi
     // samples that were found to be the best, so far
     CloseSamples closeSamples(nCloseSamples_);
 
-    while (!ptc)
+    while (ptc == false)
     {
         tree_.iteration++;
 
