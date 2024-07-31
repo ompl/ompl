@@ -122,16 +122,16 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
         bool in_flow = flowSet_(newMotion->state);
         bool priority = in_jump && in_flow ? random / RAND_MAX > 0.5 : in_jump; // If both are true, equal chance of being in flow or jump set.
 
-        // Sample and instantiate parent vertices and states in edges
+        // Sample and instantiate parent vertices and states in solutionPairs
         auto *parentMotion = nn_->nearest(randomMotion);
         base::State *previousState = si_->allocState();
         si_->copyState(previousState, parentMotion->state);
         auto *collisionParentMotion = nn_->nearest(randomMotion);
 
-        // Allocate memory for the new edge
+        // Allocate memory for the new solutionPair
         std::vector<base::State *> *intermediateStates = new std::vector<base::State *>;
 
-        // Fill the edge with the starting vertex
+        // Fill the solutionPair with the starting vertex
         base::State *parentState = si_->allocState();
         si_->copyState(parentState, previousState);
         intermediateStates->push_back(parentState);
@@ -155,7 +155,7 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
                 if (unsafeSet_(intermediateState))
                     goto nextIteration;
 
-                // Add new intermediate state to edge
+                // Add new intermediate state to solutionPair
                 intermediateStates->push_back(intermediateState);
 
                 // Collision Checking
@@ -165,7 +165,7 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
 
                 collision = collisionChecker_(intermediateStates, jumpSet_, ts, tf, intermediateState, TF_INDEX);
 
-                // State has passed all tests so update parent, edge, and temporary states
+                // State has passed all tests so update parent, solutionPair, and temporary states
                 si_->copyState(newMotion->state, intermediateState); // Set parent state for next iterations
                 si_->copyState(previousState, intermediateState);
 
@@ -179,10 +179,10 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
                     auto *motion = new Motion(si_);
                     si_->copyState(motion->state, intermediateState);
                     motion->parent = parentMotion;
-                    motion->edge = intermediateStates; // Set the new motion edge
+                    motion->solutionPair = intermediateStates; // Set the new motion solutionPair
 
                     if (inGoalSet)
-                        newMotion->edge = intermediateStates;
+                        newMotion->solutionPair = intermediateStates;
                     else if (collision)
                     {
                         collisionParentMotion = motion;
@@ -246,8 +246,8 @@ base::PlannerStatus ompl::geometric::HyRRT::constructSolution(Motion *last_motio
     while (solution != nullptr)
     {
         mpath.push_back(solution);
-        if (solution->edge != nullptr)              // A jump motion does not contain an edge
-            pathSize += solution->edge->size() + 1; // +1 for the end state
+        if (solution->solutionPair != nullptr)              // A jump motion does not contain an solutionPair
+            pathSize += solution->solutionPair->size() + 1; // +1 for the end state
         solution = solution->parent;
     }
 
@@ -262,9 +262,9 @@ base::PlannerStatus ompl::geometric::HyRRT::constructSolution(Motion *last_motio
     {
         // Append all intermediate states to the path, including starting state,
         // excluding end vertex
-        if (mpath[i]->edge != nullptr)
-        { // A jump motion does not contain an edge
-            for (auto state : *(mpath[i]->edge))
+        if (mpath[i]->solutionPair != nullptr)
+        { // A jump motion does not contain an solutionPair
+            for (auto state : *(mpath[i]->solutionPair))
             {
                 path->append(state); // Need to make a new motion to append to trajectory matrix
             }
