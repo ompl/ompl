@@ -42,6 +42,7 @@
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/tools/config/SelfConfig.h"
 
+
 namespace base = ompl::base;
 namespace tools = ompl::tools;
 
@@ -107,8 +108,7 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
     nextIteration:
         randomSample(randomMotion); // Randomly sample a state from the planning space
 
-        auto *newMotion = new Motion(si_);
-        newMotion->parent = nn_->nearest(randomMotion); // Choose the nearest existing vertex in the tree to the randomly selected state
+        auto *solution = new Motion(si_);
 
         // Generate random maximum flow time
         double random = rand();
@@ -117,16 +117,16 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
 
         bool collision = false; // Set collision to false initially
 
-        // Choose whether to begin growing the tree in the flow or jump regime
-        bool in_jump = jumpSet_(newMotion->state);
-        bool in_flow = flowSet_(newMotion->state);
-        bool priority = in_jump && in_flow ? random / RAND_MAX > 0.5 : in_jump; // If both are true, equal chance of being in flow or jump set.
-
         // Sample and instantiate parent vertices and states in solutionPairs
         auto *parentMotion = nn_->nearest(randomMotion);
         base::State *previousState = si_->allocState();
         si_->copyState(previousState, parentMotion->state);
         auto *collisionParentMotion = nn_->nearest(randomMotion);
+        
+        // Choose whether to begin growing the tree in the flow or jump regime
+        bool in_jump = jumpSet_(previousState);
+        bool in_flow = flowSet_(previousState);
+        bool priority = in_jump && in_flow ? random / RAND_MAX > 0.5 : in_jump; // If both are true, equal chance of being in flow or jump set.
 
         // Allocate memory for the new solutionPair
         std::vector<base::State *> *intermediateStates = new std::vector<base::State *>;
@@ -142,7 +142,7 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
             // Randomly sample the flow inputs
             flowInputs = sampleFlowInputs_();
 
-            while (tFlow < randomFlowTimeMax && flowSet_(newMotion->state))
+            while (tFlow < randomFlowTimeMax && flowSet_(previousState))
             {
                 tFlow += flowStepDuration_;
 
@@ -166,11 +166,10 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
                 collision = collisionChecker_(intermediateStates, jumpSet_, ts, tf, intermediateState, TF_INDEX);
 
                 // State has passed all tests so update parent, solutionPair, and temporary states
-                si_->copyState(newMotion->state, intermediateState); // Set parent state for next iterations
                 si_->copyState(previousState, intermediateState);
 
                 // Add motion to tree or handle collision/goal
-                bool inGoalSet = distanceFunc_(newMotion->state, pdef_->getGoal()->as<base::GoalState>()->getState()) <= tolerance_;
+                bool inGoalSet = distanceFunc_(previousState, pdef_->getGoal()->as<base::GoalState>()->getState()) <= tolerance_;
 
                 // If maximum flow time has been reached, a collision has occured, or a solution has been found, exit the loop
                 if (tFlow >= randomFlowTimeMax || collision || inGoalSet)
@@ -182,7 +181,7 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
                     motion->solutionPair = intermediateStates; // Set the new motion solutionPair
 
                     if (inGoalSet)
-                        newMotion->solutionPair = intermediateStates;
+                        solution = motion;
                     else if (collision)
                     {
                         collisionParentMotion = motion;
@@ -202,14 +201,12 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
 
             // Instantiate and find new state with discrete simulator
             base::State *newState = si_->allocState();
-            newState = this->discreteSimulator_(newMotion->state, jumpInputs, newState); // changed from previousState to newMotion->state
+            newState = this->discreteSimulator_(intermediateStates->back(), jumpInputs, newState); // changed from previousState to newMotion->state
             newState->as<base::RealVectorStateSpace::StateType>()->values[TJ_INDEX]++;
 
             // If generated state is in the unsafe set, then continue on to the next iteration
             if (unsafeSet_(newState))
                 goto nextIteration;
-
-            si_->copyState(newMotion->state, newState); // Set parent for next iteration
 
             // Create motion to add to tree
             auto *motion = new Motion(si_);
@@ -219,12 +216,11 @@ base::PlannerStatus ompl::geometric::HyRRT::solve(const base::PlannerTermination
             // Add motions to tree, and free up memory allocated to newState
             nn_->add(motion);
             nn_->add(collisionParentMotion);
-            si_->freeState(newState);
         }
 
         // If state is within goal set, construct path
-        if (distanceFunc_(newMotion->state, pdef_->getGoal()->as<base::GoalState>()->getState()) <= tolerance_)
-            return constructSolution(newMotion);
+        if(distanceFunc_(previousState, pdef_->getGoal()->as<base::GoalState>()->getState()) <= tolerance_)
+            return constructSolution(solution);
     }
 
     // Path generation failed
@@ -268,6 +264,10 @@ base::PlannerStatus ompl::geometric::HyRRT::constructSolution(Motion *last_motio
             {
                 path->append(state); // Need to make a new motion to append to trajectory matrix
             }
+        }
+        else if (i == 0) {  // If a the last element is a jump motion, add it's parent, since it will not be added as part of the solution pair
+            path->append(mpath[i]->parent->state);
+            path->append(mpath[i]->state);
         }
     }
 
