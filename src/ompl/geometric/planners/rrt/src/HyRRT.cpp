@@ -273,8 +273,6 @@ base::PlannerStatus ompl::geometric::HyRRT::constructSolution(Motion *last_motio
 
     // Add the solution path to the problem definition
     pdef_->addSolutionPath(path, finalDistance > 0.0, finalDistance, getName());
-     pdef_->getSolutionPath()->as<ompl::geometric::PathGeometric>()->printAsMatrix(
-      std::cout);
 
     // Return a status indicating that an exact solution has been found
     if (finalDistance > 0.0)
