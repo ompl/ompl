@@ -53,7 +53,7 @@ double ompl::base::SpaceTimeStateSpace::distance(const ompl::base::State *state1
     double deltaSpace = distanceSpace(state1, state2);
     double deltaTime = distanceTime(state1, state2);
 
-    if (deltaSpace / vMax_ > deltaTime + eps_) return std::numeric_limits<double>::infinity();
+    if (std::isinf(deltaTime) || (deltaSpace / vMax_ > deltaTime + eps_)) return std::numeric_limits<double>::infinity();
 
     return weights_[0] * deltaSpace + weights_[1] * deltaTime;
 
@@ -77,6 +77,8 @@ double ompl::base::SpaceTimeStateSpace::distanceSpace(const ompl::base::State *s
 double ompl::base::SpaceTimeStateSpace::distanceTime(const ompl::base::State *state1,
                                                      const ompl::base::State *state2) const
 {
+    if(getStateTime(state1)>getStateTime(state2)) return std::numeric_limits<double>::infinity();
+    
     const auto *cstate1 = static_cast<const CompoundState *>(state1);
     const auto *cstate2 = static_cast<const CompoundState *>(state2);
 

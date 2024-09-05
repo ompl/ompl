@@ -67,7 +67,7 @@ void ompl::geometric::STRRTstar::setup()
     if (!tGoal_)
         tGoal_.reset(new ompl::NearestNeighborsLinear<Motion *>());
     tStart_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
-    tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
+    tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(b, a); });
 
     if (si_->getStateSpace()->as<ompl::base::SpaceTimeStateSpace>()->getTimeComponent()->isBounded())
     {
