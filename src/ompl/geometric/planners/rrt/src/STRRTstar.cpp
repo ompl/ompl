@@ -518,7 +518,14 @@ ompl::geometric::STRRTstar::GrowState ompl::geometric::STRRTstar::growTreeSingle
 
     /* find state to add */
     ompl::base::State *dstate = rmotion->state;
-    double d = si_->distance(nmotion->state, rmotion->state);
+
+    double d = 0;
+    if(tgi.start){
+        d = si_->distance(nmotion->state, rmotion->state);
+    }
+    else{
+        d = si_->distance( rmotion->state,nmotion->state);
+    }
 
     if (d > maxDistance_)
     {
@@ -993,7 +1000,10 @@ bool ompl::geometric::STRRTstar::rewireGoalTree(Motion *addedMotion)
 {
     bool solved = false;
     std::vector<Motion *> nbh;
+    tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
     getNeighbors(tGoal_, addedMotion, nbh);
+    tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(b, a); });
+
     double nodeT =
         addedMotion->state->as<ompl::base::CompoundState>()->as<ompl::base::TimeStateSpace::StateType>(1)->position;
     double goalT =
