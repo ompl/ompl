@@ -524,7 +524,7 @@ ompl::geometric::STRRTstar::GrowState ompl::geometric::STRRTstar::growTreeSingle
         d = si_->distance(nmotion->state, rmotion->state);
     }
     else{
-        d = si_->distance( rmotion->state,nmotion->state);
+        d = si_->distance(rmotion->state, nmotion->state);
     }
 
     if (d > maxDistance_)
