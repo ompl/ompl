@@ -219,7 +219,8 @@ if (OMPL_REGISTRATION)
         file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/.registered" "")
         find_package(Python QUIET)
         if (PYTHON_FOUND)
-            execute_process(COMMAND "${PYTHON_EXEC}" "-m" "webbrowser" "https://ompl.kavrakilab.org/core/register.html"
+            execute_process(COMMAND ${CMAKE_COMMAND} -E env
+               TERM="" "${PYTHON_EXEC}" "-m" "webbrowser" "https://ompl.kavrakilab.org/core/register.html"
                 OUTPUT_QUIET ERROR_QUIET)
         endif()
     endif()
