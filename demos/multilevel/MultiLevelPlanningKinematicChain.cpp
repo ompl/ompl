@@ -65,7 +65,7 @@ PlannerPtr GetQRRT(std::vector<int> sequenceLinks, SpaceInformationPtr si)
     for (unsigned int k = 0; k < sequenceLinks.size(); k++)
     {
         auto links = sequenceLinks.at(k);
-        assert(links < numLinks);
+        assert(static_cast<unsigned int>(links) < numLinks);
 
         OMPL_INFORM("Create MultiLevel Chain with %d links.", links);
         auto spaceK(std::make_shared<KinematicChainSpace>(links, linkLength, &envs.at(links)));

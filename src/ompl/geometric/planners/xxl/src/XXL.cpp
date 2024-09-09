@@ -353,7 +353,7 @@ int ompl::geometric::XXL::addThisState(base::State *state)
 
     // Inserting motion into the list
     motions_.push_back(motion);
-    assert(motion->index == motions_.size() - 1);
+    assert(static_cast<size_t>(motion->index) == motions_.size() - 1);
 
     // Updating sublayer storage with this motion
     Layer *layer = topLayer_;
