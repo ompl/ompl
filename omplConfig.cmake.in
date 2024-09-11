@@ -4,12 +4,33 @@
 # find_package(ompl @OMPL_VERSION_MAJOR@ REQUIRED)
 # add_library(your_app main.cpp)
 # target_link_libraries(your_app PRIVATE ompl::ompl)
+#
+#
 
 @PACKAGE_INIT@
 
+
+# These must be set BEFORE any call to find_package because PACKAGE_PREFIX_DIR gets overwritten by Eigen3.
+# See https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html#command:configure_package_config_file.
+## Deprecated Variables ##
+set(OMPL_FOUND ${@PROJECT_NAME@_FOUND})
+set(OMPL_VERSION @PROJECT_VERSION@)
+set(OMPL_MAJOR_VERSION @PROJECT_VERSION_MAJOR@)
+set(OMPL_MINOR_VERSION @PROJECT_VERSION_MINOR@)
+set(OMPL_PATCH_VERSION @PROJECT_VERSION_PATCH@)
+set_and_check(OMPL_INCLUDE_DIRS @PACKAGE_INCLUDE_INSTALL_DIR@)
+set_and_check(OMPL_LIBRARIES @PACKAGE_LIB_INSTALL_DIR@)
+
 include ("${CMAKE_CURRENT_LIST_DIR}/omplExport.cmake" )
 include(CMakeFindDependencyMacro)
-find_dependency(Boost REQUIRED COMPONENTS serialization filesystem system)
+set(_@PROJECT_NAME@_boost_components serialization filesystem system)
+find_dependency(Boost REQUIRED COMPONENTS ${_@PROJECT_NAME@_boost_components})
+if(Boost_FOUND)
+    foreach(_comp ${_@PROJECT_NAME@_boost_components})
+        get_target_property(_includes Boost::${_comp} INTERFACE_INCLUDE_DIRECTORIES)
+        list(APPEND OMPL_INCLUDE_DIRS ${_includes})
+    endforeach()
+endif()
 find_dependency(Eigen3 REQUIRED)
 
 # Add OMPL's find modules to the search path so consumers can also find them.
@@ -38,3 +59,14 @@ endif()
 if(@OMPL_HAVE_SPOT@) # if(OMPL_HAVE_SPOT)
     find_dependency(spot MODULE QUIET)
 endif()
+
+# Add optional dependent library includes based on their non-portable variable directories (best effort).
+foreach(_dir @FLANN_INCLUDE_DIRS@;@SPOT_INCLUDE_DIRS@;@TRIANGLE_INCLUDE_DIR@;@FCL_INCLUDE_DIRS@;@PQP_INCLUDE_DIR@;@ASSIMP_INCLUDE_DIRS@;@OPENGL_INCLUDE_DIR@)
+    if(_dir)
+        list(APPEND OMPL_INCLUDE_DIRS "${_dir}")
+    endif()
+endforeach()
+list(REMOVE_DUPLICATES OMPL_INCLUDE_DIRS)
+set(OMPL_INCLUDE_DIRS "${OMPL_INCLUDE_DIRS}" CACHE STRING "Include path for OMPL and its dependencies - DEPRECATED")
+
+
