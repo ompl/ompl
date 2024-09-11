@@ -114,6 +114,8 @@ set_package_properties(flann PROPERTIES
 find_package(flann CONFIG 1.9.2 QUIET)
 if (FLANN_FOUND)
     set(OMPL_HAVE_FLANN 1)
+else ()
+    set(OMPL_HAVE_FLANN 0)
 endif()
 
 set_package_properties(spot PROPERTIES
