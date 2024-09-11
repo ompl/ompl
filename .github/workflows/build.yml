@@ -55,7 +55,12 @@ jobs:
         run-test: true
         ctest-options: --output-on-failure
         install-build: true
-
+    - name: Test CMake target linkage to ompl::ompl
+      if: runner.os != 'Windows'
+      run: |
+        cd tests/cmake_export
+        cmake -B build -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install
+        cmake --build build
     - name: Build & Test (Windows)
       if: runner.os == 'Windows'
       uses: ashutoshvarma/action-cmake-build@master
