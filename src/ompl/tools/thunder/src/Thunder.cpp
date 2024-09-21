@@ -116,10 +116,6 @@ void ompl::tools::Thunder::setup()
                     cforest_planner->setNumThreads(cforest_n_threads_);
                     planner = cforest_planner;
                 }
-                else if (counter % 2 == 0)
-                {
-                    planner = std::make_shared<ompl::geometric::InformedRRTstar>(si_);
-                }
                 else
                 {
                     planner = std::make_shared<ompl::geometric::RRTConnect>(si_);
