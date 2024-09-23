@@ -24,12 +24,14 @@ PLAT_TO_CMAKE = {
 # The name must be the _single_ output extension from the CMake build.
 # If you need multiple extensions, see scikit-build.
 class CMakeExtension(Extension):
+
     def __init__(self, name: str, sourcedir: str = "") -> None:
         super().__init__(name, sources=[])
         self.sourcedir = os.fspath(Path(sourcedir).resolve())
 
 
 class CMakeBuild(build_ext):
+
     def build_extension(self, ext: CMakeExtension) -> None:
         # Must be in this form due to bug in .resolve() only fixed in Python 3.10+
         ext_fullpath = Path.cwd() / self.get_ext_fullpath(ext.name)
@@ -38,7 +40,8 @@ class CMakeBuild(build_ext):
         # Using this requires trailing slash for auto-detection & inclusion of
         # auxiliary "native" libs
 
-        debug = int(os.environ.get("DEBUG", 0)) if self.debug is None else self.debug
+        debug = int(os.environ.get("DEBUG",
+                                   0)) if self.debug is None else self.debug
         cfg = "Debug" if debug else "Release"
 
         # CMake lets you override the generator - we need to check this.
@@ -49,6 +52,7 @@ class CMakeBuild(build_ext):
         # EXAMPLE_VERSION_INFO shows you how to pass a value into the C++ code
         # from Python.
         cmake_args = [
+            "-DCMAKE_CXX_COMPILER=/usr/bin/clang++", # Force Clang for castxml
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
             f"-DPYTHON_EXEC={sys.executable}",
             f"-DPYTHON_INCLUDE_DIRS={get_paths()['include']}",
@@ -60,11 +64,14 @@ class CMakeBuild(build_ext):
             "-DOMPL_BUILD_PYTESTS=OFF",
             "-DOMPL_BUILD_TESTS=OFF",
         ]
+        cmake_args += []
         build_args = []
         # Adding CMake arguments set as environment variable
         # (needed e.g. to build for ARM OSx on conda-forge)
         if "CMAKE_ARGS" in os.environ:
-            cmake_args += [item for item in os.environ["CMAKE_ARGS"].split(" ") if item]
+            cmake_args += [
+                item for item in os.environ["CMAKE_ARGS"].split(" ") if item
+            ]
 
         if self.compiler.compiler_type != "msvc":
             # Using Ninja-build since it a) is available as a wheel and b)
@@ -86,7 +93,8 @@ class CMakeBuild(build_ext):
 
         else:
             # Single config generators are handled "normally"
-            single_config = any(x in cmake_generator for x in {"NMake", "Ninja"})
+            single_config = any(x in cmake_generator
+                                for x in {"NMake", "Ninja"})
 
             # CMake allows an arch-in-generator style for backward compatibility
             contains_arch = any(x in cmake_generator for x in {"ARM", "Win64"})
@@ -106,13 +114,17 @@ class CMakeBuild(build_ext):
 
         if sys.platform.startswith("darwin"):
             # TODO: Move these out to configuration
-            cmake_args += ["-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm@16/bin/clang++"]
+            cmake_args += [
+                "-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm@16/bin/clang++"
+            ]
             cmake_args += ["-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0"]
 
             # Cross-compile support for macOS - respect ARCHFLAGS if set
             archs = re.findall(r"-arch (\S+)", os.environ.get("ARCHFLAGS", ""))
             if archs:
-                cmake_args += ["-DCMAKE_OSX_ARCHITECTURES={}".format(";".join(archs))]
+                cmake_args += [
+                    "-DCMAKE_OSX_ARCHITECTURES={}".format(";".join(archs))
+                ]
 
         # Set CMAKE_BUILD_PARALLEL_LEVEL to control the parallel build level
         # across all generators.
@@ -127,13 +139,15 @@ class CMakeBuild(build_ext):
         if not build_temp.exists():
             build_temp.mkdir(parents=True)
 
-        subprocess.run(
-            ["cmake", ext.sourcedir, *cmake_args], cwd=build_temp, check=True
-        )
-        subprocess.run(["ninja", "update_bindings"], cwd=build_temp, check=True)
-        subprocess.run(
-            ["cmake", "--build", ".", *build_args], cwd=build_temp, check=True
-        )
+        subprocess.run(["cmake", ext.sourcedir, *cmake_args],
+                       cwd=build_temp,
+                       check=True)
+        subprocess.run(["ninja", "update_bindings"],
+                       cwd=build_temp,
+                       check=True)
+        subprocess.run(["cmake", "--build", ".", *build_args],
+                       cwd=build_temp,
+                       check=True)
 
         # Shared library files like (for ex.) _util.so must reside as (for ex.)
         # ompl/util/_util.so or else they are placed incorrectly in the final
