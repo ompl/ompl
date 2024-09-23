@@ -108,8 +108,8 @@ class CMakeBuild(build_ext):
         if sys.platform.startswith("darwin"):
             # Search these paths to try to find the clang++ binary.
             potential_clang_paths = [
-                "/usr/local/opt/llvm@16/bin/clang++",
-                "/opt/homebrew/opt/llvm@16/bin/clang++",
+                "/usr/local/opt/llvm@18/bin/clang++",
+                "/opt/homebrew/opt/llvm@18/bin/clang++",
             ]
             clang_bin_path = next(
                 filter(lambda p: Path(p).exists(), potential_clang_paths), None
