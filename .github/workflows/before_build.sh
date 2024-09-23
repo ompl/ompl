@@ -4,7 +4,7 @@ set -eux
 
 # Dependency versions.
 castxml_version="0.6.2" # version specifier for Linux only
-boost_version="1.83.0"
+boost_version="1.86.0"
 
 # Collect some information about the build target.
 build_os="$(uname)"
@@ -20,7 +20,11 @@ install_boost() {
     # multiple on the host system.
     python_include_path=$(python3 -c "from sysconfig import get_paths as gp; print(gp()['include'])")
     echo "using python : ${python_version} : : ${python_include_path} ;" > "$HOME/user-config.jam"
-    pip3 install numpy
+
+    # TODO: As of boost-1.86.0, numpy>=2.0 is not supported.
+    # See: https://github.com/boostorg/python/issues/431
+    pip3 install "numpy<2.0"
+
     ./bootstrap.sh
     sudo ./b2 "${b2_args[@]}" \
         --with-serialization \
