@@ -7,24 +7,8 @@ endif()
 if (CASTXML)
     set(CASTXMLCFLAGS "-std=c++17 -fsized-deallocation $ENV{CASTXMLCFLAGS}")
 
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        set(CASTXMLCOMPILER "g++")
-    else()
-        if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
-            set(CASTXMLCOMPILER "clang++")
-        else()
-            if (MSVC)
-                set(CASTXMLCOMPILER "msvc8")
-            endif()
-        endif()
-    endif()
-
-    # workaround for problem between Xcode and castxml on Mojave
-    # if (APPLE AND CMAKE_CXX_COMPILER MATCHES "/Applications/Xcode.app/Contents/Developer/Toolchains/.*")
-    #     set(CASTXMLCOMPILER_PATH "/usr/bin/clang++")
-    # else()
+    set(CASTXMLCOMPILER "${CMAKE_CXX_COMPILER_ID}")
     set(CASTXMLCOMPILER_PATH "${CMAKE_CXX_COMPILER}")
-        # endif()
 
     set(CASTXMLCONFIG "[xml_generator]
 xml_generator=castxml
@@ -36,8 +20,6 @@ compiler_path=${CASTXMLCOMPILER_PATH}
     set(_candidate_include_path
         "${CMAKE_SOURCE_DIR}/src"
         "${CMAKE_SOURCE_DIR}/ompl/src"
-        "${OMPL_INCLUDE_DIRS}"
-        "${OMPLAPP_INCLUDE_DIRS}"
         "${PYTHON_INCLUDE_DIRS}"
         "${Boost_INCLUDE_DIR}"
         "${ASSIMP_INCLUDE_DIRS}"
