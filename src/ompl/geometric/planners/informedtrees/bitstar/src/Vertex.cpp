@@ -40,6 +40,9 @@
 // For std::move
 #include <utility>
 
+// For std::once_flag
+#include <mutex>
+
 // For exceptions:
 #include "ompl/util/Exception.h"
 
