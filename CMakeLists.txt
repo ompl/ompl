@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.12)
 project(ompl VERSION 1.6.0 LANGUAGES CXX)
 set(OMPL_ABI_VERSION 17)
 
+# Use the FindBoost provided by CMake, rather than the one provided by Boost
+# (for CMake >=3.30).
+if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.30")
+    cmake_policy(SET CMP0167 OLD)
+endif()
+
 # set the default build type
 if (NOT CMAKE_BUILD_TYPE)
     # By default, use Release mode

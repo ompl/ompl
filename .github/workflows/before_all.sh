@@ -22,5 +22,5 @@ elif [ "${build_os}" == "Darwin" ]; then
         eigen \
         pypy3 \
         castxml \
-        llvm@16
+        llvm@18
 fi

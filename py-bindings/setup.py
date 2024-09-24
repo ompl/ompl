@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 import site
+import shutil
 from pathlib import Path
 from sysconfig import get_paths
 
@@ -49,6 +50,7 @@ class CMakeBuild(build_ext):
         # EXAMPLE_VERSION_INFO shows you how to pass a value into the C++ code
         # from Python.
         cmake_args = [
+            f"-DCMAKE_CXX_COMPILER={shutil.which('clang++')}",  # Force Clang for castxml
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
             f"-DPYTHON_EXEC={sys.executable}",
             f"-DPYTHON_INCLUDE_DIRS={get_paths()['include']}",
@@ -105,8 +107,7 @@ class CMakeBuild(build_ext):
                 build_args += ["--config", cfg]
 
         if sys.platform.startswith("darwin"):
-            # TODO: Move these out to configuration
-            cmake_args += ["-DCMAKE_CXX_COMPILER=/usr/local/opt/llvm@16/bin/clang++"]
+            # TODO: Move this out to configuration
             cmake_args += ["-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0"]
 
             # Cross-compile support for macOS - respect ARCHFLAGS if set
