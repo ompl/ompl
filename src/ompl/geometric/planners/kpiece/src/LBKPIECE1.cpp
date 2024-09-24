@@ -113,7 +113,6 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
     base::State *xstate = si_->allocState();
     bool startTree = true;
     bool solved = false;
-    base::PlannerStatus::StatusType status = base::PlannerStatus::TIMEOUT;
 
     while (!ptc)
     {
@@ -138,7 +137,6 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
             if (dGoal_.getMotionCount() == 0)
             {
                 OMPL_ERROR("%s: Unable to sample any valid states for goal tree", getName().c_str());
-                status = base::PlannerStatus::INVALID_GOAL;
                 break;
             }
         }
@@ -224,7 +222,7 @@ ompl::base::PlannerStatus ompl::geometric::LBKPIECE1::solve(const base::PlannerT
                 dGoal_.getMotionCount(), dStart_.getCellCount() + dGoal_.getCellCount(), dStart_.getCellCount(),
                 dStart_.getGrid().countExternal(), dGoal_.getCellCount(), dGoal_.getGrid().countExternal());
 
-    return solved ? base::PlannerStatus::EXACT_SOLUTION : status;
+    return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 bool ompl::geometric::LBKPIECE1::isPathValid(Discretization<Motion> &disc, Motion *motion, base::State *temp)
