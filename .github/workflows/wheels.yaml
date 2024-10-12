@@ -23,7 +23,7 @@ jobs:
           submodules: 'recursive'
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.17.0
+        uses: pypa/cibuildwheel@v2.21.3
         with:
           package-dir: py-bindings
         env:
@@ -54,7 +54,7 @@ jobs:
           merge-multiple: true
 
       - name: GitHub release
-        uses: ncipollo/release-action@v1.12.0
+        uses: ncipollo/release-action@v1.14.0
         with:
           prerelease: true
           tag: "prerelease"
