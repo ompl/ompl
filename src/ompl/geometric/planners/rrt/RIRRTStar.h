@@ -34,162 +34,32 @@
 
 /* Author: Vrushabh Zinage */
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_RIRRTSTAR_
-#define OMPL_GEOMETRIC_PLANNERS_RIRRTSTAR_
-
-#include <ompl/geometric/planners/PlannerIncludes.h>
-#include <ompl/base/OptimizationObjective.h>
-#include <ompl/datastructures/NearestNeighbors.h>
-#include <Eigen/Dense>
-#include <mutex>
-#include <vector>
-#include <ompl/base/spaces/RealVectorStateSpace.h> // Include RealVectorStateSpace
-
-namespace ompl
-{
-    namespace geometric
-    {
-        /** \brief Risk-Informed RRT* (RIRRTStar) planner */
-        class RIRRTStar : public base::Planner
-        {
-        public:
-            /** \brief Constructor */
-            RIRRTStar(const base::SpaceInformationPtr &si, int dimension, double alpha, const Eigen::MatrixXd &W);
-
-            ~RIRRTStar() override;
-
-            /** \brief Set the goal bias (probability of sampling the goal) */
-            void setGoalBias(double goalBias) { goalBias_ = goalBias; }
-
-            /** \brief Get the goal bias */
-            double getGoalBias() const { return goalBias_; }
-
-            /** \brief Set the range distance for extending the tree */
-            void setRange(double range) { maxDistance_ = range; }
-
-            /** \brief Get the range distance */
-            double getRange() const { return maxDistance_; }
-
-            /** \brief Clear the planner's data structures */
-            void clear() override;
-
-            /** \brief Solve the planning problem */
-            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
-
-            /** \brief Setup the planner */
-            void setup() override;
-
-            /** \brief Set the problem definition */
-            void setProblemDefinition(const base::ProblemDefinitionPtr &pdef) override;
-
-        protected:
-            /** \brief Represents a node in the tree */
-            class Motion
-            {
-            public:
-                /** \brief Constructor */
-                Motion(const base::SpaceInformationPtr &si);
-
-                /** \brief The state contained by the motion */
-                base::State *state;
-
-                /** \brief The parent motion */
-                Motion *parent;
-
-                /** \brief The set of child motions */
-                std::vector<Motion *> children;
-
-                /** \brief The cost to reach this motion */
-                base::Cost cost;
-
-                /** \brief The cost of the parent to this motion */
-                base::Cost incCost;
-            };
-
-            /** \brief Free the memory allocated by this planner */
-            void freeMemory();
-
-            /** \brief Add a motion to the tree */
-            void addMotion(Motion *motion);
-
-            /** \brief Calculate the neighborhood radius */
-            double calculateRadius() const;
-
-            /** \brief State sampler */
-            base::ValidStateSamplerPtr sampler_;
-
-            /** \brief Nearest neighbor data structure */
-            std::shared_ptr<NearestNeighbors<Motion *>> nn_;
-
-            /** \brief The optimization objective */
-            base::OptimizationObjectivePtr opt_;
-
-            /** \brief Goal bias */
-            double goalBias_;
-
-            /** \brief Maximum distance between states */
-            double maxDistance_;
-
-            /** \brief Number of dimensions */
-            int d_;
-
-            /** \brief Alpha parameter for the cost function */
-            double alpha_;
-
-            /** \brief W matrix for the cost function */
-            Eigen::MatrixXd W_;
-
-            /** \brief The best cost found so far */
-            base::Cost bestCost_;
-
-            /** \brief Random number generator */
-            ompl::RNG rng_;
-
-            /** \brief Mutex for thread safety */
-            std::mutex treeMutex_;
-
-            /** \brief Collision checking flag */
-            bool collisionCheck_;
-
-            /** \brief State validity checker */
-            base::StateValidityCheckerPtr validityChecker_;
-
-            /** \brief Motion validator */
-            base::MotionValidatorPtr motionValidator_;
-
-            /** \brief Helper functions */
-            void extractState(const base::State *state, Eigen::VectorXd &x, Eigen::MatrixXd &P) const;
-            double computeCost(const base::State *s1, const base::State *s2) const;
-            bool isStateValid(const base::State *state) const;
-            bool checkMotion(const base::State *s1, const base::State *s2) const;
-        };
-    } // namespace geometric
-} // namespace ompl
-
-#endif // OMPL_GEOMETRIC_PLANNERS_RIRRTSTAR_
 // RIRRTStar.h
 
-#ifndef OMPL_GEOMETRIC_PLANNERS_RIRRTSTAR_
-#define OMPL_GEOMETRIC_PLANNERS_RIRRTSTAR_
+#ifndef OMPL_GEOMETRIC_PLANNERS_RIRRTSTAR_H
+#define OMPL_GEOMETRIC_PLANNERS_RIRRTSTAR_H
 
 #include <ompl/geometric/planners/PlannerIncludes.h>
 #include <ompl/base/OptimizationObjective.h>
 #include <ompl/datastructures/NearestNeighbors.h>
 #include <Eigen/Dense>
-#include <mutex>
 #include <vector>
-#include <ompl/base/spaces/RealVectorStateSpace.h> // Include RealVectorStateSpace
+#include <mutex>
+
+// Namespace shortcuts
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
 
 namespace ompl
 {
     namespace geometric
     {
-        /** \brief Risk-Informed RRT* (RIRRTStar) planner */
-        class RIRRTStar : public base::Planner
+        /** \brief Rationally Inattentive RRT* (RIRRTStar) planner */
+        class RIRRTStar : public ob::Planner
         {
         public:
             /** \brief Constructor */
-            RIRRTStar(const base::SpaceInformationPtr &si, int dimension, double alpha, const Eigen::MatrixXd &W);
+            RIRRTStar(const ob::SpaceInformationPtr &si, int dimension, double alpha, const Eigen::MatrixXd &W);
 
             ~RIRRTStar() override;
 
@@ -209,13 +79,10 @@ namespace ompl
             void clear() override;
 
             /** \brief Solve the planning problem */
-            base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
+            ob::PlannerStatus solve(const ob::PlannerTerminationCondition &ptc) override;
 
             /** \brief Setup the planner */
             void setup() override;
-
-            /** \brief Set the problem definition */
-            void setProblemDefinition(const base::ProblemDefinitionPtr &pdef) override;
 
         protected:
             /** \brief Represents a node in the tree */
@@ -223,10 +90,10 @@ namespace ompl
             {
             public:
                 /** \brief Constructor */
-                Motion(const base::SpaceInformationPtr &si);
+                Motion(const ob::SpaceInformationPtr &si);
 
                 /** \brief The state contained by the motion */
-                base::State *state;
+                ob::State *state;
 
                 /** \brief The parent motion */
                 Motion *parent;
@@ -235,10 +102,10 @@ namespace ompl
                 std::vector<Motion *> children;
 
                 /** \brief The cost to reach this motion */
-                base::Cost cost;
+                ob::Cost cost;
 
-                /** \brief The cost of the parent to this motion */
-                base::Cost incCost;
+                /** \brief The incremental cost from the parent to this motion */
+                ob::Cost incCost;
             };
 
             /** \brief Free the memory allocated by this planner */
@@ -247,17 +114,14 @@ namespace ompl
             /** \brief Add a motion to the tree */
             void addMotion(Motion *motion);
 
-            /** \brief Calculate the neighborhood radius */
-            double calculateRadius() const;
-
             /** \brief State sampler */
-            base::ValidStateSamplerPtr sampler_;
+            ob::ValidStateSamplerPtr sampler_;
 
             /** \brief Nearest neighbor data structure */
-            std::shared_ptr<NearestNeighbors<Motion *>> nn_;
+            std::shared_ptr<ompl::NearestNeighbors<Motion *>> nn_;
 
             /** \brief The optimization objective */
-            base::OptimizationObjectivePtr opt_;
+            ob::OptimizationObjectivePtr opt_;
 
             /** \brief Goal bias */
             double goalBias_;
@@ -275,7 +139,7 @@ namespace ompl
             Eigen::MatrixXd W_;
 
             /** \brief The best cost found so far */
-            base::Cost bestCost_;
+            ob::Cost bestCost_;
 
             /** \brief Random number generator */
             ompl::RNG rng_;
@@ -287,19 +151,19 @@ namespace ompl
             bool collisionCheck_;
 
             /** \brief State validity checker */
-            base::StateValidityCheckerPtr validityChecker_;
+            ob::StateValidityCheckerPtr validityChecker_;
 
             /** \brief Motion validator */
-            base::MotionValidatorPtr motionValidator_;
+            ob::MotionValidatorPtr motionValidator_;
 
             /** \brief Helper functions */
-            void extractState(const base::State *state, Eigen::VectorXd &x, Eigen::MatrixXd &P) const;
-            double computeCost(const base::State *s1, const base::State *s2) const;
-            bool isStateValid(const base::State *state) const;
-            bool checkMotion(const base::State *s1, const base::State *s2) const;
+            void extractState(const ob::State *state, Eigen::VectorXd &x, Eigen::MatrixXd &P) const;
+            double computeCost(const ob::State *s1, const ob::State *s2) const;
+            bool isStateValid(const ob::State *state) const;
+            bool checkMotion(const ob::State *s1, const ob::State *s2) const;
         };
     } // namespace geometric
 } // namespace ompl
 
-#endif // OMPL_GEOMETRIC_PLANNERS_RIRRTSTAR_
+#endif // OMPL_GEOMETRIC_PLANNERS_RIRRTSTAR_H
 
