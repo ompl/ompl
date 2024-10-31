@@ -338,7 +338,8 @@ namespace ompl
                         ++numSampledStates_;
 
                         // Check if the sample is valid.
-                        foundValidSample = spaceInformation_->getStateValidityChecker()->isValid(newSamples_.back()->getState());
+                        foundValidSample =
+                            spaceInformation_->getStateValidityChecker()->isValid(newSamples_.back()->getState());
                     } while (!foundValidSample && !terminationCondition);
 
                     // The sample can be invalid if the termination condition is met.
