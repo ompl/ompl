@@ -267,8 +267,7 @@ namespace ompl
                     // Allocate a state sampler if we have at least one start and one goal.
                     if (!startVertices_.empty() && !goalVertices_.empty())
                     {
-                        sampler_ = objective_->allocInformedStateSampler(problemDefinition_,
-                                                                         std::numeric_limits<unsigned int>::max());
+                        sampler_ = objective_->allocInformedStateSampler(problemDefinition_, 100u);
                     }
                 }
 
