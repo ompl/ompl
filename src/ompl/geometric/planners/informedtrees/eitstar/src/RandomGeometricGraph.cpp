@@ -314,7 +314,7 @@ namespace ompl
                     if (!startStates_.empty() && !goalStates_.empty())
                     {
                         sampler_ =
-                            objective_->allocInformedStateSampler(problem_, std::numeric_limits<unsigned int>::max());
+                            objective_->allocInformedStateSampler(problem_, 100u);
                     }
                 }
 
