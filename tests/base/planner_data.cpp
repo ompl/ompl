@@ -523,8 +523,8 @@ BOOST_AUTO_TEST_CASE(Serialization)
 
     base::PlannerData data2(si);
     base::PlannerDataStorage storage;
-    storage.store(data, "testdata");
-    storage.load("testdata", data2);
+    storage.store(data, "testdata-base");
+    storage.load("testdata-base", data2);
 
     // Verify that data == data2
     BOOST_CHECK_EQUAL ( data2.numVertices(), states.size() );
