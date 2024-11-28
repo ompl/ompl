@@ -37,6 +37,7 @@
 #include "ompl/util/RandomNumbers.h"
 #include "ompl/util/Exception.h"
 #include "ompl/util/Console.h"
+#include <chrono>
 #include <mutex>
 #include <memory>
 #include <boost/math/constants/constants.hpp>
