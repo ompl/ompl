@@ -10,6 +10,7 @@
     <li class="nav-item"><a class="nav-link" id="linux-tab" data-toggle="pill" href="#linux" role="tab" aria-controls="linux" aria-selected="false">Linux (generic)</a></li>
     <li class="nav-item"><a class="nav-link" id="osx-tab" data-toggle="pill" href="#osx" role="tab" aria-controls="macos" aria-selected="false">macOS</a></li>
     <li class="nav-item"><a class="nav-link" id="windows-tab" data-toggle="pill" href="#windows" role="tab" aria-controls="windows" aria-selected="false">MS Windows</a></li>
+    <li class="nav-item"><a class="nav-link" id="cmake-fetch-tab" data-toggle="pill" href="#cmakefetch" role="tab" aria-controls="cmakefetch" aria-selected="false">CMake Fetchcontent</a></li>
   </ul>
 </div>
 
@@ -111,6 +112,22 @@ cmake ../..</pre></li>
     It is recommended to use <a href="https://vcpkg.readthedocs.io/en/latest/">vcpkg</a>, a Microsoft-supported package manager for open source software. Once you have vcpkg installed, you can install OMPL like so:
     <pre class="fragment">vcpkg install ompl</pre>
     Note that the vcpkg installation does not include Python bindings.
+  </div>
+  <!-- CMake Fetchcontent -->
+  <div class="tab-pane fade" id="cmakefetch" role="tabpanel" aria-labelledby="cmake-fetch-tab">
+    <h2>CMake Fetchcontent</h2>
+    If you want to build ompl from source as part of another repository, FetchContent is one approach. In CMake, you can fetch and link like so:
+    <pre class="fragment">
+include(FetchContent)
+FetchContent_Declare(
+  ompl
+  GIT_REPOSITORY https://github.com/ompl/ompl.git
+)
+FetchContent_MakeAvailable(ompl)
+
+add_executable(main main.cpp)
+target_link_libraries(main PRIVATE ompl::ompl)
+    </pre>
   </div>
 </div>
 \endhtmlonly

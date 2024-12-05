@@ -37,7 +37,6 @@
 #ifndef OMPL_TOOLS_SELF_CONFIG_
 #define OMPL_TOOLS_SELF_CONFIG_
 
-#include "ompl/config.h"
 #include "ompl/base/Goal.h"
 #include "ompl/base/Planner.h"
 #include "ompl/base/SpaceInformation.h"
