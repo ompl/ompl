@@ -33,7 +33,8 @@
  *********************************************************************/
 
 /* Authors: Beverly Xu */
-/* Adapted from: ompl/geometric/planners/src/SST.cpp by  Zakary Littlefield of Rutgers the State University of New Jersey, New Brunswick */
+/* Adapted from: ompl/geometric/planners/src/SST.cpp by  Zakary Littlefield of Rutgers the State University of New
+ * Jersey, New Brunswick */
 
 #include "ompl/geometric/planners/sst/HySST.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
@@ -43,7 +44,8 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include <limits>
-#include <ompl/base/goals/GoalState.h>
+#include "ompl/base/goals/GoalState.h"
+#include "ompl/control/spaces/RealVectorControlSpace.h"
 
 ompl::geometric::HySST::HySST(const base::SpaceInformationPtr &si) : base::Planner(si, "HySST")
 {
@@ -51,8 +53,7 @@ ompl::geometric::HySST::HySST(const base::SpaceInformationPtr &si) : base::Plann
     specs_.directed = true;
     prevSolution_.clear();
 
-    addPlannerProgressProperty("best cost REAL", [this]
-                               { return std::to_string(this->prevSolutionCost_.value()); });
+    addPlannerProgressProperty("best cost REAL", [this] { return std::to_string(this->prevSolutionCost_.value()); });
 }
 
 ompl::geometric::HySST::~HySST()
@@ -142,12 +143,13 @@ void ompl::geometric::HySST::freeMemory()
 
 ompl::geometric::HySST::Motion *ompl::geometric::HySST::selectNode(ompl::geometric::HySST::Motion *sample)
 {
-    std::vector<Motion *> ret; // List of all nodes within the selection radius
+    std::vector<Motion *> ret;  // List of all nodes within the selection radius
     Motion *selected = nullptr;
     base::Cost bestCost = opt_->infiniteCost();
-    nn_->nearestR(sample, selectionRadius_, ret); // Find the nearest nodes within the selection radius of the random sample
+    nn_->nearestR(sample, selectionRadius_,
+                  ret);  // Find the nearest nodes within the selection radius of the random sample
 
-    for (auto &i : ret) // Find the active node with the best cost within the selection radius
+    for (auto &i : ret)  // Find the active node with the best cost within the selection radius
     {
         if (!i->inactive_ && opt_->isCostBetterThan(i->accCost_, bestCost))
         {
@@ -155,16 +157,18 @@ ompl::geometric::HySST::Motion *ompl::geometric::HySST::selectNode(ompl::geometr
             selected = i;
         }
     }
-    if (selected == nullptr) // However, if there are no active nodes within the selection radius, select the next nearest node
+    if (selected == nullptr)  // However, if there are no active nodes within the selection radius, select the next
+                              // nearest node
     {
         int k = 1;
         while (selected == nullptr)
         {
-            nn_->nearestK(sample, k, ret);                                       // sample the k nearest nodes to the random sample into ret
-            for (unsigned int i = 0; i < ret.size() && selected == nullptr; i++) // Find the active node with the best cost
+            nn_->nearestK(sample, k, ret);  // sample the k nearest nodes to the random sample into ret
+            for (unsigned int i = 0; i < ret.size() && selected == nullptr;
+                 i++)  // Find the active node with the best cost
                 if (!ret[i]->inactive_)
                     selected = ret[i];
-            k += 5; // If none found, increase the number of nearest nodes to sample
+            k += 5;  // If none found, increase the number of nearest nodes to sample
         }
     }
     return selected;
@@ -175,7 +179,9 @@ ompl::geometric::HySST::Witness *ompl::geometric::HySST::findClosestWitness(ompl
     if (witnesses_->size() > 0)
     {
         auto *closest = static_cast<Witness *>(witnesses_->nearest(node));
-        if (distanceFunc_(closest->state, node->state) > pruningRadius_) // If the closest witness is outside the pruning radius, return a new witness at the same point as the node.
+        if (distanceFunc_(closest->state, node->state) > pruningRadius_)  // If the closest witness is outside the
+                                                                          // pruning radius, return a new witness at the
+                                                                          // same point as the node.
         {
             closest = new Witness(si_);
             closest->linkRep(node);
@@ -194,31 +200,41 @@ ompl::geometric::HySST::Witness *ompl::geometric::HySST::findClosestWitness(ompl
     }
 }
 
-std::vector<ompl::geometric::HySST::Motion *> ompl::geometric::HySST::extend(Motion *parentMotion, base::Goal *goalState)
+std::vector<ompl::geometric::HySST::Motion *> ompl::geometric::HySST::extend(Motion *parentMotion,
+                                                                             base::Goal *goalState)
 {
+    // Initialize control inputs
+    control::RealVectorControlSpace *controlSpace_ = new control::RealVectorControlSpace(
+        si_->getStateSpace(),
+        minJumpInputValue_.size() > minFlowInputValue_.size() ? minJumpInputValue_.size() : minFlowInputValue_.size());
+    int numInputs =
+        minFlowInputValue_.size() > minJumpInputValue_.size() ? minFlowInputValue_.size() : minJumpInputValue_.size();
+
+    // Initialize hybrid times for solution pair
+    std::pair<double, int> hybridTimeInitial = parentMotion->hybridTime->back();
+    std::vector<std::pair<double, int>> *hybridTimes = new std::vector<std::pair<double, int>>();
+
     // Vectors for storing flow and jump inputs
     std::vector<double> flowInputs;
     std::vector<double> jumpInputs;
 
-    const unsigned int TF_INDEX = si_->getStateDimension() - 2; // Second to last column
-    const unsigned int TJ_INDEX = si_->getStateDimension() - 1; // Last column
-
     // Generate random maximum flow time
     double random = rand();
     double randomFlowTimeMax = random / RAND_MAX * tM_;
-    double tFlow = 0; // Tracking variable for the amount of flow time used in a given continuous simulation step
+    double tFlow = 0;  // Tracking variable for the amount of flow time used in a given continuous simulation step
 
-    bool collision = false; // Set collision to false initially
+    bool collision = false;  // Set collision to false initially
 
     // Choose whether to begin growing the tree in the flow or jump regime
-    bool in_jump = jumpSet_(parentMotion->state);
-    bool in_flow = flowSet_(parentMotion->state);
-    bool priority = in_jump && in_flow ? random / RAND_MAX > 0.5 : in_jump; // If both are true, equal chance of being in flow or jump set.
+    bool in_jump = jumpSet_(parentMotion);
+    bool in_flow = flowSet_(parentMotion);
+    bool priority = in_jump && in_flow ? random / RAND_MAX > 0.5 :
+                                         in_jump;  // If both are true, equal chance of being in flow or jump set.
 
     // Sample and instantiate parent vertices and states in edges
     base::State *previousState = si_->allocState();
     si_->copyState(previousState, parentMotion->state);
-    auto *collisionParentMotion = parentMotion; // used to point to nn_->nearest(randomMotion);
+    auto *collisionParentMotion = parentMotion;  // used to point to nn_->nearest(randomMotion);
 
     // Allocate memory for the new edge
     std::vector<base::State *> *intermediateStates = new std::vector<base::State *>;
@@ -226,35 +242,52 @@ std::vector<ompl::geometric::HySST::Motion *> ompl::geometric::HySST::extend(Mot
     // Fill the edge with the starting vertex
     base::State *parentState = si_->allocState();
     si_->copyState(parentState, previousState);
-    intermediateStates->push_back(parentState);
 
     // Simulate in either the jump or flow regime
     if (!priority)
-    { // Flow
+    {  // Flow
         // Randomly sample the flow inputs
         flowInputs = sampleFlowInputs_();
+        control::Control *flowInput = controlSpace_->allocControl();
+        for (int i = 0; i < flowInputs.size(); i++)
+            flowInput->as<control::RealVectorControlSpace::ControlType>()->values[i] = flowInputs[i];
 
-        while (tFlow < randomFlowTimeMax && flowSet_(parentMotion->state))
+        while (tFlow < randomFlowTimeMax && flowSet_(parentMotion))
         {
             tFlow += flowStepDuration_;
+            hybridTimes->push_back(std::pair<double, int>(tFlow + hybridTimeInitial.first, hybridTimeInitial.second));
 
             // Find new state with continuous simulation
             base::State *intermediateState = si_->allocState();
-            intermediateState = this->continuousSimulator_(flowInputs, previousState, flowStepDuration_, intermediateState);
-            intermediateState->as<base::RealVectorStateSpace::StateType>()->values[TF_INDEX] += flowStepDuration_;
-
-            // Return nullptr if in unsafe set and exit function
-            if (unsafeSet_(intermediateState))
-                return std::vector<Motion *>(); // Return empty vector
+            intermediateState =
+                this->continuousSimulator_(flowInputs, previousState, flowStepDuration_, intermediateState);
 
             // Add new intermediate state to edge
             intermediateStates->push_back(intermediateState);
 
             // Collision Checking
-            double ts = parentMotion->state->as<base::RealVectorStateSpace::StateType>()->values[TF_INDEX];
-            double tf = intermediateState->as<base::RealVectorStateSpace::StateType>()->values[TF_INDEX];
+            double ts = hybridTimeInitial.first;
+            double tf = hybridTimeInitial.first + tFlow;
 
-            collision = collisionChecker_(intermediateStates, jumpSet_, ts, tf, intermediateState, TF_INDEX);
+            // Create motion to add to tree
+            auto *motion = new Motion(si_);
+            si_->copyState(motion->state, intermediateState);
+            motion->parent = parentMotion;
+            motion->solutionPair = intermediateStates;  // Set the new motion solutionPair
+            motion->hybridTime = hybridTimes;
+            for (int i = 0; i < intermediateStates->size(); i++)
+                motion->inputs->push_back(flowInput);
+
+            // Return nullptr if in unsafe set and exit function
+            if (unsafeSet_(motion))
+                return std::vector<Motion *>();  // Return empty vector
+
+            double *collisionTime = new double(-1.0);
+            collision = collisionChecker_(motion, jumpSet_, ts, tf, intermediateState, collisionTime);
+
+            if (*collisionTime != -1.0)
+                hybridTimes->back().first = *collisionTime;
+
             // State has passed all tests so update parent, edge, and temporary states
             si_->copyState(previousState, intermediateState);
 
@@ -262,14 +295,11 @@ std::vector<ompl::geometric::HySST::Motion *> ompl::geometric::HySST::extend(Mot
             dist_ = distanceFunc_(intermediateState, goalState->as<base::GoalState>()->getState());
             bool inGoalSet = dist_ <= tolerance_;
 
-            // If maximum flow time has been reached, a collision has occured, or a solution has been found, exit the loop
+            // If maximum flow time has been reached, a collision has occured, or a solution has been found, exit the
+            // loop
             if (tFlow >= randomFlowTimeMax || collision || inGoalSet)
             {
-                // Create motion to add to tree
-                auto *motion = new Motion(si_);
-                si_->copyState(motion->state, intermediateState);
-                motion->parent = parentMotion;
-                motion->solutionPair = intermediateStates; // Set the new motion edge
+                hybridTimeInitial.first = hybridTimes->back().first;
 
                 if (inGoalSet)
                 {
@@ -278,34 +308,41 @@ std::vector<ompl::geometric::HySST::Motion *> ompl::geometric::HySST::extend(Mot
                 else if (collision)
                 {
                     collisionParentMotion = motion;
-                    priority = true; // If collision has occurred, continue to jump regime
+                    priority = true;  // If collision has occurred, continue to jump regime
                 }
                 else
-                    return std::vector<Motion *>{motion}; // Return the motion in vector form
+                    return std::vector<Motion *>{motion};  // Return the motion in vector form
                 break;
             }
         }
     }
 
     if (priority)
-    { // Jump
+    {  // Jump
         // Randomly sample the jump inputs
         jumpInputs = sampleJumpInputs_();
+
+        control::Control *jumpInput = controlSpace_->allocControl();
+        for (int i = 0; i < jumpInputs.size(); i++)
+        {
+            jumpInput->as<control::RealVectorControlSpace::ControlType>()->values[i] = jumpInputs[i];
+        }
 
         // Instantiate and find new state with discrete simulator
         base::State *newState = si_->allocState();
 
-        newState = this->discreteSimulator_(intermediateStates->back(), jumpInputs, newState); // changed from previousState to newMotion->state
-        newState->as<base::RealVectorStateSpace::StateType>()->values[TJ_INDEX]++;
-
-        // Return nullptr if in unsafe set and exit function
-        if (unsafeSet_(newState))
-            return std::vector<Motion *>(); // Return empty vector
+        newState = this->discreteSimulator_(previousState, jumpInputs, newState);
 
         // Create motion to add to tree
         auto *motion = new Motion(si_);
         si_->copyState(motion->state, newState);
         motion->parent = collisionParentMotion;
+        motion->inputs->push_back(jumpInput);
+        motion->hybridTime->push_back(std::pair<double, int>(hybridTimeInitial.first, hybridTimeInitial.second + 1));
+
+        // Return nullptr if in unsafe set and exit function
+        if (unsafeSet_(motion))
+            return std::vector<Motion *>();  // Return empty vector
 
         // Add motions to tree, and free up memory allocated to newState
         collisionParentMotion->numChildren_++;
@@ -345,8 +382,9 @@ ompl::base::PlannerStatus ompl::geometric::HySST::solve(const base::PlannerTermi
         auto *motion = new Motion(si_);
         si_->copyState(motion->state, st);
         nn_->add(motion);
-        motion->accCost_ = opt_->identityCost(); // Initialize the accumulated cost to the identity cost
-        findClosestWitness(motion);              // Set representatives for the witness set
+        motion->hybridTime->push_back(std::pair<double, int>(0.0, 0));
+        motion->accCost_ = opt_->identityCost();  // Initialize the accumulated cost to the identity cost
+        findClosestWitness(motion);               // Set representatives for the witness set
     }
 
     if (nn_->size() == 0)
@@ -370,6 +408,7 @@ ompl::base::PlannerStatus ompl::geometric::HySST::solve(const base::PlannerTermi
     while (!ptc)
     {
         checkMandatoryParametersSet();
+        // Define control space
 
         /* sample random state */
         randomSample(rmotion);
@@ -381,18 +420,24 @@ ompl::base::PlannerStatus ompl::geometric::HySST::solve(const base::PlannerTermi
 
         dMotion = extend(nmotion, goal);
 
-        if (dMotion.size() == 0) // If extension failed, continue to next iteration
+        if (dMotion.size() == 0)  // If extension failed, continue to next iteration
             continue;
 
-        si_->copyState(rstate, dMotion[0]->state); // copy the new state to the random state pointer. First value of dMotion vector will always be the newest state, even if a collision occurs
+        si_->copyState(rstate,
+                       dMotion[0]->state);  // copy the new state to the random state pointer. First value of dMotion
+                                            // vector will always be the newest state, even if a collision occurs
 
-        base::Cost incCost = opt_->motionCost(nmotion->state, rstate);    // Compute incremental cost
-        base::Cost cost = opt_->combineCosts(nmotion->accCost_, incCost); // Combine total cost
-        Witness *closestWitness = findClosestWitness(rmotion);            // Find closest witness
+        base::Cost incCost = opt_->motionCost(nmotion->state, rstate);     // Compute incremental cost
+        base::Cost cost = opt_->combineCosts(nmotion->accCost_, incCost);  // Combine total cost
+        Witness *closestWitness = findClosestWitness(rmotion);             // Find closest witness
 
-        if (closestWitness->rep_ == rmotion || opt_->isCostBetterThan(cost, closestWitness->rep_->accCost_)) // If the newly propagated state is a child of the new representative of the witness (previously had no rep) or it dominates the old representative's cost
+        if (closestWitness->rep_ == rmotion ||
+            opt_->isCostBetterThan(cost, closestWitness->rep_->accCost_))  // If the newly propagated state is a child
+                                                                           // of the new representative of the witness
+                                                                           // (previously had no rep) or it dominates
+                                                                           // the old representative's cost
         {
-            Motion *oldRep = closestWitness->rep_; // Set a copy of the old representative
+            Motion *oldRep = closestWitness->rep_;  // Set a copy of the old representative
             /* create a motion copy  of the newly propagated state */
             auto *motion = new Motion(si_);
             auto *collisionParentMotion = new Motion(si_);
@@ -400,41 +445,44 @@ ompl::base::PlannerStatus ompl::geometric::HySST::solve(const base::PlannerTermi
             motion = dMotion[0];
             motion->accCost_ = cost;
 
-            if (dMotion.size() > 1) // If collision occured during extension
+            if (dMotion.size() > 1)  // If collision occured during extension
             {
                 collisionParentMotion = dMotion[1];
-                collisionParentMotion->accCost_ = opt_->combineCosts(nmotion->accCost_, opt_->motionCost(nmotion->state, dMotion[1]->state));
+                collisionParentMotion->accCost_ =
+                    opt_->combineCosts(nmotion->accCost_, opt_->motionCost(nmotion->state, dMotion[1]->state));
                 nn_->add(collisionParentMotion);
             }
 
             nmotion->numChildren_++;
-            closestWitness->linkRep(motion); // Create new edge and set the new node as the representative
+            closestWitness->linkRep(motion);  // Create new edge and set the new node as the representative
 
-            nn_->add(motion); // Add new node to tree
-            
+            nn_->add(motion);  // Add new node to tree
+
             // dist_ is calculated during the call to extend()
             bool solv = dist_ <= tolerance_;
-            if (solv && opt_->isCostBetterThan(motion->accCost_, prevSolutionCost_)) // If the new state is a solution and it has a lower cost than the previous solution
+            if (solv && opt_->isCostBetterThan(motion->accCost_, prevSolutionCost_))  // If the new state is a solution
+                                                                                      // and it has a lower cost than
+                                                                                      // the previous solution
             {
                 approxdif = dist_;
                 solution = motion;
 
                 prevSolution_.clear();
-                Motion *solTrav = solution; // Traverse the solution and save the states in prevSolution_
+                Motion *solTrav = solution;  // Traverse the solution and save the states in prevSolution_
                 while (solTrav != nullptr)
                 {
                     prevSolution_.push_back(solTrav);
                     solTrav = solTrav->parent;
                 }
                 prevSolutionCost_ = solution->accCost_;
-
-                OMPL_WARN("Found solution with cost %.2f, a distance %.2f away from goal", solution->accCost_.value(), dist_);
-                
                 solutions++;
-                if(solutions >= batchSize_)
+                if (solutions >= batchSize)
                     break;
             }
-            if (solution == nullptr && dist_ < approxdif) // If no solution found and distance to goal of this new state is closer than before (because no guarantee of probabilistic completeness). Also where approximate solutions are filled.
+            if (solution == nullptr && dist_ < approxdif)  // If no solution found and distance to goal of this new
+                                                           // state is closer than before (because no guarantee of
+                                                           // probabilistic completeness). Also where approximate
+                                                           // solutions are filled.
             {
                 approxdif = dist_;
                 approxsol = motion;
@@ -449,12 +497,14 @@ ompl::base::PlannerStatus ompl::geometric::HySST::solve(const base::PlannerTermi
                 prevSolutionCost_ = motion->accCost_;
             }
 
-            if (oldRep != rmotion) // If the representative has changed (prune)
+            if (oldRep != rmotion)  // If the representative has changed (prune)
             {
-                oldRep->inactive_ = true; // Mark the node as inactive
-                while (oldRep->inactive_ && oldRep->numChildren_ == 0) // While the current node is inactive and is a leaf, remove it (non-leaf nodes have been marked inactive)
+                oldRep->inactive_ = true;                               // Mark the node as inactive
+                while (oldRep->inactive_ && oldRep->numChildren_ == 0)  // While the current node is inactive and is a
+                                                                        // leaf, remove it (non-leaf nodes have been
+                                                                        // marked inactive)
                 {
-                    nn_->remove(oldRep); // Remove from list of active nodes
+                    nn_->remove(oldRep);  // Remove from list of active nodes
 
                     if (oldRep->state)
                         si_->freeState(oldRep->state);
@@ -467,7 +517,8 @@ ompl::base::PlannerStatus ompl::geometric::HySST::solve(const base::PlannerTermi
                     oldRep->numChildren_--;
 
                     if (oldRep->numChildren_ == 0)
-                        oldRep->inactive_ = true; // Now that its only child has been removed, this node is inactive as well
+                        oldRep->inactive_ =
+                            true;  // Now that its only child has been removed, this node is inactive as well
                 }
             }
         }
@@ -476,34 +527,146 @@ ompl::base::PlannerStatus ompl::geometric::HySST::solve(const base::PlannerTermi
     bool solved = false;
     bool approximate = false;
 
-    if (solution == nullptr) // If closest state to goal is outside goal set
+    if (solution == nullptr)  // If closest state to goal is outside goal set
         solution = approxsol;
     else
         solved = true;
-    
-    if (approxdif != 0)    // approximate if not exactly the goal state
+
+    if (approxdif != 0)  // approximate if not exactly the goal state
         approximate = true;
 
-    if (solution != nullptr)    // If any state has been successfully propagated
+    if (solution != nullptr)  // If any state has been successfully propagated
     {
         /* set the solution path */
-        auto path(std::make_shared<PathGeometric>(si_));
-        for (int i = prevSolution_.size() - 1; i >= 0; --i)
-        {
-            if (prevSolution_[i]->solutionPair != nullptr)
-            { // A jump motion does not contain an solutionPair
-                for (auto state : *(prevSolution_[i]->solutionPair))
-                    path->append(state);
-            }
-            else if (i == 0) {  // If a the last element is a jump motion, add it's parent, since it will not be added as part of the solution pair
-                path->append(prevSolution_[i]->parent->state);
-                path->append(prevSolution_[i]->state);
-            }
-        }
-        pdef_->addSolutionPath(path, approximate, approxdif, getName());
+        constructSolution(solution);
     }
 
     return {solved, approximate};
+}
+
+ompl::base::PlannerStatus ompl::geometric::HySST::constructSolution(Motion *last_motion)
+{
+    std::vector<Motion *> trajectory;
+    nn_->list(trajectory);
+    std::vector<Motion *> mpath;
+
+    double finalDistance = distanceFunc_(trajectory.back()->state, pdef_->getGoal()->as<base::GoalState>()->getState());
+    Motion *solution = last_motion;
+
+    int pathSize = 0;
+
+    // Construct the path from the goal to the start by following the parent pointers
+    while (solution != nullptr)
+    {
+        mpath.push_back(solution);
+        if (solution->solutionPair != nullptr)  // A jump motion does not contain an solutionPair
+            pathSize += solution->solutionPair->size();
+        solution = solution->parent;
+    }
+
+    // Associate inputs and hybrid time with states of each solution pair
+    int numInputs =
+        minFlowInputValue_.size() > minJumpInputValue_.size() ? minFlowInputValue_.size() : minJumpInputValue_.size();
+    ompl::base::RealVectorStateSpace *associateStateSpace = new ompl::base::RealVectorStateSpace(0);
+    for (int i = 0; i < si_->getStateSpace()->getDimension() + numInputs + 2; i++)
+    {
+        associateStateSpace->addDimension(0, 1);  // Arbitrary values for initialization
+    }
+
+    ompl::base::StateSpacePtr space(associateStateSpace);
+
+    // Construct a space information instance for this state space
+    ompl::base::SpaceInformationPtr associatedSi(new ompl::base::SpaceInformation(space));
+
+    associatedSi->setup();
+
+    ompl::base::ProblemDefinitionPtr pdef(new ompl::base::ProblemDefinition(associatedSi));
+
+    // Create a new path object to store the solution path
+    auto path(std::make_shared<PathGeometric>(associatedSi));
+
+    // Add the states to the path in reverse order (from start to goal)
+    for (int i = mpath.size() - 1; i >= 0; --i)
+    {
+        // Append all intermediate states to the path, including starting state,
+        // excluding end vertex
+        if (mpath[i]->solutionPair != nullptr)
+        {  // A jump motion does not contain an solutionPair
+            for (int k = 0; k < mpath[i]->solutionPair->size(); k++)
+            {
+                base::State *associatedState = associatedSi->allocState();
+
+                // Add in state values
+                if (k == mpath[i]->solutionPair->size() - 1)
+                {
+                    associatedState = mpath[i]->state;
+                }
+                else
+                {
+                    for (int j = 0; j < si_->getStateSpace()->getDimension(); j++)
+                    {
+                        associatedState->as<base::RealVectorStateSpace::StateType>()->values[j] =
+                            mpath[i]->solutionPair->at(k)->as<base::RealVectorStateSpace::StateType>()->values[j];
+                    }
+                }
+
+                // Add in input values
+                for (int j = 0; j < numInputs; j++)
+                {
+                    associatedState->as<base::RealVectorStateSpace::StateType>()
+                        ->values[si_->getStateSpace()->getDimension() + j] =
+                        mpath[i]->inputs->at(k)->as<control::RealVectorControlSpace::ControlType>()->values[j];
+                }
+
+                // Add in hybrid time
+                associatedState->as<base::RealVectorStateSpace::StateType>()
+                    ->values[si_->getStateSpace()->getDimension() + numInputs] = mpath[i]->hybridTime->at(k).first;
+                associatedState->as<base::RealVectorStateSpace::StateType>()
+                    ->values[si_->getStateSpace()->getDimension() + numInputs + 1] = mpath[i]->hybridTime->at(k).second;
+
+                path->append(associatedState);
+            }
+        }
+        else
+        {  // If a normal jump motion
+            base::State *associatedState = associatedSi->allocState();
+
+            // Add in state values
+            for (int j = 0; j < si_->getStateSpace()->getDimension(); j++)
+            {
+                associatedState->as<base::RealVectorStateSpace::StateType>()->values[j] =
+                    mpath[i]->state->as<base::RealVectorStateSpace::StateType>()->values[j];
+            }
+
+            // If not starting state
+            if (i != mpath.size() - 1)
+            {
+                // Add in input values
+                for (int j = 0; j < numInputs; j++)
+                {
+                    associatedState->as<base::RealVectorStateSpace::StateType>()
+                        ->values[si_->getStateSpace()->getDimension() + j] =
+                        mpath[i]->inputs->at(0)->as<control::RealVectorControlSpace::ControlType>()->values[j];
+                }
+            }
+
+            // Add in hybrid time
+            associatedState->as<base::RealVectorStateSpace::StateType>()
+                ->values[si_->getStateSpace()->getDimension() + numInputs] = mpath[i]->hybridTime->back().first;
+            associatedState->as<base::RealVectorStateSpace::StateType>()
+                ->values[si_->getStateSpace()->getDimension() + numInputs + 1] = mpath[i]->hybridTime->back().second;
+
+            path->append(associatedState);
+        }
+    }
+
+    pdef_->addSolutionPath(path, finalDistance > 0.0, finalDistance, getName());
+
+    // Return a status indicating that an exact solution has been found
+    if (finalDistance > 0.0)
+        return base::PlannerStatus::APPROXIMATE_SOLUTION;
+    else
+        return base::PlannerStatus::EXACT_SOLUTION;
 }
 
 void ompl::geometric::HySST::getPlannerData(base::PlannerData &data) const

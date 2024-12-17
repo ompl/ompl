@@ -42,6 +42,7 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/base/GoalTypes.h"
 #include "ompl/base/Planner.h"
+#include "ompl/control/Control.h"
 
 using namespace std;
 
@@ -67,12 +68,11 @@ namespace ompl
                    is in collision, proceed to jump.
             3. Return the solution.
 
-            IMPORTANT: When initializing a new StateSpace for HyRRT, the user must 
-            add two dimensions, in addition to the number of dimensions required 
-            to represent the state space, to represent the flow and jump time.
-
            @par External documentation: https://ieeexplore.ieee.org/document/9992444
            DOI: [10.1109/CDC51059.2022.9992444]
+           @par External documentation:
+           X. Beverly, N. Wang, and R. G. Sanfelice, "cHyRRT and cHySST: Two Motion Planning Tools for Hybrid Dynamical Systems"
+           [[PDF]](https://arxiv.org/abs/2411.11812)
         */
 
         /** \brief Hybrid Rapidly-exploring Random Trees */
@@ -109,7 +109,9 @@ namespace ompl
                 Motion() = default;
 
                 /// \brief Constructor that allocates memory for the state
-                Motion(const base::SpaceInformationPtr &si) : state (si->allocState()) {}
+                Motion(const base::SpaceInformationPtr &si) : state(si->allocState())
+                {
+                }
 
                 ~Motion() = default;
 
@@ -123,8 +125,15 @@ namespace ompl
                 /// contained in.
                 const base::State *root{nullptr};
 
-                /// \brief The integration steps defining the solutionPair of the motion, between the parent and child vertices
+                /// \brief The integration steps defining the solution pair of the motion, between the parent and child
+                /// vertices
                 std::vector<base::State *> *solutionPair{nullptr};
+
+                /// \brief The inputs associated with the solution pair
+                std::vector<ompl::control::Control *> *inputs = new std::vector<ompl::control::Control *>();
+
+                /// \brief The hybrid time parameterizing each state in the solution pair
+                std::vector<std::pair<double, int>> *hybridTime = new std::vector<std::pair<double, int>>();
             };
 
             /** \brief Free the memory allocated by this planner */
@@ -135,7 +144,8 @@ namespace ompl
             {
                 int size = max.size() > min.size() ? max.size() : min.size();
                 if (min.size() != max.size())
-                    throw Exception("Max input value (maxFlowInputValue) and min input value (minFlowInputValue) must be of the same size");
+                    throw Exception("Max input value (maxFlowInputValue) and min input value (minFlowInputValue) must "
+                                    "be of the same size");
                 for (int i = 0; i < size; i++)
                 {
                     if (min.at(0) > max.at(0))
@@ -150,7 +160,8 @@ namespace ompl
             {
                 int size = max.size() > min.size() ? max.size() : min.size();
                 if (min.size() != max.size())
-                    throw Exception("Max input value (maxJumpInputValue_) and min input value (minJumpInputValue) must be of the same size");
+                    throw Exception("Max input value (maxJumpInputValue_) and min input value (minJumpInputValue) must "
+                                    "be of the same size");
                 for (int i = 0; i < size; i++)
                 {
                     if (min.at(i) > max.at(i))
@@ -170,7 +181,8 @@ namespace ompl
                 if (!flowStepDuration_)
                 {
                     if (tM < flowStepDuration_)
-                        throw Exception("Maximum flow time per propagation step must be greater than or equal to the length of time for each flow "
+                        throw Exception("Maximum flow time per propagation step must be greater than or equal to the "
+                                        "length of time for each flow "
                                         "integration step (flowStepDuration_)");
                 }
                 tM_ = tM;
@@ -187,7 +199,8 @@ namespace ompl
                 if (!tM_)
                 {
                     if (tM_ < duration)
-                        throw Exception("Flow step length must be less than or equal to the maximum flow time per propagation step (Tm)");
+                        throw Exception("Flow step length must be less than or equal to the maximum flow time per "
+                                        "propagation step (Tm)");
                 }
                 flowStepDuration_ = duration;
             }
@@ -202,19 +215,19 @@ namespace ompl
             }
 
             /** \brief Set the jump set. */
-            void setJumpSet(std::function<bool(base::State *)> jumpSet)
+            void setJumpSet(std::function<bool(Motion *motion)> jumpSet)
             {
                 jumpSet_ = jumpSet;
             }
 
             /** \brief Set the flow set. */
-            void setFlowSet(std::function<bool(base::State *)> flowSet)
+            void setFlowSet(std::function<bool(Motion *motion)> flowSet)
             {
                 flowSet_ = flowSet;
             }
 
             /** \brief Set the unsafe set. */
-            void setUnsafeSet(std::function<bool(base::State *)> unsafeSet)
+            void setUnsafeSet(std::function<bool(Motion *motion)> unsafeSet)
             {
                 unsafeSet_ = unsafeSet;
             }
@@ -226,21 +239,26 @@ namespace ompl
             }
 
             /** \brief Set the discrete dyanmics simulator. */
-            void setDiscreteSimulator(std::function<base::State *(base::State *curState, std::vector<double> u, base::State *newState)> function)
+            void setDiscreteSimulator(
+                std::function<base::State *(base::State *curState, std::vector<double> u, base::State *newState)>
+                    function)
             {
                 discreteSimulator_ = function;
             }
 
             /** \brief Set the continuous dyanmics simulator. */
-            void setContinuousSimulator(std::function<base::State *(std::vector<double> inputs, base::State *curState, double tFlowMax, 
-                                        base::State *newState)> function)
+            void setContinuousSimulator(std::function<base::State *(std::vector<double> inputs, base::State *curState,
+                                                                    double tFlowMax, base::State *newState)>
+                                            function)
             {
                 continuousSimulator_ = function;
             }
 
             /** \brief Set the collision checker. */
-            void setCollisionChecker(std::function<bool(std::vector<base::State *> *solutionPair, std::function<bool(base::State *state)> obstacleSet, 
-                                     double ts, double tf, base::State *newState, int tFIndex)> function)
+            void
+            setCollisionChecker(std::function<bool(Motion *motion, std::function<bool(Motion *motion)> obstacleSet,
+                                                   double ts, double tf, base::State *newState, double *collisionTime)>
+                                    function)
             {
                 collisionChecker_ = function;
             }
@@ -257,22 +275,25 @@ namespace ompl
 
                 switch (mode)
                 {
-                case UNIFORM_INT:
-                    targetParameterCount = 2;
-                    getRandFlowInput_ = [this](int i) { return randomSampler_->uniformInt(minFlowInputValue_[i], maxFlowInputValue_[i]); };
-                    break;
-                case GAUSSIAN_REAL:
-                    targetParameterCount = 2;
-                    getRandFlowInput_ = [&](int i) { return randomSampler_->gaussian(inputs[0], inputs[1]); };
-                    break;
-                case HALF_NORMAL_REAL:
-                    targetParameterCount = 2; // Can also be three, if want to specify focus,
-                                              // which defaults to 3.0
-                    getRandFlowInput_ = [&](int i) { return randomSampler_->halfNormalReal(inputs[0], inputs[1], inputs[2]); };
-                    break;
-                default:
-                    targetParameterCount = 2;
-                    getRandFlowInput_ = [this](int i) { return randomSampler_->uniformReal(minFlowInputValue_[i], maxFlowInputValue_[i]); };
+                    case UNIFORM_INT:
+                        targetParameterCount = 2;
+                        getRandFlowInput_ = [this](int i)
+                        { return randomSampler_->uniformInt(minFlowInputValue_[i], maxFlowInputValue_[i]); };
+                        break;
+                    case GAUSSIAN_REAL:
+                        targetParameterCount = 2;
+                        getRandFlowInput_ = [&](int i) { return randomSampler_->gaussian(inputs[0], inputs[1]); };
+                        break;
+                    case HALF_NORMAL_REAL:
+                        targetParameterCount = 2;  // Can also be three, if want to specify focus,
+                                                   // which defaults to 3.0
+                        getRandFlowInput_ = [&](int i)
+                        { return randomSampler_->halfNormalReal(inputs[0], inputs[1], inputs[2]); };
+                        break;
+                    default:
+                        targetParameterCount = 2;
+                        getRandFlowInput_ = [this](int i)
+                        { return randomSampler_->uniformReal(minFlowInputValue_[i], maxFlowInputValue_[i]); };
                 }
 
                 if (inputs.size() == targetParameterCount || (mode == HALF_NORMAL_INT && targetParameterCount == 3))
@@ -293,22 +314,25 @@ namespace ompl
 
                 switch (mode)
                 {
-                case UNIFORM_INT:
-                    targetParameterCount = 2;
-                    getRandJumpInput_ = [this](int i) { return randomSampler_->uniformInt(minJumpInputValue_[i], maxJumpInputValue_[i]); };
-                    break;
-                case GAUSSIAN_REAL:
-                    targetParameterCount = 2;
-                    getRandJumpInput_ = [&](int i) { return randomSampler_->gaussian(inputs[0], inputs[1]); };
-                    break;
-                case HALF_NORMAL_REAL:
-                    targetParameterCount = 2; // Can also be three parameters, if want to specify focus,
-                                              // which defaults to 3.0
-                    getRandJumpInput_ = [&](int i) { return randomSampler_->halfNormalReal(inputs[0], inputs[1], inputs[2]); };
-                    break;
-                default:
-                    targetParameterCount = 2;
-                    getRandJumpInput_ = [this](int i) { return randomSampler_->uniformReal(minJumpInputValue_[i], maxJumpInputValue_[i]); };
+                    case UNIFORM_INT:
+                        targetParameterCount = 2;
+                        getRandJumpInput_ = [this](int i)
+                        { return randomSampler_->uniformInt(minJumpInputValue_[i], maxJumpInputValue_[i]); };
+                        break;
+                    case GAUSSIAN_REAL:
+                        targetParameterCount = 2;
+                        getRandJumpInput_ = [&](int i) { return randomSampler_->gaussian(inputs[0], inputs[1]); };
+                        break;
+                    case HALF_NORMAL_REAL:
+                        targetParameterCount = 2;  // Can also be three parameters, if want to specify focus,
+                                                   // which defaults to 3.0
+                        getRandJumpInput_ = [&](int i)
+                        { return randomSampler_->halfNormalReal(inputs[0], inputs[1], inputs[2]); };
+                        break;
+                    default:
+                        targetParameterCount = 2;
+                        getRandJumpInput_ = [this](int i)
+                        { return randomSampler_->uniformReal(minJumpInputValue_[i], maxJumpInputValue_[i]); };
                 }
 
                 if (inputs.size() == targetParameterCount || (mode == HALF_NORMAL_INT && targetParameterCount == 3))
@@ -375,32 +399,23 @@ namespace ompl
             };
 
             /** \brief Random sampler for one value of the flow input. */
-            std::function<double(int i)> getRandFlowInput_ = [this](int i) { return randomSampler_->uniformReal(minFlowInputValue_[i], maxFlowInputValue_[i]); };
+            std::function<double(int i)> getRandFlowInput_ = [this](int i)
+            { return randomSampler_->uniformReal(minFlowInputValue_[i], maxFlowInputValue_[i]); };
 
             /** \brief Random sampler for one value of the jump input. */
-            std::function<double(int i)> getRandJumpInput_ = [this](int i) { return randomSampler_->uniformReal(minJumpInputValue_[i], maxJumpInputValue_[i]); };
+            std::function<double(int i)> getRandJumpInput_ = [this](int i)
+            { return randomSampler_->uniformReal(minJumpInputValue_[i], maxJumpInputValue_[i]); };
 
             /** \brief Collision checker. Optional is point-by-point collision checking
              * using the jump set. */
-            std::function<bool(std::vector<base::State *> *solutionPair,
-                               std::function<bool(base::State *state)> obstacleSet,
-                               double ts, double tf, base::State *newState, int tFIndex)>
-                collisionChecker_ =
-                    [this](std::vector<base::State *> *solutionPair,
-                           std::function<bool(base::State *state)> obstacleSet, double t = -1.0,
-                           double tf = -1.0, base::State *newState, int tFIndex = -1) -> bool
+            std::function<bool(Motion *motion, std::function<bool(Motion *motion)> obstacleSet, double ts, double tf,
+                               base::State *newState, double *collisionTime)>
+                collisionChecker_ = [this](Motion *motion, std::function<bool(Motion *motion)> obstacleSet,
+                                           double t = -1.0, double tf = -1.0, base::State *newState,
+                                           double *collisionTime = new double(-1.0)) -> bool
             {
-                for (unsigned int i = 0; i < solutionPair->size(); i++)
-                {
-                    if (obstacleSet(solutionPair->at(i)))
-                    {
-                        if (i == 0)
-                            si_->copyState(newState, solutionPair->at(i));
-                        else
-                            si_->copyState(newState, solutionPair->at(i - 1));
-                        return true;
-                    }
-                }
+                if (obstacleSet(motion))
+                    return true;
                 return false;
             };
 
@@ -427,7 +442,8 @@ namespace ompl
              * Customize using setter functions above. */
 
             /** \brief Compute distance between states, default is Euclidean distance */
-            std::function<double(base::State *state1, base::State *state2)> distanceFunc_;
+            std::function<double(base::State *state1, base::State *state2)> distanceFunc_ =
+                [this](base::State *state1, base::State *state2) -> double { return si_->distance(state1, state2); };
 
             /** \brief The maximum flow time for a given flow propagation step. Must be
              * set by the user */
@@ -436,6 +452,8 @@ namespace ompl
             /** \brief The distance tolerance from the goal state for a state to be
              * regarded as a valid final state. Default is .1 */
             double tolerance_{.1};
+
+            double minStepLength = 1e-06;
 
             /** \brief The flow time for a given integration step, within a flow
              * propagation step. Must be set by user */
@@ -454,22 +472,25 @@ namespace ompl
             std::vector<double> maxJumpInputValue_;
 
             /** \brief Simulator for propgation under jump regime */
-            std::function<base::State *(base::State *curState, std::vector<double> u, base::State *newState)> discreteSimulator_;
+            std::function<base::State *(base::State *curState, std::vector<double> u, base::State *newState)>
+                discreteSimulator_;
 
             /** \brief Function that returns true if a state is in the jump set, and false
              * if not. */
-            std::function<bool(base::State *state)> jumpSet_;
+            std::function<bool(Motion *motion)> jumpSet_;
 
             /** \brief Function that returns true if a state is in the flow set, and false
              * if not. */
-            std::function<bool(base::State *state)> flowSet_;
+            std::function<bool(Motion *motion)> flowSet_;
 
             /** \brief Function that returns true if a state is in the flow set, and false
              * if not. */
-            std::function<bool(base::State *state)> unsafeSet_;
+            std::function<bool(Motion *motion)> unsafeSet_;
 
             /** \brief Simulator for propgation under flow regime */
-            std::function<base::State *(std::vector<double> input, base::State *curState, double tFlowMax, base::State *newState)> continuousSimulator_;
+            std::function<base::State *(std::vector<double> input, base::State *curState, double tFlowMax,
+                                        base::State *newState)>
+                continuousSimulator_;
 
             /** \brief Random sampler for the input. Default constructor always seeds a
              * different value, and returns a uniform real distribution. */
@@ -484,7 +505,7 @@ namespace ompl
             /** \brief State sampler */
             base::StateSamplerPtr sampler_;
         };
-    }
-}
+    }  // namespace geometric
+}  // namespace ompl
 
 #endif
