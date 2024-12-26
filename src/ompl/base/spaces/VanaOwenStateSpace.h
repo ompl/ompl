@@ -42,7 +42,7 @@
 namespace ompl::base
 {
     /** \brief An R^4 x SO(2) state space where distance is measured by the
-        length of a type Dubins airplane curves.
+        length of a type of Dubins airplane curves.
 
         Note that distance in this space is \b not a proper distance metric,
         so nearest neighbor methods that rely on distance() being a metric
@@ -51,10 +51,8 @@ namespace ompl::base
 
         See the following reference for details:
 
-        [1] P. Váňa, A. Alves Neto, J. Faigl, and D. G. Macharet, “Minimal 3D Dubins
-        Path with Bounded Curvature and Pitch Angle,” in 2020 IEEE International
-        Conference on Robotics and Automation (ICRA), May 2020, pp. 8497–8503.
-        doi: 10.1109/ICRA40945.2020.9197084.
+        [1] M. Moll, "3D Dubins Paths for Underwater Vehicles," OCEANS 2024 - Halifax, Halifax, NS, Canada, 2024.
+        doi: 10.1109/OCEANS55160.2024.10754581.
     */
     class VanaOwenStateSpace : public CompoundStateSpace
     {
