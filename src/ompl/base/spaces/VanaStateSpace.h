@@ -165,7 +165,7 @@ namespace ompl::base
         {
             return tolerance_;
         }
-        
+
         State *allocState() const override;
         void registerProjections() override;
 
@@ -181,13 +181,12 @@ namespace ompl::base
          * \param from start state
          * \param to end state
          * \param t fraction of distance along segment between @e from and @e to. Has to be between
-         * 0 and 1 (boundaries included). 
+         * 0 and 1 (boundaries included).
          * \param path the segment connecting @from and @to.
          * \param state the state that lies on the segment at fraction @e t of the distance between
          * @e from and @e to.
          */
-        virtual void interpolate(const State *from, const State *to, double t, PathType &path,
-                                 State *state) const;
+        virtual void interpolate(const State *from, const State *to, double t, PathType &path, State *state) const;
         /**
          * \brief Compute the state that lies at time @e t in [0,1] on the segment @e path starting from state @e from.
          *
@@ -242,32 +241,6 @@ namespace ompl::base
         double tolerance_{1e-8};
         /** Auxiliary space to compute paths in SE(2) slices of state space */
         DubinsStateSpace dubinsSpace_;
-    };
-
-    /** \brief A Dubins plane motion validator that only uses the state validity checker.
-        Motions are checked for validity at a specified resolution.
-
-        This motion validator is almost identical to the DiscreteMotionValidator
-        except that it remembers the optimal PathType between different calls to
-        interpolate. */
-    class VanaMotionValidator : public MotionValidator
-    {
-    public:
-        VanaMotionValidator(SpaceInformation *si) : MotionValidator(si)
-        {
-            defaultSettings();
-        }
-        VanaMotionValidator(const SpaceInformationPtr &si) : MotionValidator(si)
-        {
-            defaultSettings();
-        }
-        ~VanaMotionValidator() override = default;
-        bool checkMotion(const State *s1, const State *s2) const override;
-        bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
-
-    private:
-        VanaStateSpace *stateSpace_;
-        void defaultSettings();
     };
 }  // namespace ompl::base
 
