@@ -232,8 +232,6 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
             auto rval = radiusFun(.5 * (root.first + root.second));
             if (iter >= MAX_ITER)
                 OMPL_WARN("Maximum number of iterations exceeded for high altitude Vana-Owen path");
-            //std::cerr << "rval = " << rval << std::endl;
-            //assert(std::abs(rval) < 1e-4);
             return std::abs(rval) < 1e-4;
         }
         catch (std::domain_error& e)
@@ -250,7 +248,6 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
             if (std::abs(phi)>twopi)
                 throw std::domain_error("phi too large");
             turn(from, radius, phi, zi);
-            //std::cerr << "phifun " << phi << ' ' << (std::abs(phi) + dubinsSpace_.dubins(zi, to).length()) * radius * std::abs(tanPitch) - std::abs(result.deltaZ_) << std::endl;
             return (std::abs(phi) + dubinsSpace_.dubins(zi, to).length()) * radius * std::abs(tanPitch) - std::abs(result.deltaZ_);
         };
 
@@ -277,7 +274,6 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
                 return false;
             }
         }
-        //assert(std::abs(phiFun(result.phi_)) < 1e-5);
         result.pathXY_ = dubinsSpace_.dubins(zi, to, radius);
         endSZ->setX((result.pathXY_.length() + result.phi_) * radius);
         result.pathSZ_ = dubinsSpace_.dubins(startSZ, endSZ, result.verticalRadius_);
@@ -319,14 +315,11 @@ std::optional<VanaOwenStateSpace::PathType> VanaOwenStateSpace::getPath(const St
         {
             radiusMultiplier = radiusMultiplier2;
             path = path2;
-            //if ((length - minLength) / minLength < tolerance_) break;
             minLength = length;
             step *= 2.;
         }
         else
             step *= -.1;
-        // std::cout << "radius multiplier & pathlength & step: " << (char)path.category() << ' ' << radiusMultiplier
-        //           << '\t' << path.length() << '\t' << step << std::endl;
     }
 
     for (auto s : scratch)
@@ -422,7 +415,6 @@ void VanaOwenStateSpace::interpolate(const State *from, const State *to, const d
                 angle = -angle;
             turn(from, path.horizontalRadius_, angle, state);
         }
-        // std::cout << t << ' ' << (*state->as<StateType>())[1] << ' ' << dist << ' ' << lengthTurn << std::endl;
     }
 
     if (from == state)
