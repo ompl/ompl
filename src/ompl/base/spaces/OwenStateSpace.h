@@ -59,17 +59,24 @@ namespace ompl::base
     class OwenStateSpace : public CompoundStateSpace
     {
     public:
-        enum PathCategory : char { LOW_ALTITUDE='L', MEDIUM_ALTITUDE='M', HIGH_ALTITUDE='H', UNKNOWN='?' };
+        enum PathCategory : char
+        {
+            LOW_ALTITUDE = 'L',
+            MEDIUM_ALTITUDE = 'M',
+            HIGH_ALTITUDE = 'H',
+            UNKNOWN = '?'
+        };
 
         class PathType
         {
         public:
-            PathType(DubinsStateSpace::DubinsPath const& path, double turnRadius, double deltaZ, unsigned int numTurns = 0)
-            : path_(path), turnRadius_(turnRadius), deltaZ_(deltaZ), numTurns_(numTurns)
+            PathType(DubinsStateSpace::DubinsPath const &path, double turnRadius, double deltaZ,
+                     unsigned int numTurns = 0)
+              : path_(path), turnRadius_(turnRadius), deltaZ_(deltaZ), numTurns_(numTurns)
             {
             }
-            PathType(DubinsStateSpace::DubinsPath const& path, double turnRadius, double deltaZ, double phi)
-            : path_(path), turnRadius_(turnRadius), deltaZ_(deltaZ), phi_(phi)
+            PathType(DubinsStateSpace::DubinsPath const &path, double turnRadius, double deltaZ, double phi)
+              : path_(path), turnRadius_(turnRadius), deltaZ_(deltaZ), phi_(phi)
             {
             }
             double length() const;
@@ -156,7 +163,7 @@ namespace ompl::base
         {
             return tolerance_;
         }
-        
+
         State *allocState() const override;
         void registerProjections() override;
 
@@ -172,13 +179,12 @@ namespace ompl::base
          * \param from start state
          * \param to end state
          * \param t fraction of distance along segment between @e from and @e to. Has to be between
-         * 0 and 1 (boundaries included). 
+         * 0 and 1 (boundaries included).
          * \param path the segment connecting @from and @to.
          * \param state the state that lies on the segment at fraction @e t of the distance between
          * @e from and @e to.
          */
-        virtual void interpolate(const State *from, const State *to, double t, PathType &path,
-                                 State *state) const;
+        virtual void interpolate(const State *from, const State *to, double t, PathType &path, State *state) const;
 
         /**
          * \brief Compute a 3D Dubins path using the model and algorithm proposed by Owen et al.
@@ -193,7 +199,7 @@ namespace ompl::base
         /**
          * \brief Compute the SE(2) state after making a turn
          */
-        void turn(const State* from, double turnRadius, double angle, State* state) const;
+        void turn(const State *from, double turnRadius, double angle, State *state) const;
 
         /** Turning radius */
         double rho_;
@@ -203,32 +209,6 @@ namespace ompl::base
         double tolerance_{1e-8};
         /** Auxiliary space to compute paths in SE(2) slices of state space */
         DubinsStateSpace dubinsSpace_;
-    };
-
-    /** \brief A Dubins plane motion validator that only uses the state validity checker.
-        Motions are checked for validity at a specified resolution.
-
-        This motion validator is almost identical to the DiscreteMotionValidator
-        except that it remembers the optimal PathType between different calls to
-        interpolate. */
-    class OwenMotionValidator : public MotionValidator
-    {
-    public:
-        OwenMotionValidator(SpaceInformation *si) : MotionValidator(si)
-        {
-            defaultSettings();
-        }
-        OwenMotionValidator(const SpaceInformationPtr &si) : MotionValidator(si)
-        {
-            defaultSettings();
-        }
-        ~OwenMotionValidator() override = default;
-        bool checkMotion(const State *s1, const State *s2) const override;
-        bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
-
-    private:
-        OwenStateSpace *stateSpace_;
-        void defaultSettings();
     };
 }  // namespace ompl::base
 
