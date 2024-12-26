@@ -38,6 +38,7 @@
 #define OMPL_BASE_SPACES_VANA_STATE_SPACE_
 
 #include "ompl/base/spaces/DubinsStateSpace.h"
+#include <optional>
 
 namespace ompl::base
 {
