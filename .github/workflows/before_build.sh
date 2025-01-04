@@ -13,7 +13,7 @@ python_version=$(python3 -c 'import sys; v=sys.version_info; print(f"{v.major}.{
 install_boost() {
     b2_args=("$@")
 
-    curl -L "https://boostorg.jfrog.io/artifactory/main/release/${boost_version}/source/boost_${boost_version//./_}.tar.bz2" | tar xj
+    curl -L "https://archives.boost.io/release/${boost_version}/source/boost_${boost_version//./_}.tar.bz2" | tar xj
     pushd "boost_${boost_version//./_}"
 
     # Tell boost-python the exact Python install to use, since we may have
