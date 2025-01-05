@@ -901,6 +901,12 @@ bool ompl::base::CompoundStateSpace::isHybrid() const
     return c && d;
 }
 
+bool ompl::base::CompoundStateSpace::isMetricSpace() const
+{
+    return std::all_of(components_.begin(), components_.end(),
+                       [](const StateSpacePtr &component) { return component->isMetricSpace(); });
+}
+
 unsigned int ompl::base::CompoundStateSpace::getSubspaceCount() const
 {
     return componentCount_;
