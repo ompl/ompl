@@ -419,6 +419,30 @@ BOOST_AUTO_TEST_CASE(Compound_Simple)
     BOOST_CHECK(t->includes(t));
 }
 
+BOOST_AUTO_TEST_CASE(Compound_IsMetric)
+{
+    auto d = std::make_shared<base::DubinsStateSpace>();
+
+    auto real_state_space_1 = std::make_shared<base::RealVectorStateSpace>(2);
+    real_state_space_1->setBounds(-3, 3);
+
+    auto real_state_space_2 = std::make_shared<base::RealVectorStateSpace>(4);
+    real_state_space_2->setBounds(-3, 3);
+
+    base::RealVectorBounds bounds2(2);
+    bounds2.setLow(-3);
+    bounds2.setHigh(3);
+    d->setBounds(bounds2);
+
+    auto rs = real_state_space_1 + real_state_space_2;
+    rs->setup();
+    BOOST_CHECK(rs->isMetricSpace());
+
+    auto n = d + real_state_space_1 + real_state_space_2;
+    n->setup();
+    BOOST_CHECK(!n->isMetricSpace());
+}
+
 BOOST_AUTO_TEST_CASE(Torus_Simple)
 {
     auto m(std::make_shared<base::TorusStateSpace>());
