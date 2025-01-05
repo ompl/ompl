@@ -95,6 +95,7 @@ namespace ompl
 
             ReedsSheppStateSpace(double turningRadius = 1.0) : rho_(turningRadius)
             {
+                setName("ReedsShepp" + getName());
                 type_ = STATE_SPACE_REEDS_SHEPP;
             }
 
