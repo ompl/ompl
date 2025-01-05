@@ -120,7 +120,7 @@ namespace ompl::base
             }
         };
 
-        VanaOwenStateSpace(double turningRadius = 1.0, double maxPitch = boost::math::constants::sixth_pi<double>());
+        VanaOwenStateSpace(double turningRadius = 1.0, double maxPitch = boost::math::double_constants::sixth_pi);
         VanaOwenStateSpace(double turningRadius, std::pair<double, double> pitchRange);
         ~VanaOwenStateSpace() override = default;
 

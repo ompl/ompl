@@ -270,12 +270,69 @@ class ompl_base_generator_t(code_generator_t):
             # add array access to double components of state
             self.add_array_access(state, 'double')
 
+        # Add setters to Owen/Vana/VanaOwen state spaces
+        for stype, member_functions in [
+            ("Owen", ["yaw"]),
+            ("Vana", ["yaw", "pitch"]),
+            ("VanaOwen", ["yaw", "pitch"]),
+        ]:
+            state_type_cls = self.ompl_ns.class_(f"{stype}StateSpace").class_(
+                "StateType"
+            )
+            # Add array access to StateType
+            self.add_array_access(state_type_cls, "double")
+            for member_function in member_functions:
+                state_type_cls.member_functions(
+                    member_function, return_type="double &"
+                ).exclude()
+                member_function_camelize = (
+                    member_function[0].upper() + member_function[1:]
+                )
+                state_type_cls.add_registration_code(
+                    f'def("set{member_function_camelize}", &__set{member_function_camelize})'
+                )
+                state_type_cls.add_declaration_code(
+    """
+void __set%(member_function_camelize)s(%(cls)s* self, double %(member_function)s)
+{
+    self->%(member_function)s() = %(member_function)s;
+}
+"""
+    % {
+        "cls": state_type_cls.decl_string,
+        "member_function": member_function,
+        "member_function_camelize": member_function_camelize,
+    })
+
         # I don't know how to export a C-style array of an enum type
         for stype in ['Dubins', 'ReedsShepp']:
             self.ompl_ns.enumeration(stype + 'PathSegmentType').exclude()
             self.ompl_ns.class_(stype + 'Path').exclude()
-            self.ompl_ns.class_(stype + 'StateSpace').member_function(
-                stype[0].lower()+stype[1:]).exclude()
+            self.ompl_ns.class_(stype + "StateSpace").member_function(
+                stype[0].lower() + stype[1:],
+                arg_types=[
+                    "::ompl::base::State const *",
+                    "::ompl::base::State const *",
+                ],
+            ).exclude()
+
+        # Disable the other dubins overload
+        self.ompl_ns.class_("DubinsStateSpace").member_function(
+            "dubins",
+            arg_types=[
+                "::ompl::base::State const *",
+                "::ompl::base::State const *",
+                "double",
+            ],
+        ).exclude()
+        self.ompl_ns.class_("DubinsStateSpace").member_function(
+            "distance",
+            arg_types=[
+                "::ompl::base::State const *",
+                "::ompl::base::State const *",
+                "double",
+            ],
+        ).exclude()
         # don't expose these utility functions that return double*
         self.ompl_ns.member_functions('getValueAddressAtIndex').exclude()
         self.ompl_ns.member_functions('getValueAddressAtName').exclude()
