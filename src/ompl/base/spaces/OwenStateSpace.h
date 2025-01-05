@@ -116,7 +116,7 @@ namespace ompl::base
             }
         };
 
-        OwenStateSpace(double turningRadius = 1.0, double maxPitch = boost::math::constants::sixth_pi<double>());
+        OwenStateSpace(double turningRadius = 1.0, double maxPitch = boost::math::double_constants::sixth_pi);
         ~OwenStateSpace() override = default;
 
         bool isMetricSpace() const override
