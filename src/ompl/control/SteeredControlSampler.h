@@ -61,7 +61,7 @@ namespace ompl
 
             unsigned int sampleTo(Control *control, const base::State *source, base::State *dest) override
             {
-                double duration;
+                double duration = 0.0;
                 if (!si_->getStatePropagator()->steer(source, dest, control, duration))
                     return 0;
                 unsigned int steps = std::floor(duration / si_->getPropagationStepSize() + 0.5);
