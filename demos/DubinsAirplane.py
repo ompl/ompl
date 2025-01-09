@@ -51,6 +51,7 @@ except ImportError:
     from ompl import geometric as og
 import argparse
 from math import fmod, sqrt
+from typing import Union
 
 radius = 1.
 maxPitch = .5
@@ -88,12 +89,14 @@ def allocatePlanner(si: ob.SpaceInformation, planner: str):
     else:
         ou.OMPL_ERROR(f"Planner type {planner} is not implemented in allocation function.")
 
-def isStateValid(state: ob.OwenState | ob.VanaState | ob.VanaOwenState):
+
+def isStateValid(state: Union[ob.OwenState, ob.VanaState, ob.VanaOwenState]):
     dist = 0.
     for i in range(3):
         d = fmod(abs(state[i]), 2. * radius) - radius
         dist += d * d
     return sqrt(dist) > .75 * radius
+
 
 def plan(space : str, planner : str):
     stateSpace = allocSpace(space)
@@ -114,15 +117,14 @@ def plan(space : str, planner : str):
     si.setStateValidityCheckingResolution(0.001)
     ss.setPlanner(allocatePlanner(si, planner))
     ss.setup()
-    #print(ss)
-    result = ss.solve(10.)
-    print('xxxx')
+    print(ss)
+    result = ss.solve(10.0)
     if result:
         path = ss.getSolutionPath()
         length = path.length()
         path.interpolate()
         print(path.printAsMatrix())
-        
+
         if result == ob.PlannerStatus.APPROXIMATE_SOLUTION:
             print("Approximate solution. Distance to goal is ", ss.getProblemDefinition().getSolutionDifference())
         print("Path length is ", length)

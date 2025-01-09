@@ -45,7 +45,6 @@ using namespace ompl::base;
 
 namespace
 {
-    constexpr double onepi = boost::math::constants::pi<double>();
     constexpr double twopi = 2. * boost::math::constants::pi<double>();
 
     // tolerance for boost root finding algorithm
@@ -126,7 +125,11 @@ std::optional<OwenStateSpace::PathType> OwenStateSpace::getPath(const State *sta
         std::uintmax_t iter = MAX_ITER;
         auto result = boost::math::tools::bracket_and_solve_root(radiusFun, radius, 2., true, TOLERANCE, iter);
         radius = .5 * (result.first + result.second);
-        assert(std::abs(radiusFun(radius)) < 1e-5);
+        // Discontinuities in the Dubins distance and, by extension, radiusFun can cause bracket_and_solve_root to fail.
+        // This can be fixed by picking the Dubins path type for radius=rho_ (say LSL) and considering only Dubins paths
+        // of that type as the radius is varied. This is considered future work.
+        if (std::abs(radiusFun(radius)) > 1e-5)
+            return {};
         path = dubinsSpace_.dubins(state1, state2, radius);
         return PathType{path, radius, dz, k};
     }
