@@ -1,5 +1,53 @@
 # Release Notes {#releaseNotes}
 
+## OMPL 1.7.0 (December 20, 2024)
+
+- Fix cmake installation with version folder 
+- Use target properties for include properties 
+- Fix off-by-one error and deprecated call in documentation 
+- Fix signedness compare (for -Werror build) 
+- Ensure that `webbrowser` pkg will not use terminal browser
+- Repair library install destination
+- Correctly overload virtual function
+- Fix Python wheels missing constrained planning components
+- fix(script): add missing space in if statement
+- More relevant return code
+- Fix default value for goal bias fraction in EST planner
+- Do not retry on invalid start/goal/unrecognized goal type
+- Add missing build command in dockerfile
+- Fix termination before planner termination condition is met in multilevel planning.
+- Added Rope Shortcut
+- remove vestigial bits of code now that ODE extension has been removed
+- remove unused parameter in getDubinsClass
+- Add support for building Python wheels for Linux & MacOS
+- Fix for ompl::geometric Python bindings
+- Fix python binding header include order
+- Python bindings compiling on M1/2 Mac
+- fix #1117: out-of-bounds query in 2D environmen
+- Fix yaml-cpp target to be compatible with CMake <3.18
+- Fix Bug in Loading Planner Data
+- Allow allocating custom state sampler in rejection sampler
+- removed unnecessary config import in RandomNumbers
+- Use full install paths for pkg-config
+- Add a CMake export step for config packages.
+- wrap bias function in constrained planning demo
+- fix issue: EIGEN3_INCLUDE_DIR is not defined when Eigen3 is installed from source
+- Use of Dubins Set Classification for faster distance computations in DubinsStateSpace
+- Only prune goal in BIT* if it is not part of the current best solution
+- CMake: Switch to exported namespace targets and prefer config mode
+- Add PlannerSolution to py-bindings
+- Added KBoundedStrategy to Python bindings
+- Removed OpenDE extension
+- Removed MORSE extension
+- Add a special case to checkAndRepair for the two state case
+- Add Python bindings for ReportIntermediateSolutionFn
+- Add pybindings to ST-RRT* planner
+- Add back in alternative signature for constrained planning methods
+- Added deterministic samplers to Python binding generation
+- fix: Issue error if matching Boost to Python/Numpy versions fails
+- Support for Python binding installation through pip & pypy version checking
+- feat: call intermediate solution callback
+
 ## OMPL 1.6.1 (April 19, 2023)
 
 - Added [EIT*](\ref EITstar): an almost-surely asymptotically optimal path planner that exploits effort heuristics.
