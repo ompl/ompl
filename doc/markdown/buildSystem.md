@@ -16,7 +16,7 @@ When developing your own code that relies on OMPL, you have several options:
       target_link_libraries(your_library PUBLIC ompl::ompl)
       ```
       
-      To support the previous CMake module behavior, the following variables are defined. These are for backwards compatability, but not recommended anymore.
+      To support the previous CMake module behavior, the following variables are defined. These are for backwards compatability, but not recommended anymore. These variables are NOT portable if these libraries exist at a different place than where ompl was built.
 
          - `OMPL_FOUND`         - `TRUE`
          - `OMPL_INCLUDE_DIRS`  - The OMPL include directory
