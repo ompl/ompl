@@ -45,6 +45,9 @@
 #include "ompl/base/spaces/TimeStateSpace.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
+#include "ompl/base/spaces/OwenStateSpace.h"
+#include "ompl/base/spaces/VanaStateSpace.h"
+#include "ompl/base/spaces/VanaOwenStateSpace.h"
 #if OMPL_HAVE_NUMPY
 #include "ompl/base/spaces/constraint/AtlasStateSpace.h"
 #include "ompl/base/spaces/constraint/ProjectedStateSpace.h"
@@ -84,6 +87,9 @@ namespace ompl
         DeclareStateType(Dubins);
         DeclareStateType(ReedsShepp);
         DeclareStateType(Wrapper);
+        DeclareStateType(Vana);
+        DeclareStateType(VanaOwen);
+        DeclareStateType(Owen);
 #if OMPL_HAVE_NUMPY
         DeclareStateType(Constrained);
         DeclareStateType(Atlas);
