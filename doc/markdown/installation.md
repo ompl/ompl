@@ -65,7 +65,7 @@ sudo apt-get install ros-`rosversion -d`-ompl</pre>
   <!-- Linux (generic) -->
   <div class="tab-pane fade" id="linux" role="tabpanel" aria-labelledby="linux-tab">
     <h2>Linux (generic)</h2>
-    <p>OMPL requires <a href="https://www.boost.org">Boost</a> (version 1.58 or higher), <a href="https://www.cmake.org">CMake</a> (version 3.5 or higher), and <a href="http://eigen.tuxfamily.org">Eigen</a> (version 3.3 or higher).
+    <p>OMPL requires <a href="https://www.boost.org">Boost</a> (version 1.68 or higher), <a href="https://www.cmake.org">CMake</a> (version 3.5 or higher), and <a href="http://eigen.tuxfamily.org">Eigen</a> (version 3.3 or higher).
     To be able to generate python bindings you need to install the <a href="https://www.python.org">Python</a> library and header files and <a href="installPyPlusPlus.html">Py++</a>.
     Finally, you need a C++17 compiler (g++-7 or newer).</p>
     <p>Once the dependencies are installed, OMPL can then be compiled like so:</p>
