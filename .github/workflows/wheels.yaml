@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
 jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }}-${{ matrix.arch }}
@@ -16,15 +15,8 @@ jobs:
         include:
           - os: macos-14
             arch: arm64
-            cibw_build: "cp3{10,11,12}-macosx_arm64"
-          - os: ubuntu-22.04
-            cibw_build: "cp3{7,8,9,10,11,12}-manylinux_2_28_x86_64"
-          - os: ubuntu-22.04-arm
+          - os: ubuntu-24.04-arm
             arch: arm64
-            cibw_build: "cp3{7,8,9,10,11,12}-manylinux_2_28_aarch64"
-          - os: macos-13
-            cibw_build: "cp3{10,11,12}-macosx_x86_64"
-
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -38,10 +30,10 @@ jobs:
         env:
           CIBW_ARCHS_MACOS: ${{ matrix.arch }}
           OMPL_BUILD_ARCH: ${{ matrix.arch }}
-          CIBW_BUILD: ${{ matrix.cibw_build }}
+          # NOTE: Many combinations of OS, arch, and Python version can be built
+          # depending on your patience. For example:
+          CIBW_BUILD: cp3{10,11,12}-macosx_{x86_64,arm64} cp3{7,8,9,10,11,12}-manylinux_{x86_64,aarch64}
           CIBW_BUILD_VERBOSITY: 1
-          CIBW_SKIP: "*pp*"   # Skips any PyPy builds
-          # CIBW_ENABLE removed so that default CPython builds are included
 
       - uses: actions/upload-artifact@v4
         with:
@@ -63,7 +55,7 @@ jobs:
           merge-multiple: true
 
       - name: GitHub release
-        uses: ncipollo/release-action@v1.15.0
+        uses: ncipollo/release-action@v1.14.0
         with:
           prerelease: true
           tag: "prerelease"
