@@ -7,7 +7,7 @@ build_os="$(uname)"
 if [ "${build_os}" == "Linux" ]; then
     yum -y install \
         sudo \
-        eigen3 \
+        eigen3-devel \
         llvm-devel \
         clang-devel
 
