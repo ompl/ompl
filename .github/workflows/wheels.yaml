@@ -11,19 +11,20 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-13, ubuntu-22.04-arm]
+        os: [ubuntu-22.04, macos-13]
         arch: [x86_64]
         include:
           - os: macos-14
             arch: arm64
+            cibw_build: "cp3{10,11,12}-macosx_arm64"
           - os: ubuntu-22.04
             cibw_build: "cp3{7,8,9,10,11,12}-manylinux_x86_64"
           - os: ubuntu-22.04-arm
+            arch: arm64
             cibw_build: "cp3{7,8,9,10,11,12}-manylinux_aarch64" # Or another appropriate aarch64 build spec
           - os: macos-13
             cibw_build: "cp3{10,11,12}-macosx_x86_64"
-          - os: macos-14
-            cibw_build: "cp3{10,11,12}-macosx_arm64"
+            
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
