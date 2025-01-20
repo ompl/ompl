@@ -40,8 +40,8 @@ jobs:
           OMPL_BUILD_ARCH: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.cibw_build }}
           CIBW_BUILD_VERBOSITY: 1
-          CIBW_SKIP: "*pp*"
-          CIBW_ENABLE: ""  # Explicitly set CIBW_ENABLE to an empty string
+          CIBW_SKIP: "*pp*"   # Skips any PyPy builds
+          # CIBW_ENABLE removed so that default CPython builds are included
 
       - uses: actions/upload-artifact@v4
         with:
