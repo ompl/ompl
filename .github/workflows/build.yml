@@ -13,7 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, ubuntu-22.04, ubuntu-24.04-arm, ubuntu-22.04-arm, ubuntu-20.04, windows-2025]
-
     steps:
     - uses: actions/checkout@v4
 
