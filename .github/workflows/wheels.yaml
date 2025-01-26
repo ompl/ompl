@@ -11,11 +11,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-13]
+        os: [ubuntu-24.04, ubuntu-22.04, macos-13]
         arch: [x86_64]
         include:
-          - os: macos-14
+          - os: macos-15
             arch: arm64
+          - os: ubuntu-24.04-arm
+            arch: aarch64
+          - os: ubuntu-22.04-arm
+            arch: aarch64
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -23,15 +27,16 @@ jobs:
           submodules: 'recursive'
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@main
         with:
           package-dir: py-bindings
         env:
           CIBW_ARCHS_MACOS: ${{ matrix.arch }}
           OMPL_BUILD_ARCH: ${{ matrix.arch }}
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
           # NOTE: Many combinations of OS, arch, and Python version can be built
           # depending on your patience. For example:
-          CIBW_BUILD: cp3{10,11,12}-macosx_{x86_64,arm64} cp3{7,8,9,10,11,12}-manylinux_x86_64
+          CIBW_BUILD: cp3{10,11,12}-macosx_{x86_64,arm64} cp3{9,10,11,12}-manylinux_{x86_64,aarch64}
           CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4

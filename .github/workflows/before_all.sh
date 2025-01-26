@@ -5,9 +5,12 @@ set -eux
 build_os="$(uname)"
 
 if [ "${build_os}" == "Linux" ]; then
+    yum -y install epel-release
+    yum -y update
+    yum -y install eigen3-devel
     yum -y install \
         sudo \
-        eigen3 \
+        eigen3-devel \
         llvm-devel \
         clang-devel
 

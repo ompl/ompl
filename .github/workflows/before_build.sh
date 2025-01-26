@@ -3,11 +3,12 @@
 set -eux
 
 # Dependency versions.
-castxml_version="0.6.8" # version specifier for Linux only
+castxml_version="0.6.10" # version specifier for Linux only
 boost_version="1.87.0"
 
 # Collect some information about the build target.
 build_os="$(uname)"
+build_arch="$(uname -m)"
 python_version=$(python3 -c 'import sys; v=sys.version_info; print(f"{v.major}.{v.minor}")')
 
 install_boost() {
@@ -43,26 +44,35 @@ install_castxml() {
     mkdir -p build && cd build
     cmake -DCMAKE_BUILD_TYPE=Release -DCLANG_RESOURCE_DIR="${clang_resource_dir}" ..
     cmake --build .
-    make install
+    sudo make install
     popd
 }
-
 
 # Work inside a temporary directory.
 cd "$(mktemp -d -t 'ompl-wheels.XXX')"
 
 if [ "${build_os}" == "Linux" ]; then
-    # Install CastXML dependency from source, since the manylinux container
-    # doesn't have a prebuilt version in the repos.
-    install_castxml
+    if [ "${build_arch}" == "aarch64" ] || [ "${build_arch}" == "arm64" ]; then
+      # Install castxml dependency from source on Ubuntu ARM
+      install_castxml
 
-    # Install the latest Boost, because it has to be linked to the exact version of
-    # Python for which we are building the wheel.
-    install_boost
+      # Install the latest Boost, because it has to be linked to the exact version of
+      # Python for which we are building the wheel.
+      # Pass architecture and address-model to b2 for ARM64
+      install_boost architecture=arm address-model=64
+    else
+        # Install CastXML dependency from source, since the manylinux container
+        # doesn't have a prebuilt version in the repos.
+        install_castxml
+
+        # Install the latest Boost, because it has to be linked to the exact version of
+        # Python for which we are building the wheel.
+        install_boost
+    fi
 elif [ "${build_os}" == "Darwin" ]; then
     # On MacOS, we may be cross-compiling for a different architecture. Detect
     # that here.
-    build_arch="${OMPL_BUILD_ARCH:-x86_64}"
+    build_arch="${OMPL_BUILD_ARCH:-$(uname -m)}" # Use uname -m as default if OMPL_BUILD_ARCH is not set
 
     # Make sure we install the target Python version from brew instead of
     # depending on the system version.
