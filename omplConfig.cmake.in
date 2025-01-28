@@ -19,7 +19,6 @@ set(OMPL_MAJOR_VERSION @PROJECT_VERSION_MAJOR@)
 set(OMPL_MINOR_VERSION @PROJECT_VERSION_MINOR@)
 set(OMPL_PATCH_VERSION @PROJECT_VERSION_PATCH@)
 set_and_check(OMPL_INCLUDE_DIRS @PACKAGE_INCLUDE_INSTALL_DIR@)
-set_and_check(OMPL_LIBRARIES @PACKAGE_LIB_INSTALL_DIR@)
 
 include ("${CMAKE_CURRENT_LIST_DIR}/omplExport.cmake" )
 include(CMakeFindDependencyMacro)
@@ -32,6 +31,7 @@ if(Boost_FOUND)
     endforeach()
 endif()
 find_dependency(Eigen3 REQUIRED)
+list(APPEND OMPL_INCLUDE_DIRS @EIGEN3_INCLUDE_DIRS@)
 
 # Add OMPL's find modules to the search path so consumers can also find them.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
@@ -61,7 +61,7 @@ if(@OMPL_HAVE_SPOT@) # if(OMPL_HAVE_SPOT)
 endif()
 
 # Add optional dependent library includes based on their non-portable variable directories (best effort).
-foreach(_dir @FLANN_INCLUDE_DIRS@;@SPOT_INCLUDE_DIRS@;@TRIANGLE_INCLUDE_DIR@;@FCL_INCLUDE_DIRS@;@PQP_INCLUDE_DIR@;@ASSIMP_INCLUDE_DIRS@;@OPENGL_INCLUDE_DIR@)
+foreach(_dir @FLANN_INCLUDE_DIRS@;@SPOT_INCLUDE_DIRS@;@Triangle_INCLUDE_DIR@;@FCL_INCLUDE_DIRS@;@PQP_INCLUDE_DIR@;@ASSIMP_INCLUDE_DIRS@;@OPENGL_INCLUDE_DIR@)
     if(_dir)
         list(APPEND OMPL_INCLUDE_DIRS "${_dir}")
     endif()
@@ -69,4 +69,25 @@ endforeach()
 list(REMOVE_DUPLICATES OMPL_INCLUDE_DIRS)
 set(OMPL_INCLUDE_DIRS "${OMPL_INCLUDE_DIRS}" CACHE STRING "Include path for OMPL and its dependencies - DEPRECATED")
 
+# Add optional dependent libraries based on their non-portable library absolute paths (best effort).
+find_library(OMPL_LIBRARIES NAMES ompl
+    PATHS "${PACKAGE_PREFIX_DIR}/lib" NO_DEFAULT_PATH)
+foreach(_lib @Boost_SERIALIZATION_LIBRARY@;@Boost_FILESYSTEM_LIBRARY@;@Boost_SYSTEM_LIBRARY@;@SPOT_LIBRARIES@)
+    if(_lib)
+        list(APPEND OMPL_LIBRARIES "${_lib}")
+    endif()
+endforeach()
+
+# Set OMPL_LIBRARY_DIRS for backward compatibility
+set_and_check(OMPL_LIBRARY_DIRS "@PACKAGE_LIB_INSTALL_DIR@")
+foreach(_dir @FLANN_LIBRARY_DIRS@;@SPOT_LIBRARY_DIRS@;@FCL_LIBRARY_DIRS@;@ASSIMP_LIBRARY_DIRS@)
+    if(_dir)
+        list(APPEND OMPL_LIBRARY_DIRS "${_dir}")
+    endif()
+endforeach()
+list(REMOVE_DUPLICATES OMPL_LIBRARY_DIRS)
+set(OMPL_LIBRARY_DIRS "${OMPL_LIBRARY_DIRS}" CACHE STRING "Library path for OMPL and its dependencies - DEPRECATED")
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(ompl DEFAULT_MSG OMPL_INCLUDE_DIRS OMPL_LIBRARY_DIRS OMPL_LIBRARIES)
 
