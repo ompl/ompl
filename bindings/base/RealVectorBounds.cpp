@@ -1,27 +1,19 @@
 #include <nanobind/nanobind.h>
-#include "ompl/base/spaces/RealVectorStateSpace.h"
+#include "ompl/base/spaces/RealVectorBounds.h"
 
 namespace nb = nanobind;
 
-void initRealVectorStateSpace(nb::module_& m) {
-    // Bind StateType
-    nb::class_<ompl::base::RealVectorStateSpace::StateType>(m, "RealVectorStateType")
-        .def("__getitem__", [](const ompl::base::RealVectorStateSpace::StateType& st, unsigned int i) { return st[i]; })
-        .def("__setitem__", [](ompl::base::RealVectorStateSpace::StateType& st, unsigned int i, double v) { st[i] = v; });
-
-    // Bind RealVectorStateSpace
-    nb::class_<ompl::base::RealVectorStateSpace, ompl::base::StateSpace>(m, "RealVectorStateSpace")
+void initRealVectorBounds(nb::module_& m) {
+    nb::class_<ompl::base::RealVectorBounds>(m, "RealVectorBounds")
         .def(nb::init<unsigned int>())
-        .def("AddDimension", nb::overload_cast<double, double>(&ompl::base::RealVectorStateSpace::addDimension))
-        .def("AddDimensionNamed", nb::overload_cast<const std::string&, double, double>(&ompl::base::RealVectorStateSpace::addDimension))
-        .def("SetBounds", nb::overload_cast<double, double>(&ompl::base::RealVectorStateSpace::setBounds))
-        .def("GetDimension", &ompl::base::RealVectorStateSpace::getDimension)
-        .def("GetDimensionName", &ompl::base::RealVectorStateSpace::getDimensionName)
-        .def("GetDimensionIndex", &ompl::base::RealVectorStateSpace::getDimensionIndex)
-        .def("SetDimensionName", &ompl::base::RealVectorStateSpace::setDimensionName)
-        .def("GetMaximumExtent", &ompl::base::RealVectorStateSpace::getMaximumExtent)
-        .def("GetMeasure", &ompl::base::RealVectorStateSpace::getMeasure)
-        .def("EnforceBounds", &ompl::base::RealVectorStateSpace::enforceBounds)
-        .def("SatisfiesBounds", &ompl::base::RealVectorStateSpace::satisfiesBounds)
-        .def("Distance", &ompl::base::RealVectorStateSpace::distance);
+        .def("setLow", nb::overload_cast<double>(&ompl::base::RealVectorBounds::setLow))
+        .def("setLow", nb::overload_cast<unsigned int, double>(&ompl::base::RealVectorBounds::setLow))
+        .def("setHigh", nb::overload_cast<double>(&ompl::base::RealVectorBounds::setHigh))
+        .def("setHigh", nb::overload_cast<unsigned int, double>(&ompl::base::RealVectorBounds::setHigh))
+        .def("resize", &ompl::base::RealVectorBounds::resize)
+        .def("getVolume", &ompl::base::RealVectorBounds::getVolume)
+        .def("getDifference", &ompl::base::RealVectorBounds::getDifference)
+        .def("check", &ompl::base::RealVectorBounds::check)
+        .def_rw("low", &ompl::base::RealVectorBounds::low)
+        .def_rw("high", &ompl::base::RealVectorBounds::high);
 }

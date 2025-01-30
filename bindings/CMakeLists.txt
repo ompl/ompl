@@ -9,7 +9,6 @@ find_package(Python 3.8
 add_subdirectory(nanobind)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl)
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/ompl/__init__.py "")
 ############################################
 # Base
 ############################################
@@ -19,28 +18,27 @@ nanobind_add_module(base
     ${BASE_SOURCES}
 )
 set_target_properties(base PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl/base
-    OUTPUT_NAME "base"
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl
 )
 target_link_libraries(base PRIVATE ompl::ompl)
 ############################################
 # Geometric
 ############################################
 file(GLOB GEOMETRIC_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/geometric/*.cpp")
-nanobind_add_module(_geometric_ext
+nanobind_add_module(geometric
     STABLE_ABI
     ${GEOMETRIC_SOURCES}
 )
-set_target_properties(_geometric_ext PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl/geometric
-    OUTPUT_NAME "geometric"
+set_target_properties(geometric PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl
 )
-target_link_libraries(_geometric_ext PRIVATE ompl::ompl)
+target_link_libraries(geometric PRIVATE ompl::ompl)
 ############################################
 # Util
 ############################################
 # Add the module
-nanobind_add_module(_util_ext
+nanobind_add_module(util
+    STABLE_ABI
     util/geometric_equations_bindings.cpp
     util/random_numbers_bindings.cpp
     util/ppm_bindings.cpp
@@ -48,12 +46,11 @@ nanobind_add_module(_util_ext
     util/all_bindings.cpp
 )
 
-set_target_properties(_util_ext PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl/util
-    OUTPUT_NAME "util"
+set_target_properties(util PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl
 )
 
-target_link_libraries(_util_ext PRIVATE ompl::ompl)
+target_link_libraries(util PRIVATE ompl::ompl)
 ############################################
 
 # Warn if the user invokes CMake directly
@@ -80,6 +77,6 @@ if (NOT SKBUILD)
   after editing C++ files.")
 endif()
 
-install(TARGETS _util_ext 
-    LIBRARY 
-    DESTINATION ompl/util)
+# install(TARGETS _util_ext 
+#     LIBRARY 
+#     DESTINATION ompl/util)

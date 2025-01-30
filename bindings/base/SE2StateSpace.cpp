@@ -1,26 +1,25 @@
 #include <nanobind/nanobind.h>
 #include "ompl/base/spaces/SE2StateSpace.h"
+#include "ompl/base/StateSpace.h"
 
 namespace nb = nanobind;
 
 void initSE2StateSpace(nb::module_& m) {
-    // Bind StateType
     nb::class_<ompl::base::SE2StateSpace::StateType, ompl::base::CompoundStateSpace::StateType>(m, "SE2StateType")
         .def(nb::init<>())
-        .def("GetX", &ompl::base::SE2StateSpace::StateType::getX)
-        .def("GetY", &ompl::base::SE2StateSpace::StateType::getY)
-        .def("GetYaw", &ompl::base::SE2StateSpace::StateType::getYaw)
-        .def("SetX", &ompl::base::SE2StateSpace::StateType::setX)
-        .def("SetY", &ompl::base::SE2StateSpace::StateType::setY)
-        .def("SetXY", &ompl::base::SE2StateSpace::StateType::setXY)
-        .def("SetYaw", &ompl::base::SE2StateSpace::StateType::setYaw);
+        .def("getX", &ompl::base::SE2StateSpace::StateType::getX)
+        .def("getY", &ompl::base::SE2StateSpace::StateType::getY)
+        .def("getYaw", &ompl::base::SE2StateSpace::StateType::getYaw)
+        .def("setX", &ompl::base::SE2StateSpace::StateType::setX)
+        .def("setY", &ompl::base::SE2StateSpace::StateType::setY)
+        .def("setXY", &ompl::base::SE2StateSpace::StateType::setXY)
+        .def("setYaw", &ompl::base::SE2StateSpace::StateType::setYaw);
 
-    // Bind SE2StateSpace
     nb::class_<ompl::base::SE2StateSpace, ompl::base::CompoundStateSpace>(m, "SE2StateSpace")
         .def(nb::init<>())
-        .def("SetBounds", &ompl::base::SE2StateSpace::setBounds)
-        .def("GetBounds", &ompl::base::SE2StateSpace::getBounds)
-        .def("AllocState", &ompl::base::SE2StateSpace::allocState)
-        .def("FreeState", &ompl::base::SE2StateSpace::freeState)
-        .def("RegisterProjections", &ompl::base::SE2StateSpace::registerProjections);
+        .def("setBounds", &ompl::base::SE2StateSpace::setBounds)
+        .def("getBounds", &ompl::base::SE2StateSpace::getBounds)
+        .def("allocState", &ompl::base::SE2StateSpace::allocState)
+        .def("freeState", &ompl::base::SE2StateSpace::freeState)
+        .def("registerProjections", &ompl::base::SE2StateSpace::registerProjections);
 }

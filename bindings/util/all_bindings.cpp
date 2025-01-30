@@ -9,7 +9,7 @@ void init_random_numbers(nb::module_&);
 void init_ppm(nb::module_&);
 void init_prolate_hyperspheroid(nb::module_&);
 
-NB_MODULE(_util_ext, m) {
+NB_MODULE(util, m) {
     // Initialize all submodules
     // init_console(m);
     init_geometric_equations(m);

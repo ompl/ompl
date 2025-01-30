@@ -5,6 +5,6 @@ namespace nb = nanobind;
 // Forward declarations
 void initSimpleSetup(nb::module_&);
 
-NB_MODULE(_geometric_ext, m) {
+NB_MODULE(geometric, m) {
     initSimpleSetup(m);
 }
