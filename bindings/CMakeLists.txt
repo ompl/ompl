@@ -9,10 +9,38 @@ find_package(Python 3.8
 add_subdirectory(nanobind)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl)
-
-# Add the module
-nanobind_add_module(_utils_ext
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/ompl/__init__.py "")
+############################################
+# Base
+############################################
+file(GLOB BASE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/base/*.cpp")
+nanobind_add_module(base
     STABLE_ABI
+    ${BASE_SOURCES}
+)
+set_target_properties(base PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl/base
+    OUTPUT_NAME "base"
+)
+target_link_libraries(base PRIVATE ompl::ompl)
+############################################
+# Geometric
+############################################
+file(GLOB GEOMETRIC_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/geometric/*.cpp")
+nanobind_add_module(_geometric_ext
+    STABLE_ABI
+    ${GEOMETRIC_SOURCES}
+)
+set_target_properties(_geometric_ext PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl/geometric
+    OUTPUT_NAME "geometric"
+)
+target_link_libraries(_geometric_ext PRIVATE ompl::ompl)
+############################################
+# Util
+############################################
+# Add the module
+nanobind_add_module(_util_ext
     util/geometric_equations_bindings.cpp
     util/random_numbers_bindings.cpp
     util/ppm_bindings.cpp
@@ -20,13 +48,13 @@ nanobind_add_module(_utils_ext
     util/all_bindings.cpp
 )
 
-set_target_properties(_utils_ext PROPERTIES
+set_target_properties(_util_ext PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl/util
     OUTPUT_NAME "util"
 )
 
-target_link_libraries(_utils_ext PRIVATE ompl::ompl)
-
+target_link_libraries(_util_ext PRIVATE ompl::ompl)
+############################################
 
 # Warn if the user invokes CMake directly
 if (NOT SKBUILD)
@@ -52,6 +80,6 @@ if (NOT SKBUILD)
   after editing C++ files.")
 endif()
 
-install(TARGETS _utils_ext 
+install(TARGETS _util_ext 
     LIBRARY 
     DESTINATION ompl/util)
