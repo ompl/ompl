@@ -41,9 +41,9 @@ jobs:
       id: runvcpkg
       with:
           vcpkgGitCommitId: da4b78d35084ec4e9808aa02017028da03b8d2ab
-          vcpkgTriplet: 'x64-windows'
-          vcpkgArguments: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-system boost-test eigen3 flann'
-
+          vcpkgDefaultTriplet: x64-windows
+          vcpkgInstallArgs: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-system boost-test boost-python eigen3 flann'
+    
     - name: Build & Test (Linux, macOS)
       if: runner.os != 'Windows'
       uses: ashutoshvarma/action-cmake-build@master
@@ -66,7 +66,16 @@ jobs:
       with:
         build-dir: ${{ runner.workspace }}/build
         build-type: Release
-        configure-options: -DOMPL_REGISTRATION=OFF -DOMPL_BUILD_DEMOS=OFF -DMACHINE_SPEED_FACTOR=5.0 -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/ompl/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_GENERATOR_PLATFORM=x64
+        configure-options: |
+          -DOMPL_REGISTRATION=OFF 
+          -DOMPL_BUILD_DEMOS=OFF 
+          -DMACHINE_SPEED_FACTOR=5.0 
+          -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install 
+          -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python 
+          -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake 
+          -DCMAKE_GENERATOR_PLATFORM=x64
+          -DBOOST_ROOT=${{ runner.workspace }}/vcpkg/installed/x64-windows
+          -DPYTHON_EXECUTABLE=python
         run-test: true
         ctest-options: --output-on-failure
         install-build: true
