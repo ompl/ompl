@@ -59,7 +59,7 @@ if [ "${build_os}" == "Linux" ]; then
       # Install the latest Boost, because it has to be linked to the exact version of
       # Python for which we are building the wheel.
       # Pass architecture and address-model to b2 for ARM64
-      install_boost architecture=arm address-model=64
+      install_boost architecture=arm address-model=64 cxxflags="-arch arm64"
     else
         # Install CastXML dependency from source, since the manylinux container
         # doesn't have a prebuilt version in the repos.
