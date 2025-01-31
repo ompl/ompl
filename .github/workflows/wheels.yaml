@@ -33,7 +33,7 @@ jobs:
           CIBW_ARCHS_LINUX: ${{ matrix.arch }} # Add this for linux explicitly
           OMPL_BUILD_ARCH: ${{ matrix.arch }}
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
-          CIBW_BUILD: cp3{10,11,12}-macosx_${{ matrix.arch }} cp3{9,10,11,12}-manylinux_${{ matrix.arch }}
+          CIBW_BUILD: cp3{10,11,12}-macosx_${{ matrix.arch }} cp3{10,11,12}-manylinux_${{ matrix.arch }}
           CIBW_BUILD_VERBOSITY: 1
           CIBW_MACOS_DEPLOYMENT_TARGET_ARM64: "15.0"
 
