@@ -62,7 +62,7 @@ if [ "${build_os}" == "Linux" ]; then
 elif [ "${build_os}" == "Darwin" ]; then
     # On MacOS, we may be cross-compiling for a different architecture. Detect
     # that here.
-    build_arch="${OMPL_BUILD_ARCH:-x86_64}"
+    build_arch="${OMPL_BUILD_ARCH:-$(uname -m)}"
 
     # Make sure we install the target Python version from brew instead of
     # depending on the system version.
@@ -70,6 +70,8 @@ elif [ "${build_os}" == "Darwin" ]; then
 
     if [ "${build_arch}" == "x86_64" ]; then
         install_boost architecture=x86 address-model=64 cxxflags="-arch x86_64"
+    elif [ "${build_arch}" == "aarch64" ]; then
+        install_boost architecture=aarch address-model=64 cxxflags="-arch aarch64"
     elif [ "${build_arch}" == "arm64" ]; then
         install_boost architecture=arm address-model=64 cxxflags="-arch arm64"
     fi
