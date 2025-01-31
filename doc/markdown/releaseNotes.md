@@ -1,5 +1,9 @@
 # Release Notes {#releaseNotes}
 
+## OMPL 1.7.0 (January 31, 2025)
+
+- ARM Builds
+
 ## OMPL 1.6.1 (April 19, 2023)
 
 - Added [EIT*](\ref EITstar): an almost-surely asymptotically optimal path planner that exploits effort heuristics.
