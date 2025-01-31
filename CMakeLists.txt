@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.20)
 project(ompl VERSION 1.7.0 LANGUAGES CXX)
 set(OMPL_ABI_VERSION 17)
 
@@ -47,7 +47,7 @@ set_package_properties(Boost PROPERTIES
     URL "https://www.boost.org"
     PURPOSE "Used throughout OMPL for data serialization, graphs, etc.")
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.68 REQUIRED COMPONENTS serialization filesystem system program_options)
+find_package(Boost 1.87 REQUIRED COMPONENTS serialization filesystem system program_options)
 
 # Add support in Boost::Python for std::shared_ptr
 # This is a hack that replaces boost::shared_ptr related code with std::shared_ptr.
