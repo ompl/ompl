@@ -3,7 +3,7 @@ requires = [
     "setuptools>=75.8.0",
     "cmake>=3.20",
     "ninja",
-    "pygccxml",
+    "pygccxml @ git+https://github.com/CastXML/pygccxml",
     "numpy",
     # Need latest commit for this PR with Mac fixes:
     # https://github.com/ompl/pyplusplus/pull/1
