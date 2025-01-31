@@ -12,7 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-22.04, ubuntu-24.04-arm, ubuntu-22.04-arm, ubuntu-20.04, windows-2025]
+        os: [ubuntu-24.04, ubuntu-22.04, ubuntu-24.04-arm, ubuntu-22.04-arm, macos-15, windows-2025]
+
     steps:
     - uses: actions/checkout@v4
 
@@ -50,7 +51,7 @@ jobs:
       with:
         build-dir: ${{ runner.workspace }}/build
         build-type: Release
-        configure-options: -DOMPL_REGISTRATION=OFF -DOMPL_BUILD_DEMOS=OFF -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python
+        configure-options: -DOMPL_REGISTRATION=OFF -DOMPL_BUILD_DEMOS=OFF -DCMAKE_CXX_STANDARD=17 -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python
         run-test: true
         ctest-options: --output-on-failure
         install-build: true
@@ -58,7 +59,7 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         cd tests/cmake_export
-        cmake -B build -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install
+        cmake -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install
         cmake --build build
     - name: Build & Test (Windows)
       if: runner.os == 'Windows'
