@@ -42,8 +42,10 @@ import time
 import threading
 import sys
 from pygccxml import parser
+from pygccxml.declarations.runtime_errors import multiple_declarations_found_t
 from pyplusplus import module_builder, messages
 from pyplusplus.module_builder import call_policies
+
 
 # disable some warnings that are mostly harmless
 messages.disable(messages.W1014)
@@ -141,8 +143,12 @@ class code_generator_t(object):
         self.mb.classes().always_expose_using_scope = True
         try:
             self.std_ns = self.mb.namespace('std')
-        except:
-            self.std_ns = self.mb.global_ns.namespace('std')
+        except multiple_declarations_found_t:
+            std_decls = self.mb.global_ns.declarations('std')
+            if std_decls:
+                self.std_ns = std_decls[0]
+            else:
+                raise RuntimeError("No se encontró el namespace 'std'")
         # workaround for different castxml behavior on macOS and Linux
         try:
             self.std_ns.class_('vector< std::string >')
