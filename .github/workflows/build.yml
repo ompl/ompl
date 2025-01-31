@@ -59,7 +59,7 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         cd tests/cmake_export
-        cmake -B build -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install
+        cmake -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install
         cmake --build build
     - name: Build & Test (Windows)
       if: runner.os == 'Windows'
