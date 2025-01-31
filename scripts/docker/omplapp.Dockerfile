@@ -46,6 +46,7 @@ WORKDIR /build
 RUN cmake \
         -DPYTHON_EXEC=/usr/bin/python3 \
         -DOMPL_REGISTRATION=OFF \
+        -DCMAKE_CXX_STANDARD=17 \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -G Ninja \
         /omplapp && \

@@ -39,12 +39,13 @@ RUN cmake \
         -B build \
         -DPYTHON_EXEC=/usr/bin/python3 \
         -DOMPL_REGISTRATION=OFF \
+        -DCMAKE_CXX_STANDARD=17 \
         -DCMAKE_INSTALL_PREFIX=/usr && \
     cmake --build build -t update_bindings && \
     cmake --build build && \
     cmake --install build && \
     cd tests/cmake_export && \
-    cmake -B build -DCMAKE_INSTALL_PREFIX=../../install && \
+    cmake -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_INSTALL_PREFIX=../../install && \
     cmake --build build
 
 FROM ubuntu:jammy
