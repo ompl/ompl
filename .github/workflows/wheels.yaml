@@ -41,7 +41,6 @@ jobs:
           CIBW_BUILD: cp3{10,11,12}-macosx_${{ matrix.arch }} cp3{10,11,12}-manylinux_${{ matrix.arch }}
           CIBW_BUILD_VERBOSITY: 1
           CIBW_MACOS_DEPLOYMENT_TARGET_ARM64: "15.0"
-        continue-on-error: true
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}-${{ matrix.arch }}
