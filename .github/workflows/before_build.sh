@@ -58,17 +58,11 @@ if [ "${build_os}" == "Linux" ]; then
 
     # Install the latest Boost, because it has to be linked to the exact version of
     # Python for which we are building the wheel.
-    build_arch="${OMPL_BUILD_ARCH:-$(uname -m)}"
-    if [ "${build_arch}" == "x86_64" ]; then
-        install_boost architecture=x86 address-model=64 cxxflags="-arch x86_64"
-    elif [[ "${build_arch}" == "aarch64" || "${build_arch}" == "arm64" ]]; then
-        install_boost architecture=arm address-model=64 cxxflags="-arch arm64"
-    fi
-
+    install_boost
 elif [ "${build_os}" == "Darwin" ]; then
     # On MacOS, we may be cross-compiling for a different architecture. Detect
     # that here.
-    build_arch="${OMPL_BUILD_ARCH:-$(uname -m)}"
+    build_arch="${OMPL_BUILD_ARCH:-x86_64}"
 
     # Make sure we install the target Python version from brew instead of
     # depending on the system version.
@@ -76,7 +70,7 @@ elif [ "${build_os}" == "Darwin" ]; then
 
     if [ "${build_arch}" == "x86_64" ]; then
         install_boost architecture=x86 address-model=64 cxxflags="-arch x86_64"
-    elif [[ "${build_arch}" == "aarch64" || "${build_arch}" == "arm64" ]]; then
+    elif [ "${build_arch}" == "arm64" ]; then
         install_boost architecture=arm address-model=64 cxxflags="-arch arm64"
     fi
 fi
