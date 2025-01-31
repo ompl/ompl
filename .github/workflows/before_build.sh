@@ -63,8 +63,6 @@ if [ "${build_os}" == "Linux" ]; then
         install_boost architecture=x86 address-model=64 cxxflags="-arch x86_64"
     elif [[ "${build_arch}" == "aarch64" || "${build_arch}" == "arm64" ]]; then
         install_boost architecture=arm address-model=64 cxxflags="-arch arm64"
-    elif [ "${build_arch}" == "arm64" ]; then
-        install_boost architecture=arm address-model=64 cxxflags="-arch arm64"
     fi
 
 elif [ "${build_os}" == "Darwin" ]; then
