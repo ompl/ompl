@@ -16,8 +16,6 @@ jobs:
         include:
           - os: ubuntu-24.04-arm # Build ARM64 on Ubuntu
             arch: aarch64
-          - os: ubuntu-22.04-arm # Build ARM64 on Ubuntu
-            arch: aarch64
           - os: macos-latest # Build ARM64 on macOS
             arch: arm64
     steps:
