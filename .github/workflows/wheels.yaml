@@ -25,7 +25,7 @@ jobs:
           submodules: 'recursive'
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@master
+        uses: pypa/cibuildwheel@main
         with:
           package-dir: py-bindings
         env:
