@@ -139,7 +139,10 @@ class code_generator_t(object):
             indexing_suite_version=indexing_suite_version)
         self.replacement = {} if replacement_dict is None else replacement_dict
         self.mb.classes().always_expose_using_scope = True
-        self.std_ns = self.mb.namespace('std')
+        try:
+            self.std_ns = self.mb.namespace('std')
+        except:
+            self.std_ns = self.mb.global_ns.namespace('std')
         # workaround for different castxml behavior on macOS and Linux
         try:
             self.std_ns.class_('vector< std::string >')
