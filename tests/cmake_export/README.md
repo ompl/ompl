@@ -8,6 +8,6 @@ cmake -B build
 cmake --build build
 cmake --install build --prefix install
 cd tests/cmake_export
-cmake -B build -DCMAKE_INSTALL_PREFIX=../../install
+cmake -B build -DCMAKE_CXX_STANDARD=17 -DCMAKE_INSTALL_PREFIX=../../install
 cmake --build build
 ```

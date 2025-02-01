@@ -3,7 +3,7 @@
 set -eux
 
 # Dependency versions.
-castxml_version="0.6.8" # version specifier for Linux only
+castxml_version="0.6.10" # version specifier for Linux only
 boost_version="1.87.0"
 
 # Collect some information about the build target.
@@ -20,7 +20,7 @@ install_boost() {
     # multiple on the host system.
     python_include_path=$(python3 -c "from sysconfig import get_paths as gp; print(gp()['include'])")
     echo "using python : ${python_version} : : ${python_include_path} ;" > "$HOME/user-config.jam"
-    pip3 install numpy
+    pip3 install "numpy<2"
 
     ./bootstrap.sh
     sudo ./b2 "${b2_args[@]}" \

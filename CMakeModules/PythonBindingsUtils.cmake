@@ -4,8 +4,8 @@
 find_package(Python QUIET)
 find_boost_python()
 
-find_python_module(pyplusplus 1.6.0)
-find_python_module(pygccxml 1.7.2)
+find_python_module(pyplusplus)
+find_python_module(pygccxml)
 find_package(castxml)
 
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
@@ -132,13 +132,11 @@ function(create_module_target module)
             add_custom_command(TARGET py_ompl_${module} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:py_ompl_${module}>"
                 "${_dest_dir}/${module}/_${module}.pyd"
-                WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH}
                 COMMENT "Copying python module ${module} into place")
         else(WIN32)
             add_custom_command(TARGET py_ompl_${module} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:py_ompl_${module}>"
                 "${_dest_dir}/${module}/_${module}${CMAKE_SHARED_MODULE_SUFFIX}"
-                WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH}
                 COMMENT "Copying python module ${module} into place")
         endif(WIN32)
 

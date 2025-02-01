@@ -20,6 +20,8 @@ compiler_path=${CASTXMLCOMPILER_PATH}
     set(_candidate_include_path
         "${CMAKE_SOURCE_DIR}/src"
         "${CMAKE_SOURCE_DIR}/ompl/src"
+        "${CMAKE_BINARY_DIR}/src"
+        "${CMAKE_BINARY_DIR}/ompl/src"
         "${PYTHON_INCLUDE_DIRS}"
         "${Boost_INCLUDE_DIR}"
         "${ASSIMP_INCLUDE_DIRS}"

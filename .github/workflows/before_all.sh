@@ -5,11 +5,16 @@ set -eux
 build_os="$(uname)"
 
 if [ "${build_os}" == "Linux" ]; then
+    yum -y install epel-release
+    yum -y update
+    yum -y install eigen3-devel
     yum -y install \
         sudo \
-        eigen3 \
+        eigen3-devel \
         llvm-devel \
-        clang-devel
+        clang-devel \
+        libffi-devel \
+        ncurses-devel
 
     # manylinux ships with a pypy installation. Make it available on the $PATH
     # so the OMPL build process picks it up and can make use of it during the
