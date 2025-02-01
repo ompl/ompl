@@ -6,6 +6,7 @@ import subprocess
 import sys
 import site
 import shutil
+import platform  # <-- Nuevo para detectar el sistema y la arquitectura
 from pathlib import Path
 from sysconfig import get_paths
 
@@ -21,6 +22,57 @@ PLAT_TO_CMAKE = {
 }
 
 
+# ======================================================
+# Funciones para identificar el sistema y la arquitectura
+# ======================================================
+
+
+
+
+def get_system() -> str:
+    """
+    Returns the system name as used in wheel filenames.
+    """
+    if platform.system() == "Windows":
+        return "win"
+    elif platform.system() == "Darwin":
+         mac_version = ".".join(platform.mac_ver()[0].split(".")[:1])
+         return f"macos_{mac_version}"
+    elif platform.system() == "Linux":
+         return "linux"
+    else:
+         raise ValueError("Unsupported system: {}".format(platform.system()))
+
+
+
+def get_arch() -> str:
+    """
+    Returns the system name as used in wheel filenames.
+    """
+    if platform.machine() == "x86_64":
+        return "x86_64"
+    elif platform.machine() == "arm64" or platform.machine() == "aarch64":
+        if platform.system() == "Darwin":
+            return "arm64"
+        else:
+            return "aarch64"
+    else:
+        raise ValueError("Unsupported arch: {}".format(platform.machine()))
+
+
+def get_platform() -> str:
+    """
+    Devuelve el nombre de la plataforma (sistema y arquitectura)
+    tal y como se usa en el nombre de las wheels.
+    """
+    return f"{get_system()}_{get_arch()}"
+
+
+# ======================================================
+# Fin funciones para sistema y arquitectura
+# ======================================================
+
+
 # A CMakeExtension needs a sourcedir instead of a file list.
 # The name must be the _single_ output extension from the CMake build.
 # If you need multiple extensions, see scikit-build.
@@ -32,30 +84,23 @@ class CMakeExtension(Extension):
 
 class CMakeBuild(build_ext):
     def build_extension(self, ext: CMakeExtension) -> None:
-        # Must be in this form due to bug in .resolve() only fixed in Python 3.10+
+        # Debido a un bug en .resolve() (corregido en Python 3.10+)
         ext_fullpath = Path.cwd() / self.get_ext_fullpath(ext.name)
         extdir = ext_fullpath.parent.resolve()
-
-        # Using this requires trailing slash for auto-detection & inclusion of
-        # auxiliary "native" libs
 
         debug = int(os.environ.get("DEBUG", 0)) if self.debug is None else self.debug
         cfg = "Debug" if debug else "Release"
 
-        # CMake lets you override the generator - we need to check this.
-        # Can be set with Conda-Build, for example.
+        # Permite sobreescribir el generador con la variable de entorno CMAKE_GENERATOR
         cmake_generator = os.environ.get("CMAKE_GENERATOR", "")
 
-        # Set Python_EXECUTABLE instead if you use PYBIND11_FINDPYTHON
-        # EXAMPLE_VERSION_INFO shows you how to pass a value into the C++ code
-        # from Python.
         cmake_args = [
-            f"-DCMAKE_CXX_COMPILER={shutil.which('clang++')}",  # Force Clang for castxml
+            f"-DCMAKE_CXX_COMPILER={shutil.which('clang++')}",  # Forzamos Clang para castxml
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
             f"-DPYTHON_EXEC={sys.executable}",
             f"-DPYTHON_INCLUDE_DIRS={get_paths()['include']}",
             f"-DPYTHON_LIBRARIES={get_paths()['stdlib']}",
-            f"-DCMAKE_BUILD_TYPE={cfg}",  # not used on MSVC, but no harm
+            f"-DCMAKE_BUILD_TYPE={cfg}",
             "-DOMPL_BUILD_PYBINDINGS=ON",
             "-DOMPL_REGISTRATION=OFF",
             "-DOMPL_BUILD_DEMOS=OFF",
@@ -63,21 +108,15 @@ class CMakeBuild(build_ext):
             "-DOMPL_BUILD_TESTS=OFF",
         ]
         build_args = []
-        # Adding CMake arguments set as environment variable
-        # (needed e.g. to build for ARM OSx on conda-forge)
+
         if "CMAKE_ARGS" in os.environ:
             cmake_args += [item for item in os.environ["CMAKE_ARGS"].split(" ") if item]
 
         if self.compiler.compiler_type != "msvc":
-            # Using Ninja-build since it a) is available as a wheel and b)
-            # multithreads automatically. MSVC would require all variables be
-            # exported for Ninja to pick it up, which is a little tricky to do.
-            # Users can override the generator with CMAKE_GENERATOR in CMake
-            # 3.15+.
+            # Usamos Ninja si es posible (no hace falta en MSVC)
             if not cmake_generator or cmake_generator == "Ninja":
                 try:
                     import ninja
-
                     ninja_executable_path = Path(ninja.BIN_DIR) / "ninja"
                     cmake_args += [
                         "-GNinja",
@@ -85,43 +124,29 @@ class CMakeBuild(build_ext):
                     ]
                 except ImportError:
                     pass
-
         else:
-            # Single config generators are handled "normally"
+            # En Windows usamos el generador de MSVC
             single_config = any(x in cmake_generator for x in {"NMake", "Ninja"})
-
-            # CMake allows an arch-in-generator style for backward compatibility
             contains_arch = any(x in cmake_generator for x in {"ARM", "Win64"})
-
-            # Specify the arch if using MSVC generator, but only if it doesn't
-            # contain a backward-compatibility arch spec already in the
-            # generator name.
             if not single_config and not contains_arch:
                 cmake_args += ["-A", PLAT_TO_CMAKE[self.plat_name]]
-
-            # Multi-config generators have a different way to specify configs
             if not single_config:
-                cmake_args += [
-                    f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{cfg.upper()}={extdir}"
-                ]
+                cmake_args += [f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{cfg.upper()}={extdir}"]
                 build_args += ["--config", cfg]
 
         if sys.platform.startswith("darwin"):
-            # TODO: Move this out to configuration
+            # En macOS configuramos el deployment target
             cmake_args += ["-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0"]
-
-            # Cross-compile support for macOS - respect ARCHFLAGS if set
+            # Soporte para cross-compiling: si ARCHFLAGS está definido, se utiliza;
+            # de lo contrario se usa la función get_arch() para detectar la arquitectura.
             archs = re.findall(r"-arch (\S+)", os.environ.get("ARCHFLAGS", ""))
             if archs:
                 cmake_args += ["-DCMAKE_OSX_ARCHITECTURES={}".format(";".join(archs))]
+            else:
+                cmake_args += ["-DCMAKE_OSX_ARCHITECTURES={}".format(get_arch())]
 
-        # Set CMAKE_BUILD_PARALLEL_LEVEL to control the parallel build level
-        # across all generators.
         if "CMAKE_BUILD_PARALLEL_LEVEL" not in os.environ:
-            # self.parallel is a Python 3 only way to set parallel jobs by hand
-            # using -j in the build_ext call, not supported by pip or PyPA-build.
             if hasattr(self, "parallel") and self.parallel:
-                # CMake 3.12+ only.
                 build_args += [f"-j{self.parallel}"]
 
         build_temp = Path(self.build_temp) / ext.name
@@ -129,16 +154,19 @@ class CMakeBuild(build_ext):
             build_temp.mkdir(parents=True)
 
         subprocess.run(
-            ["cmake", ext.sourcedir, *cmake_args], cwd=build_temp, check=True
+            ["cmake", ext.sourcedir, *cmake_args],
+            cwd=build_temp,
+            check=True
         )
         subprocess.run(["ninja", "update_bindings"], cwd=build_temp, check=True)
         subprocess.run(
-            ["cmake", "--build", ".", *build_args], cwd=build_temp, check=True
+            ["cmake", "--build", ".", *build_args],
+            cwd=build_temp,
+            check=True
         )
 
-        # Shared library files like (for ex.) _util.so must reside as (for ex.)
-        # ompl/util/_util.so or else they are placed incorrectly in the final
-        # wheel.
+        # Copia las librerías compartidas (_base.so, _control.so, etc.)
+        # a los directorios correspondientes dentro de ompl.
         for f in ["base", "control", "geometric", "tools", "util"]:
             subprocess.run(
                 [f"cp {extdir}/_{f}.so {extdir}/ompl/{f}/"],
