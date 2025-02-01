@@ -139,12 +139,10 @@ class code_generator_t(object):
             indexing_suite_version=indexing_suite_version)
         self.replacement = {} if replacement_dict is None else replacement_dict
         self.mb.classes().always_expose_using_scope = True
-        std_decls = self.mb.global_ns.declarations('std')
-        if isinstance(std_decls, list):
-            # Choose the first namespace declaration
-            self.std_ns = std_decls[0]
-        else:
-            self.std_ns = std_decls
+        std_decls = [decl for decl in self.mb.global_ns.declarations if decl.name == 'std']
+        if not std_decls:
+            raise AssertionError("No se encontró el namespace 'std'")
+        std_decl = std_decls[0]
         # workaround for different castxml behavior on macOS and Linux
         try:
             self.std_ns.class_('vector< std::string >')
