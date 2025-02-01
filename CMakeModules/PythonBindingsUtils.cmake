@@ -4,8 +4,8 @@
 find_package(Python QUIET)
 find_boost_python()
 
-find_python_module(pyplusplus 1.8.7)
-find_python_module(pygccxml 2.6.1)
+find_python_module(pyplusplus)
+find_python_module(pygccxml)
 find_package(castxml)
 
 if(PYTHON_FOUND AND Boost_PYTHON_LIBRARY)
