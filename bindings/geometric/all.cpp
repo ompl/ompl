@@ -5,8 +5,10 @@ namespace nb = nanobind;
 // Forward declarations
 void initSimpleSetup(nb::module_&);
 void initRRT(nb::module_&);
+void initPathGeometric(nb::module_&);
 
 NB_MODULE(geometric, m) {
     initSimpleSetup(m);
+    initPathGeometric(m);
     initRRT(m);
 }

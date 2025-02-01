@@ -9,6 +9,8 @@ void initSE2StateSpace(nb::module_&);
 void initRealVectorStateSpace(nb::module_&);
 void initRealVectorBounds(nb::module_&);
 void initSpaceInformation(nb::module_&);
+void initPlannerStatus(nb::module_&);
+void initPath(nb::module_&);
 
 NB_MODULE(base, m) {
     initState(m);
@@ -17,4 +19,6 @@ NB_MODULE(base, m) {
     initSE2StateSpace(m);
     initRealVectorStateSpace(m);
     initRealVectorBounds(m);
+    initPlannerStatus(m);
+    initPath(m);
 }
