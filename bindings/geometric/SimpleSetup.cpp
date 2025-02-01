@@ -9,6 +9,7 @@
 #include "ompl/base/ScopedState.h"
 
 namespace nb = nanobind;
+using namespace nanobind::literals;
 
 void initSimpleSetup(nb::module_& m) {    
     nb::class_<ompl::geometric::SimpleSetup>(m, "SimpleSetup")
@@ -37,7 +38,8 @@ void initSimpleSetup(nb::module_& m) {
         .def("solve", nb::overload_cast<double>(&ompl::geometric::SimpleSetup::solve))
         .def("haveSolutionPath", &ompl::geometric::SimpleSetup::haveSolutionPath)
         .def("getSolutionPath", &ompl::geometric::SimpleSetup::getSolutionPath)
-        .def("simplifySolution", nb::overload_cast<double>(&ompl::geometric::SimpleSetup::simplifySolution))
+        .def("simplifySolution", nb::overload_cast<double>(&ompl::geometric::SimpleSetup::simplifySolution), "duration"_a = 0.0)
+
         
         // Status and Timing
         .def("getLastPlannerStatus", &ompl::geometric::SimpleSetup::getLastPlannerStatus)
