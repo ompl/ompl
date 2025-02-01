@@ -13,8 +13,8 @@ if [ "${build_os}" == "Linux" ]; then
         eigen3-devel \
         llvm-devel \
         clang-devel \
-        libffi-devel
-
+        libffi-devel \
+        ncurses-devel
 
     # manylinux ships with a pypy installation. Make it available on the $PATH
     # so the OMPL build process picks it up and can make use of it during the
