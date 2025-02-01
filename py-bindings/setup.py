@@ -50,7 +50,10 @@ def get_arch() -> str:
     Returns the system name as used in wheel filenames.
     """
     if platform.machine() == "x86_64":
-        return "x86_64"
+        if platform.system() == "Darwin":
+            return "amd64"
+        else:
+            return "x86_64"
     elif platform.machine() == "arm64" or platform.machine() == "aarch64":
         if platform.system() == "Darwin":
             return "arm64"
