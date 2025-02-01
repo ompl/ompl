@@ -8,9 +8,11 @@ void initStateSpace(nb::module_&);
 void initSE2StateSpace(nb::module_&);
 void initRealVectorStateSpace(nb::module_&);
 void initRealVectorBounds(nb::module_&);
+void initSpaceInformation(nb::module_&);
 
 NB_MODULE(base, m) {
     initState(m);
+    initSpaceInformation(m);
     initStateSpace(m);
     initSE2StateSpace(m);
     initRealVectorStateSpace(m);
