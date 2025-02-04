@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/geometric/planners/AnytimePathShortening.h"
-
-#include "init.hh"
+#include "../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::geometric::initAnytimePathShortening(nb::module_& m)
+void ompl::binding::geometric::initPlanners_AnytimePathShortening(nb::module_& m)
 {
 }

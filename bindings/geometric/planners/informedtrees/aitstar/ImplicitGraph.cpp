@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/geometric/planners/informedtrees/aitstar/ImplicitGraph.h"
-
-#include "init.hh"
+#include "../../../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::geometric::initImplicitGraph(nb::module_& m)
+void ompl::binding::geometric::initPlannersInformedtreesAitstar_ImplicitGraph(nb::module_& m)
 {
 }

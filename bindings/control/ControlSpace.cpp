@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/control/ControlSpace.h"
-
 #include "init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::control::initControlSpace(nb::module_& m)
+void ompl::binding::control::init_ControlSpace(nb::module_& m)
 {
 }

@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/control/planners/pdst/PDST.h"
-
-#include "init.hh"
+#include "../../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::control::initPDST(nb::module_& m)
+void ompl::binding::control::initPlannersPdst_PDST(nb::module_& m)
 {
 }

@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/control/planners/ltl/LTLPlanner.h"
-
-#include "init.hh"
+#include "../../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::control::initLTLPlanner(nb::module_& m)
+void ompl::binding::control::initPlannersLtl_LTLPlanner(nb::module_& m)
 {
 }

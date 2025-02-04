@@ -1,18 +1,16 @@
 #include "init.hh"
 
-namespace ob = ompl::binding::util;
-
 NB_MODULE(_util, m)
 {
-    ob::initClassForward(m);
-    ob::initConsole(m);
-    ob::initDisableCompilerWarning(m);
-    ob::initException(m);
-    ob::initGeometricEquations(m);
-    ob::initHash(m);
-    ob::initPPM(m);
-    ob::initProlateHyperspheroid(m);
-    ob::initRandomNumbers(m);
-    ob::initString(m);
-    ob::initTime(m);
+    ompl::binding::util::init_ClassForward(m);
+    ompl::binding::util::init_Console(m);
+    ompl::binding::util::init_DisableCompilerWarning(m);
+    ompl::binding::util::init_Exception(m);
+    ompl::binding::util::init_GeometricEquations(m);
+    ompl::binding::util::init_Hash(m);
+    ompl::binding::util::init_PPM(m);
+    ompl::binding::util::init_ProlateHyperspheroid(m);
+    ompl::binding::util::init_RandomNumbers(m);
+    ompl::binding::util::init_String(m);
+    ompl::binding::util::init_Time(m);
 }

@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/geometric/planners/xxl/XXL.h"
-
-#include "init.hh"
+#include "../../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::geometric::initXXL(nb::module_& m)
+void ompl::binding::geometric::initPlannersXxl_XXL(nb::module_& m)
 {
 }

@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
-
-#include "init.hh"
+#include "../../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::base::initConstrainedStateSpace(nb::module_& m)
+void ompl::binding::base::initSpacesConstraint_ConstrainedStateSpace(nb::module_& m)
 {
 }

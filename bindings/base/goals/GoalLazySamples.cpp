@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/base/goals/GoalLazySamples.h"
-
-#include "init.hh"
+#include "../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::base::initGoalLazySamples(nb::module_& m)
+void ompl::binding::base::initGoals_GoalLazySamples(nb::module_& m)
 {
 }

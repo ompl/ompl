@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/base/samplers/DeterministicStateSampler.h"
-
-#include "init.hh"
+#include "../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::base::initDeterministicStateSampler(nb::module_& m)
+void ompl::binding::base::initSamplers_DeterministicStateSampler(nb::module_& m)
 {
 }

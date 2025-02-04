@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/geometric/planners/informedtrees/eitstar/ReverseQueue.h"
-
-#include "init.hh"
+#include "../../../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::geometric::initReverseQueue(nb::module_& m)
+void ompl::binding::geometric::initPlannersInformedtreesEitstar_ReverseQueue(nb::module_& m)
 {
 }
