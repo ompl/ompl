@@ -52,7 +52,7 @@ jobs:
           CIBW_MANYLINUX_PYPY_AARCH64_IMAGE: manylinux_2_28
           CIBW_BEFORE_ALL_WINDOWS: "bash .github/workflows/before_all.sh"
           CIBW_BEFORE_BUILD_WINDOWS: "bash .github/workflows/before_build.sh"
-          CIBW_BUILD: cp3{10,11,12,13}-macosx_${{ matrix.arch }} cp3{10,11,12,13}-manylinux_${{ matrix.arch }} cp3{8,9,10,11,12}-*amd64
+          CIBW_BUILD: cp3{10,11,12,13}-macosx_${{ matrix.arch }} cp3{10,11,12,13}-manylinux_${{ matrix.arch }} cp3{10,11,12,13}-win_amd64
           CIBW_BUILD_VERBOSITY: 1
           CIBW_MACOS_DEPLOYMENT_TARGET_ARM64: "15.0"
 
