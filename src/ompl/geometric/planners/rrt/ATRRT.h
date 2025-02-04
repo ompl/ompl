@@ -334,6 +334,10 @@ namespace ompl
             /** \brief Constant derived from the free space volume */
             double gamma_{1.0};
 
+            /** \brief Factor of maxDistance_ used to calculate neighborhood radius 
+                TODO: temporary solution */
+            double neighborhoodRadiusFactor_{0.4};
+
             // Minimum Expansion Control ------------------------------------------------------------
             /** \brief The number of non-frontier nodes in the search tree */
             double nonfrontierCount_;
