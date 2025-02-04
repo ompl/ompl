@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/geometric/planners/fmt/BFMT.h"
-
-#include "init.hh"
+#include "../../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::geometric::initBFMT(nb::module_& m)
+void ompl::binding::geometric::initPlannersFmt_BFMT(nb::module_& m)
 {
 }

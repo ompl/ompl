@@ -2,15 +2,15 @@
 
 namespace ompl::binding::util
 {
-    void initClassForward(nanobind::module_& m);
-    void initConsole(nanobind::module_& m);
-    void initDisableCompilerWarning(nanobind::module_& m);
-    void initException(nanobind::module_& m);
-    void initGeometricEquations(nanobind::module_& m);
-    void initHash(nanobind::module_& m);
-    void initPPM(nanobind::module_& m);
-    void initProlateHyperspheroid(nanobind::module_& m);
-    void initRandomNumbers(nanobind::module_& m);
-    void initString(nanobind::module_& m);
-    void initTime(nanobind::module_& m);
+    void init_ClassForward(nanobind::module_& m);
+    void init_Console(nanobind::module_& m);
+    void init_DisableCompilerWarning(nanobind::module_& m);
+    void init_Exception(nanobind::module_& m);
+    void init_GeometricEquations(nanobind::module_& m);
+    void init_Hash(nanobind::module_& m);
+    void init_PPM(nanobind::module_& m);
+    void init_ProlateHyperspheroid(nanobind::module_& m);
+    void init_RandomNumbers(nanobind::module_& m);
+    void init_String(nanobind::module_& m);
+    void init_Time(nanobind::module_& m);
 }  // namespace ompl::binding::util

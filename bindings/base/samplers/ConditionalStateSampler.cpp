@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/base/samplers/ConditionalStateSampler.h"
-
-#include "init.hh"
+#include "../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::base::initConditionalStateSampler(nb::module_& m)
+void ompl::binding::base::initSamplers_ConditionalStateSampler(nb::module_& m)
 {
 }

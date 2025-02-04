@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/base/objectives/MinimaxObjective.h"
-
-#include "init.hh"
+#include "../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::base::initMinimaxObjective(nb::module_& m)
+void ompl::binding::base::initObjectives_MinimaxObjective(nb::module_& m)
 {
 }

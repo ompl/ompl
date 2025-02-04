@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/geometric/planners/prm/LazyPRMstar.h"
-
-#include "init.hh"
+#include "../../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::geometric::initLazyPRMstar(nb::module_& m)
+void ompl::binding::geometric::initPlannersPrm_LazyPRMstar(nb::module_& m)
 {
 }

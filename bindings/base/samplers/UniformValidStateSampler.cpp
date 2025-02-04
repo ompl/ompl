@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/base/samplers/UniformValidStateSampler.h"
-
-#include "init.hh"
+#include "../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::base::initUniformValidStateSampler(nb::module_& m)
+void ompl::binding::base::initSamplers_UniformValidStateSampler(nb::module_& m)
 {
 }

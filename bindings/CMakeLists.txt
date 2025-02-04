@@ -12,10 +12,11 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl)
 ############################################
 # Base
 ############################################
-file(GLOB BASE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/base/*.cpp")
+file(GLOB_RECURSE BASE_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/base/*.cpp")
 nanobind_add_module(_base
     STABLE_ABI
     ${BASE_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/base/python.cc
 )
 set_target_properties(_base PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl
@@ -24,10 +25,11 @@ target_link_libraries(_base PRIVATE ompl::ompl)
 ############################################
 # Geometric
 ############################################
-file(GLOB GEOMETRIC_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/geometric/*.cpp")
+file(GLOB_RECURSE GEOMETRIC_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/geometric/*.cpp")
 nanobind_add_module(_geometric
     STABLE_ABI
     ${GEOMETRIC_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/geometric/python.cc
 )
 set_target_properties(_geometric PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl
@@ -37,10 +39,12 @@ target_link_libraries(_geometric PRIVATE ompl::ompl)
 # Util
 ############################################
 # Add the module
-file(GLOB GEOMETRIC_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/util/*.cpp")
+file(GLOB_RECURSE UTIL_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/util/**.cpp")
+# MESSAGE(STATUS "UTIL_SOURCES: ${UTIL_SOURCES}")
 nanobind_add_module(_util
     STABLE_ABI
-    ${GEOMETRIC_SOURCES}
+    ${UTIL_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/util/python.cc
 )
 set_target_properties(_util PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl
@@ -49,10 +53,11 @@ target_link_libraries(_util PRIVATE ompl::ompl)
 ############################################
 # Control
 ############################################
-file(GLOB CONTROL_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/control/*.cpp")
+file(GLOB_RECURSE CONTROL_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/control/*.cpp")
 nanobind_add_module(_control
     STABLE_ABI
     ${CONTROL_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/control/python.cc
 )
 set_target_properties(_control PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl

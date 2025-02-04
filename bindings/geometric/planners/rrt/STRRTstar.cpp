@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/geometric/planners/rrt/STRRTstar.h"
-
-#include "init.hh"
+#include "../../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::geometric::initSTRRTstar(nb::module_& m)
+void ompl::binding::geometric::initPlannersRrt_STRRTstar(nb::module_& m)
 {
 }

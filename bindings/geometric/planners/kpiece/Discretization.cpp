@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/geometric/planners/kpiece/Discretization.h"
-
-#include "init.hh"
+#include "../../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::geometric::initDiscretization(nb::module_& m)
+void ompl::binding::geometric::initPlannersKpiece_Discretization(nb::module_& m)
 {
 }

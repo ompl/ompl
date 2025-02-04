@@ -1,10 +1,9 @@
 #include <nanobind/nanobind.h>
 #include "ompl/geometric/planners/prm/ConnectionStrategy.h"
-
-#include "init.hh"
+#include "../../init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::geometric::initConnectionStrategy(nb::module_& m)
+void ompl::binding::geometric::initPlannersPrm_ConnectionStrategy(nb::module_& m)
 {
 }
