@@ -38,9 +38,9 @@ jobs:
           vcpkgArguments: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-system boost-test eigen3 flann'
 
       # Add this step for Windows only:
-      - name: Build & Test (Windows)
-        if: runner.os == 'Windows'
-        uses: ashutoshvarma/action-cmake-build@master
+      - name: Install cmake Python package
+        run: pip install cmake
+        shell: bash
 
       - name: Build wheels
         uses: pypa/cibuildwheel@main
