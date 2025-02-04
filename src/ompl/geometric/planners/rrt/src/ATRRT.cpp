@@ -455,7 +455,7 @@ void ompl::geometric::ATRRT::addUsefulCycles(Motion *newMotion, Motion *nearMoti
     // double d = static_cast<double>(si_->getStateDimension()); // dimension of state space
     // double radius = gamma_ * std::pow((std::log(n) / n), 1.0 / d);
     // TODO: This is a temporary solution to avoid the issue of the radius being too small
-    double radius = 0.4 * maxDistance_;
+    double radius = neighborhoodRadiusFactor_ * maxDistance_;
 
     std::vector<Motion *> candidates;
     nearestNeighbors_->nearestR(newMotion, radius, candidates);
