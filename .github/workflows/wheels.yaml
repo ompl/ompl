@@ -11,55 +11,56 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-13]
-        arch: [x86_64]
+        os: [ ubuntu-24.04, ubuntu-22.04, macos-13 ]
+        arch: [ x86_64 ]
         include:
-          - os: macos-14
+          - os: ubuntu-24.04-arm
+            arch: aarch64
+          - os: ubuntu-22.04-arm
+            arch: aarch64
+          - os: macos-15
             arch: arm64
+          - os: windows-2025
+            arch: amd64
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
+      - name: "Install Windows dependencies"
+        if: runner.os == 'Windows'
+        uses: lukka/run-vcpkg@v11
+        id: runvcpkg
+        with:
+          vcpkgGitCommitId: da4b78d35084ec4e9808aa02017028da03b8d2ab
+          vcpkgTriplet: 'x64-windows'
+          vcpkgArguments: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-system boost-test eigen3 flann'
+
+      # Add this step for Windows only:
+      - name: Install cmake Python package
+        run: pip install cmake
+        shell: bash
+
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@main
         with:
           package-dir: py-bindings
         env:
-          CIBW_ARCHS_MACOS: ${{ matrix.arch }}
-          OMPL_BUILD_ARCH: ${{ matrix.arch }}
-          # NOTE: Many combinations of OS, arch, and Python version can be built
-          # depending on your patience. For example:
-          CIBW_BUILD: cp3{10,11,12}-macosx_{x86_64,arm64} cp3{7,8,9,10,11,12}-manylinux_x86_64
+          # Environment variables for cibuildwheel; adjust as needed.
+          CIBW_ARCHS_MACOS: 'auto64'
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+          CIBW_MANYLINUX_PYPY_X86_64_IMAGE: manylinux_2_28
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
+          CIBW_MANYLINUX_PYPY_AARCH64_IMAGE: manylinux_2_28
+          CIBW_BEFORE_ALL_WINDOWS: "bash .github/workflows/before_all.sh"
+          CIBW_BEFORE_BUILD_WINDOWS: "bash .github/workflows/before_build.sh"
+          CIBW_BUILD: cp3{9,10,11,12,13}-macosx_${{ matrix.arch }} cp3{9,10,11,12,13}-manylinux_${{ matrix.arch }} cp3{9,10,11,12,13}-win_amd64
           CIBW_BUILD_VERBOSITY: 1
+          CIBW_MACOS_DEPLOYMENT_TARGET_ARM64: "11.0"
+          CMAKE_ARGS: ${{ runner.os == 'Windows' && format('-DCMAKE_TOOLCHAIN_FILE={0}/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_GENERATOR_PLATFORM=x64', github.workspace) || '' }}
 
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}-${{ matrix.arch }}
           path: wheelhouse
-
-  prerelease:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    concurrency:
-      group: push-${{ github.ref_name }}-prerelease
-      cancel-in-progress: true
-    needs: [build_wheels]
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: wheelhouse
-          pattern: wheels-*
-          merge-multiple: true
-
-      - name: GitHub release
-        uses: ncipollo/release-action@v1.14.0
-        with:
-          prerelease: true
-          tag: "prerelease"
-          name: "Development Build"
-          allowUpdates: true
-          removeArtifacts: true
-          replacesArtifacts: true
-          artifacts: "wheelhouse/*"

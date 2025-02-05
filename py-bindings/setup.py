@@ -50,7 +50,7 @@ class CMakeBuild(build_ext):
         # EXAMPLE_VERSION_INFO shows you how to pass a value into the C++ code
         # from Python.
         cmake_args = [
-            f"-DCMAKE_CXX_COMPILER={shutil.which('clang++')}",  # Force Clang for castxml
+            f"-DCMAKE_CXX_COMPILER=g++",
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
             f"-DPYTHON_EXEC={sys.executable}",
             f"-DPYTHON_INCLUDE_DIRS={get_paths()['include']}",
