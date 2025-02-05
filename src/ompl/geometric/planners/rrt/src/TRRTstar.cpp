@@ -129,7 +129,7 @@ void ompl::geometric::TRRTstar::setup()
 
     // Setup TRRT specific variables ---------------------------------------------------------
     temp_ = initTemperature_;
-    bestCost_ = worstCost_ = prunedCost_ = opt_->identityCost();
+    bestCost_ = worstCost_ = prunedCost_ = opt_->infiniteCost();
 }
 
 void ompl::geometric::TRRTstar::clear()
@@ -891,7 +891,7 @@ ompl::base::Cost ompl::geometric::TRRTstar::solutionHeuristic(const Motion *moti
     if (useAdmissibleCostToCome_)
     {
         // Start with infinite cost
-        costToCome = opt_->identityCost();
+        costToCome = opt_->infiniteCost();
 
         // Find the min from each start
         for (auto &startMotion : startMotions_)

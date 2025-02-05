@@ -86,7 +86,7 @@ void ompl::geometric::ATRRT::clear()
     nonfrontierCount_ = 1;
     frontierCount_ = 1;  // init to 1 to prevent division by zero error
     if (opt_)
-        bestCost_ = worstCost_ = opt_->identityCost();
+        bestCost_ = worstCost_ = opt_->infiniteCost();
 }
 
 void ompl::geometric::ATRRT::setup()
@@ -495,8 +495,8 @@ std::vector<ompl::geometric::ATRRT::Motion *> ompl::geometric::ATRRT::computeDij
     std::unordered_map<Motion *, base::Cost> costMap;
     std::unordered_map<Motion *, Motion *> parentMap;
 
-    pq.push({a, base::Cost{0.0}});
-    costMap[a] = base::Cost{0.0};
+    pq.push({a, opt_->identityCost()});
+    costMap[a] = opt_->identityCost();
     parentMap[a] = nullptr;
 
     while (!pq.empty())
