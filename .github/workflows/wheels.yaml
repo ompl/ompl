@@ -11,11 +11,27 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-13]
-        arch: [x86_64]
         include:
-          - os: macos-14
-            arch: arm64
+        - os: ubuntu-latest
+          pybuilds: cp3{10,11,12}-manylinux_x86_64
+          arch: x86_64
+          id: linux_x86_64
+        - os: ubuntu-24.04-arm
+          pybuilds: cp3{10,11,12}-manylinux_aarch64
+          arch: aarch64
+          id: linux_arm64
+        - os: macos-13
+          pybuilds: cp3{10,11,12}-macosx_x86_64
+          arch: x86_64
+          id: macos_x86
+        - os: macos-15
+          pybuilds: cp3{10,11,12}-macosx_arm64
+          arch: arm64
+          id: macos_arm64
+        - os: windows-latest
+          pybuilds: cp3{10,11,12}-win_amd64
+          arch: x86_64
+          id: windows_amd64
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -29,12 +45,8 @@ jobs:
         env:
           CIBW_ARCHS_MACOS: ${{ matrix.arch }}
           OMPL_BUILD_ARCH: ${{ matrix.arch }}
-          # NOTE: Many combinations of OS, arch, and Python version can be built
-          # depending on your patience. For example:
-          CIBW_BUILD: cp3{10,11,12,13}-macosx_{x86_64,arm64} cp3{9,10,11,12,13}-manylinux_x86_64
-          CIBW_BUILD_VERBOSITY: 1
-          CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET="14.0"
-
+          CIBW_BUILD: ${{ matrix.pybuilds }}
+          CIBW_SKIP: "cp*-manylinux_i686 cp*-musllinux* cp*-win32"  
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}-${{ matrix.arch }}
@@ -55,7 +67,7 @@ jobs:
           merge-multiple: true
 
       - name: GitHub release
-        uses: ncipollo/release-action@v1.14.0
+        uses: ncipollo/release-action@v1.15.0
         with:
           prerelease: true
           tag: "prerelease"
