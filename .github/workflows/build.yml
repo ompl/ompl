@@ -12,7 +12,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-22.04, ubuntu-20.04, macos-13, windows-2022]
+        os: [ ubuntu-24.04, ubuntu-22.04, macos-15, windows-2025 ]
+        arch: [ x86_64 ]
+        include:
+          - os: ubuntu-24.04-arm
+            arch: aarch64
+          - os: ubuntu-22.04-arm
+            arch: aarch64
+          - os: macos-15
+            arch: arm64
 
     steps:
     - uses: actions/checkout@v4
