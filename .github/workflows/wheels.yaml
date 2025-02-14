@@ -28,10 +28,6 @@ jobs:
           pybuilds: cp3{10,11,12}-macosx_arm64
           arch: arm64
           id: macos_arm64
-        - os: windows-latest
-          pybuilds: cp3{10,11,12}-win_amd64
-          arch: x86_64
-          id: windows_amd64
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
