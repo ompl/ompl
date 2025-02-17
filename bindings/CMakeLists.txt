@@ -74,6 +74,51 @@ set_target_properties(_control PROPERTIES
 target_link_libraries(_control PRIVATE ompl::ompl)
 ############################################
 
+set(INIT_PY_CONTENT
+"from . import _base as base\n"
+"from . import _control as control\n"
+"from . import _geometric as geometric\n"
+"from . import _util as util\n"
+"\n"
+)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/ompl/__init__.py ${INIT_PY_CONTENT})
+
+############################################
+# Generate Type Stubs for Python
+############################################
+
+nanobind_add_stub(
+    base_stub
+    MODULE _base
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ompl/base.pyi
+    PYTHON_PATH $<TARGET_FILE_DIR:_base>
+    DEPENDS _base
+)
+
+nanobind_add_stub(
+    control_stub
+    MODULE _control
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ompl/control.pyi
+    PYTHON_PATH $<TARGET_FILE_DIR:_control>
+    DEPENDS _control
+)
+
+nanobind_add_stub(
+    geometric_stub
+    MODULE _geometric
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ompl/geometric.pyi
+    PYTHON_PATH $<TARGET_FILE_DIR:_geometric>
+    DEPENDS _geometric
+)
+
+nanobind_add_stub(
+    util_stub
+    MODULE _util
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ompl/util.pyi
+    PYTHON_PATH $<TARGET_FILE_DIR:_util>
+    DEPENDS _util
+)
+
 # Warn if the user invokes CMake directly
 if (NOT SKBUILD)
   message(WARNING "\
