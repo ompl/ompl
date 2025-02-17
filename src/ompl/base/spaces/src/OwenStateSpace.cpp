@@ -126,8 +126,6 @@ std::optional<OwenStateSpace::PathType> OwenStateSpace::getPath(const State *sta
         auto result = boost::math::tools::bracket_and_solve_root(radiusFun, radius, 2., true, TOLERANCE, iter);
         radius = .5 * (result.first + result.second);
         // Discontinuities in the Dubins distance and, by extension, radiusFun can cause bracket_and_solve_root to fail.
-        // This can be fixed by picking the Dubins path type for radius=rho_ (say LSL) and considering only Dubins paths
-        // of that type as the radius is varied. This is considered future work.
         if (std::abs(radiusFun(radius)) > 1e-5)
             return {};
         path = dubinsSpace_.dubins(state1, state2, radius);

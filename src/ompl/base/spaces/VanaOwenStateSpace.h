@@ -232,6 +232,10 @@ namespace ompl::base
          */
         DubinsStateSpace::StateType *get2DPose(double x, double y, double yaw) const;
 
+        /**
+         * \brief Whether a path in SZ space satisfies Dubins path type and pitch constraints
+         * \return true iff path is of type LRL or RLR and the pitch in state lies in-between min and max pitch
+         */
         bool isValid(DubinsStateSpace::DubinsPath const &path, StateType const *state) const;
 
         /** Turning radius */
