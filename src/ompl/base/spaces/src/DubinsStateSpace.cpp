@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2010, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2010, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Mark Moll */
 
@@ -44,7 +44,9 @@ using namespace ompl::base;
 
 namespace
 {
-    const double twopi = 2. * boost::math::constants::pi<double>();
+    constexpr double twopi = 2. * boost::math::constants::pi<double>();
+    constexpr double onepi = boost::math::constants::pi<double>();
+    constexpr double halfpi = boost::math::constants::half_pi<double>();
     const double DUBINS_EPS = 1e-6;
     const double DUBINS_ZERO = -1e-7;
 
@@ -172,77 +174,77 @@ namespace
 
     inline double s_12(double d, double alpha, double beta)
     {
-        return p_rsr(d, alpha, beta) - p_rsl(d, alpha, beta) - 2.0 * (q_rsl(d, alpha, beta) - boost::math::constants::pi<double>());
+        return p_rsr(d, alpha, beta) - p_rsl(d, alpha, beta) - 2.0 * (q_rsl(d, alpha, beta) - onepi);
     }
 
     inline double s_13(double d, double alpha, double beta)
     {  // t_rsr - pi
-        return t_rsr(d, alpha, beta) - boost::math::constants::pi<double>();
+        return t_rsr(d, alpha, beta) - onepi;
     }
 
     inline double s_14_1(double d, double alpha, double beta)
     {
-        return t_rsr(d, alpha, beta) - boost::math::constants::pi<double>();
+        return t_rsr(d, alpha, beta) - onepi;
     }
 
     inline double s_21(double d, double alpha, double beta)
     {
-        return p_lsl(d, alpha, beta) - p_rsl(d, alpha, beta) - 2.0 * (t_rsl(d, alpha, beta) - boost::math::constants::pi<double>());
+        return p_lsl(d, alpha, beta) - p_rsl(d, alpha, beta) - 2.0 * (t_rsl(d, alpha, beta) - onepi);
     }
 
     inline double s_22_1(double d, double alpha, double beta)
     {
-        return p_lsl(d, alpha, beta) - p_rsl(d, alpha, beta) - 2.0 * (t_rsl(d, alpha, beta) - boost::math::constants::pi<double>());
+        return p_lsl(d, alpha, beta) - p_rsl(d, alpha, beta) - 2.0 * (t_rsl(d, alpha, beta) - onepi);
     }
 
     inline double s_22_2(double d, double alpha, double beta)
     {
-        return p_rsr(d, alpha, beta) - p_rsl(d, alpha, beta) - 2.0 * (q_rsl(d, alpha, beta) - boost::math::constants::pi<double>());
+        return p_rsr(d, alpha, beta) - p_rsl(d, alpha, beta) - 2.0 * (q_rsl(d, alpha, beta) - onepi);
     }
 
     inline double s_24(double d, double alpha, double beta)
     {
-        return q_rsr(d, alpha, beta) - boost::math::constants::pi<double>();
+        return q_rsr(d, alpha, beta) - onepi;
     }
 
     inline double s_31(double d, double alpha, double beta)
     {
-        return q_lsl(d, alpha, beta) - boost::math::constants::pi<double>();
+        return q_lsl(d, alpha, beta) - onepi;
     }
 
     inline double s_33_1(double d, double alpha, double beta)
     {
-        return p_rsr(d, alpha, beta) - p_lsr(d, alpha, beta) - 2.0 * (t_lsr(d, alpha, beta) - boost::math::constants::pi<double>());
+        return p_rsr(d, alpha, beta) - p_lsr(d, alpha, beta) - 2.0 * (t_lsr(d, alpha, beta) - onepi);
     }
 
     inline double s_33_2(double d, double alpha, double beta)
     {
-        return p_lsl(d, alpha, beta) - p_lsr(d, alpha, beta) - 2.0 * (q_lsr(d, alpha, beta) - boost::math::constants::pi<double>());
+        return p_lsl(d, alpha, beta) - p_lsr(d, alpha, beta) - 2.0 * (q_lsr(d, alpha, beta) - onepi);
     }
 
     inline double s_34(double d, double alpha, double beta)
     {
-        return p_rsr(d, alpha, beta) - p_lsr(d, alpha, beta) - 2.0 * (t_lsr(d, alpha, beta) - boost::math::constants::pi<double>());
+        return p_rsr(d, alpha, beta) - p_lsr(d, alpha, beta) - 2.0 * (t_lsr(d, alpha, beta) - onepi);
     }
 
     inline double s_41_1(double d, double alpha, double beta)
     {
-        return t_lsl(d, alpha, beta) - boost::math::constants::pi<double>();
+        return t_lsl(d, alpha, beta) - onepi;
     }
 
     inline double s_41_2(double d, double alpha, double beta)
     {
-        return q_lsl(d, alpha, beta) - boost::math::constants::pi<double>();
+        return q_lsl(d, alpha, beta) - onepi;
     }
 
     inline double s_42(double d, double alpha, double beta)
     {
-        return t_lsl(d, alpha, beta) - boost::math::constants::pi<double>();
+        return t_lsl(d, alpha, beta) - onepi;
     }
 
     inline double s_43(double d, double alpha, double beta)
     {
-        return p_lsl(d, alpha, beta) - p_lsr(d, alpha, beta) - 2.0 * (q_lsr(d, alpha, beta) - boost::math::constants::pi<double>());
+        return p_lsl(d, alpha, beta) - p_lsr(d, alpha, beta) - 2.0 * (q_lsr(d, alpha, beta) - onepi);
     }
 
     DubinsStateSpace::DubinsPath dubinsLSL(double d, double alpha, double beta)
@@ -353,13 +355,13 @@ namespace
         return {};
     }
 
-    bool is_longpath_case(double d, double alpha, double beta)
+    bool isLongPath(double d, double alpha, double beta)
     {
         return (std::abs(std::sin(alpha)) + std::abs(std::sin(beta)) +
                 std::sqrt(4 - std::pow(std::cos(alpha) + std::cos(beta), 2)) - d) < 0;
     }
 
-    DubinsStateSpace::DubinsPath dubins_exhaustive(const double d, const double alpha, const double beta)
+    DubinsStateSpace::DubinsPath dubinsExhaustive(const double d, const double alpha, const double beta)
     {
         if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
             return {DubinsStateSpace::dubinsPathType[0], 0, d, 0};
@@ -399,37 +401,36 @@ namespace
     DubinsClass getDubinsClass(const double alpha, const double beta)
     {
         int row(0), column(0);
-        if (0 <= alpha && alpha <= boost::math::constants::half_pi<double>())
+        if (0 <= alpha && alpha <= halfpi)
         {
             row = 1;
         }
-        else if (boost::math::constants::half_pi<double>() < alpha && alpha <= boost::math::constants::pi<double>())
+        else if (halfpi < alpha && alpha <= onepi)
         {
             row = 2;
         }
-        else if (boost::math::constants::pi<double>() < alpha && alpha <= 3 * boost::math::constants::half_pi<double>())
+        else if (onepi < alpha && alpha <= 3 * halfpi)
         {
             row = 3;
         }
-        else if (3 * boost::math::constants::half_pi<double>() < alpha && alpha <= twopi)
+        else if (3 * halfpi < alpha && alpha <= twopi)
         {
             row = 4;
         }
 
-        if (0 <= beta && beta <= boost::math::constants::half_pi<double>())
+        if (0 <= beta && beta <= halfpi)
         {
             column = 1;
         }
-        else if (boost::math::constants::half_pi<double>() < beta && beta <= boost::math::constants::pi<double>())
+        else if (halfpi < beta && beta <= onepi)
         {
             column = 2;
         }
-        else if (boost::math::constants::pi<double>() < beta && beta <= 3 * boost::math::constants::half_pi<double>())
+        else if (onepi < beta && beta <= 3 * halfpi)
         {
             column = 3;
         }
-        else if (3 * boost::math::constants::half_pi<double>() < beta &&
-                 beta <= 2.0 * boost::math::constants::pi<double>())
+        else if (3 * halfpi < beta && beta <= 2.0 * onepi)
         {
             column = 4;
         }
@@ -442,77 +443,210 @@ namespace
                "class is not in range [0,15].");
         return (DubinsClass)((column - 1) + 4 * (row - 1));
     }
-}  // namespace
 
-DubinsStateSpace::DubinsPath dubins_classification(const double d, const double alpha, const double beta)
-{
-    if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
-        return {DubinsStateSpace::dubinsPathType[0], 0, d, 0};
-    // Dubins set classification scheme
-    // Shkel, Andrei M., and Vladimir Lumelsky. "Classification of the Dubins set."
-    //   Robotics and Autonomous Systems 34.4 (2001): 179-202.
-    // Lim, Jaeyoung, et al. "Circling Back: Dubins set Classification Revisited."
-    //   Workshop on Energy Efficient Aerial Robotic Systems, International Conference on Robotics and Automation 2023.
-    //   2023.
-    DubinsStateSpace::DubinsPath path;
-    auto dubins_class = getDubinsClass(alpha, beta);
-    switch (dubins_class)
+    DubinsStateSpace::DubinsPath dubinsClassification(const double d, const double alpha, const double beta)
     {
-        case DubinsClass::A11:
+        if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
+            return {DubinsStateSpace::dubinsPathType[0], 0, d, 0};
+        // Dubins set classification scheme
+        // Shkel, Andrei M., and Vladimir Lumelsky. "Classification of the Dubins set."
+        //   Robotics and Autonomous Systems 34.4 (2001): 179-202.
+        // Lim, Jaeyoung, et al. "Circling Back: Dubins set Classification Revisited."
+        //   Workshop on Energy Efficient Aerial Robotic Systems, International Conference on Robotics and Automation
+        //   2023.
+        DubinsStateSpace::DubinsPath path;
+        auto dubins_class = getDubinsClass(alpha, beta);
+        switch (dubins_class)
         {
-            path = dubinsRSL(d, alpha, beta);
-            break;
-        }
-        case DubinsClass::A12:
-        {
-            if (s_13(d, alpha, beta) < 0.0)
-            {
-                path = (s_12(d, alpha, beta) < 0.0) ? dubinsRSR(d, alpha, beta) : dubinsRSL(d, alpha, beta);
-            }
-            else
-            {
-                path = dubinsLSR(d, alpha, beta);
-                DubinsStateSpace::DubinsPath tmp = dubinsRSL(d, alpha, beta);
-                if (path.length() > tmp.length())
-                {
-                    path = tmp;
-                }
-            }
-            break;
-        }
-        case DubinsClass::A13:
-        {
-            if (s_13(d, alpha, beta) < 0.0)
-            {
-                path = dubinsRSR(d, alpha, beta);
-            }
-            else
-            {
-                path = dubinsLSR(d, alpha, beta);
-            }
-            break;
-        }
-        case DubinsClass::A14:
-        {
-            if (s_14_1(d, alpha, beta) > 0.0)
-            {
-                path = dubinsLSR(d, alpha, beta);
-            }
-            else if (s_24(d, alpha, beta) > 0.0)
+            case DubinsClass::A11:
             {
                 path = dubinsRSL(d, alpha, beta);
+                break;
             }
-            else
+            case DubinsClass::A12:
+            {
+                if (s_13(d, alpha, beta) < 0.0)
+                {
+                    path = (s_12(d, alpha, beta) < 0.0) ? dubinsRSR(d, alpha, beta) : dubinsRSL(d, alpha, beta);
+                }
+                else
+                {
+                    path = dubinsLSR(d, alpha, beta);
+                    DubinsStateSpace::DubinsPath tmp = dubinsRSL(d, alpha, beta);
+                    if (path.length() > tmp.length())
+                    {
+                        path = tmp;
+                    }
+                }
+                break;
+            }
+            case DubinsClass::A13:
+            {
+                if (s_13(d, alpha, beta) < 0.0)
+                {
+                    path = dubinsRSR(d, alpha, beta);
+                }
+                else
+                {
+                    path = dubinsLSR(d, alpha, beta);
+                }
+                break;
+            }
+            case DubinsClass::A14:
+            {
+                if (s_14_1(d, alpha, beta) > 0.0)
+                {
+                    path = dubinsLSR(d, alpha, beta);
+                }
+                else if (s_24(d, alpha, beta) > 0.0)
+                {
+                    path = dubinsRSL(d, alpha, beta);
+                }
+                else
+                {
+                    path = dubinsRSR(d, alpha, beta);
+                }
+                break;
+            }
+            case DubinsClass::A21:
+            {
+                if (s_31(d, alpha, beta) < 0.0)
+                {
+                    if (s_21(d, alpha, beta) < 0.0)
+                    {
+                        path = dubinsLSL(d, alpha, beta);
+                    }
+                    else
+                    {
+                        path = dubinsRSL(d, alpha, beta);
+                    }
+                }
+                else
+                {
+                    path = dubinsLSR(d, alpha, beta);
+                    DubinsStateSpace::DubinsPath tmp = dubinsRSL(d, alpha, beta);
+                    if (path.length() > tmp.length())
+                    {
+                        path = tmp;
+                    }
+                }
+                break;
+            }
+            case DubinsClass::A22:
+            {
+                if (alpha > beta)
+                {
+                    path = (s_22_1(d, alpha, beta) < 0.0) ? dubinsLSL(d, alpha, beta) : dubinsRSL(d, alpha, beta);
+                }
+                else
+                {
+                    path = (s_22_2(d, alpha, beta) < 0.0) ? dubinsRSR(d, alpha, beta) : dubinsRSL(d, alpha, beta);
+                }
+                break;
+            }
+            case DubinsClass::A23:
             {
                 path = dubinsRSR(d, alpha, beta);
+                break;
             }
-            break;
-        }
-        case DubinsClass::A21:
-        {
-            if (s_31(d, alpha, beta) < 0.0)
+            case DubinsClass::A24:
             {
-                if (s_21(d, alpha, beta) < 0.0)
+                if (s_24(d, alpha, beta) < 0.0)
+                {
+                    path = dubinsRSR(d, alpha, beta);
+                }
+                else
+                {
+                    path = dubinsRSL(d, alpha, beta);
+                }
+                break;
+            }
+            case DubinsClass::A31:
+            {
+                if (s_31(d, alpha, beta) < 0.0)
+                {
+                    path = dubinsLSL(d, alpha, beta);
+                }
+                else
+                {
+                    path = dubinsLSR(d, alpha, beta);
+                }
+                break;
+            }
+            case DubinsClass::A32:
+            {
+                path = dubinsLSL(d, alpha, beta);
+                break;
+            }
+            case DubinsClass::A33:
+            {
+                if (alpha < beta)
+                {
+                    if (s_33_1(d, alpha, beta) < 0.0)
+                    {
+                        path = dubinsRSR(d, alpha, beta);
+                    }
+                    else
+                    {
+                        path = dubinsLSR(d, alpha, beta);
+                    }
+                }
+                else
+                {
+                    if (s_33_2(d, alpha, beta) < 0.0)
+                    {
+                        path = dubinsLSL(d, alpha, beta);
+                    }
+                    else
+                    {
+                        path = dubinsLSR(d, alpha, beta);
+                    }
+                }
+                break;
+            }
+            case DubinsClass::A34:
+            {
+                if (s_24(d, alpha, beta) < 0.0)
+                {
+                    if (s_34(d, alpha, beta) < 0.0)
+                    {
+                        path = dubinsRSR(d, alpha, beta);
+                    }
+                    else
+                    {
+                        path = dubinsLSR(d, alpha, beta);
+                    }
+                }
+                else
+                {
+                    path = dubinsLSR(d, alpha, beta);
+                    DubinsStateSpace::DubinsPath tmp = dubinsRSL(d, alpha, beta);
+                    if (path.length() > tmp.length())
+                    {
+                        path = tmp;
+                    }
+                }
+                break;
+            }
+            case DubinsClass::A41:
+            {
+                if (s_41_1(d, alpha, beta) > 0.0)
+                {
+                    path = dubinsRSL(d, alpha, beta);
+                }
+                else if (s_41_2(d, alpha, beta) > 0.0)
+                {
+                    path = dubinsLSR(d, alpha, beta);
+                }
+                else
+                {
+                    path = dubinsLSL(d, alpha, beta);
+                }
+                break;
+            }
+            case DubinsClass::A42:
+            {
+                if (s_42(d, alpha, beta) < 0.0)
                 {
                     path = dubinsLSL(d, alpha, beta);
                 }
@@ -520,192 +654,60 @@ DubinsStateSpace::DubinsPath dubins_classification(const double d, const double 
                 {
                     path = dubinsRSL(d, alpha, beta);
                 }
+                break;
             }
-            else
+            case DubinsClass::A43:
             {
-                path = dubinsLSR(d, alpha, beta);
-                DubinsStateSpace::DubinsPath tmp = dubinsRSL(d, alpha, beta);
-                if (path.length() > tmp.length())
+                if (s_42(d, alpha, beta) < 0.0)
                 {
-                    path = tmp;
-                }
-            }
-            break;
-        }
-        case DubinsClass::A22:
-        {
-            if (alpha > beta)
-            {
-                path = (s_22_1(d, alpha, beta) < 0.0) ? dubinsLSL(d, alpha, beta) : dubinsRSL(d, alpha, beta);
-            }
-            else
-            {
-                path = (s_22_2(d, alpha, beta) < 0.0) ? dubinsRSR(d, alpha, beta) : dubinsRSL(d, alpha, beta);
-            }
-            break;
-        }
-        case DubinsClass::A23:
-        {
-            path = dubinsRSR(d, alpha, beta);
-            break;
-        }
-        case DubinsClass::A24:
-        {
-            if (s_24(d, alpha, beta) < 0.0)
-            {
-                path = dubinsRSR(d, alpha, beta);
-            }
-            else
-            {
-                path = dubinsRSL(d, alpha, beta);
-            }
-            break;
-        }
-        case DubinsClass::A31:
-        {
-            if (s_31(d, alpha, beta) < 0.0)
-            {
-                path = dubinsLSL(d, alpha, beta);
-            }
-            else
-            {
-                path = dubinsLSR(d, alpha, beta);
-            }
-            break;
-        }
-        case DubinsClass::A32:
-        {
-            path = dubinsLSL(d, alpha, beta);
-            break;
-        }
-        case DubinsClass::A33:
-        {
-            if (alpha < beta)
-            {
-                if (s_33_1(d, alpha, beta) < 0.0)
-                {
-                    path = dubinsRSR(d, alpha, beta);
+                    if (s_43(d, alpha, beta) < 0.0)
+                    {
+                        path = dubinsLSL(d, alpha, beta);
+                    }
+                    else
+                    {
+                        path = dubinsLSR(d, alpha, beta);
+                    }
                 }
                 else
                 {
                     path = dubinsLSR(d, alpha, beta);
+                    DubinsStateSpace::DubinsPath tmp = dubinsRSL(d, alpha, beta);
+                    if (path.length() > tmp.length())
+                    {
+                        path = tmp;
+                    }
                 }
+                break;
             }
-            else
-            {
-                if (s_33_2(d, alpha, beta) < 0.0)
-                {
-                    path = dubinsLSL(d, alpha, beta);
-                }
-                else
-                {
-                    path = dubinsLSR(d, alpha, beta);
-                }
-            }
-            break;
-        }
-        case DubinsClass::A34:
-        {
-            if (s_24(d, alpha, beta) < 0.0)
-            {
-                if (s_34(d, alpha, beta) < 0.0)
-                {
-                    path = dubinsRSR(d, alpha, beta);
-                }
-                else
-                {
-                    path = dubinsLSR(d, alpha, beta);
-                }
-            }
-            else
+            case DubinsClass::A44:
             {
                 path = dubinsLSR(d, alpha, beta);
-                DubinsStateSpace::DubinsPath tmp = dubinsRSL(d, alpha, beta);
-                if (path.length() > tmp.length())
-                {
-                    path = tmp;
-                }
+                break;
             }
-            break;
         }
-        case DubinsClass::A41:
-        {
-            if (s_41_1(d, alpha, beta) > 0.0)
-            {
-                path = dubinsRSL(d, alpha, beta);
-            }
-            else if (s_41_2(d, alpha, beta) > 0.0)
-            {
-                path = dubinsLSR(d, alpha, beta);
-            }
-            else
-            {
-                path = dubinsLSL(d, alpha, beta);
-            }
-            break;
-        }
-        case DubinsClass::A42:
-        {
-            if (s_42(d, alpha, beta) < 0.0)
-            {
-                path = dubinsLSL(d, alpha, beta);
-            }
-            else
-            {
-                path = dubinsRSL(d, alpha, beta);
-            }
-            break;
-        }
-        case DubinsClass::A43:
-        {
-            if (s_42(d, alpha, beta) < 0.0)
-            {
-                if (s_43(d, alpha, beta) < 0.0)
-                {
-                    path = dubinsLSL(d, alpha, beta);
-                }
-                else
-                {
-                    path = dubinsLSR(d, alpha, beta);
-                }
-            }
-            else
-            {
-                path = dubinsLSR(d, alpha, beta);
-                DubinsStateSpace::DubinsPath tmp = dubinsRSL(d, alpha, beta);
-                if (path.length() > tmp.length())
-                {
-                    path = tmp;
-                }
-            }
-            break;
-        }
-        case DubinsClass::A44:
-        {
-            path = dubinsLSR(d, alpha, beta);
-            break;
-        }
+        return path;
     }
-    return path;
-}
+
+}  // namespace
 
 namespace ompl::base
 {
-std::ostream& operator<<(std::ostream& os, const DubinsStateSpace::DubinsPath& path)
-{
-    os << "DubinsPath[ type=";
-    for (unsigned i=0; i<3; ++i)
-        if (path.type_[i] == DubinsStateSpace::DUBINS_LEFT)
-            os << "L";
-        else if (path.type_[i] == DubinsStateSpace::DUBINS_STRAIGHT)
-            os << "S";
-        else
-            os << "R";
-    os << ", length=" << path.length_[0] << '+' << path.length_[1] << '+' << path.length_[2] << '=' << path.length();
-    os << ", reverse=" << path.reverse_ << " ]";
-    return os;
-}
-}
+    std::ostream &operator<<(std::ostream &os, const DubinsStateSpace::DubinsPath &path)
+    {
+        os << "DubinsPath[ type=";
+        for (unsigned i = 0; i < 3; ++i)
+            if (path.type_[i] == DubinsStateSpace::DUBINS_LEFT)
+                os << "L";
+            else if (path.type_[i] == DubinsStateSpace::DUBINS_STRAIGHT)
+                os << "S";
+            else
+                os << "R";
+        os << ", length=" << path.length_[0] << '+' << path.length_[1] << '+' << path.length_[2] << '=' << path.length()
+           << ", reverse=" << path.reverse_ << " ]";
+        return os;
+    }
+}  // namespace ompl::base
 
 DubinsStateSpace::DubinsPath dubins(double d, double alpha, double beta)
 {
@@ -713,37 +715,36 @@ DubinsStateSpace::DubinsPath dubins(double d, double alpha, double beta)
         return {DubinsStateSpace::dubinsPathType[0], 0, d, 0};
     alpha = mod2pi(alpha);
     beta = mod2pi(beta);
-    return is_longpath_case(d, alpha, beta) ? ::dubins_classification(d, alpha, beta) :
-                                              ::dubins_exhaustive(d, alpha, beta);
+    return isLongPath(d, alpha, beta) ? ::dubinsClassification(d, alpha, beta) : ::dubinsExhaustive(d, alpha, beta);
 }
 
-const ompl::base::DubinsStateSpace::DubinsPathSegmentType ompl::base::DubinsStateSpace::dubinsPathType[6][3] = {
+const DubinsStateSpace::DubinsPathSegmentType DubinsStateSpace::dubinsPathType[6][3] = {
     {DUBINS_LEFT, DUBINS_STRAIGHT, DUBINS_LEFT},  {DUBINS_RIGHT, DUBINS_STRAIGHT, DUBINS_RIGHT},
     {DUBINS_RIGHT, DUBINS_STRAIGHT, DUBINS_LEFT}, {DUBINS_LEFT, DUBINS_STRAIGHT, DUBINS_RIGHT},
     {DUBINS_RIGHT, DUBINS_LEFT, DUBINS_RIGHT},    {DUBINS_LEFT, DUBINS_RIGHT, DUBINS_LEFT}};
 
-double ompl::base::DubinsStateSpace::distance(const State *state1, const State *state2) const
+double DubinsStateSpace::distance(const State *state1, const State *state2) const
 {
     return isSymmetric_ ? symmetricDistance(state1, state2, rho_) : distance(state1, state2, rho_);
 }
-double ompl::base::DubinsStateSpace::distance(const State *state1, const State *state2, double radius)
+double DubinsStateSpace::distance(const State *state1, const State *state2, double radius)
 {
     return radius * dubins(state1, state2, radius).length();
 }
-double ompl::base::DubinsStateSpace::symmetricDistance(const State *state1, const State *state2, double radius)
+double DubinsStateSpace::symmetricDistance(const State *state1, const State *state2, double radius)
 {
     return radius * std::min(dubins(state1, state2, radius).length(), dubins(state2, state1, radius).length());
 }
 
-void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
+void DubinsStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
 {
     bool firstTime = true;
     DubinsPath path;
     interpolate(from, to, t, firstTime, path, state);
 }
 
-void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *to, const double t, bool &firstTime,
-                                               DubinsPath &path, State *state) const
+void DubinsStateSpace::interpolate(const State *from, const State *to, const double t, bool &firstTime,
+                                   DubinsPath &path, State *state) const
 {
     if (firstTime)
     {
@@ -775,7 +776,8 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const State *t
     interpolate(from, path, t, state, rho_);
 }
 
-void ompl::base::DubinsStateSpace::interpolate(const State *from, const DubinsPath &path, double t, State *state, double radius) const
+void DubinsStateSpace::interpolate(const State *from, const DubinsPath &path, double t, State *state,
+                                   double radius) const
 {
     auto *s = allocState()->as<StateType>();
     double seg = t * path.length(), phi, v;
@@ -835,21 +837,20 @@ void ompl::base::DubinsStateSpace::interpolate(const State *from, const DubinsPa
     freeState(s);
 }
 
-unsigned int ompl::base::DubinsStateSpace::validSegmentCount(const State *state1, const State *state2) const
+unsigned int DubinsStateSpace::validSegmentCount(const State *state1, const State *state2) const
 {
     return StateSpace::validSegmentCount(state1, state2);
 }
 
-ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(const State *state1,
-                                                                              const State *state2) const
+DubinsStateSpace::DubinsPath DubinsStateSpace::dubins(const State *state1, const State *state2) const
 {
     return dubins(state1, state2, rho_);
 }
 
-ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(const State *state1, const State *state2, double radius)
+DubinsStateSpace::DubinsPath DubinsStateSpace::dubins(const State *state1, const State *state2, double radius)
 {
-    const auto *s1 = static_cast<const ompl::base::DubinsStateSpace::StateType *>(state1);
-    const auto *s2 = static_cast<const ompl::base::DubinsStateSpace::StateType *>(state2);
+    const auto *s1 = static_cast<const DubinsStateSpace::StateType *>(state1);
+    const auto *s2 = static_cast<const DubinsStateSpace::StateType *>(state2);
     double x1 = s1->getX(), y1 = s1->getY(), th1 = s1->getYaw();
     double x2 = s2->getX(), y2 = s2->getY(), th2 = s2->getYaw();
     double dx = x2 - x1, dy = y2 - y1, d = sqrt(dx * dx + dy * dy) / radius, th = atan2(dy, dx);
@@ -857,15 +858,14 @@ ompl::base::DubinsStateSpace::DubinsPath ompl::base::DubinsStateSpace::dubins(co
     return ::dubins(d, alpha, beta);
 }
 
-void ompl::base::DubinsMotionValidator::defaultSettings()
+void DubinsMotionValidator::defaultSettings()
 {
     stateSpace_ = dynamic_cast<DubinsStateSpace *>(si_->getStateSpace().get());
     if (stateSpace_ == nullptr)
         throw Exception("No state space for motion validator");
 }
 
-bool ompl::base::DubinsMotionValidator::checkMotion(const State *s1, const State *s2,
-                                                    std::pair<State *, double> &lastValid) const
+bool DubinsMotionValidator::checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const
 {
     /* assume motion starts in a valid configuration so s1 is valid */
 
@@ -910,7 +910,7 @@ bool ompl::base::DubinsMotionValidator::checkMotion(const State *s1, const State
     return result;
 }
 
-bool ompl::base::DubinsMotionValidator::checkMotion(const State *s1, const State *s2) const
+bool DubinsMotionValidator::checkMotion(const State *s1, const State *s2) const
 {
     /* assume motion starts in a valid configuration so s1 is valid */
     if (!si_->isValid(s2))
