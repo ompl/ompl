@@ -53,6 +53,9 @@ src/ompl/base/spaces/DiscreteStateSpace.h
 src/ompl/base/spaces/DubinsStateSpace.h
 src/ompl/base/spaces/ReedsSheppStateSpace.h
 src/ompl/base/spaces/WrapperStateSpace.h
+src/ompl/base/spaces/VanaStateSpace.h
+src/ompl/base/spaces/OwenStateSpace.h
+src/ompl/base/spaces/VanaOwenStateSpace.h
 src/ompl/base/spaces/constraint/ConstrainedStateSpace.h
 src/ompl/base/spaces/constraint/AtlasStateSpace.h
 src/ompl/base/spaces/constraint/AtlasChart.h
