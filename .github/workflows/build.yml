@@ -7,20 +7,28 @@ on:
 
 jobs:
   default:
-    name: ${{ matrix.os }}
+    name: ${{ matrix.os }}-${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-24.04, ubuntu-22.04, macos-15, windows-2025 ]
-        arch: [ x86_64 ]
         include:
-          - os: ubuntu-24.04-arm
-            arch: aarch64
-          - os: ubuntu-22.04-arm
-            arch: aarch64
-          - os: macos-15
-            arch: arm64
+        - os: ubuntu-latest
+          pybuilds: cp3{10,11,12}-manylinux_x86_64
+          arch: x86_64
+          id: linux_x86_64
+        - os: ubuntu-24.04-arm
+          pybuilds: cp3{10,11,12}-manylinux_aarch64
+          arch: aarch64
+          id: linux_arm64
+        - os: macos-13
+          pybuilds: cp3{10,11,12}-macosx_x86_64
+          arch: x86_64
+          id: macos_x86
+        - os: macos-15
+          pybuilds: cp3{10,11,12}-macosx_arm64
+          arch: arm64
+          id: macos_arm64
 
     steps:
     - uses: actions/checkout@v4
