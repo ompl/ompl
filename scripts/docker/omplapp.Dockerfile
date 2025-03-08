@@ -1,11 +1,12 @@
-FROM ubuntu:jammy AS builder
+FROM ubuntu:noble AS builder
 # avoid interactive configuration dialog from tzdata, which gets pulled in
 # as a dependency
 ENV DEBIAN_FRONTEND=noninteractive
+ENV CXX=clang++
 RUN apt-get update && \
     apt-get install -y \
-        build-essential \
         castxml \
+        clang \
         cmake \
         freeglut3-dev \
         git \
@@ -21,7 +22,6 @@ RUN apt-get update && \
         libeigen3-dev \
         libexpat1 \
         libfcl-dev \
-        libflann-dev \
         libtriangle-dev \
         ninja-build \
         pkg-config \
@@ -39,21 +39,22 @@ RUN apt-get update && \
     echo 'deb http://www.lrde.epita.fr/repo/debian/ stable/' >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y libspot-dev && \
-    # see https://github.com/mcfletch/pyopengl/issues/74
-    pip3 install pygccxml pyplusplus git+https://github.com/mcfletch/pyopengl.git@227f9c66976d9f5dadf62b9a97e6beaec84831ca#subdirectory=accelerate
+    pip3 install --break-system-packages pygccxml pyplusplus PyOpenGL-accelerate
 COPY . /omplapp
-WORKDIR /build
+WORKDIR /omplapp
 RUN cmake \
+        -G Ninja \
+        -B build \
         -DPYTHON_EXEC=/usr/bin/python3 \
         -DOMPL_REGISTRATION=OFF \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -G Ninja \
         /omplapp && \
-    ninja update_bindings -j `nproc` && \
-    ninja -j `nproc` && \
-    ninja install
+    cmake --build build -t update_bindings && \
+    cmake --build build && \
+    cmake --install build
 
-FROM ubuntu:jammy
+FROM ubuntu:noble
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y \
@@ -71,7 +72,6 @@ RUN apt-get update && \
         libccd-dev \
         libeigen3-dev \
         libfcl-dev \
-        libflann-dev \
         libtriangle-dev \
         ninja-build \
         pkg-config \
@@ -91,8 +91,7 @@ RUN apt-get update && \
     apt-get update && \
     apt-get install -y libspot-dev && \
     # install PyOpenGL
-    # see https://github.com/mcfletch/pyopengl/issues/74
-    pip install git+https://github.com/mcfletch/pyopengl.git@227f9c66976d9f5dadf62b9a97e6beaec84831ca#subdirectory=accelerate
+    pip install --break-system-packages PyOpenGL-accelerate
 
 COPY --from=builder /usr /usr
 RUN useradd -ms /bin/bash ompl
