@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
-project(ompl VERSION 1.6.0 LANGUAGES CXX)
-set(OMPL_ABI_VERSION 17)
+project(ompl VERSION 1.7.0 LANGUAGES CXX)
+set(OMPL_ABI_VERSION 18)
 
 # Use the FindBoost provided by CMake, rather than the one provided by Boost
 # (for CMake >=3.30).
@@ -48,19 +48,6 @@ set_package_properties(Boost PROPERTIES
     PURPOSE "Used throughout OMPL for data serialization, graphs, etc.")
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost 1.68 REQUIRED COMPONENTS serialization filesystem system program_options)
-
-# Add support in Boost::Python for std::shared_ptr
-# This is a hack that replaces boost::shared_ptr related code with std::shared_ptr.
-# Proper support for std::shared_ptr was added in Boost 1.63.
-if (NOT Boost_VERSION_STRING)
-    if (Boost_VERSION_MAJOR)
-        set(Boost_VERSION_STRING
-            "${Boost_VERSION_MAJOR}.${Boost_VERSION_MINOR}.${Boost_VERSION_PATCH}")
-    else()
-        set(Boost_VERSION_STRING
-            "${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_PATCH_VERSION}")
-    endif()
-endif()
 
 # on macOS we need to check whether to use libc++ or libstdc++ with clang++
 if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
@@ -132,7 +119,7 @@ set_package_properties(Doxygen PROPERTIES
 find_package(Doxygen)
 
 # Numpy is used to convert Eigen matrices/vectors to numpy arrays
-if(PYTHON_FOUND AND NOT Boost_VERSION_STRING VERSION_LESS "1.63.0")
+if(PYTHON_FOUND)
     find_python_module(numpy)
     if (PY_NUMPY)
         find_boost_numpy()

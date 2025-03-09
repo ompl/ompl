@@ -45,7 +45,6 @@ jobs:
         libboost-test-dev \
         libeigen3-dev \
         libflann-dev \
-        libode-dev \
         libtriangle-dev
 
     - name: "Install macOS dependencies"

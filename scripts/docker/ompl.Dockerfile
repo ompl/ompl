@@ -1,11 +1,12 @@
-FROM ubuntu:jammy AS builder
+FROM ubuntu:noble AS builder
 # avoid interactive configuration dialog from tzdata, which gets pulled in
 # as a dependency
 ENV DEBIAN_FRONTEND=noninteractive
+ENV CXX=clang++
 RUN apt-get update && \
     apt-get install -y \
-        build-essential \
         castxml \
+        clang \
         cmake \
         libboost-filesystem-dev \
         libboost-numpy-dev \
@@ -30,10 +31,9 @@ RUN apt-get update && \
     echo 'deb http://www.lrde.epita.fr/repo/debian/ stable/' >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y libspot-dev && \
-    pip3 install pygccxml pyplusplus
+    pip3 install --break-system-packages https://github.com/CastXML/pygccxml/archive/develop.zip  pyplusplus
 COPY . /ompl
 WORKDIR /ompl
-RUN echo $PATH
 RUN cmake \
         -G Ninja \
         -B build \
@@ -47,7 +47,7 @@ RUN cmake \
     cmake -B build -DCMAKE_INSTALL_PREFIX=../../install && \
     cmake --build build
 
-FROM ubuntu:jammy
+FROM ubuntu:noble
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y \
