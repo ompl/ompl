@@ -3,67 +3,80 @@
 set -e
 
 if [ `id -u` == 0 ]; then
-    SUDO=
+    export SUDO=
     export DEBIAN_FRONTEND=noninteractive
-    apt-get -y install lsb-release
+    export PIP_ARGS=--break-system-packages
 else
     SUDO="sudo -H"
 fi
 
-ubuntu_version=`lsb_release -rs | sed 's/\.//'`
-
 install_common_dependencies()
 {
     # install most dependencies via apt-get
-    ${SUDO} apt-get -y update
-    ${SUDO} apt-get -y upgrade
-    ${SUDO} apt-get -y install clang cmake pkg-config libboost-serialization-dev libboost-filesystem-dev libboost-system-dev libboost-program-options-dev libboost-test-dev libeigen3-dev wget libyaml-cpp-dev
+    ${SUDO} apt-get -y update && \
+    ${SUDO} apt-get -y install \
+        clang \
+        cmake \
+        libboost-filesystem-dev \
+        libboost-program-options-dev \
+        libboost-serialization-dev \
+        libboost-system-dev \
+        libboost-test-dev \
+        libeigen3-dev \
+        libexpat1 \
+        libtriangle-dev \
+        ninja-build \
+        pkg-config \
+        wget
     export CXX=clang++
 }
 
 install_python_binding_dependencies()
 {
-    ${SUDO} apt-get -y install python3-dev python3-pip castxml libboost-python-dev libboost-numpy-dev python3-numpy pypy3
-    # install additional python dependencies via pip
-    ${SUDO} pip3 install -vU https://github.com/CastXML/pygccxml/archive/develop.zip pyplusplus
+    ${SUDO} apt-get -y install \
+        castxml \
+        libboost-numpy-dev \
+        libboost-python-dev \
+        python3-celery \
+        python3-dev \
+        python3-flask \
+        python3-numpy \
+        python3-opengl \
+        python3-pip \
+        python3-pyqt5.qtopengl \
+        pypy3 \
+        wget && \
+        # install additional python dependencies via pip
+        ${SUDO} pip3 install ${PIP_ARGS} -vU https://github.com/CastXML/pygccxml/archive/develop.zip pyplusplus
 }
 
 install_app_dependencies()
 {
-    ${SUDO} apt-get -y install python3-pyqt5.qtopengl freeglut3-dev libassimp-dev python3-opengl python3-flask python3-celery libccd-dev libfcl-dev
-    # install additional python dependencies via pip
-    ${SUDO} pip3 install -vU PyOpenGL-accelerate
+    ${SUDO} apt-get -y install \
+        freeglut3-dev \
+        libassimp-dev \
+        libccd-dev \
+        libfcl-dev
 }
 
 install_ompl()
 {
     if [ -z $APP ]; then
-        OMPL="ompl"
+        wget -O - https://github.com/ompl/ompl/archive/@PROJECT_VERSION@.tar.gz | tar zxf -
+        cd ompl-@PROJECT_VERSION@
     else
-        OMPL="omplapp"
+        wget -O - https://github.com/ompl/omplapp/releases/download/@PROJECT_VERSION@/omplapp-@PROJECT_VERSION@-Source.tar.gz | tar zxf -
+        cd omplapp-@PROJECT_VERSION@-Source
     fi
-    if [ -z $APP ]; then
-        wget -O - https://github.com/ompl/${OMPL}/archive/@PROJECT_VERSION@.tar.gz | tar zxf -
-        cd ${OMPL}-@PROJECT_VERSION@
-    else
-        wget -O - https://github.com/ompl/${OMPL}/releases/download/@PROJECT_VERSION@/${OMPL}-@PROJECT_VERSION@-Source.tar.gz | tar zxf -
-        cd $OMPL-@PROJECT_VERSION@-Source
-    fi
-    mkdir -p build/Release
-    cd build/Release
-    cmake ../.. -DPYTHON_EXEC=/usr/bin/python3
-    if [ ! -z $PYTHON ]; then
-        # Check if the total memory is less than 6GB.
-        if [ `cat /proc/meminfo | head -1 | awk '{print $2}'` -lt 6291456 ]; then
-            echo "Python binding generation is very memory intensive. At least 6GB of RAM is recommended."
-            echo "Proceeding with binding generation using 1 core..."
-            make -j 1 update_bindings
-        else
-            make update_bindings
-        fi
-    fi
-    make
-    ${SUDO} make install
+    cmake \
+        -G Ninja \
+        -B build \
+        -DPYTHON_EXEC=/usr/bin/python3 \
+        -DOMPL_REGISTRATION=OFF \
+        -DCMAKE_INSTALL_PREFIX=/usr && \
+    cmake --build build -t update_bindings && \
+    cmake --build build && \
+    ${SUDO} cmake --install build
 }
 
 for i in "$@"
