@@ -20,7 +20,7 @@ void ompl::binding::base::initSpaces_SE2StateSpace(nb::module_& m)
         .def("setYaw", &ompl::base::SE2StateSpace::StateType::setYaw);
 
     auto se2Sub = m.def_submodule("se2");
-    nb::class_<ompl::base::ScopedState<ompl::base::SE2StateSpace>>(se2Sub, "State")
+    nb::class_<ompl::base::ScopedState<ompl::base::SE2StateSpace>>(se2Sub, "ScopedState")
         .def(nb::init<const std::shared_ptr<ompl::base::SpaceInformation>&>())
         .def(nb::init<std::shared_ptr<ompl::base::StateSpace>>())
         .def("random", &ompl::base::ScopedState<ompl::base::SE2StateSpace>::random)
