@@ -7,7 +7,7 @@ find_package(Python 3.8
 
 # Import nanobind through CMake's find_package mechanism
 add_subdirectory(nanobind)
-
+add_compile_options(-Wno-unused-parameter)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl)
 ############################################
 # Base

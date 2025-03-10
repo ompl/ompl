@@ -14,8 +14,11 @@ rvss.printSettings()
 state = rvss.allocState()
 sampler = ob.RealVectorStateSampler(rvss)
 sampler.sampleUniform(state)
+rvss.printState(state)
+state[0] = 0.5
+state[1] = 0.5
+rvss.printState(state)
 state_another = rvss.allocState()
 sampler.sampleUniform(state_another)
 print(rvss.distance(state, state_another))
 rvss.printState(state)
-print(rvss.distance(state, state_another))
