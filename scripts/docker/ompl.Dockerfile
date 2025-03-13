@@ -1,6 +1,5 @@
-FROM ubuntu:jammy AS builder
-# avoid interactive configuration dialog from tzdata, which gets pulled in
-# as a dependency
+FROM ubuntu:noble AS builder
+# avoid interactive configuration dialog from tzdata, which gets pulled in as a dependency
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y \
@@ -30,12 +29,12 @@ RUN apt-get update && \
     echo 'deb http://www.lrde.epita.fr/repo/debian/ stable/' >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y libspot-dev && \
-    pip3 install pygccxml pyplusplus
+    pip3 install --break-system-packages pygccxml pyplusplus
 COPY . /ompl
 WORKDIR /ompl
 RUN echo $PATH
 RUN cmake \
-        -G Ninja \
+        -G Ninja -S . \
         -B build \
         -DPYTHON_EXEC=/usr/bin/python3 \
         -DOMPL_REGISTRATION=OFF \
@@ -47,7 +46,7 @@ RUN cmake \
     cmake -B build -DCMAKE_INSTALL_PREFIX=../../install && \
     cmake --build build
 
-FROM ubuntu:jammy
+FROM ubuntu:noble
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y \
