@@ -87,6 +87,8 @@ namespace ompl
             /** \brief ompl::base::KleinBottleStateSpace */
             STATE_SPACE_KLEIN_BOTTLE = 13,
 
+            STATE_SPACE_TROCHOID = 14,
+
             /** \brief Number of state space types; To add new types,
                 use values that are larger than the count*/
             STATE_SPACE_TYPE_COUNT
