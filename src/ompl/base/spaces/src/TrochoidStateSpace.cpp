@@ -412,15 +412,7 @@ namespace
                 }
             }
             }
-        }
-        
-        // if ( !solnFound ){
-        //     switch ( pt ){
-        //     case pathType::LRL: LRL_.set_pathStatusInfeasible(); break;
-        //     case pathType::RLR: RLR_.set_pathStatusInfeasible(); break;
-        //     }
-        // }
-  
+        }  
     }
 
 
@@ -588,38 +580,43 @@ void TrochoidStateSpace::interpolate(const State *from, const TrochoidPath &path
     double seg = t * path.length(), phi, v, x_t10, y_t10, delta;
     s->setXY(0., 0.);
     s->setYaw(from->as<StateType>()->getYaw());
-    for (unsigned int i = 0; i < 3 && seg > 0; ++i)
-    {
-        v = std::min(seg, path.length_[i]);
-        phi = s->getYaw();
-        seg -= v;
-        switch (path.type_[i])
+    if (!path.reverse_) {
+        for (unsigned int i = 0; i < 3 && seg > 0; ++i)
         {
-            case TROCHOID_LEFT:
-                delta = 1;
-                x_t10 = s->getX() - (radius* delta) * sin(phi);
-                y_t10 = s->getY() + (radius * delta) * cos(phi);
-                s->setXY(x_t10 + (radius * delta) * sin(delta *(1.0/radius) * v + phi)  + wind_ratio * v, \
-                y_t10 - (radius * delta) * cos(delta *(1.0/radius) * v + phi));
-                s->setYaw(phi + delta *(1.0/radius) *v);
-                break;
-            case TROCHOID_RIGHT:
-                delta = -1;
-                x_t10 = s->getX() - (radius* delta) * sin(phi);
-                y_t10 = s->getY() + (radius * delta) * cos(phi);
-                s->setXY(x_t10 + (radius * delta) * sin(delta *(1.0/radius) * v + phi)  + wind_ratio * v, \
-                y_t10 - (radius * delta) * cos(delta *(1.0/radius) * v + phi));
-                s->setYaw(phi + delta *(1.0/radius) *v);
-                break;
-            case TROCHOID_STRAIGHT:
-                s->setXY(s->getX() + v * cos(phi) + v * wind_ratio, s->getY() + v * sin(phi));
-                break;
+            v = std::min(seg, path.length_[i]);
+            phi = s->getYaw();
+            seg -= v;
+            switch (path.type_[i])
+            {
+                case TROCHOID_LEFT:
+                    delta = 1;
+                    x_t10 = s->getX() - (radius* delta) * sin(phi);
+                    y_t10 = s->getY() + (radius * delta) * cos(phi);
+                    s->setXY(x_t10 + (radius * delta) * sin(delta *(1.0/radius) * v + phi)  + wind_ratio * v, \
+                    y_t10 - (radius * delta) * cos(delta *(1.0/radius) * v + phi));
+                    s->setYaw(phi + delta *(1.0/radius) *v);
+                    break;
+                case TROCHOID_RIGHT:
+                    delta = -1;
+                    x_t10 = s->getX() - (radius* delta) * sin(phi);
+                    y_t10 = s->getY() + (radius * delta) * cos(phi);
+                    s->setXY(x_t10 + (radius * delta) * sin(delta *(1.0/radius) * v + phi)  + wind_ratio * v, \
+                    y_t10 - (radius * delta) * cos(delta *(1.0/radius) * v + phi));
+                    s->setYaw(phi + delta *(1.0/radius) *v);
+                    break;
+                case TROCHOID_STRAIGHT:
+                    s->setXY(s->getX() + v * cos(phi) + v * wind_ratio, s->getY() + v * sin(phi));
+                    break;
+            }
         }
     }
 
-    ///TODO: Reproject from trochoid space to inertial space
-    state->as<StateType>()->setX(s->getX() + from->as<StateType>()->getX());
-    state->as<StateType>()->setY(s->getY() + from->as<StateType>()->getX());
+    //Reproject from trochoid space to inertial space
+    double xf_trochoid = xf * std::cos(wind_heading) + yf * std::sin(wind_heading) - x0;
+    double yf_trochoid = -xf * std::sin(wind_heading) + yf * std::cos(wind_heading) - y0;
+
+    state->as<StateType>()->setX(s->getX()* std::cos(wind_heading) - s->getY()* std::sin(wind_heading) + from->as<StateType>()->getX());
+    state->as<StateType>()->setY(s->getX()* std::sin(wind_heading) + s->getY()* std::cos(wind_heading) + from->as<StateType>()->getY());
     getSubspace(1)->enforceBounds(s->as<SO2StateSpace::StateType>(1));
     state->as<StateType>()->setYaw(s->getYaw());
     freeState(s);
@@ -646,10 +643,10 @@ TrochoidStateSpace::TrochoidPath TrochoidStateSpace::trochoid(const State *state
     double phif = psi_f - wind_heading;
 
     // Transform into trochoid frame
-    double xf_trochoid = xf * std::cos(wind_heading) + yf * std::sin(wind_heading);
-    double yf_trochoid = -xf * std::sin(wind_heading) + yf * std::cos(wind_heading);
+    double xf_trochoid = xf * std::cos(wind_heading) + yf * std::sin(wind_heading) - x0;
+    double yf_trochoid = -xf * std::sin(wind_heading) + yf * std::cos(wind_heading) - y0;
 
-    return ::trochoid(x0, y0, phi0, xf_trochoid, yf_trochoid, phif, radius, wind_ratio, wind_heading);
+    return ::trochoid(0.0, 0.0, phi0, xf_trochoid, yf_trochoid, phif, radius, wind_ratio, wind_heading);
 }
 
 void TrochoidMotionValidator::defaultSettings()
