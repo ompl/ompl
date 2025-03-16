@@ -31,7 +31,7 @@ RUN apt-get update && \
     echo 'deb http://www.lrde.epita.fr/repo/debian/ stable/' >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y libspot-dev && \
-    pip3 install --break-system-packages https://github.com/CastXML/pygccxml/archive/develop.zip  pyplusplus
+    pip3 install --break-system-packages pygccxml pyplusplus
 COPY . /ompl
 WORKDIR /ompl
 RUN cmake \
