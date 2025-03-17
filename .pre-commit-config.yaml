@@ -1,0 +1,7 @@
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v14.0.0  # Use an appropriate version
+    hooks:
+      - id: clang-format
+        args: [-style=Google]  # You can change this to LLVM, Mozilla, etc.
