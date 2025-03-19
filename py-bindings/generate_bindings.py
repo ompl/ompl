@@ -403,8 +403,11 @@ void __set%(member_function_camelize)s(%(cls)s* self, double %(member_function)s
             # \todo: figure why commented-out code causes a problem.
             self.ompl_ns.class_('ConstraintIntersection').exclude()
 
-            signatures = ['::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, 0, Eigen::InnerStride<1> > const &',
-                          '::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0>, 0, Eigen::InnerStride<1>> const &']
+            signatures = [
+                "::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0, -1, 1>, 0, Eigen::InnerStride<1> > const &",
+                "::Eigen::Ref<const Eigen::Matrix<double, -1, 1, 0>, 0, Eigen::InnerStride<1>> const &",
+                "::Eigen::Ref<const Eigen::Matrix<double, -1, 1>> const &",
+            ]
 
             for cls in [self.ompl_ns.class_('Constraint')]: #,
 #                        self.ompl_ns.class_('ConstraintIntersection')]:
