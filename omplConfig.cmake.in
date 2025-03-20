@@ -1,14 +1,4 @@
-# CMake OMPL config module
-#
-# Usage:
-# find_package(ompl @OMPL_VERSION_MAJOR@ REQUIRED)
-# add_library(your_app main.cpp)
-# target_link_libraries(your_app PRIVATE ompl::ompl)
-#
-#
-
 @PACKAGE_INIT@
-
 
 # These must be set BEFORE any call to find_package because PACKAGE_PREFIX_DIR gets overwritten by Eigen3.
 # See https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html#command:configure_package_config_file.
@@ -69,14 +59,36 @@ endforeach()
 list(REMOVE_DUPLICATES OMPL_INCLUDE_DIRS)
 set(OMPL_INCLUDE_DIRS "${OMPL_INCLUDE_DIRS}" CACHE STRING "Include path for OMPL and its dependencies - DEPRECATED")
 
-# Add optional dependent libraries based on their non-portable library absolute paths (best effort).
-find_library(OMPL_LIBRARIES NAMES ompl
-    PATHS "${PACKAGE_PREFIX_DIR}/lib" NO_DEFAULT_PATH)
-foreach(_lib @Boost_SERIALIZATION_LIBRARY@;@Boost_FILESYSTEM_LIBRARY@;@Boost_SYSTEM_LIBRARY@;@SPOT_LIBRARIES@)
-    if(_lib)
-        list(APPEND OMPL_LIBRARIES "${_lib}")
+# FIX: Set OMPL_LIBRARIES based on target and allow standard library search paths
+# First, try to use the target approach which is most robust
+if(TARGET ompl::ompl)
+    # Extract information from the target
+    set(OMPL_LIBRARIES ompl::ompl)
+else()
+    # Try to find the library directly
+    find_library(OMPL_LIBRARY_PATH NAMES ompl
+        PATHS "${PACKAGE_PREFIX_DIR}/lib")
+    
+    # If found, set OMPL_LIBRARIES
+    if(OMPL_LIBRARY_PATH)
+        set(OMPL_LIBRARIES "${OMPL_LIBRARY_PATH}")
+    else()
+        # Last resort: try system paths
+        find_library(OMPL_LIBRARY_PATH NAMES ompl)
+        if(OMPL_LIBRARY_PATH)
+            set(OMPL_LIBRARIES "${OMPL_LIBRARY_PATH}")
+        else()
+            message(FATAL_ERROR "Could not find OMPL library. Please check your installation.")
+        endif()
     endif()
-endforeach()
+    
+    # Add dependent libraries
+    foreach(_lib @Boost_SERIALIZATION_LIBRARY@;@Boost_FILESYSTEM_LIBRARY@;@Boost_SYSTEM_LIBRARY@;@SPOT_LIBRARIES@)
+        if(_lib)
+            list(APPEND OMPL_LIBRARIES "${_lib}")
+        endif()
+    endforeach()
+endif()
 
 # Set OMPL_LIBRARY_DIRS for backward compatibility
 set_and_check(OMPL_LIBRARY_DIRS "@PACKAGE_LIB_INSTALL_DIR@")
@@ -89,5 +101,4 @@ list(REMOVE_DUPLICATES OMPL_LIBRARY_DIRS)
 set(OMPL_LIBRARY_DIRS "${OMPL_LIBRARY_DIRS}" CACHE STRING "Library path for OMPL and its dependencies - DEPRECATED")
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(ompl DEFAULT_MSG OMPL_INCLUDE_DIRS OMPL_LIBRARY_DIRS OMPL_LIBRARIES)
-
+find_package_handle_standard_args(ompl DEFAULT_MSG OMPL_INCLUDE_DIRS OMPL_LIBRARIES)
