@@ -81,7 +81,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
     checkValidity();
     auto *goal = dynamic_cast<base::GoalSampleableRegion *>(pdef_->getGoal().get());
 
-    if (goal == nullptr)
+    if (!goal)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
@@ -119,7 +119,6 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
 
     bool startTree = true;
     bool solved = false;
-    base::PlannerStatus::StatusType status = base::PlannerStatus::TIMEOUT;
 
     while (ptc == false)
     {
@@ -142,7 +141,6 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
             if (tGoal_.size == 0)
             {
                 OMPL_ERROR("%s: Unable to sample any valid states for goal tree", getName().c_str());
-                status = base::PlannerStatus::INVALID_GOAL;
                 break;
             }
         }
@@ -179,7 +177,7 @@ ompl::base::PlannerStatus ompl::geometric::SBL::solve(const base::PlannerTermina
                 tStart_.size + tGoal_.size, tStart_.size, tGoal_.size, tStart_.grid.size() + tGoal_.grid.size(),
                 tStart_.grid.size(), tGoal_.grid.size());
 
-    return solved ? base::PlannerStatus::EXACT_SOLUTION : status;
+    return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
 }
 
 bool ompl::geometric::SBL::checkSolution(bool start, TreeData &tree, TreeData &otherTree, Motion *motion,

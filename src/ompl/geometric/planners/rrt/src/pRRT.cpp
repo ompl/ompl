@@ -175,7 +175,7 @@ ompl::base::PlannerStatus ompl::geometric::pRRT::solve(const base::PlannerTermin
 
     auto *goal = dynamic_cast<base::GoalRegion *>(pdef_->getGoal().get());
 
-    if (goal == nullptr)
+    if (!goal)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
