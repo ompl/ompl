@@ -11,6 +11,7 @@
     <li class="nav-item"><a class="nav-link" id="osx-tab" data-toggle="pill" href="#osx" role="tab" aria-controls="macos" aria-selected="false">macOS</a></li>
     <li class="nav-item"><a class="nav-link" id="windows-tab" data-toggle="pill" href="#windows" role="tab" aria-controls="windows" aria-selected="false">MS Windows</a></li>
     <li class="nav-item"><a class="nav-link" id="cmake-fetch-tab" data-toggle="pill" href="#cmakefetch" role="tab" aria-controls="cmakefetch" aria-selected="false">CMake Fetchcontent</a></li>
+    <li class="nav-item"><a class="nav-link" id="python-wheels-tab" data-toggle="pill" href="#pythonwheels" role="tab" aria-controls="Python Wheels" aria-selected="false">Python Wheeels</a></li>
   </ul>
 </div>
 
@@ -128,6 +129,13 @@ FetchContent_MakeAvailable(ompl)
 add_executable(main main.cpp)
 target_link_libraries(main PRIVATE ompl::ompl)
     </pre>
+  </div>
+
+  <div class="tab-pane fade" id="pythonwheels" role="tabpanel" aria-labelledby="python-wheels-tab">
+
+  <h2>Python Wheels</h2>
+
+  OMPL wheels are available for multiple Python versions and platforms. To install the appropriate wheel for your system, visit : <a href="https://github.com/ompl/ompl/actions/runs/14043134602"> ompl wheels</a>
   </div>
 </div>
 \endhtmlonly
