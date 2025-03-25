@@ -3,6 +3,7 @@ def dll_loader(lib, path):
     from os.path import isfile
     import ctypes
     from ctypes.util import find_library
+    import site
 
     # First, try the user-specified path
     sys = system()
