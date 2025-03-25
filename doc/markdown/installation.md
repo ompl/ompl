@@ -135,7 +135,12 @@ target_link_libraries(main PRIVATE ompl::ompl)
 
   <h2>Python Wheels</h2>
 
-  OMPL wheels are available for multiple Python versions and platforms. To install the appropriate wheel for your system, visit : <a href="https://github.com/ompl/ompl/actions/runs/14043134602"> ompl wheels</a>
+  There are pre-built binary wheels for Python versions 3.10, 3.11, and 3.12. Download the right zip file for you OS and architecture:
+
+  * [Ubuntu 24.04 x86_64](https://github.com/ompl/ompl/releases/download/1.7.0/wheels-ubuntu-latest-x86_64.zip)
+  * [Ubuntu 24.04 aarch64](https://github.com/ompl/ompl/releases/download/1.7.0/wheels-ubuntu-24.04-arm-aarch.zip)
+  * [MacOS 15](https://github.com/ompl/ompl/releases/download/1.7.0/wheels-macos-15-arm64.zip)
+  * [MacOS 13](https://github.com/ompl/ompl/releases/download/1.7.0/wheels-macos-13-arm64.zip)
   </div>
 </div>
 \endhtmlonly
