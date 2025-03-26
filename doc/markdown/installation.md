@@ -137,10 +137,10 @@ target_link_libraries(main PRIVATE ompl::ompl)
 
   There are pre-built binary wheels for Python versions 3.10, 3.11, and 3.12. Download the right zip file for you OS and architecture:
 
-  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-ubuntu-latest-x86_64.zip"> Ubuntu 24.04 x86_64 </a> </li>
-  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-ubuntu-24.04-arm-aarch.zip"> Ubuntu 24.04 aarch64 </a> </li>
-  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-macos-15-arm64.zip"> MacOS 15 </a> </li>
-  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-macos-13-arm64.zip"> MacOS 13 </a> </li>
+  * [Ubuntu 24.04 x86_64](https://github.com/ompl/ompl/releases/download/1.7.0/wheels-ubuntu-latest-x86_64.zip)
+  * [Ubuntu 24.04 aarch64](https://github.com/ompl/ompl/releases/download/1.7.0/wheels-ubuntu-24.04-arm-aarch.zip)
+  * [MacOS 15](https://github.com/ompl/ompl/releases/download/1.7.0/wheels-macos-15-arm64.zip)
+  * [MacOS 13](https://github.com/ompl/ompl/releases/download/1.7.0/wheels-macos-13-arm64.zip)
   </div>
 </div>
 \endhtmlonly
