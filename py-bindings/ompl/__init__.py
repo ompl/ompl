@@ -3,6 +3,7 @@ def dll_loader(lib, path):
     from os.path import isfile
     import ctypes
     from ctypes.util import find_library
+    import os
     import site
 
     # First, try the user-specified path
@@ -19,6 +20,8 @@ def dll_loader(lib, path):
     # Fallback to site-packages
     if not isfile(fpath):
         for sitepackagedir in site.getsitepackages():
+            if not os.path.exists(sitepackagedir):
+                continue
             for _fname in os.listdir(sitepackagedir):
                 _fpath = os.path.join(sitepackagedir, _fname)
                 if isfile(_fpath):
