@@ -103,9 +103,6 @@ file(GLOB OMPL_DEMO_CXX_FILES "*.cpp")
 install(FILES ${OMPL_DEMO_CXX_FILES}
     DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
     COMPONENT ompl)
-install(DIRECTORY Koules
-    DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
-    COMPONENT ompl)
-install(DIRECTORY VFRRT
+install(DIRECTORY constraint Koules multilevel PlanarManipulator VFRRT
     DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
     COMPONENT ompl)
