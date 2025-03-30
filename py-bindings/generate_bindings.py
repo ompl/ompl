@@ -514,6 +514,11 @@ void __set%(member_function_camelize)s(%(cls)s* self, double %(member_function)s
                 arg_types=['::std::ostream &']).exclude()
         except declaration_not_found_t:
             pass
+        
+        # add wrappers for std::optional types
+        self.add_optional_wrapper('ompl::base::OwenStateSpace::PathType')
+        self.add_optional_wrapper('ompl::base::VanaStateSpace::PathType')
+        self.add_optional_wrapper('ompl::base::VanaOwenStateSpace::PathType')
 
 
 class ompl_control_generator_t(code_generator_t):
