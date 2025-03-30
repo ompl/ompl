@@ -56,6 +56,7 @@
 #include "ompl/base/Goal.h"
 #include "ompl/base/PlannerData.h"
 #include "py_std_function.hpp"
+#include "py_std_optional.hpp"
 
 #define DeclareStateType(T) \
     inline int __dummy##T() \
