@@ -305,9 +305,11 @@ void __set%(member_function_camelize)s(%(cls)s* self, double %(member_function)s
     })
 
         # I don't know how to export a C-style array of an enum type
-        for stype in ['Dubins', 'ReedsShepp']:
+        for stype in ['ReedsShepp']:
             self.ompl_ns.enumeration(stype + 'PathSegmentType').exclude()
             self.ompl_ns.class_(stype + 'Path').exclude()
+            
+        for stype in ['Dubins', 'ReedsShepp']:
             self.ompl_ns.class_(stype + "StateSpace").member_function(
                 stype[0].lower() + stype[1:],
                 arg_types=[
@@ -315,6 +317,11 @@ void __set%(member_function_camelize)s(%(cls)s* self, double %(member_function)s
                     "::ompl::base::State const *",
                 ],
             ).exclude()
+
+        # access to public member variables
+        self.ompl_ns.class_('DubinsPath').variable("type_").include()
+        self.ompl_ns.class_('DubinsPath').variable("length_").include()
+        self.ompl_ns.class_('DubinsPath').variable("reverse_").include()
 
         # Disable the other dubins overload
         self.ompl_ns.class_("DubinsStateSpace").member_function(
@@ -519,7 +526,6 @@ void __set%(member_function_camelize)s(%(cls)s* self, double %(member_function)s
         self.add_optional_wrapper('ompl::base::OwenStateSpace::PathType')
         self.add_optional_wrapper('ompl::base::VanaStateSpace::PathType')
         self.add_optional_wrapper('ompl::base::VanaOwenStateSpace::PathType')
-
 
 class ompl_control_generator_t(code_generator_t):
     def __init__(self):
