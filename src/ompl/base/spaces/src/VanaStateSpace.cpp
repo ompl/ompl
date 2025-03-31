@@ -142,10 +142,10 @@ bool VanaStateSpace::decoupled(const State *state1, const State *state2, double 
     // 1. path of type CCC (i.e., RLR or LRL)
     // 2. pitch smaller than minPitch_
     // 3. pitch greater than maxPitch_
-    if ((result.pathSZ_.type_[1] != DubinsStateSpace::DUBINS_STRAIGHT) ||
-        (result.pathSZ_.type_[0] == DubinsStateSpace::DUBINS_RIGHT &&
+    if ((result.pathSZ_.type_->at(1) != DubinsStateSpace::DUBINS_STRAIGHT) ||
+        (result.pathSZ_.type_->at(0) == DubinsStateSpace::DUBINS_RIGHT &&
          s1->pitch() - result.pathSZ_.length_[0] < minPitch_) ||
-        (result.pathSZ_.type_[0] == DubinsStateSpace::DUBINS_LEFT &&
+        (result.pathSZ_.type_->at(0) == DubinsStateSpace::DUBINS_LEFT &&
          s1->pitch() + result.pathSZ_.length_[0] > maxPitch_))
     {
         return false;

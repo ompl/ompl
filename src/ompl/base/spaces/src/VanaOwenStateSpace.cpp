@@ -140,9 +140,9 @@ bool VanaOwenStateSpace::isValid(DubinsStateSpace::DubinsPath const &path, State
     // 1. path of type CCC (i.e., RLR or LRL)
     // 2. pitch smaller than minPitch_
     // 3. pitch greater than maxPitch_
-    if ((path.type_[1] != DubinsStateSpace::DUBINS_STRAIGHT) ||
-        (path.type_[0] == DubinsStateSpace::DUBINS_RIGHT && state->pitch() - path.length_[0] < minPitch_) ||
-        (path.type_[0] == DubinsStateSpace::DUBINS_LEFT && state->pitch() + path.length_[0] > maxPitch_))
+    if ((path.type_->at(1) != DubinsStateSpace::DUBINS_STRAIGHT) ||
+        (path.type_->at(0) == DubinsStateSpace::DUBINS_RIGHT && state->pitch() - path.length_[0] < minPitch_) ||
+        (path.type_->at(0) == DubinsStateSpace::DUBINS_LEFT && state->pitch() + path.length_[0] > maxPitch_))
     {
         return false;
     }
@@ -166,7 +166,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
     {
         if (std::abs(result.deltaZ_) < 1e-8 && std::abs(to->pitch() - from->pitch()) < 1e-8)
         {
-            result.pathSZ_.type_ = DubinsStateSpace::dubinsPathType[0]; // LSL type
+            result.pathSZ_.type_ = &DubinsStateSpace::dubinsPathType[0]; // LSL type
             result.pathSZ_.length_[0] = result.pathSZ_.length_[2] = 0.;
             result.pathSZ_.length_[1] = result.deltaZ_;
             return true;

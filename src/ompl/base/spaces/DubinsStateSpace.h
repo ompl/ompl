@@ -37,6 +37,7 @@
 #ifndef OMPL_BASE_SPACES_DUBINS_STATE_SPACE_
 #define OMPL_BASE_SPACES_DUBINS_STATE_SPACE_
 
+#include <vector>
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/MotionValidator.h"
 #include <boost/math/constants/constants.hpp>
@@ -70,14 +71,14 @@ namespace ompl
             };
 
             /** \brief Dubins path types */
-            static const DubinsPathSegmentType dubinsPathType[6][3];
+            static const std::vector<std::vector<DubinsPathSegmentType>> dubinsPathType;
             /** \brief Complete description of a Dubins path */
             class DubinsPath
             {
             public:
-                DubinsPath(const DubinsPathSegmentType *type = dubinsPathType[0], double t = 0.,
-                           double p = std::numeric_limits<double>::max(), double q = 0.)
-                  : type_(type)
+              DubinsPath(const std::vector<DubinsPathSegmentType> *type = &dubinsPathType[0],
+                  double t = 0., double p = std::numeric_limits<double>::max(), double q = 0.)
+                   : type_(type)
                 {
                     length_[0] = t;
                     length_[1] = p;
@@ -93,7 +94,7 @@ namespace ompl
 
                 friend std::ostream& operator<<(std::ostream& os, const DubinsPath& path);
                 /** Path segment types */
-                const DubinsPathSegmentType *type_;
+                const std::vector<DubinsPathSegmentType> *type_;
                 /** Path segment lengths */
                 double length_[3];
                 /** Whether the path should be followed "in reverse" */
