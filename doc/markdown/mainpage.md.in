@@ -186,7 +186,7 @@
     <div class="col-lg-12 col-md-12">
       <h2>News &amp; Events</h2>
       <ul>
-      <li><a href="https://github.com/ompl/ompl/releases/tag/1.6.0">OMPL 1.6.0 has been released!</a> This release includes new planners, <a href="file:///home/zak/src/ompl.github.io/multiLevelPlanning.html">multilevel planning</a>, bug fixes, and more.</li>
+      <li><a href="https://github.com/ompl/ompl/releases/tag/1.7.0">OMPL 1.7.0 has been released!</a> This release includes new planners, bug fixes, and more.</li>
       <li><a href="https://motion-planning-workshop.kavrakilab.org/">The Evaluating Motion Planning Performance workshop was hosted at IROS 2022 in Kyoto, Japan.</a> This workshop brought together interested professionals in academia and industry to discuss motion planner evaluation. Videos of talks are available.</li>
       <li><a href="https://github.com/KavrakiLab/robowflex">Robowflex, a tool for motion planning researchers</a> using OMPL through MoveIt was nominated for best paper for industrial robotics research with real-world applications at IROS 2022.</li>
       <li><a href="https://www.kavrakilab.org/publications/moll2021hyperplan.pdf">HyperPlan, a tool for automatically configuring motion planners,</a> is now <a href="https://github.com/KavrakiLab/hyperplan">available open source</a>. Given a training dataset, this tool can optimize motion planning performance by tuning parameters, such as range, which projection to use, and so on.</li>
