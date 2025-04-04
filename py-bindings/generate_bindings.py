@@ -340,6 +340,11 @@ void __set%(member_function_camelize)s(%(cls)s* self, double %(member_function)s
                 "double",
             ],
         ).exclude()
+
+        # expose PathType methods
+        self.ompl_ns.class_("OwenStateSpace").class_("PathType").include()
+        self.ompl_ns.class_("OwenStateSpace").class_("PathType").member_function("length").include()
+                             
         # don't expose these utility functions that return double*
         self.ompl_ns.member_functions('getValueAddressAtIndex').exclude()
         self.ompl_ns.member_functions('getValueAddressAtName').exclude()
