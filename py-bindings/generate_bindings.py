@@ -522,10 +522,10 @@ void __set%(member_function_camelize)s(%(cls)s* self, double %(member_function)s
         except declaration_not_found_t:
             pass
         
-        # add wrappers for std::optional types
-        self.add_optional_wrapper('ompl::base::OwenStateSpace::PathType')
-        self.add_optional_wrapper('ompl::base::VanaStateSpace::PathType')
-        self.add_optional_wrapper('ompl::base::VanaOwenStateSpace::PathType')
+        # add wrappers for std::optional types and 3D Dubins PathTypes
+        for dubins3d in ['Owen', 'Vana', 'VanaOwen']:
+            self.add_optional_wrapper(f'ompl::base::{dubins3d}StateSpace::PathType')
+            self.ompl_ns.class_(f"{dubins3d}StateSpace").class_("PathType").member_function("length").include()
 
 class ompl_control_generator_t(code_generator_t):
     def __init__(self):
