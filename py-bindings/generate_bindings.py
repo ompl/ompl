@@ -872,7 +872,9 @@ class ompl_geometric_generator_t(code_generator_t):
             }
             {
                 // wrapper for PRMstar, derived from single-threaded PRM_wrapper
-                bp::class_<PRMstar_wrapper, bp::bases< PRM_wrapper >, boost::noncopyable >("PRMstar", bp::init< ompl::base::SpaceInformationPtr const & >( bp::arg("si") ) )
+                bp::class_<PRMstar_wrapper, bp::bases< PRM_wrapper >, boost::noncopyable >("PRMstar", bp::init< ompl::base::SpaceInformationPtr const & >( bp::arg("si") ) );
+                bp::class_<PRMstar_wrapper, bp::bases< PRM_wrapper >, boost::noncopyable >("PRMstar", bp::init< ompl::base::PlannerData const & >( bp::arg("data") ) )
+
             """)
         # Add wrapper code for PRM*
         PRM_cls.add_declaration_code("""
@@ -880,6 +882,11 @@ class ompl_geometric_generator_t(code_generator_t):
         {
         public:
             PRMstar_wrapper(const ompl::base::SpaceInformationPtr &si) : PRM_wrapper(si, true)
+            {
+                setName("PRMstar");
+                params_.remove("max_nearest_neighbors");
+            }
+            PRMstar_wrapper(const ompl::base::PlannerData &data) : PRM_wrapper(data, true)
             {
                 setName("PRMstar");
                 params_.remove("max_nearest_neighbors");
