@@ -1,4 +1,5 @@
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/vector.h>
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "../init.hh"
 

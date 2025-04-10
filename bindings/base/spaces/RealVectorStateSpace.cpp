@@ -2,8 +2,10 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
 #include <sstream>
+#include "ompl/base/ScopedState.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "../init.hh"
+#include "common.hh"
 
 namespace nb = nanobind;
 
@@ -23,6 +25,17 @@ void ompl::binding::base::initSpaces_RealVectorStateSpace(nb::module_& m)
         "State in R^n represented as a vector of doubles");
     stateType.def("__getitem__", [](const ompl::base::RealVectorStateSpace::StateType* s, unsigned int i) { return s->values[i]; })
            .def("__setitem__", [](ompl::base::RealVectorStateSpace::StateType* s, unsigned int i, double v) { s->values[i] = v; });
+
+     auto rvssSub = m.def_submodule("RealVector");
+     auto scopedState = bind_scoped_state_template<ompl::base::RealVectorStateSpace>(
+         rvssSub, "ScopedState", "Scoped state for the RealVectorStateSpace");
+
+     scopedState.def("__getitem__", [](const ompl::base::ScopedState<ompl::base::RealVectorStateSpace>& self, unsigned int i) {
+          return self->values[i];
+     })
+     .def("__setitem__", [](ompl::base::ScopedState<ompl::base::RealVectorStateSpace>& self, unsigned int i, double v) {
+          self->values[i] = v;
+     });
 
     // Bind RealVectorStateSpace
     nb::class_<ompl::base::RealVectorStateSpace, ompl::base::StateSpace>(m, "RealVectorStateSpace", 
@@ -72,8 +85,6 @@ void ompl::binding::base::initSpaces_RealVectorStateSpace(nb::module_& m)
              "Allocate default state sampler")
         .def("allocState", &ompl::base::RealVectorStateSpace::allocState,
              "Allocate new state")
-        .def("freeState", &ompl::base::RealVectorStateSpace::freeState,
-             "Free allocated state")
         .def("getValueAddressAtIndex", &ompl::base::RealVectorStateSpace::getValueAddressAtIndex,
              "Get pointer to value at index in state")
         .def("printState", [](const ompl::base::RealVectorStateSpace& space, const ompl::base::State* state) {
