@@ -260,7 +260,7 @@ namespace
             assert(fabs(p * cos(alpha + t) - sa + sb - d) < (1 + p) * DUBINS_EPS);
             assert(fabs(p * sin(alpha + t) + ca - cb) < (1 + p) * DUBINS_EPS);
             assert(mod2pi(alpha + t + q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
-            return DubinsStateSpace::DubinsPath(&DubinsStateSpace::dubinsPathType()[0], t, p, q);
+            return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType()[0], t, p, q);
         }
         return {};
     }
@@ -278,7 +278,7 @@ namespace
             assert(fabs(p * cos(alpha - t) + sa - sb - d) < (1 + p) * DUBINS_EPS);
             assert(fabs(p * sin(alpha - t) - ca + cb) < (1 + p) * DUBINS_EPS);
             assert(mod2pi(alpha - t - q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
-            return DubinsStateSpace::DubinsPath(&DubinsStateSpace::dubinsPathType()[1], t, p, q);
+            return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType()[1], t, p, q);
         }
         return {};
     }
@@ -296,7 +296,7 @@ namespace
             assert(fabs(p * cos(alpha - t) - 2. * sin(alpha - t) + sa + sb - d) < 2 * DUBINS_EPS);
             assert(fabs(p * sin(alpha - t) + 2. * cos(alpha - t) - ca - cb) < 2 * DUBINS_EPS);
             assert(mod2pi(alpha - t + q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
-            return DubinsStateSpace::DubinsPath(&DubinsStateSpace::dubinsPathType()[2], t, p, q);
+            return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType()[2], t, p, q);
         }
         return {};
     }
@@ -314,7 +314,7 @@ namespace
             assert(fabs(p * cos(alpha + t) + 2. * sin(alpha + t) - sa - sb - d) < 2 * DUBINS_EPS);
             assert(fabs(p * sin(alpha + t) - 2. * cos(alpha + t) + ca + cb) < 2 * DUBINS_EPS);
             assert(mod2pi(alpha + t - q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
-            return DubinsStateSpace::DubinsPath(&DubinsStateSpace::dubinsPathType()[3], t, p, q);
+            return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType()[3], t, p, q);
         }
         return {};
     }
@@ -332,7 +332,7 @@ namespace
             assert(fabs(2. * sin(alpha - t + p) - 2. * sin(alpha - t) - d + sa - sb) < 2 * DUBINS_EPS);
             assert(fabs(-2. * cos(alpha - t + p) + 2. * cos(alpha - t) - ca + cb) < 2 * DUBINS_EPS);
             assert(mod2pi(alpha - t + p - q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
-            return DubinsStateSpace::DubinsPath(&DubinsStateSpace::dubinsPathType()[4], t, p, q);
+            return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType()[4], t, p, q);
         }
         return {};
     }
@@ -350,7 +350,7 @@ namespace
             assert(fabs(-2. * sin(alpha + t - p) + 2. * sin(alpha + t) - d - sa + sb) < 2 * DUBINS_EPS);
             assert(fabs(2. * cos(alpha + t - p) - 2. * cos(alpha + t) + ca - cb) < 2 * DUBINS_EPS);
             assert(mod2pi(alpha + t - p + q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
-            return DubinsStateSpace::DubinsPath(&DubinsStateSpace::dubinsPathType()[5], t, p, q);
+            return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType()[5], t, p, q);
         }
         return {};
     }
@@ -364,7 +364,7 @@ namespace
     DubinsStateSpace::DubinsPath dubinsExhaustive(const double d, const double alpha, const double beta)
     {
         if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
-            return {&DubinsStateSpace::dubinsPathType()[0], 0, d, 0};
+            return {DubinsStateSpace::dubinsPathType()[0], 0, d, 0};
 
         DubinsStateSpace::DubinsPath path(dubinsLSL(d, alpha, beta)), tmp(dubinsRSR(d, alpha, beta));
         double len, minLength = path.length();
@@ -447,7 +447,7 @@ namespace
     DubinsStateSpace::DubinsPath dubinsClassification(const double d, const double alpha, const double beta)
     {
         if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
-            return {&DubinsStateSpace::dubinsPathType()[0], 0, d, 0};
+            return {DubinsStateSpace::dubinsPathType()[0], 0, d, 0};
         // Dubins set classification scheme
         // Shkel, Andrei M., and Vladimir Lumelsky. "Classification of the Dubins set."
         //   Robotics and Autonomous Systems 34.4 (2001): 179-202.
@@ -712,7 +712,7 @@ namespace ompl::base
 DubinsStateSpace::DubinsPath dubins(double d, double alpha, double beta)
 {
     if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
-        return {&DubinsStateSpace::dubinsPathType()[0], 0, d, 0};
+        return {DubinsStateSpace::dubinsPathType()[0], 0, d, 0};
     alpha = mod2pi(alpha);
     beta = mod2pi(beta);
     return isLongPath(d, alpha, beta) ? ::dubinsClassification(d, alpha, beta) : ::dubinsExhaustive(d, alpha, beta);
