@@ -77,9 +77,9 @@ namespace ompl
             class DubinsPath
             {
             public:
-              DubinsPath(const std::vector<DubinsPathSegmentType> *type = &dubinsPathType()[0],
+              DubinsPath(const std::vector<DubinsPathSegmentType>& type = dubinsPathType()[0],
                   double t = 0., double p = std::numeric_limits<double>::max(), double q = 0.)
-                   : type_(type)
+                   : type_(&type)
                 {
                     length_[0] = t;
                     length_[1] = p;
