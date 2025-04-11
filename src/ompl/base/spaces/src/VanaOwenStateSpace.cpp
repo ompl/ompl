@@ -166,7 +166,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
     {
         if (std::abs(result.deltaZ_) < 1e-8 && std::abs(to->pitch() - from->pitch()) < 1e-8)
         {
-            result.pathSZ_.type_ = &DubinsStateSpace::dubinsPathType[0]; // LSL type
+            result.pathSZ_.type_ = &DubinsStateSpace::dubinsPathType()[0]; // LSL type
             result.pathSZ_.length_[0] = result.pathSZ_.length_[2] = 0.;
             result.pathSZ_.length_[1] = result.deltaZ_;
             return true;
