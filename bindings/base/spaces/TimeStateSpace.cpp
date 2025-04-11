@@ -28,11 +28,11 @@ void ompl::binding::base::initSpaces_TimeStateSpace(nb::module_ &m)
              "The time coordinate");
 
     // Create a submodule for TimeStateSpace-specific bindings.
-    auto timeSub = m.def_submodule("Time", "Bindings for TimeStateSpace");
+//     auto timeSub = m.def_submodule("Time", "Bindings for TimeStateSpace");
 
     // Bind the ScopedState for TimeStateSpace using the templated helper.
     auto scopedState = bind_scoped_state_template<ompl::base::TimeStateSpace>(
-        timeSub, "ScopedState", "ScopedState for TimeStateSpace");
+        m, "TimeScopedState", "ScopedState for TimeStateSpace");
     
     // Bind the 'position' property on the ScopedState.
     scopedState.def_prop_rw(

@@ -81,9 +81,7 @@ void ompl::binding::control::initSpaces_RealVectorControlSpace(nb::module_ &m)
 
         // printControl
         .def("printControl", [](const oc::RealVectorControlSpace &space, const oc::Control *ctrl) {
-             std::ostringstream oss;
-             space.printControl(ctrl, oss);
-             return oss.str();
+             space.printControl(ctrl, std::cout);
         }, nb::arg("control"),
         "Return a string describing the specified control")
 
@@ -94,9 +92,7 @@ void ompl::binding::control::initSpaces_RealVectorControlSpace(nb::module_ &m)
 
         // printSettings
         .def("printSettings", [](const oc::RealVectorControlSpace &space) {
-             std::ostringstream oss;
-             space.printSettings(oss);
-             return oss.str();
+             space.printSettings(std::cout);
         }, "Return a string describing the control space settings")
 
         // setup
