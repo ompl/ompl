@@ -47,8 +47,6 @@ list(APPEND ALL_SOURCES
     ${BASE_SAMPLERS_SOURCES}
     ${BASE_GOAL_SOURCES}
     ${BASE_OBJECTIVES_SOURCES}
-    # Possibly: base/python.cc
-    # ${CMAKE_CURRENT_SOURCE_DIR}/base/python.cc
 )
 
 # B) Collect "geometric" sources
@@ -62,18 +60,22 @@ file(GLOB_RECURSE GEOMETRIC_PLANNERS_SOURCES
 list(APPEND ALL_SOURCES
     ${BASE_GEOMETRIC_SOURCES}
     ${GEOMETRIC_PLANNERS_SOURCES}
-    # Possibly: geometric/python.cc
-    # ${CMAKE_CURRENT_SOURCE_DIR}/geometric/python.cc
 )
 
 # C) Collect "control" sources
-file(GLOB_RECURSE CONTROL_SOURCES
+file(GLOB CONTROL_ROOT_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/control/*.cpp"
 )
+file(GLOB_RECURSE CONTROL_PLANNERS_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/control/planners/*.cpp"
+)
+file(GLOB_RECURSE CONTROL_SPACES_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/control/spaces/*.cpp"
+)
 list(APPEND ALL_SOURCES
-    ${CONTROL_SOURCES}
-    # Possibly: control/python.cc
-    # ${CMAKE_CURRENT_SOURCE_DIR}/control/python.cc
+    ${CONTROL_ROOT_SOURCES}
+    ${CONTROL_PLANNERS_SOURCES}
+    ${CONTROL_SPACES_SOURCES}
 )
 
 # D) Collect "util" sources
@@ -82,8 +84,6 @@ file(GLOB_RECURSE UTIL_SOURCES
 )
 list(APPEND ALL_SOURCES
     ${UTIL_SOURCES}
-    # Possibly: util/python.cc
-    # ${CMAKE_CURRENT_SOURCE_DIR}/util/python.cc
 )
 
 # ---------------------------------------------------------------------
@@ -117,6 +117,7 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/ompl/__init__.py ${INIT_PY_CONTENT})
 # ---------------------------------------------------------------------
 nanobind_add_stub(
     ompl_stub
+    INSTALL_TIME
     MODULE _ompl
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/ompl/ompl.pyi
     PYTHON_PATH $<TARGET_FILE_DIR:_ompl>

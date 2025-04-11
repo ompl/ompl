@@ -100,6 +100,12 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initTerminationconditions_IterationTerminationCondition(base);
 
     nb::module_ geometric = m.def_submodule("geometric");
+    ompl::binding::geometric::init_GeneticSearch(geometric);
+    ompl::binding::geometric::init_HillClimbing(geometric);
+    ompl::binding::geometric::init_PathGeometric(geometric);
+    ompl::binding::geometric::init_PathHybridization(geometric);
+    ompl::binding::geometric::init_PathSimplifier(geometric);
+    ompl::binding::geometric::init_SimpleSetup(geometric);
     ompl::binding::geometric::initPlannersCforest_CForest(geometric);
     ompl::binding::geometric::initPlannersCforest_CForestStateSampler(geometric);
     ompl::binding::geometric::initPlannersCforest_CForestStateSpaceWrapper(geometric);
@@ -172,14 +178,22 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::initPlannersXxl_XXLPositionDecomposition(geometric);
     ompl::binding::geometric::initPlanners_AnytimePathShortening(geometric);
     ompl::binding::geometric::initPlanners_PlannerIncludes(geometric);
-    ompl::binding::geometric::init_GeneticSearch(geometric);
-    ompl::binding::geometric::init_HillClimbing(geometric);
-    ompl::binding::geometric::init_PathGeometric(geometric);
-    ompl::binding::geometric::init_PathHybridization(geometric);
-    ompl::binding::geometric::init_PathSimplifier(geometric);
-    ompl::binding::geometric::init_SimpleSetup(geometric);
 
     nb::module_ control = m.def_submodule("control");
+    ompl::binding::control::init_Control(control);
+    ompl::binding::control::init_ControlSampler(control);
+    ompl::binding::control::init_ControlSpace(control);
+    ompl::binding::control::init_ControlSpaceTypes(control);
+    ompl::binding::control::init_DirectedControlSampler(control);
+    ompl::binding::control::init_ODESolver(control);
+    ompl::binding::control::init_PathControl(control);
+    ompl::binding::control::init_PlannerData(control);
+    ompl::binding::control::init_PlannerDataStorage(control);
+    ompl::binding::control::init_SimpleDirectedControlSampler(control);
+    ompl::binding::control::init_SimpleSetup(control);
+    ompl::binding::control::init_SpaceInformation(control);
+    ompl::binding::control::init_StatePropagator(control);
+    ompl::binding::control::init_SteeredControlSampler(control);
     ompl::binding::control::initPlannersEst_EST(control);
     ompl::binding::control::initPlannersKpiece_KPIECE1(control);
     ompl::binding::control::initPlannersLtl_Automaton(control);
@@ -200,20 +214,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::control::initPlanners_PlannerIncludes(control);
     ompl::binding::control::initSpaces_DiscreteControlSpace(control);
     ompl::binding::control::initSpaces_RealVectorControlSpace(control);
-    ompl::binding::control::init_Control(control);
-    ompl::binding::control::init_ControlSampler(control);
-    ompl::binding::control::init_ControlSpace(control);
-    ompl::binding::control::init_ControlSpaceTypes(control);
-    ompl::binding::control::init_DirectedControlSampler(control);
-    ompl::binding::control::init_ODESolver(control);
-    ompl::binding::control::init_PathControl(control);
-    ompl::binding::control::init_PlannerData(control);
-    ompl::binding::control::init_PlannerDataStorage(control);
-    ompl::binding::control::init_SimpleDirectedControlSampler(control);
-    ompl::binding::control::init_SimpleSetup(control);
-    ompl::binding::control::init_SpaceInformation(control);
-    ompl::binding::control::init_StatePropagator(control);
-    ompl::binding::control::init_SteeredControlSampler(control);
 
     nb::module_ util = m.def_submodule("util");
     ompl::binding::util::init_ClassForward(util);
