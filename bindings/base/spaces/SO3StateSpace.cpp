@@ -43,11 +43,11 @@ void ompl::binding::base::initSpaces_SO3StateSpace(nb::module_& m)
              "Set the state to identity (no rotation)");
 
     // Create a submodule for SO3-specific bindings.
-    auto so3Sub = m.def_submodule("SO3", "Bindings for SO3StateSpace");
+//     auto so3Sub = m.def_submodule("SO3", "Bindings for SO3StateSpace");
 
     // Bind the ScopedState for SO3StateSpace using your templated binding helper.
     auto scopedState = bind_scoped_state_template<ompl::base::SO3StateSpace>(
-        so3Sub, "ScopedState", "ScopedState for SO3StateSpace");
+        m, "SO3ScopedState", "ScopedState for SO3StateSpace");
 
     scopedState.def("setAxisAngle",
                 [](ompl::base::ScopedState<ompl::base::SO3StateSpace> &self,

@@ -26,57 +26,53 @@ namespace nb = nanobind;
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-
 template <typename Callable>
-void doScopedState(og::SimpleSetup &ss,
-                          const nb::object &stateObj,
-                          double threshold,
-                          Callable callOnTyped)
+void doScopedState(og::SimpleSetup &ss, const nb::object &stateObj, double threshold, Callable callOnTyped)
 {
     auto space = ss.getSpaceInformation()->getStateSpace();
     switch (space->getType())
     {
-    case ob::STATE_SPACE_REAL_VECTOR:
-    {
-        auto s = nb::cast<const ob::ScopedState<ob::RealVectorStateSpace> &>(stateObj);
-        callOnTyped(ss, s, threshold);
-        break;
-    }
-    case ob::STATE_SPACE_SO2:
-    {
-        auto s = nb::cast<const ob::ScopedState<ob::SO2StateSpace> &>(stateObj);
-        callOnTyped(ss, s, threshold);
-        break;
-    }
-    case ob::STATE_SPACE_SO3:
-    {
-        auto s = nb::cast<const ob::ScopedState<ob::SO3StateSpace> &>(stateObj);
-        callOnTyped(ss, s, threshold);
-        break;
-    }
-    case ob::STATE_SPACE_SE2:
-    {
-        auto s = nb::cast<const ob::ScopedState<ob::SE2StateSpace> &>(stateObj);
-        callOnTyped(ss, s, threshold);
-        break;
-    }
-    case ob::STATE_SPACE_SE3:
-    {
-        auto s = nb::cast<const ob::ScopedState<ob::SE3StateSpace> &>(stateObj);
-        callOnTyped(ss, s, threshold);
-        break;
-    }
-   
-    // case ob::STATE_SPACE_TIME:
-    // {
-    //     auto s = nb::cast<const ob::ScopedState<ob::TimeStateSpace>&>(stateObj);
-    //     callOnTyped(ss, s, threshold);
-    //     break;
-    // }
-    //
+        case ob::STATE_SPACE_REAL_VECTOR:
+        {
+            auto s = nb::cast<const ob::ScopedState<ob::RealVectorStateSpace> &>(stateObj);
+            callOnTyped(ss, s, threshold);
+            break;
+        }
+        case ob::STATE_SPACE_SO2:
+        {
+            auto s = nb::cast<const ob::ScopedState<ob::SO2StateSpace> &>(stateObj);
+            callOnTyped(ss, s, threshold);
+            break;
+        }
+        case ob::STATE_SPACE_SO3:
+        {
+            auto s = nb::cast<const ob::ScopedState<ob::SO3StateSpace> &>(stateObj);
+            callOnTyped(ss, s, threshold);
+            break;
+        }
+        case ob::STATE_SPACE_SE2:
+        {
+            auto s = nb::cast<const ob::ScopedState<ob::SE2StateSpace> &>(stateObj);
+            callOnTyped(ss, s, threshold);
+            break;
+        }
+        case ob::STATE_SPACE_SE3:
+        {
+            auto s = nb::cast<const ob::ScopedState<ob::SE3StateSpace> &>(stateObj);
+            callOnTyped(ss, s, threshold);
+            break;
+        }
 
-    default:
-        throw std::runtime_error("Unsupported or unhandled state space type.");
+            // case ob::STATE_SPACE_TIME:
+            // {
+            //     auto s = nb::cast<const ob::ScopedState<ob::TimeStateSpace>&>(stateObj);
+            //     callOnTyped(ss, s, threshold);
+            //     break;
+            // }
+            //
+
+        default:
+            throw std::runtime_error("Unsupported or unhandled state space type.");
     }
 }
 

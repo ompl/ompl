@@ -30,11 +30,11 @@ void ompl::binding::base::initSpaces_SE3StateSpace(nb::module_ &m)
               &ompl::base::SE3StateSpace::StateType::rotation), nb::rv_policy::reference_internal,
              "Return the rotation part");
     // Create a submodule for SE3-specific bindings.
-    auto se3Sub = m.def_submodule("SE3", "Bindings for SE3StateSpace");
+//     auto se3Sub = m.def_submodule("SE3", "Bindings for SE3StateSpace");
 
     // Bind the ScopedState for SE3StateSpace using your templated helper.
     auto scopedState = bind_scoped_state_template<ompl::base::SE3StateSpace>(
-        se3Sub, "ScopedState", "ScopedState for SE3StateSpace");
+        m, "SE3ScopedState", "ScopedState for SE3StateSpace");
     
     // Optionally add convenience methods to the ScopedState binding.
     scopedState.def("getX", [](const ompl::base::ScopedState<ompl::base::SE3StateSpace>& self) {

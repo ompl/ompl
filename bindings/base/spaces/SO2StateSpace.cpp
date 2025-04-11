@@ -27,11 +27,11 @@ void ompl::binding::base::initSpaces_SO2StateSpace(nb::module_ &m)
              "The value of the SO2 state (typically an angle in radians)");
 
     // Create a submodule for SO2-specific bindings.
-    auto so2Sub = m.def_submodule("SO2", "Bindings for SO2StateSpace");
+    // auto so2Sub = m.def_submodule("SO2", "Bindings for SO2StateSpace");
 
     // Bind the ScopedState for SO2StateSpace using your templated binding helper.
     auto scopedState = bind_scoped_state_template<ompl::base::SO2StateSpace>(
-        so2Sub, "ScopedState", "ScopedState for SO2StateSpace");
+        m, "SO2ScopedState", "ScopedState for SO2StateSpace");
         
     // Optionally add indexing operators for the ScopedState.
     // For SO2, there is typically one value.

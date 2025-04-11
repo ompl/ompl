@@ -18,9 +18,9 @@ void ompl::binding::base::initSpaces_SE2StateSpace(nb::module_& m)
         .def("setXY", &ompl::base::SE2StateSpace::StateType::setXY)
         .def("setYaw", &ompl::base::SE2StateSpace::StateType::setYaw);
 
-    auto se2Sub = m.def_submodule("SE2", "Bindings for SE2StateSpace");
+    // auto se2Sub = m.def_submodule("SE2", "Bindings for SE2StateSpace");
     auto scopedState = bind_scoped_state_template<ompl::base::SE2StateSpace>(
-        se2Sub, "ScopedState", "ScopedState for SE2StateSpace");
+        m, "SE2ScopedState", "ScopedState for SE2StateSpace");
     scopedState.def("getX", [](const ompl::base::ScopedState<ompl::base::SE2StateSpace>& self) { return self->getX(); })
         .def("getY", [](const ompl::base::ScopedState<ompl::base::SE2StateSpace>& self) { return self->getY(); })
         .def("getYaw", [](const ompl::base::ScopedState<ompl::base::SE2StateSpace>& self) { return self->getYaw(); })

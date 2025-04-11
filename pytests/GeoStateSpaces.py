@@ -6,7 +6,7 @@ from ompl import base as ob
 
 
 
-def tes_rv_state_space():
+def test_rv_state_space():
     # --- Part 1: Test RealVectorStateSpace (2D) ---
     # Create a 2-dimensional RealVectorStateSpace.
     rvss = ob.RealVectorStateSpace(2)
@@ -53,7 +53,7 @@ def tes_rv_state_space():
     rvss10.setBounds(rvBound10)
     
     # Create a ScopedState (using the "rv" submodule binding).
-    scopedState = ob.RealVector.ScopedState(rvss10)
+    scopedState = ob.RealVectorScopedState(rvss10)
     # Check that the type is correct.
     assert "ScopedState" in str(type(scopedState)), "ScopedState type not as expected"
     
@@ -67,6 +67,15 @@ def tes_rv_state_space():
         assert scopedState[i] == pytest.approx(0.5)
     scopedState.print()
 
+def test_compound_state_space():
+    ss1 = ob.RealVectorStateSpace(2)
+    ss2 = ob.SO3StateSpace()
+    ss3 = ob.SE2StateSpace()
+
+    compoundSpace = ob.CompoundStateSpace()
+    compoundSpace.addSubspace(ss1, 1.0)
+    compoundSpace.addSubspace(ss2, 1.0)
+    compoundSpace.addSubspace(ss3, 1.0)
 
 def test_se2_state_space():
     # --- Create and setup SE2StateSpace ---
@@ -82,7 +91,7 @@ def test_se2_state_space():
 
     # --- Test ScopedState ---
     # Create a ScopedState using the se2 submodule binding.
-    scopedState = ob.SE2.ScopedState(se2ss)
+    scopedState = ob.SE2ScopedState(se2ss)
     # Verify that the type name contains "ScopedState"
     assert "ScopedState" in str(type(scopedState)), "SE2 ScopedState type not as expected"
     
@@ -165,7 +174,7 @@ def test_discrete_state_space():
     
     # --- Test the ScopedState binding from the discrete submodule ---
     # Create a ScopedState using the discrete binding.
-    scoped_state = ob.Discrete.ScopedState(dss)
+    scoped_state = ob.DiscreteScopedState(dss)
     # Check that the type string contains "ScopedState"
     assert "ScopedState" in str(type(scoped_state)), "ScopedState type not as expected"
     
@@ -217,7 +226,7 @@ def test_so2_state_space():
     
     # --- Test the ScopedState binding ---
     # Create a ScopedState using the "so2" submodule binding.
-    scoped_state = ob.SO2.ScopedState(so2ss)
+    scoped_state = ob.SO2ScopedState(so2ss)
     # Verify that the type string contains "ScopedState".
     assert "ScopedState" in str(type(scoped_state)), "ScopedState type not as expected"
     
@@ -293,7 +302,7 @@ def test_so3_state_space():
     assert d_copy == pytest.approx(0.0), f"Expected copy distance 0.0, got {d_copy}"
     
     # --- Test the ScopedState binding from the so3 submodule ---
-    scoped_state = ob.SO3.ScopedState(so3ss)
+    scoped_state = ob.SO3ScopedState(so3ss)
     # Check that the type string contains "ScopedState"
     assert "ScopedState" in str(type(scoped_state)), "ScopedState type not as expected"
     
@@ -361,7 +370,7 @@ def test_se3_state_space():
     
     # ==== Test the ScopedState binding ====
     # Create a ScopedState from the SE3 submodule binding.
-    scoped_state = ob.SE3.ScopedState(se3ss)
+    scoped_state = ob.SE3ScopedState(se3ss)
     
     # Verify that the type includes "ScopedState" in its name.
     assert "ScopedState" in str(type(scoped_state)), "ScopedState type not as expected"
@@ -432,7 +441,7 @@ def test_time_state_space():
     
     # === Part 2: ScopedState Binding (from the "time" submodule) ===
     # Create a ScopedState using the binding in the "time" submodule.
-    scoped_state = ob.Time.ScopedState(timeSS)
+    scoped_state = ob.TimeScopedState(timeSS)
     
     # Verify that the type contains "ScopedState".
     assert "ScopedState" in str(type(scoped_state)), "ScopedState type not as expected"
