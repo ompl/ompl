@@ -29,16 +29,6 @@ void ompl::binding::base::initSpaces_RealVectorStateSpace(nb::module_ &m)
         .def("__setitem__",
              [](ompl::base::RealVectorStateSpace::StateType *s, unsigned int i, double v) { s->values[i] = v; });
 
-    auto scopedState = bind_scoped_state_template<ompl::base::RealVectorStateSpace>(m, "RealVectorScopedState",
-                                                                                    "Scoped state for the "
-                                                                                    "RealVectorStateSpace");
-
-    scopedState
-        .def("__getitem__", [](const ompl::base::ScopedState<ompl::base::RealVectorStateSpace> &self, unsigned int i)
-             { return self->values[i]; })
-        .def("__setitem__", [](ompl::base::ScopedState<ompl::base::RealVectorStateSpace> &self, unsigned int i,
-                               double v) { self->values[i] = v; });
-
     // Bind RealVectorStateSpace
     nb::class_<ompl::base::RealVectorStateSpace, ompl::base::StateSpace>(m, "RealVectorStateSpace",
                                                                          "A state space representing R^n with L2 norm "

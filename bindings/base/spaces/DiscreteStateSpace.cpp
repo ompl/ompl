@@ -21,20 +21,6 @@ void ompl::binding::base::initSpaces_DiscreteStateSpace(nb::module_ &m)
     nb::class_<ompl::base::DiscreteStateSpace::StateType, ompl::base::State>(m, "DiscreteState")
         .def_rw("value", &ompl::base::DiscreteStateSpace::StateType::value);
 
-    auto scopedState = bind_scoped_state_template<ompl::base::DiscreteStateSpace>(m, "DiscreteScopedState",
-                                                                                  "ScopedState for DiscreteStateSpace");
-    scopedState.def_prop_rw(
-        "value",
-        [](const ompl::base::ScopedState<ompl::base::DiscreteStateSpace> &self) -> int
-        {
-            // Cast the underlying state pointer to the discrete state's concrete type
-            return static_cast<const ompl::base::DiscreteStateSpace::StateType *>(self.get())->value;
-        },
-        [](ompl::base::ScopedState<ompl::base::DiscreteStateSpace> &self, int newVal)
-        { static_cast<ompl::base::DiscreteStateSpace::StateType *>(self.get())->value = newVal; },
-        "The value of the discrete state. This is an integer representing the index of the state in the discrete "
-        "space.");
-
     // Bind the DiscreteStateSpace.
     nb::class_<ompl::base::DiscreteStateSpace, ompl::base::StateSpace>(m, "DiscreteStateSpace")
         .def(nb::init<int, int>(), nb::arg("lowerBound"), nb::arg("upperBound"))

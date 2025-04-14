@@ -42,59 +42,6 @@ void ompl::binding::base::initSpaces_SO3StateSpace(nb::module_& m)
         .def("setIdentity", &ompl::base::SO3StateSpace::StateType::setIdentity,
              "Set the state to identity (no rotation)");
 
-    // Create a submodule for SO3-specific bindings.
-//     auto so3Sub = m.def_submodule("SO3", "Bindings for SO3StateSpace");
-
-    // Bind the ScopedState for SO3StateSpace using your templated binding helper.
-    auto scopedState = bind_scoped_state_template<ompl::base::SO3StateSpace>(
-        m, "SO3ScopedState", "ScopedState for SO3StateSpace");
-
-    scopedState.def("setAxisAngle",
-                [](ompl::base::ScopedState<ompl::base::SO3StateSpace> &self,
-                    double ax, double ay, double az, double angle) {
-                    static_cast<ompl::base::SO3StateSpace::StateType*>(self.get())->setAxisAngle(ax, ay, az, angle);
-                }, "Set the state using an axis-angle representation (ax, ay, az, angle)")
-    .def("setIdentity", [](ompl::base::ScopedState<ompl::base::SO3StateSpace> &self) {
-        static_cast<ompl::base::SO3StateSpace::StateType*>(self.get())->setIdentity();
-        }, "Set the state to identity (no rotation)")
-    .def_prop_rw(
-        "x",
-        [](const ompl::base::ScopedState<ompl::base::SO3StateSpace> &self) -> double {
-            return static_cast<const ompl::base::SO3StateSpace::StateType*>(self.get())->x;
-        },
-        [](ompl::base::ScopedState<ompl::base::SO3StateSpace> &self, double newVal) {
-            static_cast<ompl::base::SO3StateSpace::StateType*>(self.get())->x = newVal;
-        },
-        "X component of the quaternion")
-    .def_prop_rw(
-        "y",
-        [](const ompl::base::ScopedState<ompl::base::SO3StateSpace> &self) -> double {
-            return static_cast<const ompl::base::SO3StateSpace::StateType*>(self.get())->y;
-        },
-        [](ompl::base::ScopedState<ompl::base::SO3StateSpace> &self, double newVal) {
-            static_cast<ompl::base::SO3StateSpace::StateType*>(self.get())->y = newVal;
-        },
-        "Y component of the quaternion")
-    .def_prop_rw(
-        "z",
-        [](const ompl::base::ScopedState<ompl::base::SO3StateSpace> &self) -> double {
-            return static_cast<const ompl::base::SO3StateSpace::StateType*>(self.get())->z;
-        },
-        [](ompl::base::ScopedState<ompl::base::SO3StateSpace> &self, double newVal) {
-            static_cast<ompl::base::SO3StateSpace::StateType*>(self.get())->z = newVal;
-        },
-        "Z component of the quaternion")
-    .def_prop_rw(
-        "w",
-        [](const ompl::base::ScopedState<ompl::base::SO3StateSpace> &self) -> double {
-            return static_cast<const ompl::base::SO3StateSpace::StateType*>(self.get())->w;
-        },
-        [](ompl::base::ScopedState<ompl::base::SO3StateSpace> &self, double newVal) {
-            static_cast<ompl::base::SO3StateSpace::StateType*>(self.get())->w = newVal;
-        },
-        "W component of the quaternion");
-
-
     // Bind the SO3StateSpace class.
     nb::class_<ompl::base::SO3StateSpace,
                ompl::base::StateSpace>(m, "SO3StateSpace")

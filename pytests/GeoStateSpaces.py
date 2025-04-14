@@ -44,29 +44,6 @@ def test_rv_state_space():
     dist = rvss.distance(state, state_another)
     assert isinstance(dist, float), "Distance should be a float value"
 
-    # --- Part 2: Test RealVectorStateSpace ScopedState (10D) ---
-    dim = 10
-    rvss10 = ob.RealVectorStateSpace(dim)
-    rvBound10 = ob.RealVectorBounds(dim)
-    rvBound10.setLow(-1)
-    rvBound10.setHigh(1)
-    rvss10.setBounds(rvBound10)
-    
-    # Create a ScopedState (using the "rv" submodule binding).
-    scopedState = ob.RealVectorScopedState(rvss10)
-    # Check that the type is correct.
-    assert "ScopedState" in str(type(scopedState)), "ScopedState type not as expected"
-    
-    # Set to a random state and print.
-    scopedState.random()
-    scopedState.print()
-    
-    # Set each component to 0.5 and verify.
-    for i in range(dim):
-        scopedState[i] = 0.5
-        assert scopedState[i] == pytest.approx(0.5)
-    scopedState.print()
-
 def test_compound_state_space():
     ss1 = ob.RealVectorStateSpace(2)
     ss2 = ob.SO3StateSpace()
@@ -88,39 +65,18 @@ def test_se2_state_space():
     
     # Optionally, print the space settings (run pytest with -s to see printed output).
     se2ss.printSettings()
-
-    # --- Test ScopedState ---
-    # Create a ScopedState using the se2 submodule binding.
-    scopedState = ob.SE2ScopedState(se2ss)
-    # Verify that the type name contains "ScopedState"
-    assert "ScopedState" in str(type(scopedState)), "SE2 ScopedState type not as expected"
-    
-    # Randomize the state and print it.
-    scopedState.random()
-    scopedState.print()
-
-    # Now set the state explicitly:
-    # Here we use functions that you have bound in your se2 ScopedState binding.
-    # For example, setXY sets the x and y values, and setYaw sets the orientation.
-    scopedState.setXY(0.5, 0.5)
-    scopedState.setYaw(0)
-    scopedState.print()
-
-    # Use the getter methods to retrieve the values.
-    x = scopedState.getX()
-    y = scopedState.getY()
-    yaw = scopedState.getYaw()
-    assert x == pytest.approx(0.5), f"Expected getX() to return 0.5, got {x}"
-    assert y == pytest.approx(0.5), f"Expected getY() to return 0.5, got {y}"
-    assert yaw == pytest.approx(0), f"Expected getYaw() to return 0, got {yaw}"
+    state = se2ss.allocState()
+    state.setX(0.5)
+    state.setY(0.5)
+    state.setYaw(0.0)
 
     # --- Test state copying and distance ---
     # Allocate another state from the state space.
     state_copy = se2ss.allocState()
     # Copy the scoped state's underlying state to the new state.
-    se2ss.copyState(state_copy, scopedState.get())
+    se2ss.copyState(state_copy, state)
     # Compute the distance between the original state and its copy.
-    distance = se2ss.distance(scopedState.get(), state_copy)
+    distance = se2ss.distance(state, state_copy)
     # Since they are identical, the distance should be approximately zero.
     assert distance == pytest.approx(0.0), f"Expected distance 0, got {distance}"
 
@@ -172,25 +128,6 @@ def test_discrete_state_space():
     sampler.sampleGaussian(state1, state2, 0.5)
     assert 0 <= state1.value <= 9, f"Gaussian sample value {state1.value} out of bounds"
     
-    # --- Test the ScopedState binding from the discrete submodule ---
-    # Create a ScopedState using the discrete binding.
-    scoped_state = ob.DiscreteScopedState(dss)
-    # Check that the type string contains "ScopedState"
-    assert "ScopedState" in str(type(scoped_state)), "ScopedState type not as expected"
-    
-    # Manually set the state value via the property and verify.
-    scoped_state.value = 5
-    assert scoped_state.value == 5, "Scoped state value should be 5"
-    
-    # Randomize the state and ensure the sampled value lies within the discrete bounds.
-    scoped_state.random()
-    random_val = scoped_state.value
-    assert 0 <= random_val <= 9, f"Randomly sampled state value {random_val} is out of bounds"
-    
-    # For visual inspection, print the scoped state.
-    scoped_state.print()
-
-    
 
 
 def test_so2_state_space():
@@ -224,33 +161,6 @@ def test_so2_state_space():
     # Expect distance to be roughly the absolute difference (0.7 in this case)
     assert dist == pytest.approx(0.7, rel=1e-2), f"Expected distance about 0.7, got {dist}"
     
-    # --- Test the ScopedState binding ---
-    # Create a ScopedState using the "so2" submodule binding.
-    scoped_state = ob.SO2ScopedState(so2ss)
-    # Verify that the type string contains "ScopedState".
-    assert "ScopedState" in str(type(scoped_state)), "ScopedState type not as expected"
-    
-    # Randomize the ScopedState and print it.
-    scoped_state.random()
-    scoped_state.print()
-    
-    # Test the property "value" exposed via def_property_rw.
-    # First, check that the current value is a float.
-    val_before = scoped_state.value
-    assert isinstance(val_before, float), "ScopedState's value should be a float"
-    
-    # Set the value to a known angle.
-    new_angle = 1.234
-    scoped_state.value = new_angle
-    # Verify via the property.
-    assert scoped_state.value == pytest.approx(new_angle), "ScopedState 'value' property did not update correctly"
-    
-    # Use the additional method if bound (for example, setIdentity)
-    scoped_state.setIdentity()
-    assert scoped_state.value == pytest.approx(0.0), "After setIdentity, value should be 0"
-    
-    # Finally, print the scoped state for visual inspection.
-    scoped_state.print()
 
 def test_so3_state_space():
     # --- Test the SO3StateSpace raw state API ---
@@ -300,30 +210,6 @@ def test_so3_state_space():
     so3ss.copyState(state_copy, state2)
     d_copy = so3ss.distance(state2, state_copy)
     assert d_copy == pytest.approx(0.0), f"Expected copy distance 0.0, got {d_copy}"
-    
-    # --- Test the ScopedState binding from the so3 submodule ---
-    scoped_state = ob.SO3ScopedState(so3ss)
-    # Check that the type string contains "ScopedState"
-    assert "ScopedState" in str(type(scoped_state)), "ScopedState type not as expected"
-    
-    # Randomize the scoped state and print it.
-    scoped_state.random()
-    print("Randomized ScopedState:")
-    scoped_state.print()
-    
-    # Test the property bindings: set and read quaternion components.
-    scoped_state.x = 0.0
-    scoped_state.y = 0.0
-    scoped_state.z = 0.0
-    scoped_state.w = 1.0
-    assert scoped_state.x == pytest.approx(0.0), f"Expected x to be 0.0, got {scoped_state.x}"
-    assert scoped_state.y == pytest.approx(0.0), f"Expected y to be 0.0, got {scoped_state.y}"
-    assert scoped_state.z == pytest.approx(0.0), f"Expected z to be 0.0, got {scoped_state.z}"
-    assert scoped_state.w == pytest.approx(1.0), f"Expected w to be 1.0, got {scoped_state.w}"
-    
-    # Print final scoped state.
-    scoped_state.print()
-
 
 def test_se3_state_space():
     # ==== Test the SE3StateSpace raw API ====
@@ -368,29 +254,6 @@ def test_se3_state_space():
     # Call registerProjections (if the function does something meaningful).
     se3ss.registerProjections()
     
-    # ==== Test the ScopedState binding ====
-    # Create a ScopedState from the SE3 submodule binding.
-    scoped_state = ob.SE3ScopedState(se3ss)
-    
-    # Verify that the type includes "ScopedState" in its name.
-    assert "ScopedState" in str(type(scoped_state)), "ScopedState type not as expected"
-    
-    # Randomize the scoped state and print.
-    scoped_state.random()
-    scoped_state.print()
-    
-    # Now explicitly set the translational components via the convenience methods.
-    scoped_state.setXYZ(0.5, 0.6, 0.7)
-    x_scoped = scoped_state.getX()
-    y_scoped = scoped_state.getY()
-    z_scoped = scoped_state.getZ()
-    assert x_scoped == pytest.approx(0.5), f"Expected scoped x ~0.5, got {x_scoped}"
-    assert y_scoped == pytest.approx(0.6), f"Expected scoped y ~0.6, got {y_scoped}"
-    assert z_scoped == pytest.approx(0.7), f"Expected scoped z ~0.7, got {z_scoped}"
-    
-    # Optionally, print the final scoped state.
-    scoped_state.print()
-
 def test_time_state_space():
     # === Part 1: Raw TimeStateSpace API ===
     # Create a TimeStateSpace instance.
@@ -438,25 +301,3 @@ def test_time_state_space():
     sampler.sampleUniform(sampled_state)
     # Check that the sampled time is within bounds.
     assert 0.0 <= sampled_state.position <= 10.0, f"Uniform sampled time {sampled_state.position} out of bounds"
-    
-    # === Part 2: ScopedState Binding (from the "time" submodule) ===
-    # Create a ScopedState using the binding in the "time" submodule.
-    scoped_state = ob.TimeScopedState(timeSS)
-    
-    # Verify that the type contains "ScopedState".
-    assert "ScopedState" in str(type(scoped_state)), "ScopedState type not as expected"
-    
-    # Randomize the scoped state and print.
-    scoped_state.random()
-    scoped_state.print()
-    
-    # Test the property binding: set the time and then verify.
-    scoped_state.position = 3.1415
-    assert scoped_state.position == pytest.approx(3.1415), f"Expected position 3.1415, got {scoped_state.position}"
-    
-    # Optionally, check consistency by enforcing bounds.
-    timeSS.enforceBounds(scoped_state.get())
-    assert 0.0 <= scoped_state.position <= 10.0, "Scoped state position must be within bounds"
-    
-    # Print the final scoped state.
-    scoped_state.print()
