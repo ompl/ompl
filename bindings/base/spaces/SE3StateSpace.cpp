@@ -29,39 +29,6 @@ void ompl::binding::base::initSpaces_SE3StateSpace(nb::module_ &m)
         .def("rotation", nb::overload_cast<>(
               &ompl::base::SE3StateSpace::StateType::rotation), nb::rv_policy::reference_internal,
              "Return the rotation part");
-    // Create a submodule for SE3-specific bindings.
-//     auto se3Sub = m.def_submodule("SE3", "Bindings for SE3StateSpace");
-
-    // Bind the ScopedState for SE3StateSpace using your templated helper.
-    auto scopedState = bind_scoped_state_template<ompl::base::SE3StateSpace>(
-        m, "SE3ScopedState", "ScopedState for SE3StateSpace");
-    
-    // Optionally add convenience methods to the ScopedState binding.
-    scopedState.def("getX", [](const ompl::base::ScopedState<ompl::base::SE3StateSpace>& self) {
-        return self->getX();
-    }, "Return the X coordinate");
-    scopedState.def("getY", [](const ompl::base::ScopedState<ompl::base::SE3StateSpace>& self) {
-        return self->getY();
-    }, "Return the Y coordinate");
-    scopedState.def("getZ", [](const ompl::base::ScopedState<ompl::base::SE3StateSpace>& self) {
-        return self->getZ();
-    }, "Return the Z coordinate");
-    scopedState.def("setX", [](ompl::base::ScopedState<ompl::base::SE3StateSpace>& self, double x) {
-        self->setX(x);
-    }, "Set the X coordinate");
-    scopedState.def("setY", [](ompl::base::ScopedState<ompl::base::SE3StateSpace>& self, double y) {
-        self->setY(y);
-    }, "Set the Y coordinate");
-    scopedState.def("setZ", [](ompl::base::ScopedState<ompl::base::SE3StateSpace>& self, double z) {
-        self->setZ(z);
-    }, "Set the Z coordinate");
-    scopedState.def("setXYZ", [](ompl::base::ScopedState<ompl::base::SE3StateSpace>& self,
-                                   double x, double y, double z) {
-        self->setXYZ(x, y, z);
-    }, "Set the X, Y and Z coordinates");
-    scopedState.def("rotation", [](ompl::base::ScopedState<ompl::base::SE3StateSpace>& self) -> ompl::base::SO3StateSpace::StateType & {
-        return self->rotation();
-    }, nb::rv_policy::reference_internal, "Return the rotation part");
     
     // Bind the SE3StateSpace class.
     nb::class_<ompl::base::SE3StateSpace,

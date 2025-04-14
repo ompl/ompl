@@ -19,12 +19,13 @@
 #include "ompl/base/spaces/SE3StateSpace.h"
 #include "ompl/base/spaces/SO2StateSpace.h"
 #include "ompl/base/spaces/SO3StateSpace.h"
-
+#include "./spaces/common.hh"
 #include "init.hh"
 
 namespace nb = nanobind;
 
-void ompl::binding::base::init_ProblemDefinition(nb::module_ &m) {
+void ompl::binding::base::init_ProblemDefinition(nb::module_ &m)
+{
     nb::class_<ompl::base::ProblemDefinition>(m, "ProblemDefinition")
         // Deleted copy constructor and assignment are not bound.
         // Bind the constructor that takes a SpaceInformationPtr.
@@ -85,121 +86,6 @@ void ompl::binding::base::init_ProblemDefinition(nb::module_ &m) {
              (&ompl::base::ProblemDefinition::setGoalState),
              nb::arg("goal"), nb::arg("threshold") = std::numeric_limits<double>::epsilon())
 
-     //    setStartAndGoalStates (ScopedState<> version)
-        .def("setStartAndGoalStates", nb::overload_cast<const ompl::base::ScopedState<>&,
-                                                 const ompl::base::ScopedState<>&, double>
-             (&ompl::base::ProblemDefinition::setStartAndGoalStates),
-             nb::arg("start"), nb::arg("goal"), nb::arg("threshold") = std::numeric_limits<double>::epsilon())
-        .def("setStartAndGoalStates", [](ompl::base::ProblemDefinition &pd,
-            const nb::object &start,
-            const nb::object &goal,
-            double threshold) {
-            // Retrieve the state space from the space information.
-            auto space = pd.getSpaceInformation()->getStateSpace();
-
-            // Dispatch based on the state space type.
-            switch (space->getType()) {
-                case ompl::base::STATE_SPACE_REAL_VECTOR: {
-                    auto s = nb::cast<const ompl::base::ScopedState<ompl::base::RealVectorStateSpace>&>(start);
-                    auto g = nb::cast<const ompl::base::ScopedState<ompl::base::RealVectorStateSpace>&>(goal);
-                    pd.setStartAndGoalStates(s, g, threshold);
-                    break;
-                }
-                case ompl::base::STATE_SPACE_SO2: {
-                    auto s = nb::cast<const ompl::base::ScopedState<ompl::base::SO2StateSpace>&>(start);
-                    auto g = nb::cast<const ompl::base::ScopedState<ompl::base::SO2StateSpace>&>(goal);
-                    pd.setStartAndGoalStates(s, g, threshold);
-                    break;
-                }
-                case ompl::base::STATE_SPACE_SO3: {
-                    auto s = nb::cast<const ompl::base::ScopedState<ompl::base::SO3StateSpace>&>(start);
-                    auto g = nb::cast<const ompl::base::ScopedState<ompl::base::SO3StateSpace>&>(goal);
-                    pd.setStartAndGoalStates(s, g, threshold);
-                    break;
-                }
-                case ompl::base::STATE_SPACE_SE2: {
-                    auto s = nb::cast<const ompl::base::ScopedState<ompl::base::SE2StateSpace>&>(start);
-                    auto g = nb::cast<const ompl::base::ScopedState<ompl::base::SE2StateSpace>&>(goal);
-                    pd.setStartAndGoalStates(s, g, threshold);
-                    break;
-                }
-                case ompl::base::STATE_SPACE_SE3: {
-                    auto s = nb::cast<const ompl::base::ScopedState<ompl::base::SE3StateSpace>&>(start);
-                    auto g = nb::cast<const ompl::base::ScopedState<ompl::base::SE3StateSpace>&>(goal);
-                    pd.setStartAndGoalStates(s, g, threshold);
-                    break;
-                }
-               //  case ompl::base::STATE_SPACE_TIME: {
-               //      auto s = nb::cast<const ompl::base::ScopedState<ompl::base::TimeStateSpace>&>(start);
-               //      auto g = nb::cast<const ompl::base::ScopedState<ompl::base::TimeStateSpace>&>(goal);
-               //      pd.setStartAndGoalStates(s, g, threshold);
-               //      break;
-               //  }
-               //  case ompl::base::STATE_SPACE_DISCRETE: {
-               //      auto s = nb::cast<const ompl::base::ScopedState<ompl::base::DiscreteStateSpace>&>(start);
-               //      auto g = nb::cast<const ompl::base::ScopedState<ompl::base::DiscreteStateSpace>&>(goal);
-               //      pd.setStartAndGoalStates(s, g, threshold);
-               //      break;
-               //  }
-               //  case ompl::base::STATE_SPACE_DUBINS: {
-               //      auto s = nb::cast<const ompl::base::ScopedState<ompl::base::DubinsStateSpace>&>(start);
-               //      auto g = nb::cast<const ompl::base::ScopedState<ompl::base::DubinsStateSpace>&>(goal);
-               //      pd.setStartAndGoalStates(s, g, threshold);
-               //      break;
-               //  }
-               //  case ompl::base::STATE_SPACE_REEDS_SHEPP: {
-               //      auto s = nb::cast<const ompl::base::ScopedState<ompl::base::ReedsSheppStateSpace>&>(start);
-               //      auto g = nb::cast<const ompl::base::ScopedState<ompl::base::ReedsSheppStateSpace>&>(goal);
-               //      pd.setStartAndGoalStates(s, g, threshold);
-               //      break;
-               //  }
-               //  case ompl::base::STATE_SPACE_MOBIUS: {
-               //      auto s = nb::cast<const ompl::base::ScopedState<ompl::base::MobiusStateSpace>&>(start);
-               //      auto g = nb::cast<const ompl::base::ScopedState<ompl::base::MobiusStateSpace>&>(goal);
-               //      pd.setStartAndGoalStates(s, g, threshold);
-               //      break;
-               //  }
-               //  case ompl::base::STATE_SPACE_SPHERE: {
-               //      auto s = nb::cast<const ompl::base::ScopedState<ompl::base::SphereStateSpace>&>(start);
-               //      auto g = nb::cast<const ompl::base::ScopedState<ompl::base::SphereStateSpace>&>(goal);
-               //      pd.setStartAndGoalStates(s, g, threshold);
-               //      break;
-               //  }
-               //  case ompl::base::STATE_SPACE_TORUS: {
-               //      auto s = nb::cast<const ompl::base::ScopedState<ompl::base::TorusStateSpace>&>(start);
-               //      auto g = nb::cast<const ompl::base::ScopedState<ompl::base::TorusStateSpace>&>(goal);
-               //      pd.setStartAndGoalStates(s, g, threshold);
-               //      break;
-               //  }
-               //  case ompl::base::STATE_SPACE_KLEIN_BOTTLE: {
-               //      auto s = nb::cast<const ompl::base::ScopedState<ompl::base::KleinBottleStateSpace>&>(start);
-               //      auto g = nb::cast<const ompl::base::ScopedState<ompl::base::KleinBottleStateSpace>&>(goal);
-               //      pd.setStartAndGoalStates(s, g, threshold);
-               //      break;
-               //  }
-               //  case ompl::base::STATE_SPACE_VANA: {
-               //      auto s = nb::cast<const ompl::base::ScopedState<ompl::base::VanaStateSpace>&>(start);
-               //      auto g = nb::cast<const ompl::base::ScopedState<ompl::base::VanaStateSpace>&>(goal);
-               //      pd.setStartAndGoalStates(s, g, threshold);
-               //      break;
-               //  }
-               //  case ompl::base::STATE_SPACE_OWEN: {
-               //      auto s = nb::cast<const ompl::base::ScopedState<ompl::base::OwenStateSpace>&>(start);
-               //      auto g = nb::cast<const ompl::base::ScopedState<ompl::base::OwenStateSpace>&>(goal);
-               //      pd.setStartAndGoalStates(s, g, threshold);
-               //      break;
-               //  }
-               //  case ompl::base::STATE_SPACE_VANA_OWEN: {
-               //      auto s = nb::cast<const ompl::base::ScopedState<ompl::base::VanaOwenStateSpace>&>(start);
-               //      auto g = nb::cast<const ompl::base::ScopedState<ompl::base::VanaOwenStateSpace>&>(goal);
-               //      pd.setStartAndGoalStates(s, g, threshold);
-               //      break;
-               //  }
-                default:
-                    throw std::runtime_error("Unsupported state space type in setStartAndGoalStates");
-            }
-        }, nb::arg("start"), nb::arg("goal"), nb::arg("threshold") = std::numeric_limits<double>::epsilon())
-        
         // setGoalState (ScopedState<> version)
         .def("setGoalState", nb::overload_cast<const ompl::base::ScopedState<>&, double>
              (&ompl::base::ProblemDefinition::setGoalState),

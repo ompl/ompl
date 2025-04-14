@@ -26,28 +26,6 @@ void ompl::binding::base::initSpaces_SO2StateSpace(nb::module_ &m)
         .def_rw("value", &ompl::base::SO2StateSpace::StateType::value,
              "The value of the SO2 state (typically an angle in radians)");
 
-    // Create a submodule for SO2-specific bindings.
-    // auto so2Sub = m.def_submodule("SO2", "Bindings for SO2StateSpace");
-
-    // Bind the ScopedState for SO2StateSpace using your templated binding helper.
-    auto scopedState = bind_scoped_state_template<ompl::base::SO2StateSpace>(
-        m, "SO2ScopedState", "ScopedState for SO2StateSpace");
-        
-    // Optionally add indexing operators for the ScopedState.
-    // For SO2, there is typically one value.
-    scopedState.def_prop_rw(
-        "value",
-        [](const ompl::base::ScopedState<ompl::base::SO2StateSpace> &self) -> double {
-            // Cast the underlying state pointer to the SO2 state's concrete type
-            return static_cast<const ompl::base::SO2StateSpace::StateType*>(self.get())->value;
-        },
-        [](ompl::base::ScopedState<ompl::base::SO2StateSpace> &self, double newVal) {
-            static_cast<ompl::base::SO2StateSpace::StateType*>(self.get())->value = newVal;
-        })
-        .def("setIdentity", [](ompl::base::ScopedState<ompl::base::SO2StateSpace> &self) {
-            static_cast<ompl::base::SO2StateSpace::StateType*>(self.get())->setIdentity();
-        });
-    // Bind the SO2StateSpace class.
     nb::class_<ompl::base::SO2StateSpace,
                ompl::base::StateSpace>(m, "SO2StateSpace")
         .def(nb::init<>())

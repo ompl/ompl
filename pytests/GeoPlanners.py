@@ -1,5 +1,7 @@
 import sys
 import pytest
+import pdb; pdb.set_trace()
+
 
 from ompl import base as ob
 from ompl import geometric as og
@@ -22,10 +24,10 @@ def test_rrt_planner():
     si.setup()
 
     # 3) Create a ProblemDefinition with a start and goal state.
-    start = ob.RealVector.ScopedState(space)
+    start = si.allocState()
     start[0] = -0.5
     start[1] = -0.5
-    goal = ob.RealVector.ScopedState(space)
+    goal = si.allocState()
     goal[0] = 0.5
     goal[1] = 0.5
 
@@ -63,3 +65,7 @@ def test_rrt_planner():
             print("Solution path states:", solutionPath.getStateCount())
     else:
         print("No solution found within 1 second of planning time.")
+
+    breakpoint()
+if __name__ == "__main__":
+    test_rrt_planner()
