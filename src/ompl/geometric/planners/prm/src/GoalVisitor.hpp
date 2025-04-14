@@ -40,6 +40,7 @@
 #ifndef OMPL_GEOMETRIC_PLANNERS_PRM_A_STAR_GOAL_VISITOR_
 #define OMPL_GEOMETRIC_PLANNERS_PRM_A_STAR_GOAL_VISITOR_
 
+#include <set>
 #include <boost/graph/astar_search.hpp>
 
 namespace
@@ -68,6 +69,29 @@ namespace
 
     private:
         V goal_;
+    };
+
+
+    // visitor that terminates when we find the goal
+    // V is the vertex type
+    template <typename V>
+    class AStarGoalSetVisitor : public boost::default_astar_visitor
+    {
+    public:
+        AStarGoalSetVisitor(const std::set<V> &goal) : goal_(goal)
+        {
+        }
+
+        // G is the graph type
+        template <typename G>
+        void examine_vertex(const V &u, const G & /*unused*/)
+        {
+            if (goal_.find(u) != goal_.end())
+                throw AStarFoundGoal();
+        }
+
+    private:
+        std::set<V> goal_;
     };
 }
 
