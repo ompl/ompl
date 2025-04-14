@@ -1,3 +1,3 @@
 rm -rf build/bindings/ompl
-cmake -S . -B build
-cmake --build build  -j 8
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake --build build  -j 6
