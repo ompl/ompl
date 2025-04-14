@@ -148,7 +148,6 @@ nb::class_<og::SimpleSetup>(m, "SimpleSetup")
           "Set the optimization objective for planning.")
      
      // setStartAndGoalStates, addStartState, etc.
-     // TODO: Template
      .def("setStartAndGoalStates",
           [](og::SimpleSetup &ss, const ob::State *start, const ob::State *goal, double threshold) {
                // Retrieve the state space from the SimpleSetup.
@@ -159,7 +158,7 @@ nb::class_<og::SimpleSetup>(m, "SimpleSetup")
           },
           nb::arg("start"), nb::arg("goal"),
           nb::arg("threshold") = std::numeric_limits<double>::epsilon(),
-          "Set start and goal states for the problem (dynamic-dispatch version).")
+          "Set start and goal states for the problem.")
      
      .def("clearStartStates",
           &og::SimpleSetup::clearStartStates,
@@ -172,7 +171,7 @@ nb::class_<og::SimpleSetup>(m, "SimpleSetup")
                ss.addStartState(s);
           },
           nb::arg("state"),
-          "Add an additional start state (dynamic-dispatch version).")
+          "Add an additional start state.")
 
      .def("setStartState",
           [](og::SimpleSetup &ss, const ob::State * state) {
@@ -181,7 +180,7 @@ nb::class_<og::SimpleSetup>(m, "SimpleSetup")
                ss.setStartState(s);
           },
           nb::arg("state"),
-          "Clear existing start states and set one new start state (dynamic-dispatch).")
+          "Clear existing start states and set one new start state.")
 
      .def("setGoalState",
           [](og::SimpleSetup &ss, const ob::State * state, double threshold) {
@@ -191,7 +190,7 @@ nb::class_<og::SimpleSetup>(m, "SimpleSetup")
           },
           nb::arg("goal"),
           nb::arg("threshold") = std::numeric_limits<double>::epsilon(),
-          "Set the goal from a single state with threshold (dynamic-dispatch).")        
+          "Set the goal from a single state with threshold.")        
      
      .def("setPlanner",
           &og::SimpleSetup::setPlanner,

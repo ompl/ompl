@@ -46,13 +46,43 @@ def test_rv_state_space():
 
 def test_compound_state_space():
     ss1 = ob.RealVectorStateSpace(2)
+    bound = ob.RealVectorBounds(2)
+    bound.setLow(-1)
+    bound.setHigh(1)
+    ss1.setBounds(bound)
+    ss1Sampler = ob.RealVectorStateSampler(ss1)
+
     ss2 = ob.SO3StateSpace()
+    ss2Sampler = ob.SO3StateSampler(ss2)
+
     ss3 = ob.SE2StateSpace()
+    ss3Bound = ob.RealVectorBounds(2)
+    ss3Bound.setLow(-1)
+    ss3Bound.setHigh(1)
+    ss3.setBounds(ss3Bound)
+    ss3Sampler = ob.SE2StateSpace.allocDefaultStateSampler(ss3)
+
+    ss4 = ob.DiscreteStateSpace(0, 9)
+    ss4Sampler = ob.DiscreteStateSampler(ss4)
 
     compoundSpace = ob.CompoundStateSpace()
     compoundSpace.addSubspace(ss1, 1.0)
     compoundSpace.addSubspace(ss2, 1.0)
     compoundSpace.addSubspace(ss3, 1.0)
+    compoundSpace.addSubspace(ss4, 1.0)
+
+    compoundSpace.printSettings()   
+
+    state = compoundSpace.allocState()
+
+    sampler = ob.CompoundStateSampler(compoundSpace)
+    sampler.addSampler(ss1Sampler, 1.0)
+    sampler.addSampler(ss2Sampler, 1.0)
+    sampler.addSampler(ss3Sampler, 1.0)
+    sampler.addSampler(ss4Sampler, 1.0)
+
+    sampler.sampleUniform(state) 
+    compoundSpace.printState(state)
 
 def test_se2_state_space():
     # --- Create and setup SE2StateSpace ---

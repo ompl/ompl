@@ -6,4 +6,5 @@ namespace nb = nanobind;
 
 void ompl::binding::control::init_StatePropagator(nb::module_& m)
 {
+    nb::class_<ompl::control::StatePropagator>(m, "StatePropagator");
 }
