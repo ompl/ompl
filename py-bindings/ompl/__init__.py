@@ -3,18 +3,39 @@ def dll_loader(lib, path):
     from os.path import isfile
     import ctypes
     from ctypes.util import find_library
+    import os
+    import site
 
+    # First, try the user-specified path
     sys = system()
-    if sys == 'Windows':
-        ext = '.dll'
-    elif sys == 'Darwin':
-        ext = '.dylib'
-    else: # Linux, other UNIX systems
-        ext = '.so'
-    fname = path + '/lib' + lib + ext
-    if not isfile(fname):
-        fname = find_library(lib)
-    ctypes.CDLL(fname, ctypes.RTLD_GLOBAL)
+    if sys == "Windows":
+        ext = ".dll"
+    elif sys == "Darwin":
+        ext = ".dylib"
+    else:  # Linux, other UNIX systems
+        ext = ".so"
+    fname = f"lib{lib}{ext}"
+    fpath = os.path.join(path, fname)
+
+    # Fallback to site-packages
+    if not isfile(fpath):
+        for sitepackagedir in site.getsitepackages():
+            if not os.path.exists(sitepackagedir):
+                continue
+            for _fname in os.listdir(sitepackagedir):
+                _fpath = os.path.join(sitepackagedir, _fname)
+                if isfile(_fpath):
+                    if _fname.startswith(fname):
+                        fpath = _fpath
+                        break
+
+    # Fallback to system loading and pray
+    if not isfile(fpath):
+        fpath = find_library(lib)
+
+    cdll = ctypes.CDLL(fpath, ctypes.RTLD_GLOBAL)
+    if cdll is None:
+        raise ImportError(f"Failed to load dynamic library '{lib}' (search path '{path}').")
 
 class PlanningAlgorithms(object):
     UNKNOWN = 0

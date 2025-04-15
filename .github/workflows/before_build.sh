@@ -3,8 +3,8 @@
 set -eux
 
 # Dependency versions.
-castxml_version="0.6.8" # version specifier for Linux only
-boost_version="1.86.0"
+castxml_version="0.6.11" # version specifier for Linux only
+boost_version="1.87.0"
 
 # Collect some information about the build target.
 build_os="$(uname)"
@@ -13,17 +13,14 @@ python_version=$(python3 -c 'import sys; v=sys.version_info; print(f"{v.major}.{
 install_boost() {
     b2_args=("$@")
 
-    curl -L "https://boostorg.jfrog.io/artifactory/main/release/${boost_version}/source/boost_${boost_version//./_}.tar.bz2" | tar xj
+    curl -L "https://archives.boost.io/release/${boost_version}/source/boost_${boost_version//./_}.tar.bz2" | tar xj
     pushd "boost_${boost_version//./_}"
 
     # Tell boost-python the exact Python install to use, since we may have
     # multiple on the host system.
     python_include_path=$(python3 -c "from sysconfig import get_paths as gp; print(gp()['include'])")
     echo "using python : ${python_version} : : ${python_include_path} ;" > "$HOME/user-config.jam"
-
-    # TODO: As of boost-1.86.0, numpy>=2.0 is not supported.
-    # See: https://github.com/boostorg/python/issues/431
-    pip3 install "numpy<2.0"
+    pip3 install numpy
 
     ./bootstrap.sh
     sudo ./b2 "${b2_args[@]}" \

@@ -1,4 +1,4 @@
-find_package(Boost 1.58 QUIET COMPONENTS unit_test_framework)
+find_package(Boost 1.68 QUIET COMPONENTS unit_test_framework)
 if(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
     option(OMPL_BUILD_TESTS "Build OMPL tests" ON)
 else()
@@ -83,8 +83,7 @@ if (OMPL_BUILD_TESTS)
         endif(WIN32)
         add_custom_command(TARGET py_std_function POST_BUILD
             COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:py_std_function>"
-            "${CMAKE_CURRENT_SOURCE_DIR}/util"
-            WORKING_DIRECTORY "${LIBRARY_OUTPUT_PATH}")
+            "${CMAKE_CURRENT_SOURCE_DIR}/util")
         add_ompl_python_test(util/test_py_std_function.py)
     endif()
 

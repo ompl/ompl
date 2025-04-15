@@ -609,6 +609,8 @@ namespace ompl
 
             bool isHybrid() const override;
 
+            bool isMetricSpace() const override;
+
             /** @name Management of contained subspaces
                 @{ */
 

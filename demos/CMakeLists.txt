@@ -23,6 +23,7 @@ if (OMPL_BUILD_DEMOS)
     add_ompl_demo(demo_RigidBodyPlanningWithODESolverAndControls RigidBodyPlanningWithODESolverAndControls.cpp)
     add_ompl_demo(demo_StateSampling StateSampling.cpp)
     add_ompl_demo(demo_GeometricCarPlanning GeometricCarPlanning.cpp)
+    add_ompl_demo(demo_DubinsAirplane DubinsAirplane.cpp)
     add_ompl_demo(demo_Point2DPlanning Point2DPlanning.cpp)
     add_ompl_demo(demo_HybridSystemPlanning HybridSystemPlanning.cpp)
     add_ompl_demo(demo_KinematicChainBenchmark KinematicChainBenchmark.cpp)
@@ -102,9 +103,6 @@ file(GLOB OMPL_DEMO_CXX_FILES "*.cpp")
 install(FILES ${OMPL_DEMO_CXX_FILES}
     DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
     COMPONENT ompl)
-install(DIRECTORY Koules
-    DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
-    COMPONENT ompl)
-install(DIRECTORY VFRRT
+install(DIRECTORY constraint Koules multilevel PlanarManipulator VFRRT
     DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
     COMPONENT ompl)

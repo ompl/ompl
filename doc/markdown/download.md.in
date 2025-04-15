@@ -17,7 +17,7 @@
   - [vcpkg](https://vcpkg.readthedocs.io).
   .
   Note that these package managers may not always have the latest release.
-
+- Python wheels are available on the [github release page](https://github.com/ompl/ompl/releases)
 - [Installation script for Ubuntu 16.04 and higher that installs the latest OMPL version from source](install-ompl-ubuntu.sh)
 - [Installation instructions.](installation.html)
 - [Older releases.](https://github.com/ompl/ompl/releases) See the [release notes](releaseNotes.html) for a brief a description of changes for each release.
@@ -32,5 +32,5 @@
 
 ## OMPL in ROS
 
-- __OMPL__ is used as a system dependency in [ROS](http://www.ros.org), and the correct .deb file is installed automatically as needed.
-- __OMPL__ is also used as a planning plugin in [MoveIt!](http://moveit.ros.org)
+- __OMPL__ is used as a system dependency in [ROS 2](http://www.ros.org), and the correct .deb file is installed automatically as needed.
+- __OMPL__ is also used as a planning plugin in [MoveIt2!](https://moveit.picknik.ai/main/index.html)

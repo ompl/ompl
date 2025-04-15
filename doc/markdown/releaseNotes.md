@@ -1,5 +1,24 @@
 # Release Notes {#releaseNotes}
 
+## OMPL 1.7.0 (March 24, 2025)
+
+- Added new planners :
+  - Effort Informed Trees (EIT*): A new planner designed to efficiently handle kinodynamic planning problems by leveraging an informed search strategy.​
+  - RRT-Rope: The rope short-cutting technique from RRT-Rope has been added to our PathSimplifier class.
+- Added new State Spaces :
+  - Dubins State Spaces: Added three new 3D extensions to the Dubins model:
+    - Vana State Space
+    - Owens State Space
+    - Vana-Owens State Space
+  - Dubins State Space Optimization: Implemented Dubins Set Classification for faster distance computations
+- Removed Features :
+  - ODE (Open Dynamics Engine)
+  - MORSE robot simulator
+- Python wheels now available, simplifying installation process
+- Docker Support:
+  - Docker images available for OMPL and OMPL app
+- Bug fixes.
+
 ## OMPL 1.6.1 (April 19, 2023)
 
 - Added [EIT*](\ref EITstar): an almost-surely asymptotically optimal path planner that exploits effort heuristics.

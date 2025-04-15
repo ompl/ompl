@@ -30,7 +30,7 @@
 # - find_boost_python(): Find the version of Boost.Python that matches the python interpreter
 # - find_boost_numpy(): Find the version of Boost.Numpy that matches the python interpreter
 # - install_python(PROGRAMS ...): Similar to install(PROGRAMS...), but replaces
-#   "#!/usr/bin/env python" with "#!${PYTHON_EXEC}"
+#   "#!/usr/bin/env python3" with "#!${PYTHON_EXEC}"
 
 include(FindPackageHandleStandardArgs)
 
@@ -228,7 +228,7 @@ macro(install_python)
         cmake_parse_arguments(install_python "" "DESTINATION;COMPONENT;RENAME" "PROGRAMS" "${ARGN}")
         foreach(script ${install_python_PROGRAMS})
             file(READ ${script} _contents)
-            string(REPLACE "#!/usr/bin/env python" "#!${PYTHON_EXEC}" _fixed "${_contents}")
+            string(REPLACE "#!/usr/bin/env python3" "#!${PYTHON_EXEC}" _fixed "${_contents}")
             get_filename_component(_realscript "${script}" NAME)
             file(WRITE "${PROJECT_BINARY_DIR}/${install_python_DESTINATION}/${_realscript}" "${_fixed}")
             install(PROGRAMS "${PROJECT_BINARY_DIR}/${install_python_DESTINATION}/${_realscript}"

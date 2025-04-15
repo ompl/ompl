@@ -11,6 +11,7 @@
     <li class="nav-item"><a class="nav-link" id="osx-tab" data-toggle="pill" href="#osx" role="tab" aria-controls="macos" aria-selected="false">macOS</a></li>
     <li class="nav-item"><a class="nav-link" id="windows-tab" data-toggle="pill" href="#windows" role="tab" aria-controls="windows" aria-selected="false">MS Windows</a></li>
     <li class="nav-item"><a class="nav-link" id="cmake-fetch-tab" data-toggle="pill" href="#cmakefetch" role="tab" aria-controls="cmakefetch" aria-selected="false">CMake Fetchcontent</a></li>
+    <li class="nav-item"><a class="nav-link" id="python-wheels-tab" data-toggle="pill" href="#pythonwheels" role="tab" aria-controls="Python Wheels" aria-selected="false">Python Wheeels</a></li>
   </ul>
 </div>
 
@@ -65,7 +66,7 @@ sudo apt-get install ros-`rosversion -d`-ompl</pre>
   <!-- Linux (generic) -->
   <div class="tab-pane fade" id="linux" role="tabpanel" aria-labelledby="linux-tab">
     <h2>Linux (generic)</h2>
-    <p>OMPL requires <a href="https://www.boost.org">Boost</a> (version 1.58 or higher), <a href="https://www.cmake.org">CMake</a> (version 3.5 or higher), and <a href="http://eigen.tuxfamily.org">Eigen</a> (version 3.3 or higher).
+    <p>OMPL requires <a href="https://www.boost.org">Boost</a> (version 1.68 or higher), <a href="https://www.cmake.org">CMake</a> (version 3.5 or higher), and <a href="http://eigen.tuxfamily.org">Eigen</a> (version 3.3 or higher).
     To be able to generate python bindings you need to install the <a href="https://www.python.org">Python</a> library and header files and <a href="installPyPlusPlus.html">Py++</a>.
     Finally, you need a C++17 compiler (g++-7 or newer).</p>
     <p>Once the dependencies are installed, OMPL can then be compiled like so:</p>
@@ -128,6 +129,17 @@ FetchContent_MakeAvailable(ompl)
 add_executable(main main.cpp)
 target_link_libraries(main PRIVATE ompl::ompl)
     </pre>
+  </div>
+
+  <div class="tab-pane fade" id="pythonwheels" role="tabpanel" aria-labelledby="python-wheels-tab">
+
+  <h2>Python Wheels</h2>
+  There are pre-built binary wheels for Python versions 3.10, 3.11, and 3.12. Download the right zip file for you OS and architecture:
+
+  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-ubuntu-latest-x86_64.zip"> Ubuntu 24.04 x86_64 </a> </li>
+  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-ubuntu-24.04-arm-aarch64.zip"> Ubuntu 24.04 aarch64 </a> </li>
+  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-macos-15-arm64.zip"> MacOS 15 </a> </li>
+  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-macos-13-x86_64.zip"> MacOS 13 </a> </li>
   </div>
 </div>
 \endhtmlonly

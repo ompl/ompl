@@ -218,3 +218,6 @@ class code_generator_t(object):
 
     def add_function_wrapper(self, FT, func_name, func_doc):
         self.mb.add_registration_code('PYREGISTER_FUNCTION(%s,%s,"%s")' % (FT, func_name, func_doc))
+
+    def add_optional_wrapper(self, T):
+        self.mb.add_registration_code('PYREGISTER_OPTIONAL(%s)' % (T))

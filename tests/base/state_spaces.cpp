@@ -51,6 +51,10 @@
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
 
+#include "ompl/base/spaces/OwenStateSpace.h"
+#include "ompl/base/spaces/VanaStateSpace.h"
+#include "ompl/base/spaces/VanaOwenStateSpace.h"
+
 #include "ompl/base/spaces/special/TorusStateSpace.h"
 #include "ompl/base/spaces/special/SphereStateSpace.h"
 #include "ompl/base/spaces/special/MobiusStateSpace.h"
@@ -93,6 +97,45 @@ BOOST_AUTO_TEST_CASE(ReedsShepp_Simple)
     bounds2.setLow(-3);
     bounds2.setHigh(3);
     d->setBounds(bounds2);
+
+    d->setup();
+    d->sanityChecks();
+}
+
+BOOST_AUTO_TEST_CASE(Owen_Simple)
+{
+    auto d(std::make_shared<base::OwenStateSpace>());
+
+    base::RealVectorBounds bounds(3);
+    bounds.setLow(-10);
+    bounds.setHigh(10);
+    d->setBounds(bounds);
+
+    d->setup();
+    d->sanityChecks();
+}
+
+BOOST_AUTO_TEST_CASE(Vana_Simple)
+{
+    auto d(std::make_shared<base::VanaStateSpace>());
+
+    base::RealVectorBounds bounds(3);
+    bounds.setLow(-10);
+    bounds.setHigh(10);
+    d->setBounds(bounds);
+
+    d->setup();
+    d->sanityChecks();
+}
+
+BOOST_AUTO_TEST_CASE(VanaOwen_Simple)
+{
+    auto d(std::make_shared<base::VanaOwenStateSpace>());
+
+    base::RealVectorBounds bounds(3);
+    bounds.setLow(-10);
+    bounds.setHigh(10);
+    d->setBounds(bounds);
 
     d->setup();
     d->sanityChecks();
@@ -417,6 +460,30 @@ BOOST_AUTO_TEST_CASE(Compound_Simple)
     BOOST_CHECK_EQUAL(m1->includes(t), false);
     BOOST_CHECK(m3->includes(m3));
     BOOST_CHECK(t->includes(t));
+}
+
+BOOST_AUTO_TEST_CASE(Compound_IsMetric)
+{
+    auto d = std::make_shared<base::DubinsStateSpace>();
+
+    auto real_state_space_1 = std::make_shared<base::RealVectorStateSpace>(2);
+    real_state_space_1->setBounds(-3, 3);
+
+    auto real_state_space_2 = std::make_shared<base::RealVectorStateSpace>(4);
+    real_state_space_2->setBounds(-3, 3);
+
+    base::RealVectorBounds bounds2(2);
+    bounds2.setLow(-3);
+    bounds2.setHigh(3);
+    d->setBounds(bounds2);
+
+    auto rs = real_state_space_1 + real_state_space_2;
+    rs->setup();
+    BOOST_CHECK(rs->isMetricSpace());
+
+    auto n = d + real_state_space_1 + real_state_space_2;
+    n->setup();
+    BOOST_CHECK(!n->isMetricSpace());
 }
 
 BOOST_AUTO_TEST_CASE(Torus_Simple)
