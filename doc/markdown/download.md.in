@@ -13,11 +13,12 @@
   - [Ubuntu (14.04 and higher)](http://packages.ubuntu.com/search?keywords=libompl-dev),
   - [Fedora](https://apps.fedoraproject.org/packages/ompl),
   - [MacPorts](https://www.macports.org),
-  - [Homebrew](http://brew.sh), and
-  - [vcpkg](https://vcpkg.readthedocs.io).
+  - [Homebrew](http://brew.sh),
+  - [vcpkg](https://vcpkg.readthedocs.io), and
+  - [pip](https://pypi.org/project/ompl/).  
   .
   Note that these package managers may not always have the latest release.
-- Python wheels are available on the [github release page](https://github.com/ompl/ompl/releases)
+- Python wheels are also available on the [github release page](https://github.com/ompl/ompl/releases)
 - [Installation script for Ubuntu 16.04 and higher that installs the latest OMPL version from source](install-ompl-ubuntu.sh)
 - [Installation instructions.](installation.html)
 - [Older releases.](https://github.com/ompl/ompl/releases) See the [release notes](releaseNotes.html) for a brief a description of changes for each release.
