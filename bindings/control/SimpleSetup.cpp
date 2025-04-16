@@ -72,7 +72,7 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
         .def(
             "getSolutionPath", [](oc::SimpleSetup &self) -> oc::PathControl & { return self.getSolutionPath(); },
             nb::rv_policy::reference_internal,
-            "Return the current solution path as a PathControl object (throws if none).")
+            "Return the current solution path as a PathControl object.")
 
         // getPlannerData
         .def(
