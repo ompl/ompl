@@ -105,9 +105,9 @@ void ompl::binding::geometric::init_PathGeometric(nb::module_ &m)
         // Getters for states.
         .def("getStates", [](ompl::geometric::PathGeometric &self) -> std::vector<ompl::base::State *> {
              return self.getStates();
-         }, "Return the list of states in the path")
+         }, nb::rv_policy::reference_internal,"Return the list of states in the path")
         .def("getState", nb::overload_cast<unsigned int>(&ompl::geometric::PathGeometric::getState),
-             nb::arg("index"), "Return the state at the specified index")
+             nb::arg("index"), nb::rv_policy::reference_internal, "Return the state at the specified index")
         .def("getStateCount", &ompl::geometric::PathGeometric::getStateCount,
              "Return the number of states in the path")
         
