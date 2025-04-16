@@ -94,7 +94,7 @@ class MyRRT(ob.Planner):
             pdef.addSolutionPath(path)
         return ob.PlannerStatus(solved, True)
 
-def test_customize_planner():
+def test_customize_planner_rvss():
     space = ob.RealVectorStateSpace(2)
     bounds = ob.RealVectorBounds(2)
     bounds.setLow(-1)
@@ -165,5 +165,81 @@ def test_customize_planner():
     else:
         print("No solution found within 1 second of planning time.")
 
+def test_customize_planner_discrete():
+    space = ob.DiscreteStateSpace(0,100_000)
+
+    def is_valid(state):
+        if state.value % 7 == 0:
+            # print("State is valid:", state.value)
+            return True
+        else: 
+            # print("State is invalid:", state.value)
+            return False
+    
+    si = ob.SpaceInformation(space)
+    si.setStateValidityChecker(is_valid)
+    si.setup()
+
+    planner = MyRRT(si, "MyCustomPlanner")
+    name = planner.getName()
+    print("Planner name:", name)
+    # 3) Create a ProblemDefinition with a start and goal state.
+    start = si.allocState()
+    start.value = 7
+    goal = si.allocState()
+    goal.value = 7*123
+
+    # 4) Create the RRT planner.
+    rrt_planner = og.RRT(si, False)
+    # 5) Configure some parameters
+    rrt_planner.setGoalBias(0.1)
+    rrt_planner.setRange(100)
+
+    ss = og.SimpleSetup(si)
+    ss.setStartAndGoalStates(start, goal)
+    ss.setPlanner(rrt_planner)
+
+    # Print them out
+    print("Goal bias:", rrt_planner.getGoalBias())
+    print("Range:", rrt_planner.getRange())
+    print("Intermediate states:", rrt_planner.getIntermediateStates())
+
+
+    # 7) Construct a PlannerTerminationCondition that stops after 1 second.
+    ptc = ob.PlannerTerminationCondition(lambda: True)
+
+    start_time = time.time()
+    # Create a termination condition that returns True after 5 seconds
+    ptc = ob.PlannerTerminationCondition(
+        lambda: (time.time() - start_time) > 5
+    )
+
+    # 8) Solve
+    # result = ss.solve(1.0)
+    result = ss.solve(ptc)
+    print("Planner result:", result)
+
+    # # 9) The `result` is a PlannerStatus object. Check if solution found:
+    if result:
+        print("Solution found!")
+        # Optionally, retrieve the PathGeometric:
+        solutionPath = ss.getSolutionPath()
+        if solutionPath:
+            print("Solution path length:", solutionPath.length())
+            print("Solution path states:", solutionPath.getStateCount())
+            print("Solution path:")
+            solutionPath.printAsMatrix()
+            print("Solution path:")
+            solutionPath.print()
+            states = solutionPath.getStates()
+            print(len(states))
+            for state in states:
+                print("State:", state.value)
+                if state.value % 7 != 0:
+                    print("State is invalid:", state.value)
+                    break
+    else:
+        print("No solution found within 1 second of planning time.")
 if __name__ == "__main__":
-    test_customize_planner()
+    test_customize_planner_rvss()
+    test_customize_planner_discrete()

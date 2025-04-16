@@ -14,7 +14,7 @@
 #include "ompl/base/spaces/SE3StateSpace.h"
 #include "ompl/base/spaces/SO2StateSpace.h"
 #include "ompl/base/spaces/SO3StateSpace.h"
-
+#include "ompl/base/spaces/DiscreteStateSpace.h"
 
 namespace nb = nanobind;
 namespace ob = ompl::base;
@@ -44,6 +44,10 @@ inline ob::ScopedState<> state2ScopedState(ob::StateSpacePtr space, const ob::St
         case ob::STATE_SPACE_SE3:
         {
             return ob::ScopedState<ob::SE3StateSpace>(space, s);
+        }
+        case ob::STATE_SPACE_DISCRETE:
+        {
+            return ob::ScopedState<ob::DiscreteStateSpace>(space, s);
         }
         default:
             throw std::runtime_error("Unsupported or unhandled state space type.");

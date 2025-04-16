@@ -77,7 +77,7 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
         // getPlannerData
         .def(
             "getPlannerData", [](const oc::SimpleSetup &ss, ob::PlannerData &pd) { ss.getPlannerData(pd); },
-            nb::arg("plannerData"),
+            nb::arg("plannerData"), nb::rv_policy::reference_internal,
             "Fill the provided PlannerData structure with the exploration data from the current planner.")
 
         // setStateValidityChecker (two overloads)
