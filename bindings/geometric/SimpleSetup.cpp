@@ -192,6 +192,9 @@ nb::class_<og::SimpleSetup>(m, "SimpleSetup")
           nb::arg("threshold") = std::numeric_limits<double>::epsilon(),
           "Set the goal from a single state with threshold.")        
      
+     .def ("setGoal", &og::SimpleSetup::setGoal,
+          nb::arg("goal"),
+          "Set the goal from a Goal object.")
      .def("setPlanner",
           &og::SimpleSetup::setPlanner,
           nb::arg("planner"),
