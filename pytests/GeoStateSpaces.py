@@ -1,7 +1,6 @@
 import sys
 import pytest
 import math
-# Make sure the OMPL bindings are in the Python path.
 from ompl import base as ob
 
 

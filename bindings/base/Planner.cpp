@@ -61,7 +61,6 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
             NB_OVERRIDE(printSettings, out);
         }
     };
-    //     nb::class_<ompl::base::Planner>(m, "_Planner");
 
     nb::class_<ob::Planner, PyPlanner /* <-- trampoline */>(m, "Planner")
         // Constructors
