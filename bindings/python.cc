@@ -43,12 +43,12 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::init_TypedSpaceInformation(base);
     ompl::binding::base::init_TypedStateValidityChecker(base);
     ompl::binding::base::init_ValidStateSampler(base);
-    ompl::binding::base::initGoals_GoalLazySamples(base);
     ompl::binding::base::initGoals_GoalRegion(base);
     ompl::binding::base::initGoals_GoalSampleableRegion(base);
     ompl::binding::base::initGoals_GoalSpace(base);
     ompl::binding::base::initGoals_GoalState(base);
     ompl::binding::base::initGoals_GoalStates(base);
+    ompl::binding::base::initGoals_GoalLazySamples(base);
     ompl::binding::base::initObjectives_ControlDurationObjective(base);
     ompl::binding::base::initObjectives_MaximizeMinClearanceObjective(base);
     ompl::binding::base::initObjectives_MechanicalWorkOptimizationObjective(base);
@@ -73,22 +73,11 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initSamplers_MinimumClearanceValidStateSampler(base);
     ompl::binding::base::initSamplers_ObstacleBasedValidStateSampler(base);
     ompl::binding::base::initSamplers_UniformValidStateSampler(base);
-    ompl::binding::base::initSpacesConstraint_AtlasChart(base);
-    ompl::binding::base::initSpacesConstraint_AtlasStateSpace(base);
-    ompl::binding::base::initSpacesConstraint_ConstrainedStateSpace(base);
-    ompl::binding::base::initSpacesConstraint_ProjectedStateSpace(base);
-    ompl::binding::base::initSpacesConstraint_TangentBundleStateSpace(base);
-    ompl::binding::base::initSpacesSpecial_KleinBottleStateSpace(base);
-    ompl::binding::base::initSpacesSpecial_MobiusStateSpace(base);
-    ompl::binding::base::initSpacesSpecial_SphereStateSpace(base);
-    ompl::binding::base::initSpacesSpecial_TorusStateSpace(base);
+    
     ompl::binding::base::initSpaces_DiscreteStateSpace(base);
-    ompl::binding::base::initSpaces_DubinsStateSpace(base);
-    ompl::binding::base::initSpaces_EmptyStateSpace(base);
     ompl::binding::base::initSpaces_RealVectorBounds(base);
     ompl::binding::base::initSpaces_RealVectorStateProjections(base);
     ompl::binding::base::initSpaces_RealVectorStateSpace(base);
-    ompl::binding::base::initSpaces_ReedsSheppStateSpace(base);
     ompl::binding::base::initSpaces_SE2StateSpace(base);
     ompl::binding::base::initSpaces_SE3StateSpace(base);
     ompl::binding::base::initSpaces_SO2StateSpace(base);
@@ -96,6 +85,20 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initSpaces_SpaceTimeStateSpace(base);
     ompl::binding::base::initSpaces_TimeStateSpace(base);
     ompl::binding::base::initSpaces_WrapperStateSpace(base);
+    ompl::binding::base::initSpaces_DubinsStateSpace(base);
+    ompl::binding::base::initSpaces_EmptyStateSpace(base);
+    ompl::binding::base::initSpaces_ReedsSheppStateSpace(base);
+
+    ompl::binding::base::initSpacesConstraint_ConstrainedStateSpace(base);
+    ompl::binding::base::initSpacesConstraint_ProjectedStateSpace(base);
+    ompl::binding::base::initSpacesConstraint_AtlasChart(base);
+    ompl::binding::base::initSpacesConstraint_AtlasStateSpace(base);
+    ompl::binding::base::initSpacesConstraint_TangentBundleStateSpace(base);
+    ompl::binding::base::initSpacesSpecial_KleinBottleStateSpace(base);
+    ompl::binding::base::initSpacesSpecial_MobiusStateSpace(base);
+    ompl::binding::base::initSpacesSpecial_SphereStateSpace(base);
+    ompl::binding::base::initSpacesSpecial_TorusStateSpace(base);
+
     ompl::binding::base::initTerminationconditions_CostConvergenceTerminationCondition(base);
     ompl::binding::base::initTerminationconditions_IterationTerminationCondition(base);
 

@@ -24,7 +24,7 @@ void ompl::binding::base::initSpacesConstraint_AtlasStateSpace(nb::module_ &m)
         .def("sampleGaussian", &ob::AtlasStateSampler::sampleGaussian, nb::arg("state"), nb::arg("mean"),
              nb::arg("stdDev"), "Sample from a Gaussian around `mean` and project onto the manifold");
 
-    nb::class_<ompl::base::AtlasStateSpace::StateType, ompl::base::ConstrainedStateSpace::StateType> stateType(m. "AtlasStateType");
+    nb::class_<ompl::base::AtlasStateSpace::StateType, ompl::base::ConstrainedStateSpace::StateType> stateType(m, "AtlasStateType");
     //
     // AtlasStateSpace
     //
