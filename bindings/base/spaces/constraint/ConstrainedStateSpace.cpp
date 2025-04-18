@@ -53,7 +53,7 @@ void ompl::binding::base::initSpacesConstraint_ConstrainedStateSpace(nb::module_
              nb::arg("s1"), nb::arg("s2"),
              "Check whether motion from s1 to s2 satisfies the constraint");
     
-    nb::class_<ompl::base::ConstrainedStateSpace::StateType, ompl::base::WrapperStateSpace::StateType> stateType(m. "ConstrainedStateType");
+    nb::class_<ompl::base::ConstrainedStateSpace::StateType, ompl::base::WrapperStateSpace::StateType> stateType(m, "ConstrainedStateType");
 
     //
     // ConstrainedStateSpace
