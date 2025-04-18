@@ -37,6 +37,7 @@ void ompl::binding::base::initSpaces_WrapperStateSpace(nb::module_ &m)
             { self.project(state, out); }, nb::arg("state"), nb::arg("projection"),
             "Project a wrapped state into the low‑dimensional space");
 
+    nb::class_<ompl::base::WrapperStateSpace::StateType, ompl::base::State> stateType(m, "WrapperStateType");
     //
     // WrapperStateSpace
     //
