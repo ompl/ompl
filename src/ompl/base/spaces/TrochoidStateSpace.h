@@ -143,9 +143,9 @@ namespace ompl
             }
 
             /** \brief Return a shortest Dubins path from SE(2) state state1 to SE(2) state state2 */
-            TrochoidPath trochoid(const State *state1, const State *state2) const;
+            TrochoidPath trochoid(const State *state1, const State *state2, bool periodic=false) const;
             /** \brief Return a shortest Dubins path for a vehicle with given turning radius */
-            static TrochoidPath trochoid(const State *state1, const State *state2, double radius, double wind_ratio, double wind_heading);
+            static TrochoidPath trochoid(const State *state1, const State *state2, double radius, double wind_ratio, double wind_heading, bool periodic=false);
 
         protected:
             /** \brief Turning radius */
