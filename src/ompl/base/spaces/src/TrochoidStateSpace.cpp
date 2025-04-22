@@ -59,7 +59,50 @@ namespace
         return xm;
     }
 
-    bool checkConditionsBSB(double delta_1, double delta_2, double tA, double tB, double xt10, double yt10, double phit1, double xt20, double yt20, double phit2, double radius, double wind_ratio, TrochoidStateSpace::TrochoidPath &trochoid_path) {
+    double trochoid_delx(double omega, double dir, double delt, double phi0, double wind_ratio){
+        return .0/(dir*omega)*(std::sin(dir*omega*delt+phi0) - std::sin(phi0)) + wind_ratio*delt;
+    }
+
+    double straight_delx(double wind_ratio, double delt, double hInitRad ) {
+      return ( std::cos(hInitRad) + wind_ratio )*delt;
+    }
+
+    double straight_dely(double delt, double hInitRad ) {
+      return std::sin(hInitRad)*delt;
+    }
+
+    double trochoid_dely(double omega, double dir, double delt, double hInitRad ){
+    return 1.0/(dir*omega)*(-std::cos(dir*omega*delt+hInitRad) + std::cos(hInitRad));
+    }
+
+    double trochoid_delh(double omega, double dir, double delt ) {
+        return dir*omega*delt;
+    }
+
+    void computeEndpointBSB(double delta_1, double delta_2, double tA, double tBeta, double T, double phi0, double radius, double wind_ratio, double &xf, double &yf, double &phif) {
+      // state after first trochoid straight
+        double x0 = 0.0, y0 = 0.0;
+        double omega = (1.0/radius);
+        double xBinit = x0 + trochoid_delx(omega, delta_1, tA, phi0, wind_ratio);
+        double yBinit = y0 + trochoid_dely(omega, delta_1, tA, phi0);
+        double hBinit = phi0 + trochoid_delh(omega, delta_1, tA ); 
+
+        double xBfinal, yBfinal, hBfinal;
+        xBfinal = xBinit + straight_delx(wind_ratio, tBeta - tA, hBinit);
+        yBfinal = yBinit + straight_dely(tBeta - tA, hBinit );
+        hBfinal = hBinit;
+
+        // final state 
+        xf = xBfinal + trochoid_delx(omega, delta_2, T-tBeta , hBfinal, wind_ratio);
+        yf = yBfinal + trochoid_dely(omega, delta_2, T-tBeta , hBfinal );
+        phif = hBfinal + trochoid_delh(omega, delta_2, T-tBeta ); 
+        phif = fmod(phif, 2.0*M_PI);
+        if ( phif < 0 ){
+            phif = phif + 2.0*M_PI;
+        }
+    }
+ 
+    bool checkConditionsBSB(double delta_1, double delta_2, double tA, double tB, double xt10, double yt10, double phi0, double phit1, double xt20, double yt20, double phit2, double xf, double yf, double radius, double wind_ratio, bool periodic, TrochoidStateSpace::TrochoidPath &trochoid_path) {
         // check that tA, tB, and T are valid numbers 
         if ( std::isnan(tA) || std::isnan(tB) ){
             return false;
@@ -105,15 +148,34 @@ namespace
         }  
         // check endpoint
         double p = sqrt( (xtB-xtA)*(xtB-xtA) + (ytB-ytA)*(ytB-ytA) )/sqrt(xtBdot*xtBdot + ytBdot*ytBdot);
-        double T = tA + p + (t2pi - tB);  
+        double T = tA + p + (t2pi - tB);
 
-        if (T < trochoid_path.length()) {//Update path if it is shorter
-            trochoid_path.length_[0] = tA;
-            trochoid_path.length_[1] = p;
-            trochoid_path.length_[2] = t2pi - tB;
+        // // check if the candidate satisfies the desired final (x,y) position 
+        // double xFinal, yFinal, hFinalRad;
+        double tBeta = tA + p;
+        double endpoint_x, endpoint_y, endoint_phi;
+        computeEndpointBSB(delta_1, delta_2, tA, tBeta, T, phi0, radius, wind_ratio, endpoint_x, endpoint_y, endoint_phi);
+        if ( fabs(endpoint_x - xf) > eps && fabs(endpoint_y - yf) > eps ){
+            return false;
         }
 
-        return true;
+        if (!periodic) {
+            if (T < trochoid_path.length()) {//Update path if it is shorter
+                trochoid_path.length_[0] = tA;
+                trochoid_path.length_[1] = p;
+                trochoid_path.length_[2] = t2pi - tB;
+            }
+            return true;
+        } else {
+            if (T < trochoid_path.length() && T > 0.1) {//Update path if it is shorter
+                trochoid_path.length_[0] = tA;
+                trochoid_path.length_[1] = p;
+                trochoid_path.length_[2] = t2pi - tB;
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 
     double fixedPointBSB( double p0, double delta_1, double delta_2, double k, double xt10, double yt10, double phit1, double xt20, double yt20, double phit2, double radius, double wind_ratio )
@@ -145,7 +207,7 @@ namespace
 
 
 
-    void trochoidBSB(double x0, double y0, double phi0, double xf, double yf, double phif, double delta_1, double delta_2, double radius, double wind_ratio, TrochoidStateSpace::TrochoidPath &path)
+    void trochoidBSB(double x0, double y0, double phi0, double xf, double yf, double phif, double delta_1, double delta_2, double radius, double wind_ratio, bool periodic, TrochoidStateSpace::TrochoidPath &path)
     {
 
         double V_w = wind_ratio;
@@ -171,7 +233,7 @@ namespace
                     tA = tA - t2pi*floor(tA/t2pi);
                 }
                 double tB = tA + ( fmod(phit1 - phit2, 2.0*onepi) - 2.0*k*onepi ) / (delta_1*2.0*onepi) * t2pi;
-                if ( checkConditionsBSB(delta_1, delta_2, tA, tB, xt10, yt10, phit1, xt20, yt20, phit2, radius, wind_ratio, path) ){
+                if ( checkConditionsBSB(delta_1, delta_2, tA, tB, xt10, yt10, phi0, phit1, xt20, yt20, phit2, xf, yf, radius, wind_ratio, periodic, path) ){
                     solnFound = true;
                 }
             }
@@ -204,7 +266,7 @@ namespace
                     // if the root is unique
                     if ( !rootAlreadyfound ){
                         double tB = delta_1/delta_2*tA + (phit1 - phit2 + 2.0*k*onepi)/(delta_2*omega);
-                        if ( checkConditionsBSB(delta_1, delta_2, tA, tB, xt10, yt10, phit1, xt20, yt20, phit2, radius, wind_ratio, path) ){
+                        if ( checkConditionsBSB(delta_1, delta_2, tA, tB, xt10, yt10, phi0, phit1, xt20, yt20, phit2, xf, yf, radius, wind_ratio, periodic, path) ){
                             solnFound = true;
                         }
                     }
@@ -215,7 +277,7 @@ namespace
         return;
     }
 
-    bool checkConditionsBBB( double delta_1, double tA, double tB, double T, double xt10, double yt10, double phit1, double xf, double yf, double phif, double radius, double wind_ratio, TrochoidStateSpace::TrochoidPath &trochoid_path){
+    bool checkConditionsBBB( double delta_1, double tA, double tB, double T, double xt10, double yt10, double phit1, double xf, double yf, double phif, double radius, double wind_ratio, bool periodic, TrochoidStateSpace::TrochoidPath &trochoid_path){
 
         if ( std::isnan(tA) || std::isnan(tB) || std::isnan(T) ){
             return false;
@@ -291,13 +353,24 @@ namespace
             return false; 
         }
 
-        if (T < trochoid_path.length()) {//Update path if it is shorter
-            trochoid_path.length_[0] = tA;
-            trochoid_path.length_[1] = tB - tA;
-            trochoid_path.length_[2] = T - tB;
+        if (!periodic) {
+            if (T < trochoid_path.length()) {//Update path if it is shorter
+                trochoid_path.length_[0] = tA;
+                trochoid_path.length_[1] = tB - tA;
+                trochoid_path.length_[2] = T - tB;
+            }
+            return true;
+        } else {
+            if (T < trochoid_path.length() && T > 0.1) {//Update path if it is shorter
+                trochoid_path.length_[0] = tA;
+                trochoid_path.length_[1] = tB - tA;
+                trochoid_path.length_[2] = T - tB;
+                return true;
+            } else {
+                return false;
+            }
         }
 
-        return true;
     }
 
     void fixedpointBBB(double p0, double p1, double delta_1, double k, double xt10, double yt10, double phit1, double xf, double yf, double phif, double radius, double wind_ratio, std::vector<double> &pvecOut) {
@@ -355,7 +428,7 @@ namespace
         return;
     }
 
-    void trochoidBBB(double x0, double y0, double phit1, double xf, double yf, double phif, double delta_1, double radius, double wind_ratio, TrochoidStateSpace::TrochoidPath &path) {
+    void trochoidBBB(double x0, double y0, double phit1, double xf, double yf, double phif, double delta_1, double radius, double wind_ratio, bool periodic, TrochoidStateSpace::TrochoidPath &path) {
         double omega = (1/radius);
         double t2pi = 2.0 * onepi * radius;
 
@@ -406,72 +479,64 @@ namespace
 
                 // if the root is unique
                 if ( !rootAlreadyfound ){
-                    if ( checkConditionsBBB(delta_1, tA, tB, T, xt10, yt10, phit1, xf, yf, phif, radius, wind_ratio, path)){
+                    if ( checkConditionsBBB(delta_1, tA, tB, T, xt10, yt10, phit1, xf, yf, phif, radius, wind_ratio, periodic, path)){
                         solnFound = true;
                     }
                 }
             }
             }
-        }
-        
-        // if ( !solnFound ){
-        //     switch ( pt ){
-        //     case pathType::LRL: LRL_.set_pathStatusInfeasible(); break;
-        //     case pathType::RLR: RLR_.set_pathStatusInfeasible(); break;
-        //     }
-        // }
-  
+        }  
     }
 
 
-    TrochoidStateSpace::TrochoidPath trochoidRSR(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio)
+    TrochoidStateSpace::TrochoidPath trochoidRSR(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio, bool periodic)
     {
         TrochoidStateSpace::TrochoidPath path(TrochoidStateSpace::dubinsPathType[1]);
-        trochoidBSB(x0, y0, phi0, xf, yf, phif, -1, -1, radius, wind_ratio, path);
+        trochoidBSB(x0, y0, phi0, xf, yf, phif, -1, -1, radius, wind_ratio, periodic, path);
         return path;
     }
 
-    TrochoidStateSpace::TrochoidPath trochoidLSL(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio)
+    TrochoidStateSpace::TrochoidPath trochoidLSL(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio, bool periodic)
     {
         TrochoidStateSpace::TrochoidPath path(TrochoidStateSpace::dubinsPathType[0]);
-        trochoidBSB(x0, y0, phi0, xf, yf, phif, 1, 1, radius, wind_ratio, path);
+        trochoidBSB(x0, y0, phi0, xf, yf, phif, 1, 1, radius, wind_ratio, periodic, path);
         return path; 
     }
 
-    TrochoidStateSpace::TrochoidPath trochoidRSL(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio)
+    TrochoidStateSpace::TrochoidPath trochoidRSL(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio, bool periodic)
     {
         TrochoidStateSpace::TrochoidPath path(TrochoidStateSpace::dubinsPathType[2]);
-        trochoidBSB(x0, y0, phi0, xf, yf, phif, -1, 1, radius, wind_ratio, path);
+        trochoidBSB(x0, y0, phi0, xf, yf, phif, -1, 1, radius, wind_ratio, periodic, path);
         return path;
     }
 
-    TrochoidStateSpace::TrochoidPath trochoidLSR(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio)
+    TrochoidStateSpace::TrochoidPath trochoidLSR(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio, bool periodic)
     {
         TrochoidStateSpace::TrochoidPath path(TrochoidStateSpace::dubinsPathType[3]);
-        trochoidBSB(x0, y0, phi0, xf, yf, phif, 1, -1, radius, wind_ratio, path);
+        trochoidBSB(x0, y0, phi0, xf, yf, phif, 1, -1, radius, wind_ratio, periodic, path);
         return path;
     }
 
-    TrochoidStateSpace::TrochoidPath trochoidLRL(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio)
+    TrochoidStateSpace::TrochoidPath trochoidLRL(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio, bool periodic)
     {
         TrochoidStateSpace::TrochoidPath path(TrochoidStateSpace::dubinsPathType[5]);
-        trochoidBBB(x0, y0, phi0, xf, yf, phif, 1, radius, wind_ratio, path);
+        trochoidBBB(x0, y0, phi0, xf, yf, phif, 1, radius, wind_ratio, periodic, path);
         return path;
     }
 
-    TrochoidStateSpace::TrochoidPath trochoidRLR(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio)
+    TrochoidStateSpace::TrochoidPath trochoidRLR(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio, bool periodic)
     {
         TrochoidStateSpace::TrochoidPath path(TrochoidStateSpace::dubinsPathType[4]);
-        trochoidBBB(x0, y0, phi0, xf, yf, phif, -1, radius, wind_ratio, path);
+        trochoidBBB(x0, y0, phi0, xf, yf, phif, -1, radius, wind_ratio, periodic, path);
         return path;
     }
 
-    TrochoidStateSpace::TrochoidPath trochoid(const double x0, const double y0, const double phi0, const double xf, const double yf, const double phif, double radius, double wind_ratio, double wind_heading)
+    TrochoidStateSpace::TrochoidPath trochoid(const double x0, const double y0, const double phi0, const double xf, const double yf, const double phif, double radius, double wind_ratio, bool periodic)
     {
         // if (d < TROCHOID_EPS && fabs(alpha - beta) < TROCHOID_EPS)
             // return {TrochoidStateSpace::dubinsPathType[0], 0, d, 0};
 
-        TrochoidStateSpace::TrochoidPath path(trochoidLSL(x0, y0, phi0, xf, yf, phif, radius, wind_ratio)), tmp(trochoidRSR(x0, y0, phi0, xf, yf, phif, radius, wind_ratio));
+        TrochoidStateSpace::TrochoidPath path(trochoidLSL(x0, y0, phi0, xf, yf, phif, radius, wind_ratio, periodic)), tmp(trochoidRSR(x0, y0, phi0, xf, yf, phif, radius, wind_ratio, periodic));
         double len, minLength = path.length();
 
         if ((len = tmp.length()) < minLength)
@@ -479,25 +544,25 @@ namespace
             minLength = len;
             path = tmp;
         }
-        tmp = trochoidRSL(x0, y0, phi0, xf, yf, phif, radius, wind_ratio);
+        tmp = trochoidRSL(x0, y0, phi0, xf, yf, phif, radius, wind_ratio, periodic);
         if ((len = tmp.length()) < minLength)
         {
             minLength = len;
             path = tmp;
         }
-        tmp = trochoidLSR(x0, y0, phi0, xf, yf, phif, radius, wind_ratio);
+        tmp = trochoidLSR(x0, y0, phi0, xf, yf, phif, radius, wind_ratio, periodic);
         if ((len = tmp.length()) < minLength)
         {
             minLength = len;
             path = tmp;
         }
-        tmp = trochoidRLR(x0, y0, phi0, xf, yf, phif, radius, wind_ratio);
+        tmp = trochoidRLR(x0, y0, phi0, xf, yf, phif, radius, wind_ratio, periodic);
         if ((len = tmp.length()) < minLength)
         {
             minLength = len;
             path = tmp;
         }
-        tmp = trochoidLRL(x0, y0, phi0, xf, yf, phif, radius, wind_ratio);
+        tmp = trochoidLRL(x0, y0, phi0, xf, yf, phif, radius, wind_ratio, periodic);
         if ((len = tmp.length()) < minLength)
             path = tmp;
         return path;
@@ -565,8 +630,12 @@ void TrochoidStateSpace::interpolate(const State *from, const State *to, const d
                 copyState(state, from);
             return;
         }
-
-        path = trochoid(from, to);
+        if (equalStates(from, to)) {
+            path = trochoid(from, to, rho_, eta_, psi_w_, true);
+        }
+        else {
+            path = trochoid(from, to, rho_, eta_, psi_w_);
+        }
         if (isSymmetric_)
         {
             TrochoidPath path2(trochoid(to, from));
@@ -587,41 +656,42 @@ void TrochoidStateSpace::interpolate(const State *from, const TrochoidPath &path
     auto *s = allocState()->as<StateType>();
     double seg = t * path.length(), phi, v, x_t10, y_t10, delta;
     s->setXY(0., 0.);
-    s->setYaw(from->as<StateType>()->getYaw());
-    for (unsigned int i = 0; i < 3 && seg > 0; ++i)
-    {
-        v = std::min(seg, path.length_[i]);
-        phi = s->getYaw();
-        seg -= v;
-        switch (path.type_[i])
+    s->setYaw(from->as<StateType>()->getYaw() - wind_heading);
+    if (!path.reverse_) {
+        for (unsigned int i = 0; i < 3 && seg > 0; ++i)
         {
-            case TROCHOID_LEFT:
-                delta = 1;
-                x_t10 = s->getX() - (radius* delta) * sin(phi);
-                y_t10 = s->getY() + (radius * delta) * cos(phi);
-                s->setXY(x_t10 + (radius * delta) * sin(delta *(1.0/radius) * v + phi)  + wind_ratio * v, \
-                y_t10 - (radius * delta) * cos(delta *(1.0/radius) * v + phi));
-                s->setYaw(phi + delta *(1.0/radius) *v);
-                break;
-            case TROCHOID_RIGHT:
-                delta = -1;
-                x_t10 = s->getX() - (radius* delta) * sin(phi);
-                y_t10 = s->getY() + (radius * delta) * cos(phi);
-                s->setXY(x_t10 + (radius * delta) * sin(delta *(1.0/radius) * v + phi)  + wind_ratio * v, \
-                y_t10 - (radius * delta) * cos(delta *(1.0/radius) * v + phi));
-                s->setYaw(phi + delta *(1.0/radius) *v);
-                break;
-            case TROCHOID_STRAIGHT:
-                s->setXY(s->getX() + v * cos(phi) + v * wind_ratio, s->getY() + v * sin(phi));
-                break;
+            v = std::min(seg, path.length_[i]);
+            phi = s->getYaw();
+            seg -= v;
+            switch (path.type_[i])
+            {
+                case TROCHOID_LEFT:
+                    delta = 1;
+                    x_t10 = s->getX() - (radius* delta) * sin(phi);
+                    y_t10 = s->getY() + (radius * delta) * cos(phi);
+                    s->setXY(x_t10 + (radius * delta) * sin(delta *(1.0/radius) * v + phi)  + wind_ratio * v, \
+                    y_t10 - (radius * delta) * cos(delta *(1.0/radius) * v + phi));
+                    s->setYaw(phi + delta *(1.0/radius) *v);
+                    break;
+                case TROCHOID_RIGHT:
+                    delta = -1;
+                    x_t10 = s->getX() - (radius* delta) * sin(phi);
+                    y_t10 = s->getY() + (radius * delta) * cos(phi);
+                    s->setXY(x_t10 + (radius * delta) * sin(delta *(1.0/radius) * v + phi)  + wind_ratio * v, \
+                    y_t10 - (radius * delta) * cos(delta *(1.0/radius) * v + phi));
+                    s->setYaw(phi + delta *(1.0/radius) *v);
+                    break;
+                case TROCHOID_STRAIGHT:
+                    s->setXY(s->getX() + v * cos(phi) + v * wind_ratio, s->getY() + v * sin(phi));
+                    break;
+            }
         }
     }
 
-    ///TODO: Reproject from trochoid space to inertial space
-    state->as<StateType>()->setX(s->getX() + from->as<StateType>()->getX());
-    state->as<StateType>()->setY(s->getY() + from->as<StateType>()->getX());
+    state->as<StateType>()->setX(s->getX()* std::cos(wind_heading) - s->getY()* std::sin(wind_heading) + from->as<StateType>()->getX());
+    state->as<StateType>()->setY(s->getX()* std::sin(wind_heading) + s->getY()* std::cos(wind_heading) + from->as<StateType>()->getY());
     getSubspace(1)->enforceBounds(s->as<SO2StateSpace::StateType>(1));
-    state->as<StateType>()->setYaw(s->getYaw());
+    state->as<StateType>()->setYaw(s->getYaw() + wind_heading);
     freeState(s);
 }
 
@@ -630,12 +700,12 @@ unsigned int TrochoidStateSpace::validSegmentCount(const State *state1, const St
     return StateSpace::validSegmentCount(state1, state2);
 }
 
-TrochoidStateSpace::TrochoidPath TrochoidStateSpace::trochoid(const State *state1, const State *state2) const
+TrochoidStateSpace::TrochoidPath TrochoidStateSpace::trochoid(const State *state1, const State *state2, bool periodic) const
 {
-    return trochoid(state1, state2, rho_, eta_, psi_w_);
+    return trochoid(state1, state2, rho_, eta_, psi_w_, periodic);
 }
 
-TrochoidStateSpace::TrochoidPath TrochoidStateSpace::trochoid(const State *state1, const State *state2, double radius, double wind_ratio, double wind_heading)
+TrochoidStateSpace::TrochoidPath TrochoidStateSpace::trochoid(const State *state1, const State *state2, double radius, double wind_ratio, double wind_heading, bool periodic)
 {
     const auto *s1 = static_cast<const TrochoidStateSpace::StateType *>(state1);
     const auto *s2 = static_cast<const TrochoidStateSpace::StateType *>(state2);
@@ -646,10 +716,10 @@ TrochoidStateSpace::TrochoidPath TrochoidStateSpace::trochoid(const State *state
     double phif = psi_f - wind_heading;
 
     // Transform into trochoid frame
-    double xf_trochoid = xf * std::cos(wind_heading) + yf * std::sin(wind_heading);
-    double yf_trochoid = -xf * std::sin(wind_heading) + yf * std::cos(wind_heading);
+    double x_trochoid = (xf- x0) * std::cos(wind_heading) + (yf- y0) * std::sin(wind_heading);
+    double y_trochoid = -(xf-x0) * std::sin(wind_heading) + (yf- y0) * std::cos(wind_heading);
 
-    return ::trochoid(x0, y0, phi0, xf_trochoid, yf_trochoid, phif, radius, wind_ratio, wind_heading);
+    return ::trochoid(0.0, 0.0, phi0, x_trochoid, y_trochoid, phif, radius, wind_ratio, periodic);
 }
 
 void TrochoidMotionValidator::defaultSettings()
