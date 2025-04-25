@@ -9,6 +9,7 @@ namespace nb = nanobind;
 namespace ob = ompl::base;
 
 void ompl::binding::base::initGoals_GoalStates(nb::module_& m) {
+     // TODO [ob::GoalStates][TEST]
     nb::class_<ob::GoalStates, ob::GoalSampleableRegion>(m, "GoalStates")
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"),
              "Construct a GoalStates for the given SpaceInformation")

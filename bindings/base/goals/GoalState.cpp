@@ -7,6 +7,7 @@ namespace ob = ompl::base;
 
 void ompl::binding::base::initGoals_GoalState(nb::module_& m)
 {
+     // TODO [ob::GoalState][TEST]
     nb::class_<ob::GoalState, ob::GoalSampleableRegion>(m, "GoalState")
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"),
              "Construct a GoalState for the given SpaceInformation")

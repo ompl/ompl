@@ -20,9 +20,7 @@ void ompl::binding::base::initSpaces_RealVectorStateSpace(nb::module_ &m)
         .def("sampleGaussian", &ompl::base::RealVectorStateSampler::sampleGaussian,
              "Sample state from Gaussian distribution");
 
-    nb::class_<ompl::base::RealVectorStateSpace::StateType, ompl::base::State> stateType(m, "RealVectorStateType",
-                                                                                         "State in R^n represented as "
-                                                                                         "a vector of doubles");
+    nb::class_<ompl::base::RealVectorStateSpace::StateType, ompl::base::State> stateType(m, "RealVectorStateType");
     stateType
         .def("__getitem__",
              [](const ompl::base::RealVectorStateSpace::StateType *s, unsigned int i) { return s->values[i]; })
