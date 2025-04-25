@@ -8,11 +8,12 @@ namespace nb = nanobind;
 
 NB_MODULE(_ompl, m)
 {
+    nb::set_leak_warnings(false);
+    
     m.doc() = "OMPL Python Bindings";
 
     nb::module_ base = m.def_submodule("base");
-    ompl::binding::base::init_ConstrainedSpaceInformation(base);
-    ompl::binding::base::init_Constraint(base);
+
     ompl::binding::base::init_Cost(base);
     ompl::binding::base::init_DiscreteMotionValidator(base);
     ompl::binding::base::init_GenericParam(base);
@@ -20,6 +21,8 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::init_GoalTypes(base);
     ompl::binding::base::init_MotionValidator(base);
     ompl::binding::base::init_OptimizationObjective(base);
+    ompl::binding::base::init_ConstrainedSpaceInformation(base);
+    ompl::binding::base::init_Constraint(base);
     ompl::binding::base::init_Path(base);
     ompl::binding::base::init_Planner(base);
     ompl::binding::base::init_PlannerData(base);

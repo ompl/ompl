@@ -12,6 +12,7 @@ namespace ob = ompl::base;
 
 void ompl::binding::base::initGoals_GoalLazySamples(nb::module_ &m)
 {
+     // TODO [ob::GoalLazySamples][TEST]
     nb::class_<ob::GoalLazySamples, ob::GoalStates>(m, "GoalLazySamples")
         // custom constructor: wrap a Python callable into the C++ GoalSamplingFn
         .def(nb::init<const ob::SpaceInformationPtr &, ob::GoalSamplingFn, bool, double>())
@@ -58,6 +59,4 @@ void ompl::binding::base::initGoals_GoalLazySamples(nb::module_ &m)
 
         // inherited clear
         .def("clear", &ob::GoalLazySamples::clear, "Remove all fixed and sampled goal states.");
-
-    // no extra free‐functions needed
 }

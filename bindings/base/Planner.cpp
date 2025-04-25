@@ -14,7 +14,42 @@ namespace ob = ompl::base;
 
 void ompl::binding::base::init_Planner(nb::module_ &m)
 {
-    struct PyPlanner : ob::Planner
+    nb::class_<ompl::base::PlannerInputStates>(m, "PlannerInputStates",
+                                               "Wrapper class to maintain the set of input states that a planner can "
+                                               "use")
+        // Constructors
+        .def(nb::init<const ompl::base::PlannerPtr &>(), "Constructor that takes a planner instance")
+        .def(nb::init<const ompl::base::Planner *>(), "Constructor that takes a planner pointer")
+        .def(nb::init<>(), "Default constructor")
+
+        // Core functionality
+        .def("clear", &ompl::base::PlannerInputStates::clear, "Clear all input states")
+        .def("restart", &ompl::base::PlannerInputStates::restart,
+             "Start the iteration over input states from the beginning")
+        .def("update", &ompl::base::PlannerInputStates::update, "Update the set of input states")
+        .def("use", &ompl::base::PlannerInputStates::use, "Use the states from the specified problem definition")
+        .def("checkValidity", &ompl::base::PlannerInputStates::checkValidity, "Check if the input states are valid")
+
+        // State iteration
+        .def("nextStart", &ompl::base::PlannerInputStates::nextStart, "Get the next start state", nb::rv_policy::reference_internal)
+        .def("nextGoal", nb::overload_cast<>(&ompl::base::PlannerInputStates::nextGoal), "Get the next goal state", nb::rv_policy::reference_internal)
+        .def("nextGoal",
+             nb::overload_cast<const ompl::base::PlannerTerminationCondition &>(
+                 &ompl::base::PlannerInputStates::nextGoal),
+             "Get the next goal state with termination condition", nb::rv_policy::reference_internal)
+
+        // State availability checks
+        .def("haveMoreStartStates", &ompl::base::PlannerInputStates::haveMoreStartStates,
+             "Check if there are more start states")
+        .def("haveMoreGoalStates", &ompl::base::PlannerInputStates::haveMoreGoalStates,
+             "Check if there are more goal states")
+
+        // State counting
+        .def("getSeenStartStatesCount", &ompl::base::PlannerInputStates::getSeenStartStatesCount,
+             "Get the number of start states seen so far")
+        .def("getSampledGoalsCount", &ompl::base::PlannerInputStates::getSampledGoalsCount,
+             "Get the number of sampled goal states");
+        struct PyPlanner : ob::Planner
     {
         // We declare an NB_TRAMPOLINE for 8 override slots (the number of virtual methods we plan to override).
         NB_TRAMPOLINE(ob::Planner, 8);
@@ -74,6 +109,8 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
              nb::rv_policy::reference_internal, "Return a reference to the ProblemDefinition (non-const).")
         .def("setProblemDefinition", &ob::Planner::setProblemDefinition, nb::arg("pdef"),
              "Set the ProblemDefinition for this planner.")
+        .def ("getPlannerInputStates", &ob::Planner::getPlannerInputStates,
+              nb::rv_policy::reference_internal, "Return a reference to the PlannerInputStates.")
         .def(
             "solve", [](ob::Planner &pl, double solveTime) { return pl.solve(solveTime); }, nb::arg("solveTime"),
             "Attempt to solve for a given time (seconds).")
@@ -91,40 +128,4 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
              nb::rv_policy::reference_internal, "Return a constant reference to the planner's ParamSet.")
         .def("getPlannerProgressProperties", &ob::Planner::getPlannerProgressProperties,
              nb::rv_policy::reference_internal, "Return a map of property names to progress property functions.");
-
-    nb::class_<ompl::base::PlannerInputStates>(m, "PlannerInputStates",
-                                               "Wrapper class to maintain the set of input states that a planner can "
-                                               "use")
-        // Constructors
-        .def(nb::init<const ompl::base::PlannerPtr &>(), "Constructor that takes a planner instance")
-        .def(nb::init<const ompl::base::Planner *>(), "Constructor that takes a planner pointer")
-        .def(nb::init<>(), "Default constructor")
-
-        // Core functionality
-        .def("clear", &ompl::base::PlannerInputStates::clear, "Clear all input states")
-        .def("restart", &ompl::base::PlannerInputStates::restart,
-             "Start the iteration over input states from the beginning")
-        .def("update", &ompl::base::PlannerInputStates::update, "Update the set of input states")
-        .def("use", &ompl::base::PlannerInputStates::use, "Use the states from the specified problem definition")
-        .def("checkValidity", &ompl::base::PlannerInputStates::checkValidity, "Check if the input states are valid")
-
-        // State iteration
-        .def("nextStart", &ompl::base::PlannerInputStates::nextStart, "Get the next start state")
-        .def("nextGoal", nb::overload_cast<>(&ompl::base::PlannerInputStates::nextGoal), "Get the next goal state")
-        .def("nextGoal",
-             nb::overload_cast<const ompl::base::PlannerTerminationCondition &>(
-                 &ompl::base::PlannerInputStates::nextGoal),
-             "Get the next goal state with termination condition")
-
-        // State availability checks
-        .def("haveMoreStartStates", &ompl::base::PlannerInputStates::haveMoreStartStates,
-             "Check if there are more start states")
-        .def("haveMoreGoalStates", &ompl::base::PlannerInputStates::haveMoreGoalStates,
-             "Check if there are more goal states")
-
-        // State counting
-        .def("getSeenStartStatesCount", &ompl::base::PlannerInputStates::getSeenStartStatesCount,
-             "Get the number of start states seen so far")
-        .def("getSampledGoalsCount", &ompl::base::PlannerInputStates::getSampledGoalsCount,
-             "Get the number of sampled goal states");
 }
