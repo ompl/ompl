@@ -1,7 +1,7 @@
 install_python(PROGRAMS ompl_benchmark_statistics.py
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     COMPONENT ompl
-    RENAME ompl_benchmark_statistics.py)
+    RENAME ompl_benchmark_statistics)
 
 find_program(R_EXEC R)
 if (R_EXEC)
