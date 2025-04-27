@@ -6,4 +6,5 @@ namespace nb = nanobind;
 
 void ompl::binding::base::initSamplersInformed_RejectionInfSampler(nb::module_& m)
 {
+    // TODO [ob::RejectionInfSampler][IMPLEMENT]
 }

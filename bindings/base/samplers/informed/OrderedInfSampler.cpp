@@ -6,4 +6,5 @@ namespace nb = nanobind;
 
 void ompl::binding::base::initSamplersInformed_OrderedInfSampler(nb::module_& m)
 {
+    // TODO [ob::OrderedInfSampler][IMPLEMENT]
 }

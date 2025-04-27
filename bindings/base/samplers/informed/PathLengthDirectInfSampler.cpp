@@ -6,4 +6,5 @@ namespace nb = nanobind;
 
 void ompl::binding::base::initSamplersInformed_PathLengthDirectInfSampler(nb::module_& m)
 {
+    // TODO [ob::PathLengthDirectInfSampler][IMPLEMENT]
 }
