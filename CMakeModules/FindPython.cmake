@@ -179,7 +179,7 @@ endfunction(find_python_module)
 # one that matches the version number of the python interpreter that was
 # found).
 macro(find_boost_python)
-    if (PYTHON_EXEC)
+    if (PYTHON_FOUND)
         foreach(_bp_libname
             "python-py${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}"
             "python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}"
@@ -203,7 +203,7 @@ endmacro(find_boost_python)
 # one that matches the version number of the python interpreter that was
 # found).
 macro(find_boost_numpy)
-    if (PYTHON_EXEC)
+    if (PYTHON_FOUND)
         foreach(_bn_libname
             "numpy${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}"
             "numpy${PYTHON_VERSION_MAJOR}" "numpy")
