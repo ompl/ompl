@@ -1,14 +1,14 @@
-cmake_minimum_required(VERSION 3.15...3.27)
-project(ompl_bindings)
+# cmake_minimum_required(VERSION 3.15...3.27)
+# project(ompl_bindings)
 
-# ---------------------------------------------------------------------
-# 1) Find Python and add nanobind
-# ---------------------------------------------------------------------
-find_package(Python 3.8
-  REQUIRED COMPONENTS Interpreter Development
-  OPTIONAL_COMPONENTS Development.SABIModule
-)
-add_subdirectory(nanobind)
+# # ---------------------------------------------------------------------
+# # 1) Find Python and add nanobind
+# # ---------------------------------------------------------------------
+# find_package(Python 3.8
+#   REQUIRED COMPONENTS Interpreter Development
+#   OPTIONAL_COMPONENTS Development.SABIModule
+# )
+# add_subdirectory(nanobind)
 add_compile_options(-Wno-unused-parameter)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl)

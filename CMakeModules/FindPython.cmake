@@ -241,3 +241,34 @@ endmacro(install_python)
 
 find_package_handle_standard_args(Python DEFAULT_MSG
     PYTHON_LIBRARIES PYTHON_INCLUDE_DIRS PYTHON_SITE_MODULES)
+<<<<<<< HEAD
+=======
+
+# ------------------------------------------------------------------
+# Compatibility with CMake’s “modern” FindPython and external modules
+# (e.g. nanobind-config.cmake expects Python::Module + Python_EXECUTABLE)
+# ------------------------------------------------------------------
+if (PYTHON_FOUND)
+  # 1) Imported targets
+  if (NOT TARGET Python::Interpreter)
+    add_executable(Python::Interpreter IMPORTED)
+    set_target_properties(Python::Interpreter PROPERTIES
+      IMPORTED_LOCATION "${PYTHON_EXEC}"
+    )
+  endif()
+
+  if (NOT TARGET Python::Module)
+    add_library(Python::Module UNKNOWN IMPORTED)
+    set_target_properties(Python::Module PROPERTIES
+      IMPORTED_LOCATION             "${PYTHON_LIBRARIES}"
+      INTERFACE_INCLUDE_DIRECTORIES "${PYTHON_INCLUDE_DIRS}"
+    )
+  endif()
+
+  # 2) Legacy variable aliases for scripts / cmake snippets
+  #    that still use Python_EXECUTABLE, Python_INCLUDE_DIRS, etc.
+  set(Python_EXECUTABLE   "${PYTHON_EXEC}"        CACHE FILEPATH "Path to Python interpreter")
+  set(Python_LIBRARIES    "${PYTHON_LIBRARIES}"   CACHE STRING   "Python libraries")
+  set(Python_INCLUDE_DIRS "${PYTHON_INCLUDE_DIRS}" CACHE STRING   "Python include directories")
+endif()
+>>>>>>> 2e3efea6a (build nanobind bindings from top level CMake)

@@ -76,8 +76,19 @@ enable_testing()
 set_package_properties(Python PROPERTIES
     URL "https://www.python.org"
     PURPOSE "Used for python bindings.")
-find_package(Python QUIET)
+# find_package(Python QUIET)
+
+find_package(Python 3.8 REQUIRED COMPONENTS Interpreter Development OPTIONAL_COMPONENTS Development.SABIModule)
 find_boost_python()
+
+include(FetchContent)
+FetchContent_Declare(
+  nanobind
+  GIT_REPOSITORY https://github.com/wjakob/nanobind.git
+  GIT_TAG        v2.0.0
+)
+FetchContent_MakeAvailable(nanobind)
+
 
 if(PYTHON_FOUND)
     set_package_properties(pypy PROPERTIES
@@ -136,7 +147,8 @@ endif()
 find_program(R_EXEC R)
 
 add_subdirectory(src)
-add_subdirectory(py-bindings)
+# add_subdirectory(py-bindings)
+add_subdirectory(bindings)
 add_subdirectory(tests)
 add_subdirectory(demos)
 add_subdirectory(scripts)
@@ -225,9 +237,9 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/ament_index/resource_index/packa
 set_package_properties(PkgConfig PROPERTIES
     URL "https://www.freedesktop.org/wiki/Software/pkg-config/"
     PURPOSE "Used to find (compilation flags for) dependencies.")
-set_package_properties(castxml PROPERTIES
-    URL "https://github.com/CastXML/CastXML"
-    PURPOSE "Used to generate Python bindings.")
+# set_package_properties(castxml PROPERTIES
+#     URL "https://github.com/CastXML/CastXML"
+#     PURPOSE "Used to generate Python bindings.")
 feature_summary(DESCRIPTION INCLUDE_QUIET_PACKAGES WHAT ALL)
 # additional feature info: show which Python modules were found and weren't found
 get_property(PY_MODULES_FOUND GLOBAL PROPERTY PY_MODULES_FOUND)
