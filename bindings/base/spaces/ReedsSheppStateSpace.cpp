@@ -8,19 +8,11 @@ namespace nb  = nanobind;
 namespace ob  = ompl::base;
 
 void ompl::binding::base::initSpaces_ReedsSheppStateSpace(nb::module_& m) {
-    //
-    // Bind the inner ReedsSheppPath class
-    //
+    // TODO [ob::ReedsSheppStateSpace][IMPLEMENT]
     nb::class_<ob::ReedsSheppStateSpace::ReedsSheppPath>(m, "ReedsSheppPath");
-
-    //
-    // Bind the ReedsSheppStateSpace itself
-    //
+    // TODO [ob::ReedsSheppStateSpace::ReedsSheppPath][IMPLEMENT]
     nb::class_<ob::ReedsSheppStateSpace, ob::SE2StateSpace>(m, "ReedsSheppStateSpace");
-
-    //
-    // Bind the associated motion validator
-    //
+    // TODO [ob::ReedsSheppStateSpace][IMPLEMENT]
     nb::class_<ob::ReedsSheppMotionValidator, ob::MotionValidator>(m, "ReedsSheppMotionValidator");
 
 }
