@@ -61,9 +61,3 @@ else (MSVC)
     endif (MINGW)
     set_target_properties(ompl PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${OMPL_ABI_VERSION}")
 endif (MSVC)
-
-if (NOT MSVC)
-    add_custom_command(TARGET ompl POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:ompl>"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../py-bindings/ompl/util/libompl${CMAKE_SHARED_LIBRARY_SUFFIX}")
-endif (NOT MSVC)

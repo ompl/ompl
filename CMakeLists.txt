@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.12)
-project(ompl VERSION 1.7.0 LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.17)
+project(ompl VERSION 1.8.0 LANGUAGES CXX)
 set(OMPL_ABI_VERSION 18)
 
 # Use the FindBoost provided by CMake, rather than the one provided by Boost
@@ -29,10 +29,18 @@ include(FeatureSummary)
 include(CompilerSettings)
 include(OMPLUtils)
 
+set_package_properties(Python PROPERTIES
+    URL "https://www.python.org"
+    PURPOSE "Used for python bindings.")
+set(Python_FIND_STRATEGY VERSION)
+find_package(Python 3.8 COMPONENTS Interpreter Development)
+
 set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
     CACHE FILEPATH "Path to directory with auxiliary CMake scripts for OMPL")
 set(OMPL_DEMO_INSTALL_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ompl/demos"
     CACHE STRING "Relative path to directory where demos will be installed")
+set(OMPL_PYTHON_INSTALL_DIR "${Python_SITELIB}"
+    CACHE FILEPATH "Path to directory where the OMPL Python bindings will be installed")
 
 if(MSVC)
     add_definitions(-DBOOST_ALL_NO_LIB)
@@ -49,52 +57,18 @@ set_package_properties(Boost PROPERTIES
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost 1.68 REQUIRED COMPONENTS serialization filesystem system program_options)
 
-# on macOS we need to check whether to use libc++ or libstdc++ with clang++
-if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
-    include(GetPrerequisites)
-    get_prerequisites("${Boost_SYSTEM_LIBRARY}" _libs 0 0 "/" "")
-    set(CXXSTDLIB "")
-    foreach(_lib ${_libs})
-        if(_lib MATCHES "libc\\+\\+")
-            set(CXXSTDLIB "libc++")
-        elseif(_lib MATCHES "libstdc\\+\\+")
-            set(CXXSTDLIB "libstdc++")
-        endif()
-    endforeach()
-    if(CXXSTDLIB)
-        add_definitions(-stdlib=${CXXSTDLIB})
-    endif()
-endif()
-
-set_package_properties(Threads PROPERTIES
-    URL "https://en.wikipedia.org/wiki/POSIX_Threads"
-    PURPOSE "Pthreads is sometimes needed, depending on OS / compiler.")
-find_package(Threads QUIET)
-
 enable_testing()
 
-set_package_properties(Python PROPERTIES
-    URL "https://www.python.org"
-    PURPOSE "Used for python bindings.")
-# find_package(Python QUIET)
 
-find_package(Python 3.8 REQUIRED COMPONENTS Interpreter Development OPTIONAL_COMPONENTS Development.SABIModule)
-# find_boost_python()
-
-include(FetchContent)
-FetchContent_Declare(
-  nanobind
-  GIT_REPOSITORY https://github.com/wjakob/nanobind.git
-  GIT_TAG        v2.7.0
-)
-FetchContent_MakeAvailable(nanobind)
-
-
-if(PYTHON_FOUND)
-    set_package_properties(pypy PROPERTIES
-        URL "https://pypy.org"
-        PURPOSE "Used to speed up the generation of python bindings.")
-    find_package(pypy QUIET)
+if(TARGET Python::Module)
+    include(FetchContent)
+    FetchContent_Declare(
+        nanobind
+        GIT_REPOSITORY https://github.com/wjakob/nanobind.git
+        GIT_TAG        v2.7.0
+        GIT_SHALLOW    ON
+    )
+    FetchContent_MakeAvailable(nanobind)
 endif()
 
 set_package_properties(Eigen3 PROPERTIES
@@ -131,41 +105,14 @@ set_package_properties(Doxygen PROPERTIES
     PURPOSE "Used to create the OMPL documentation (i.e., https://ompl.kavrakilab.org).")
 find_package(Doxygen)
 
-# Numpy is used to convert Eigen matrices/vectors to numpy arrays
-# if(PYTHON_FOUND)
-    # find_python_module(numpy)
-    # if (PY_NUMPY)
-        # find_boost_numpy()
-        # if(Boost_NUMPY_LIBRARY)
-            # set(OMPL_HAVE_NUMPY 1)
-            # include_directories(SYSTEM "${PY_NUMPY}/core/include")
-        # endif()
-    # endif()
-# endif()
-
-# R is needed for running Planner Arena locally
-find_program(R_EXEC R)
-
 add_subdirectory(src)
-# add_subdirectory(py-bindings)
-add_subdirectory(bindings)
+if(TARGET Python::Module)
+    add_subdirectory(bindings)
+endif()
 add_subdirectory(tests)
 add_subdirectory(demos)
 add_subdirectory(scripts)
 add_subdirectory(doc)
-
-if(NOT MSVC)
-    target_link_flags(ompl)
-    set(PKG_NAME "ompl")
-    set(PKG_DESC "The Open Motion Planning Library")
-    set(PKG_EXTERNAL_DEPS "Eigen3::Eigen ${ompl_PKG_DEPS}")
-    set(PKG_OMPL_LIBS "-lompl ${ompl_LINK_FLAGS}")
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc.in"
-                   "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc" @ONLY)
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc"
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
-        COMPONENT ompl)
-endif()
 
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 include(CMakePackageConfigHelpers)
@@ -217,8 +164,7 @@ if (OMPL_REGISTRATION)
     find_file(OMPL_REGISTERED ".registered" PATHS "${CMAKE_CURRENT_SOURCE_DIR}" NO_DEFAULT_PATH)
     if (NOT OMPL_REGISTERED)
         file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/.registered" "")
-        find_package(Python QUIET)
-        if (PYTHON_FOUND)
+        if (TARGET Python::Module)
             execute_process(COMMAND ${CMAKE_COMMAND} -E env
                TERM="" "${PYTHON_EXEC}" "-m" "webbrowser" "https://ompl.kavrakilab.org/core/register.html"
                 OUTPUT_QUIET ERROR_QUIET)
@@ -234,28 +180,8 @@ install(FILES package.xml
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/share/ament_index/resource_index/packages/${PROJECT_NAME} "")
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/ament_index/resource_index/packages/${PROJECT_NAME} DESTINATION share/ament_index/resource_index/packages)
 
-set_package_properties(PkgConfig PROPERTIES
-    URL "https://www.freedesktop.org/wiki/Software/pkg-config/"
-    PURPOSE "Used to find (compilation flags for) dependencies.")
-# set_package_properties(castxml PROPERTIES
-#     URL "https://github.com/CastXML/CastXML"
-#     PURPOSE "Used to generate Python bindings.")
 feature_summary(DESCRIPTION INCLUDE_QUIET_PACKAGES WHAT ALL)
-# additional feature info: show which Python modules were found and weren't found
-get_property(PY_MODULES_FOUND GLOBAL PROPERTY PY_MODULES_FOUND)
-if(PY_MODULES_FOUND)
-    list(REMOVE_DUPLICATES PY_MODULES_FOUND)
-    string(REPLACE ";" " " PY_MODULES_FOUND_STR "${PY_MODULES_FOUND}")
-    message(STATUS "The following Python modules were found:\n\n * ${PY_MODULES_FOUND_STR}\n")
-endif()
-get_property(PY_MODULES_NOTFOUND GLOBAL PROPERTY PY_MODULES_NOTFOUND)
-if(PY_MODULES_NOTFOUND)
-    list(REMOVE_DUPLICATES PY_MODULES_NOTFOUND)
-    string(REPLACE ";" " " PY_MODULES_NOTFOUND_STR "${PY_MODULES_NOTFOUND}")
-    message(STATUS "The following Python modules were NOT found:\n\n * ${PY_MODULES_NOTFOUND_STR}\n")
-endif()
 
 # Create targets for building docker images
 # See CMakeModules/OMPLUtils.cmake and scripts/docker for details
 add_docker_target(ompl)
-add_docker_target(plannerarena scripts)
