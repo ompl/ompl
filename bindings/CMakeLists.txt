@@ -13,6 +13,7 @@ set_target_properties(_ompl PROPERTIES
 target_link_libraries(_ompl PRIVATE ompl::ompl)
 target_compile_options(_ompl PRIVATE -Wno-unused-parameter)
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl)
 file(COPY_FILE __init__.py ${CMAKE_CURRENT_BINARY_DIR}/ompl/__init__.py ONLY_IF_DIFFERENT)
 
 # ---------------------------------------------------------------------
