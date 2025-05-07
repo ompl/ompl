@@ -25,9 +25,6 @@ requires = [
     "setuptools>=42",
     "cmake>=3.18",
     "ninja",
-    "pygccxml",
-    "numpy",
-    "pyplusplus",
 ]
 build-backend = "setuptools.build_meta"
 

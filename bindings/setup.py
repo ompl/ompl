@@ -50,7 +50,6 @@ class CMakeBuild(build_ext):
         # EXAMPLE_VERSION_INFO shows you how to pass a value into the C++ code
         # from Python.
         cmake_args = [
-            f"-DCMAKE_CXX_COMPILER={shutil.which('clang++')}",  # Force Clang for castxml
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
             f"-DPYTHON_EXEC={sys.executable}",
             f"-DPYTHON_INCLUDE_DIRS={get_paths()['include']}",
@@ -131,21 +130,9 @@ class CMakeBuild(build_ext):
         subprocess.run(
             ["cmake", ext.sourcedir, *cmake_args], cwd=build_temp, check=True
         )
-        subprocess.run(["ninja", "update_bindings"], cwd=build_temp, check=True)
         subprocess.run(
             ["cmake", "--build", ".", *build_args], cwd=build_temp, check=True
         )
-
-        # Shared library files like (for ex.) _util.so must reside as (for ex.)
-        # ompl/util/_util.so or else they are placed incorrectly in the final
-        # wheel.
-        for f in ["base", "control", "geometric", "tools", "util"]:
-            subprocess.run(
-                [f"cp {extdir}/_{f}.so {extdir}/ompl/{f}/"],
-                cwd=build_temp,
-                check=True,
-                shell=True,
-            )
 
 top_level_dir = Path(__file__).parent.parent
 long_description = (top_level_dir / "README.md").read_text()
@@ -154,14 +141,7 @@ version = re.search("^project\\(ompl VERSION ([0-9.]+)",
 setup(
     ext_modules=[CMakeExtension("ompl", sourcedir="..")],
     cmdclass={"build_ext": CMakeBuild},
-    packages=[
-        "ompl",
-        "ompl.base",
-        "ompl.control",
-        "ompl.geometric",
-        "ompl.tools",
-        "ompl.util",
-    ],
+    packages=["ompl"],
     long_description=long_description,
     long_description_content_type='text/markdown',
     package_dir={"ompl": "./ompl"},
