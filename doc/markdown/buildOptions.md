@@ -5,9 +5,9 @@ If you are building OMPL from source, there are several options that you can use
 | Option                        | Default value | Description |
 |-------------------------------|---------------|-----------------------------------------------------------------|
 | OMPL_BUILD_DEMOS              | ON            | Compile the OMPL demo programs. (The binaries are never installed.) |
-| OMPL_BUILD_PYBINDINGS         | ON            | Whether to compile the Python bindings (requires Py++). |
+| OMPL_BUILD_PYBINDINGS         | ON            | Whether to compile the Python bindings. |
 | OMPL_BUILD_PYTESTS            | ON            | Whether the Python tests should be added to the `test` target. |
-| OMPL_BUILD_TESTS              | ON            | Wether to compile the C++ unit tests |
+| OMPL_BUILD_TESTS              | ON            | Whether to compile the C++ unit tests |
 | OMPL_REGISTRATION             | ON            | Whether the registration page is shown. (Disabling it might be useful for build bots.) |
 | OMPL_VERSIONED_INSTALL        | ON            | Install header files in include/ompl-X.Y/ompl, where X and Y are the major and minor version numbers. |
 

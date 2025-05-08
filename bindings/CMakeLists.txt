@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------
 # Create a single python module named _ompl
 # ---------------------------------------------------------------------
-file(GLOB_RECURSE PY_OMPL_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
+file(GLOB_RECURSE PY_OMPL_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} base/*.cpp control/*.cpp geometric/*.cpp util/*.cpp python.cpp)
 nanobind_add_module(_ompl
     STABLE_ABI
     ${PY_OMPL_SOURCES}
@@ -13,8 +13,7 @@ set_target_properties(_ompl PROPERTIES
 target_link_libraries(_ompl PRIVATE ompl::ompl)
 target_compile_options(_ompl PRIVATE -Wno-unused-parameter)
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl)
-file(COPY_FILE __init__.py ${CMAKE_CURRENT_BINARY_DIR}/ompl/__init__.py ONLY_IF_DIFFERENT)
+file(COPY ompl DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ompl)
 
 # ---------------------------------------------------------------------
 # Generate type stubs for the single module
