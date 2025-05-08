@@ -4,8 +4,6 @@ import os
 import re
 import subprocess
 import sys
-import site
-import shutil
 from pathlib import Path
 from sysconfig import get_paths
 
@@ -51,7 +49,7 @@ class CMakeBuild(build_ext):
         # from Python.
         cmake_args = [
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
-            f"-DPYTHON_EXEC={sys.executable}",
+            f"-DPYTHON_EXECUTABLE={sys.executable}",
             f"-DPYTHON_INCLUDE_DIRS={get_paths()['include']}",
             f"-DPYTHON_LIBRARIES={get_paths()['stdlib']}",
             f"-DCMAKE_BUILD_TYPE={cfg}",  # not used on MSVC, but no harm
@@ -126,7 +124,6 @@ class CMakeBuild(build_ext):
         build_temp = Path(self.build_temp) / ext.name
         if not build_temp.exists():
             build_temp.mkdir(parents=True)
-
         subprocess.run(
             ["cmake", ext.sourcedir, *cmake_args], cwd=build_temp, check=True
         )
