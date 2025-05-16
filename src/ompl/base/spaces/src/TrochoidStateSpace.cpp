@@ -150,7 +150,7 @@ namespace
         double p = sqrt( (xtB-xtA)*(xtB-xtA) + (ytB-ytA)*(ytB-ytA) )/sqrt(xtBdot*xtBdot + ytBdot*ytBdot);
         double T = tA + p + (t2pi - tB);
 
-        // // check if the candidate satisfies the desired final (x,y) position 
+        // check if the candidate satisfies the desired final (x,y) position 
         // double xFinal, yFinal, hFinalRad;
         double tBeta = tA + p;
         double endpoint_x, endpoint_y, endoint_phi;
@@ -374,7 +374,7 @@ namespace
     }
 
     void fixedpointBBB(double p0, double p1, double delta_1, double k, double xt10, double yt10, double phit1, double xf, double yf, double phif, double radius, double wind_ratio, std::vector<double> &pvecOut) {
-        ///TODO: Implement TrochoidBBB
+        // Implement TrochoidBBB
         pvecOut.resize(2);
         double tol = 0.0001;
         int N = 50;
@@ -533,8 +533,8 @@ namespace
 
     TrochoidStateSpace::TrochoidPath trochoid(const double x0, const double y0, const double phi0, const double xf, const double yf, const double phif, double radius, double wind_ratio, bool periodic)
     {
-        // if (d < TROCHOID_EPS && fabs(alpha - beta) < TROCHOID_EPS)
-            // return {TrochoidStateSpace::dubinsPathType[0], 0, d, 0};
+        if (fabs(x0 - xf) < TROCHOID_EPS && fabs(y0 - yf) < TROCHOID_EPS && fabs(phi0 - phif) < TROCHOID_EPS && !periodic)
+            return {TrochoidStateSpace::dubinsPathType[0], 0.0, 0.0};
 
         TrochoidStateSpace::TrochoidPath path(trochoidLSL(x0, y0, phi0, xf, yf, phif, radius, wind_ratio, periodic)), tmp(trochoidRSR(x0, y0, phi0, xf, yf, phif, radius, wind_ratio, periodic));
         double len, minLength = path.length();

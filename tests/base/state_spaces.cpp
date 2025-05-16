@@ -50,6 +50,7 @@
 #include "ompl/base/spaces/DiscreteStateSpace.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
+#include "ompl/base/spaces/TrochoidStateSpace.h"
 
 #include "ompl/base/spaces/OwenStateSpace.h"
 #include "ompl/base/spaces/VanaStateSpace.h"
@@ -92,6 +93,19 @@ BOOST_AUTO_TEST_CASE(Dubins_Simple)
 BOOST_AUTO_TEST_CASE(ReedsShepp_Simple)
 {
     auto d(std::make_shared<base::ReedsSheppStateSpace>());
+
+    base::RealVectorBounds bounds2(2);
+    bounds2.setLow(-3);
+    bounds2.setHigh(3);
+    d->setBounds(bounds2);
+
+    d->setup();
+    d->sanityChecks();
+}
+
+BOOST_AUTO_TEST_CASE(Trochoid_Simple)
+{
+    auto d(std::make_shared<base::TrochoidStateSpace>());
 
     base::RealVectorBounds bounds2(2);
     bounds2.setLow(-3);
