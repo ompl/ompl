@@ -46,6 +46,7 @@
 #include "ompl/base/spaces/VanaOwenStateSpace.h"
 #include "ompl/base/spaces/Dubins3DMotionValidator.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
+#include "ompl/base/spaces/TrochoidStateSpace.h"
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/util/Exception.h"
@@ -122,6 +123,8 @@ void ompl::base::SpaceInformation::setDefaultMotionValidator()
         motionValidator_ = std::make_shared<Dubins3DMotionValidator<VanaStateSpace>>(this);
     else if (dynamic_cast<VanaOwenStateSpace *>(stateSpace_.get()))
         motionValidator_ = std::make_shared<Dubins3DMotionValidator<VanaOwenStateSpace>>(this);
+    else if (dynamic_cast<TrochoidStateSpace *>(stateSpace_.get()))
+        motionValidator_ = std::make_shared<TrochoidMotionValidator>(this);
     else if (dynamic_cast<ConstrainedStateSpace *>(stateSpace_.get()))
         motionValidator_ = std::make_shared<ConstrainedMotionValidator>(this);
     else
