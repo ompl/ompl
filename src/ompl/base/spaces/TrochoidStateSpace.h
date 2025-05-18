@@ -40,6 +40,7 @@
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/MotionValidator.h"
 #include <boost/math/constants/constants.hpp>
+#include <optional>
 
 namespace ompl
 {
@@ -69,10 +70,10 @@ namespace ompl
             /** \brief Dubins path types */
             static const TrochoidPathSegmentType dubinsPathType[6][3];
             /** \brief Complete description of a Dubins path */
-            class TrochoidPath
+            class PathType
             {
             public:
-                TrochoidPath(const TrochoidPathSegmentType *type = dubinsPathType[0], double tA = 0.,
+                PathType(const TrochoidPathSegmentType *type = dubinsPathType[0], double tA = 0.,
                            double p = std::numeric_limits<double>::max(), double tB = 0., double t_2pi = 0.)
                   : type_(type)
                 {
@@ -89,7 +90,7 @@ namespace ompl
                     return length_[0] + length_[1] + length_[2];
                 }
 
-                friend std::ostream& operator<<(std::ostream& os, const TrochoidPath& path);
+                friend std::ostream& operator<<(std::ostream& os, const PathType& path);
                 /** Path segment types */
                 const TrochoidPathSegmentType *type_;
                 /** Path segment lengths */
@@ -117,8 +118,8 @@ namespace ompl
 
             void interpolate(const State *from, const State *to, double t, State *state) const override;
             virtual void interpolate(const State *from, const State *to, double t, bool &firstTime,
-                                     TrochoidPath &path, State *state) const;
-            virtual void interpolate(const State *from, const TrochoidPath &path, double t, State *state, double radius, double wind_ratio, double wind_heading) const;
+                                     PathType &path, State *state) const;
+            virtual void interpolate(const State *from, const PathType &path, double t, State *state, double radius, double wind_ratio, double wind_heading) const;
 
             bool hasSymmetricDistance() const override
             {
@@ -143,9 +144,9 @@ namespace ompl
             }
 
             /** \brief Return a shortest Dubins path from SE(2) state state1 to SE(2) state state2 */
-            TrochoidPath trochoid(const State *state1, const State *state2, bool periodic=false) const;
+            PathType getPath(const State *state1, const State *state2, bool periodic=false) const;
             /** \brief Return a shortest Dubins path for a vehicle with given turning radius */
-            static TrochoidPath trochoid(const State *state1, const State *state2, double radius, double wind_ratio, double wind_heading, bool periodic=false);
+            static PathType getPath(const State *state1, const State *state2, double radius, double wind_ratio, double wind_heading, bool periodic=false);
 
         protected:
             /** \brief Turning radius */

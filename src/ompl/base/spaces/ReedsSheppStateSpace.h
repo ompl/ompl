@@ -40,6 +40,7 @@
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/MotionValidator.h"
 #include <boost/math/constants/constants.hpp>
+#include <optional>
 
 namespace ompl
 {
@@ -74,10 +75,10 @@ namespace ompl
             /** \brief Reeds-Shepp path types */
             static const ReedsSheppPathSegmentType reedsSheppPathType[18][5];
             /** \brief Complete description of a ReedsShepp path */
-            class ReedsSheppPath
+            class PathType
             {
             public:
-                ReedsSheppPath(const ReedsSheppPathSegmentType *type = reedsSheppPathType[0],
+                PathType(const ReedsSheppPathSegmentType *type = reedsSheppPathType[0],
                                double t = std::numeric_limits<double>::max(), double u = 0., double v = 0.,
                                double w = 0., double x = 0.);
                 double length() const
@@ -108,7 +109,7 @@ namespace ompl
 
             void interpolate(const State *from, const State *to, double t, State *state) const override;
             virtual void interpolate(const State *from, const State *to, double t, bool &firstTime,
-                                     ReedsSheppPath &path, State *state) const;
+                                     PathType &path, State *state) const;
 
             void sanityChecks() const override
             {
@@ -118,39 +119,13 @@ namespace ompl
             }
 
             /** \brief Return a shortest Reeds-Shepp path from SE(2) state state1 to SE(2) state state2 */
-            ReedsSheppPath reedsShepp(const State *state1, const State *state2) const;
+            PathType getPath(const State *state1, const State *state2) const;
 
         protected:
-            virtual void interpolate(const State *from, const ReedsSheppPath &path, double t, State *state) const;
+            virtual void interpolate(const State *from, const PathType &path, double t, State *state) const;
 
             /** \brief Turning radius */
             double rho_;
-        };
-
-        /** \brief A Reeds-Shepp motion validator that only uses the state validity checker.
-            Motions are checked for validity at a specified resolution.
-
-            This motion validator is almost identical to the DiscreteMotionValidator
-            except that it remembers the optimal ReedsSheppPath between different calls to
-            interpolate. */
-        class ReedsSheppMotionValidator : public MotionValidator
-        {
-        public:
-            ReedsSheppMotionValidator(SpaceInformation *si) : MotionValidator(si)
-            {
-                defaultSettings();
-            }
-            ReedsSheppMotionValidator(const SpaceInformationPtr &si) : MotionValidator(si)
-            {
-                defaultSettings();
-            }
-            ~ReedsSheppMotionValidator() override = default;
-            bool checkMotion(const State *s1, const State *s2) const override;
-            bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
-
-        private:
-            ReedsSheppStateSpace *stateSpace_;
-            void defaultSettings();
         };
     }
 }

@@ -130,13 +130,13 @@ bool VanaStateSpace::decoupled(const State *state1, const State *state2, double 
 
     result.horizontalRadius_ = radius;
     // note that we are exploiting properties of the memory layout of state types
-    result.pathXY_ = dubinsSpace_.dubins(state1, state2, radius);
+    result.pathXY_ = dubinsSpace_.getPath(state1, state2, radius);
 
     result.startSZ_->setXY(0., (*s1)[2]);
     result.startSZ_->setYaw(s1->pitch());
     endSZ->setXY(radius * result.pathXY_.length(), (*s2)[2]);
     endSZ->setYaw(s2->pitch());
-    result.pathSZ_ = dubinsSpace_.dubins(result.startSZ_, endSZ, result.verticalRadius_);
+    result.pathSZ_ = dubinsSpace_.getPath(result.startSZ_, endSZ, result.verticalRadius_);
 
     // in three cases the result is invalid:
     // 1. path of type CCC (i.e., RLR or LRL)
