@@ -74,8 +74,8 @@ namespace ompl::base
             double horizontalRadius_{1.};
             double verticalRadius_{1.};
 
-            DubinsStateSpace::DubinsPath pathXY_;
-            DubinsStateSpace::DubinsPath pathSZ_;
+            DubinsStateSpace::PathType pathXY_;
+            DubinsStateSpace::PathType pathSZ_;
             DubinsStateSpace::StateType *startSZ_{nullptr};
         };
 
