@@ -247,7 +247,7 @@ namespace
         return p_lsl(d, alpha, beta) - p_lsr(d, alpha, beta) - 2.0 * (q_lsr(d, alpha, beta) - onepi);
     }
 
-    DubinsStateSpace::DubinsPath dubinsLSL(double d, double alpha, double beta)
+    DubinsStateSpace::PathType dubinsLSL(double d, double alpha, double beta)
     {
         double ca = cos(alpha), sa = sin(alpha), cb = cos(beta), sb = sin(beta);
         double tmp = 2. + d * d - 2. * (ca * cb + sa * sb - d * (sa - sb));
@@ -260,12 +260,12 @@ namespace
             assert(fabs(p * cos(alpha + t) - sa + sb - d) < (1 + p) * DUBINS_EPS);
             assert(fabs(p * sin(alpha + t) + ca - cb) < (1 + p) * DUBINS_EPS);
             assert(mod2pi(alpha + t + q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
-            return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType()[0], t, p, q);
+            return DubinsStateSpace::PathType(DubinsStateSpace::dubinsPathType()[0], t, p, q);
         }
         return {};
     }
 
-    DubinsStateSpace::DubinsPath dubinsRSR(double d, double alpha, double beta)
+    DubinsStateSpace::PathType dubinsRSR(double d, double alpha, double beta)
     {
         double ca = cos(alpha), sa = sin(alpha), cb = cos(beta), sb = sin(beta);
         double tmp = 2. + d * d - 2. * (ca * cb + sa * sb - d * (sb - sa));
@@ -278,12 +278,12 @@ namespace
             assert(fabs(p * cos(alpha - t) + sa - sb - d) < (1 + p) * DUBINS_EPS);
             assert(fabs(p * sin(alpha - t) - ca + cb) < (1 + p) * DUBINS_EPS);
             assert(mod2pi(alpha - t - q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
-            return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType()[1], t, p, q);
+            return DubinsStateSpace::PathType(DubinsStateSpace::dubinsPathType()[1], t, p, q);
         }
         return {};
     }
 
-    DubinsStateSpace::DubinsPath dubinsRSL(double d, double alpha, double beta)
+    DubinsStateSpace::PathType dubinsRSL(double d, double alpha, double beta)
     {
         double ca = cos(alpha), sa = sin(alpha), cb = cos(beta), sb = sin(beta);
         double tmp = d * d - 2. + 2. * (ca * cb + sa * sb - d * (sa + sb));
@@ -296,12 +296,12 @@ namespace
             assert(fabs(p * cos(alpha - t) - 2. * sin(alpha - t) + sa + sb - d) < 2 * DUBINS_EPS);
             assert(fabs(p * sin(alpha - t) + 2. * cos(alpha - t) - ca - cb) < 2 * DUBINS_EPS);
             assert(mod2pi(alpha - t + q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
-            return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType()[2], t, p, q);
+            return DubinsStateSpace::PathType(DubinsStateSpace::dubinsPathType()[2], t, p, q);
         }
         return {};
     }
 
-    DubinsStateSpace::DubinsPath dubinsLSR(double d, double alpha, double beta)
+    DubinsStateSpace::PathType dubinsLSR(double d, double alpha, double beta)
     {
         double ca = cos(alpha), sa = sin(alpha), cb = cos(beta), sb = sin(beta);
         double tmp = -2. + d * d + 2. * (ca * cb + sa * sb + d * (sa + sb));
@@ -314,12 +314,12 @@ namespace
             assert(fabs(p * cos(alpha + t) + 2. * sin(alpha + t) - sa - sb - d) < 2 * DUBINS_EPS);
             assert(fabs(p * sin(alpha + t) - 2. * cos(alpha + t) + ca + cb) < 2 * DUBINS_EPS);
             assert(mod2pi(alpha + t - q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
-            return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType()[3], t, p, q);
+            return DubinsStateSpace::PathType(DubinsStateSpace::dubinsPathType()[3], t, p, q);
         }
         return {};
     }
 
-    DubinsStateSpace::DubinsPath dubinsRLR(double d, double alpha, double beta)
+    DubinsStateSpace::PathType dubinsRLR(double d, double alpha, double beta)
     {
         double ca = cos(alpha), sa = sin(alpha), cb = cos(beta), sb = sin(beta);
         double tmp = .125 * (6. - d * d + 2. * (ca * cb + sa * sb + d * (sa - sb)));
@@ -332,12 +332,12 @@ namespace
             assert(fabs(2. * sin(alpha - t + p) - 2. * sin(alpha - t) - d + sa - sb) < 2 * DUBINS_EPS);
             assert(fabs(-2. * cos(alpha - t + p) + 2. * cos(alpha - t) - ca + cb) < 2 * DUBINS_EPS);
             assert(mod2pi(alpha - t + p - q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
-            return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType()[4], t, p, q);
+            return DubinsStateSpace::PathType(DubinsStateSpace::dubinsPathType()[4], t, p, q);
         }
         return {};
     }
 
-    DubinsStateSpace::DubinsPath dubinsLRL(double d, double alpha, double beta)
+    DubinsStateSpace::PathType dubinsLRL(double d, double alpha, double beta)
     {
         double ca = cos(alpha), sa = sin(alpha), cb = cos(beta), sb = sin(beta);
         double tmp = .125 * (6. - d * d + 2. * (ca * cb + sa * sb - d * (sa - sb)));
@@ -350,7 +350,7 @@ namespace
             assert(fabs(-2. * sin(alpha + t - p) + 2. * sin(alpha + t) - d - sa + sb) < 2 * DUBINS_EPS);
             assert(fabs(2. * cos(alpha + t - p) - 2. * cos(alpha + t) + ca - cb) < 2 * DUBINS_EPS);
             assert(mod2pi(alpha + t - p + q - beta + .5 * DUBINS_EPS) < DUBINS_EPS);
-            return DubinsStateSpace::DubinsPath(DubinsStateSpace::dubinsPathType()[5], t, p, q);
+            return DubinsStateSpace::PathType(DubinsStateSpace::dubinsPathType()[5], t, p, q);
         }
         return {};
     }
@@ -361,12 +361,12 @@ namespace
                 std::sqrt(4 - std::pow(std::cos(alpha) + std::cos(beta), 2)) - d) < 0;
     }
 
-    DubinsStateSpace::DubinsPath dubinsExhaustive(const double d, const double alpha, const double beta)
+    DubinsStateSpace::PathType dubinsExhaustive(const double d, const double alpha, const double beta)
     {
         if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
             return {DubinsStateSpace::dubinsPathType()[0], 0, d, 0};
 
-        DubinsStateSpace::DubinsPath path(dubinsLSL(d, alpha, beta)), tmp(dubinsRSR(d, alpha, beta));
+        DubinsStateSpace::PathType path(dubinsLSL(d, alpha, beta)), tmp(dubinsRSR(d, alpha, beta));
         double len, minLength = path.length();
 
         if ((len = tmp.length()) < minLength)
@@ -444,7 +444,7 @@ namespace
         return (DubinsClass)((column - 1) + 4 * (row - 1));
     }
 
-    DubinsStateSpace::DubinsPath dubinsClassification(const double d, const double alpha, const double beta)
+    DubinsStateSpace::PathType dubinsClassification(const double d, const double alpha, const double beta)
     {
         if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
             return {DubinsStateSpace::dubinsPathType()[0], 0, d, 0};
@@ -454,7 +454,7 @@ namespace
         // Lim, Jaeyoung, et al. "Circling Back: Dubins set Classification Revisited."
         //   Workshop on Energy Efficient Aerial Robotic Systems, International Conference on Robotics and Automation
         //   2023.
-        DubinsStateSpace::DubinsPath path;
+        DubinsStateSpace::PathType path;
         auto dubins_class = getDubinsClass(alpha, beta);
         switch (dubins_class)
         {
@@ -472,7 +472,7 @@ namespace
                 else
                 {
                     path = dubinsLSR(d, alpha, beta);
-                    DubinsStateSpace::DubinsPath tmp = dubinsRSL(d, alpha, beta);
+                    DubinsStateSpace::PathType tmp = dubinsRSL(d, alpha, beta);
                     if (path.length() > tmp.length())
                     {
                         path = tmp;
@@ -524,7 +524,7 @@ namespace
                 else
                 {
                     path = dubinsLSR(d, alpha, beta);
-                    DubinsStateSpace::DubinsPath tmp = dubinsRSL(d, alpha, beta);
+                    DubinsStateSpace::PathType tmp = dubinsRSL(d, alpha, beta);
                     if (path.length() > tmp.length())
                     {
                         path = tmp;
@@ -620,7 +620,7 @@ namespace
                 else
                 {
                     path = dubinsLSR(d, alpha, beta);
-                    DubinsStateSpace::DubinsPath tmp = dubinsRSL(d, alpha, beta);
+                    DubinsStateSpace::PathType tmp = dubinsRSL(d, alpha, beta);
                     if (path.length() > tmp.length())
                     {
                         path = tmp;
@@ -672,7 +672,7 @@ namespace
                 else
                 {
                     path = dubinsLSR(d, alpha, beta);
-                    DubinsStateSpace::DubinsPath tmp = dubinsRSL(d, alpha, beta);
+                    DubinsStateSpace::PathType tmp = dubinsRSL(d, alpha, beta);
                     if (path.length() > tmp.length())
                     {
                         path = tmp;
@@ -693,7 +693,7 @@ namespace
 
 namespace ompl::base
 {
-    std::ostream &operator<<(std::ostream &os, const DubinsStateSpace::DubinsPath &path)
+    std::ostream &operator<<(std::ostream &os, const DubinsStateSpace::PathType &path)
     {
         os << "DubinsPath[ type=";
         for (unsigned i = 0; i < 3; ++i)
@@ -709,7 +709,7 @@ namespace ompl::base
     }
 }  // namespace ompl::base
 
-DubinsStateSpace::DubinsPath dubins(double d, double alpha, double beta)
+DubinsStateSpace::PathType getPath(double d, double alpha, double beta)
 {
     if (d < DUBINS_EPS && fabs(alpha - beta) < DUBINS_EPS)
         return {DubinsStateSpace::dubinsPathType()[0], 0, d, 0};
@@ -739,22 +739,22 @@ double DubinsStateSpace::distance(const State *state1, const State *state2) cons
 }
 double DubinsStateSpace::distance(const State *state1, const State *state2, double radius)
 {
-    return radius * dubins(state1, state2, radius).length();
+    return radius * getPath(state1, state2, radius).length();
 }
 double DubinsStateSpace::symmetricDistance(const State *state1, const State *state2, double radius)
 {
-    return radius * std::min(dubins(state1, state2, radius).length(), dubins(state2, state1, radius).length());
+    return radius * std::min(getPath(state1, state2, radius).length(), getPath(state2, state1, radius).length());
 }
 
 void DubinsStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
 {
     bool firstTime = true;
-    DubinsPath path;
+    PathType path;
     interpolate(from, to, t, firstTime, path, state);
 }
 
 void DubinsStateSpace::interpolate(const State *from, const State *to, const double t, bool &firstTime,
-                                   DubinsPath &path, State *state) const
+                                   PathType &path, State *state) const
 {
     if (firstTime)
     {
@@ -771,10 +771,10 @@ void DubinsStateSpace::interpolate(const State *from, const State *to, const dou
             return;
         }
 
-        path = dubins(from, to);
+        path = getPath(from, to);
         if (isSymmetric_)
         {
-            DubinsPath path2(dubins(to, from));
+            PathType path2(getPath(to, from));
             if (path2.length() < path.length())
             {
                 path2.reverse_ = true;
@@ -786,7 +786,7 @@ void DubinsStateSpace::interpolate(const State *from, const State *to, const dou
     interpolate(from, path, t, state, rho_);
 }
 
-void DubinsStateSpace::interpolate(const State *from, const DubinsPath &path, double t, State *state,
+void DubinsStateSpace::interpolate(const State *from, const PathType &path, double t, State *state,
                                    double radius) const
 {
     auto *s = allocState()->as<StateType>();
@@ -852,12 +852,12 @@ unsigned int DubinsStateSpace::validSegmentCount(const State *state1, const Stat
     return StateSpace::validSegmentCount(state1, state2);
 }
 
-DubinsStateSpace::DubinsPath DubinsStateSpace::dubins(const State *state1, const State *state2) const
+DubinsStateSpace::PathType DubinsStateSpace::getPath(const State *state1, const State *state2) const
 {
-    return dubins(state1, state2, rho_);
+    return getPath(state1, state2, rho_);
 }
 
-DubinsStateSpace::DubinsPath DubinsStateSpace::dubins(const State *state1, const State *state2, double radius)
+DubinsStateSpace::PathType DubinsStateSpace::getPath(const State *state1, const State *state2, double radius)
 {
     const auto *s1 = static_cast<const DubinsStateSpace::StateType *>(state1);
     const auto *s2 = static_cast<const DubinsStateSpace::StateType *>(state2);
@@ -865,109 +865,5 @@ DubinsStateSpace::DubinsPath DubinsStateSpace::dubins(const State *state1, const
     double x2 = s2->getX(), y2 = s2->getY(), th2 = s2->getYaw();
     double dx = x2 - x1, dy = y2 - y1, d = sqrt(dx * dx + dy * dy) / radius, th = atan2(dy, dx);
     double alpha = mod2pi(th1 - th), beta = mod2pi(th2 - th);
-    return ::dubins(d, alpha, beta);
-}
-
-void DubinsMotionValidator::defaultSettings()
-{
-    stateSpace_ = dynamic_cast<DubinsStateSpace *>(si_->getStateSpace().get());
-    if (stateSpace_ == nullptr)
-        throw Exception("No state space for motion validator");
-}
-
-bool DubinsMotionValidator::checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const
-{
-    /* assume motion starts in a valid configuration so s1 is valid */
-
-    bool result = true, firstTime = true;
-    DubinsStateSpace::DubinsPath path;
-    int nd = stateSpace_->validSegmentCount(s1, s2);
-
-    if (nd > 1)
-    {
-        /* temporary storage for the checked state */
-        State *test = si_->allocState();
-
-        for (int j = 1; j < nd; ++j)
-        {
-            stateSpace_->interpolate(s1, s2, (double)j / (double)nd, firstTime, path, test);
-            if (!si_->isValid(test))
-            {
-                lastValid.second = (double)(j - 1) / (double)nd;
-                if (lastValid.first != nullptr)
-                    stateSpace_->interpolate(s1, s2, lastValid.second, firstTime, path, lastValid.first);
-                result = false;
-                break;
-            }
-        }
-        si_->freeState(test);
-    }
-
-    if (result)
-        if (!si_->isValid(s2))
-        {
-            lastValid.second = (double)(nd - 1) / (double)nd;
-            if (lastValid.first != nullptr)
-                stateSpace_->interpolate(s1, s2, lastValid.second, firstTime, path, lastValid.first);
-            result = false;
-        }
-
-    if (result)
-        valid_++;
-    else
-        invalid_++;
-
-    return result;
-}
-
-bool DubinsMotionValidator::checkMotion(const State *s1, const State *s2) const
-{
-    /* assume motion starts in a valid configuration so s1 is valid */
-    if (!si_->isValid(s2))
-        return false;
-
-    bool result = true, firstTime = true;
-    DubinsStateSpace::DubinsPath path;
-    int nd = stateSpace_->validSegmentCount(s1, s2);
-
-    /* initialize the queue of test positions */
-    std::queue<std::pair<int, int>> pos;
-    if (nd >= 2)
-    {
-        pos.emplace(1, nd - 1);
-
-        /* temporary storage for the checked state */
-        State *test = si_->allocState();
-
-        /* repeatedly subdivide the path segment in the middle (and check the middle) */
-        while (!pos.empty())
-        {
-            std::pair<int, int> x = pos.front();
-
-            int mid = (x.first + x.second) / 2;
-            stateSpace_->interpolate(s1, s2, (double)mid / (double)nd, firstTime, path, test);
-
-            if (!si_->isValid(test))
-            {
-                result = false;
-                break;
-            }
-
-            pos.pop();
-
-            if (x.first < mid)
-                pos.emplace(x.first, mid - 1);
-            if (x.second > mid)
-                pos.emplace(mid + 1, x.second);
-        }
-
-        si_->freeState(test);
-    }
-
-    if (result)
-        valid_++;
-    else
-        invalid_++;
-
-    return result;
+    return ::getPath(d, alpha, beta);
 }
