@@ -187,7 +187,8 @@ namespace ompl::base
          * \param state the state that lies on the segment at fraction @e t of the distance between
          * @e from and @e to.
          */
-        virtual void interpolate(const State *from, const State *to, double t, PathType &path, State *state) const;
+         virtual void interpolate(const State *from, const State *to, double t, bool &firstTime, PathType &path, State *state) const;
+         virtual void interpolate(const State *from, const State *to, double t, PathType &path, State *state) const;
         /**
          * \brief Compute the state that lies at time @e t in [0,1] on the segment @e path starting from state @e from.
          *

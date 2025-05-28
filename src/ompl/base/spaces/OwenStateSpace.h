@@ -185,7 +185,8 @@ namespace ompl::base
          * \param state the state that lies on the segment at fraction @e t of the distance between
          * @e from and @e to.
          */
-        virtual void interpolate(const State *from, const State *to, double t, PathType &path, State *state) const;
+         virtual void interpolate(const State *from, const State *to, double t, bool &firstTime, PathType &path, State *state) const;
+         virtual void interpolate(const State *from, const State *to, double t, PathType &path, State *state) const;
 
         /**
          * \brief Compute a 3D Dubins path using the model and algorithm proposed by Owen et al.

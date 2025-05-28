@@ -341,11 +341,44 @@ unsigned int VanaOwenStateSpace::validSegmentCount(const State *state1, const St
 
 void VanaOwenStateSpace::interpolate(const State *from, const State *to, const double t, State *state) const
 {
-    if (auto path = getPath(from, to))
-        interpolate(from, to, t, *path, state);
-    else
-        if (from != state)
-            copyState(state, from);
+    bool firstTime = true;
+    std::optional<PathType> path;
+    interpolate(from, to, t, firstTime, *path, state);
+}
+
+void VanaOwenStateSpace::interpolate(const State *from, const State *to, const double t, bool &firstTime, PathType &path,
+    State *state) const
+{
+    if (firstTime)
+    {
+        if (t >= 1.)
+        {
+            if (to != state)
+                copyState(state, to);
+            return;
+        }
+        if (t <= 0.)
+        {
+            if (from != state)
+                copyState(state, from);
+            return;
+        }
+    
+        auto computed_path = getPath(from, to);
+        if (!computed_path)
+        {
+            if (from != state)
+            {
+                copyState(state, from);
+            }
+        }
+        else
+        {
+            path = *computed_path;
+        }
+        firstTime = false;
+    }
+    interpolate(from, to, t, path, state);
 }
 
 void VanaOwenStateSpace::interpolate(const State *from, const State *to, const double t, PathType &path,

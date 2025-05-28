@@ -75,6 +75,7 @@ namespace ompl::base
                 return false;
 
             bool result = true;
+            bool firstTime = true;
             int nd = stateSpace_->validSegmentCount(s1, s2);
 
             /* initialize the queue of test positions */
@@ -92,7 +93,7 @@ namespace ompl::base
                     std::pair<int, int> x = pos.front();
 
                     int mid = (x.first + x.second) / 2;
-                    stateSpace_->interpolate(s1, s2, (double)mid / (double)nd, *path, test);
+                    stateSpace_->interpolate(s1, s2, (double)mid / (double)nd, firstTime, *path, test);
 
                     if (!si_->isValid(test))
                     {
