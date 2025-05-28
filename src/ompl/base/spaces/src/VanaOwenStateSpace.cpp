@@ -134,7 +134,7 @@ DubinsStateSpace::StateType *VanaOwenStateSpace::get2DPose(double x, double y, d
     return state;
 }
 
-bool VanaOwenStateSpace::isValid(DubinsStateSpace::DubinsPath const &path, StateType const *state) const
+bool VanaOwenStateSpace::isValid(DubinsStateSpace::PathType const &path, StateType const *state) const
 {
     // in three cases the result is invalid:
     // 1. path of type CCC (i.e., RLR or LRL)
@@ -157,7 +157,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
     result.verticalRadius_ = 1. / std::sqrt(1. / (rho_ * rho_) - 1. / (radius * radius));
     result.deltaZ_ = (*to)[2] - (*from)[2];
     // note that we are exploiting properties of the memory layout of state types
-    result.pathXY_ = dubinsSpace_.dubins(from, to, radius);
+    result.pathXY_ = dubinsSpace_.getPath(from, to, radius);
     result.phi_ = 0.;
     result.numTurns_ = 0;
 
@@ -182,7 +182,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
     startSZ->setYaw(from->pitch());
     endSZ->setXY(len, (*to)[2]);
     endSZ->setYaw(to->pitch());
-    result.pathSZ_ = dubinsSpace_.dubins(startSZ, endSZ, result.verticalRadius_);
+    result.pathSZ_ = dubinsSpace_.getPath(startSZ, endSZ, result.verticalRadius_);
     if (isValid(result.pathSZ_, from))
     {
         // low altitude path
@@ -198,7 +198,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
         {
             result.horizontalRadius_ = r;
             result.verticalRadius_ = 1. / std::sqrt(1. / (rho_ * rho_) - 1. / (r * r));
-            result.pathXY_ = dubinsSpace_.dubins(from, to, result.horizontalRadius_);
+            result.pathXY_ = dubinsSpace_.getPath(from, to, result.horizontalRadius_);
         }
         endSZ->setX((result.pathXY_.length() + twopi * result.numTurns_) * r);
         turn(startSZ, result.verticalRadius_, pitch - from->pitch(), s1b);
@@ -221,7 +221,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
         auto radiusFun = [&, this](double r)
         {
             update(r);
-            result.pathSZ_ = dubinsSpace_.dubins(startSZ, endSZ, result.verticalRadius_);
+            result.pathSZ_ = dubinsSpace_.getPath(startSZ, endSZ, result.verticalRadius_);
             return ((result.pathXY_.length() + twopi * result.numTurns_) * r - turnS) * tanPitch + turnZ -
                    result.deltaZ_;
         };
@@ -248,7 +248,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
             if (std::abs(phi)>twopi)
                 throw std::domain_error("phi too large");
             turn(from, radius, phi, zi);
-            return (std::abs(phi) + dubinsSpace_.dubins(zi, to).length()) * radius * std::abs(tanPitch) - std::abs(result.deltaZ_);
+            return (std::abs(phi) + dubinsSpace_.getPath(zi, to).length()) * radius * std::abs(tanPitch) - std::abs(result.deltaZ_);
         };
 
         try
@@ -274,9 +274,9 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
                 return false;
             }
         }
-        result.pathXY_ = dubinsSpace_.dubins(zi, to, radius);
+        result.pathXY_ = dubinsSpace_.getPath(zi, to, radius);
         endSZ->setX((result.pathXY_.length() + result.phi_) * radius);
-        result.pathSZ_ = dubinsSpace_.dubins(startSZ, endSZ, result.verticalRadius_);
+        result.pathSZ_ = dubinsSpace_.getPath(startSZ, endSZ, result.verticalRadius_);
         return std::abs(phiFun(result.phi_)) < .01 && isValid(result.pathSZ_, from);
     }
     return true;

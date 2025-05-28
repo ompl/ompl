@@ -71,12 +71,12 @@ namespace ompl::base
         class PathType
         {
         public:
-            PathType(DubinsStateSpace::DubinsPath const &path, double turnRadius, double deltaZ,
+            PathType(DubinsStateSpace::PathType const &path, double turnRadius, double deltaZ,
                      unsigned int numTurns = 0)
               : path_(path), turnRadius_(turnRadius), deltaZ_(deltaZ), numTurns_(numTurns)
             {
             }
-            PathType(DubinsStateSpace::DubinsPath const &path, double turnRadius, double deltaZ, double phi)
+            PathType(DubinsStateSpace::PathType const &path, double turnRadius, double deltaZ, double phi)
               : path_(path), turnRadius_(turnRadius), deltaZ_(deltaZ), phi_(phi)
             {
             }
@@ -86,7 +86,7 @@ namespace ompl::base
 
             friend std::ostream &operator<<(std::ostream &os, const PathType &path);
 
-            DubinsStateSpace::DubinsPath path_;
+            DubinsStateSpace::PathType path_;
             double turnRadius_{1.};
             double deltaZ_;
             double phi_{0.};
