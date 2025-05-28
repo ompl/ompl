@@ -68,14 +68,14 @@ namespace ompl
             };
 
             /** \brief Dubins path types */
-            static const TrochoidPathSegmentType dubinsPathType[6][3];
+            static const std::vector<std::vector<TrochoidPathSegmentType>>& dubinsPathType();
             /** \brief Complete description of a Dubins path */
             class PathType
             {
             public:
-                PathType(const TrochoidPathSegmentType *type = dubinsPathType[0], double tA = 0.,
+                PathType(const std::vector<TrochoidPathSegmentType>& type = dubinsPathType()[0], double tA = 0.,
                            double p = std::numeric_limits<double>::max(), double tB = 0., double t_2pi = 0.)
-                  : type_(type)
+                  : type_(&type)
                 {
                     length_[0] = tA;
                     length_[1] = p;
@@ -92,7 +92,7 @@ namespace ompl
 
                 friend std::ostream& operator<<(std::ostream& os, const PathType& path);
                 /** Path segment types */
-                const TrochoidPathSegmentType *type_;
+                const std::vector<TrochoidPathSegmentType> *type_;
                 /** Path segment lengths */
                 double length_[3];
                 /** Whether the path should be followed "in reverse" */
@@ -103,7 +103,7 @@ namespace ompl
              bool isSymmetric = false)
               : rho_(turningRadius), eta_(windRatio), psi_w_(windDirection), isSymmetric_(isSymmetric)
             {
-                setName("Dubins" + getName());
+                setName("Trochoid" + getName());
                 type_ = STATE_SPACE_TROCHOID;
             }
 
