@@ -196,6 +196,14 @@ namespace ompl::base
          */
         std::optional<PathType> getPath(const State *state1, const State *state2) const;
 
+        double getMinTurnRadius() const {
+            return rho_;
+        };
+
+        double getMaxPitch() const {
+            return atan(tanMaxPitch_);
+        };
+
     protected:
         /**
          * \brief Compute the SE(2) state after making a turn
