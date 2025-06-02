@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
-project(ompl VERSION 1.8.0 LANGUAGES CXX)
-set(OMPL_ABI_VERSION 19)
+project(ompl VERSION 1.7.0 LANGUAGES CXX)
+set(OMPL_ABI_VERSION 18)
 
 # Use the FindBoost provided by CMake, rather than the one provided by Boost
 # (for CMake >=3.30).
