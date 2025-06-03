@@ -583,6 +583,16 @@ namespace
         }  
     }
 
+    bool isLongPathCase(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio)
+    {   
+        double dx = (xf - x0)/radius, dy = (yf - y0)/radius;
+        double d = sqrt(dx*dx + dy*dy), theta = atan2(dy, dx);
+        double alpha = phi0 - theta, beta = phif - theta;
+        bool is_geometric_long_path = (std::abs(std::sin(alpha)) + std::abs(std::sin(beta)) +
+            std::sqrt(4 - std::pow(std::cos(alpha) + std::cos(beta), 2)) - d) < 0;
+        bool is_wind_blowingaway = dx < 0;
+        return is_geometric_long_path && is_wind_blowingaway;
+    }
 
     TrochoidStateSpace::PathType trochoidRSR(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio, bool periodic)
     {
@@ -651,15 +661,17 @@ namespace
             minLength = len;
             path = tmp;
         }
-        tmp = trochoidRLR(x0, y0, phi0, xf, yf, phif, radius, wind_ratio, periodic);
-        if ((len = tmp.length()) < minLength)
-        {
-            minLength = len;
-            path = tmp;
+        if (!isLongPathCase(x0, y0, phi0, xf, yf, phif, radius, wind_ratio)) {
+            tmp = trochoidRLR(x0, y0, phi0, xf, yf, phif, radius, wind_ratio, periodic);
+            if ((len = tmp.length()) < minLength)
+            {
+                minLength = len;
+                path = tmp;
+            }
+            tmp = trochoidLRL(x0, y0, phi0, xf, yf, phif, radius, wind_ratio, periodic);
+            if ((len = tmp.length()) < minLength)
+                path = tmp;
         }
-        tmp = trochoidLRL(x0, y0, phi0, xf, yf, phif, radius, wind_ratio, periodic);
-        if ((len = tmp.length()) < minLength)
-            path = tmp;
         return path;
     }
 
