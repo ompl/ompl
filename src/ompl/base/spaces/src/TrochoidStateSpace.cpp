@@ -440,11 +440,10 @@ namespace
         // test a grid of initial conditions, grid resolution
         int numTestPts = 10;
         std::vector< std::vector<double> > rootsComputed(numTestPts*numTestPts);
-        for (int i = 0; i < rootsComputed.size(); i++){
+        for (size_t i = 0; i < rootsComputed.size(); i++){
             rootsComputed[i].resize(3);
         }
         double sameRootEpsilon = 0.001;
-        bool solnFound{false};
         for (int kint = -2; kint < 3; kint++){
             double k = (double)kint;
             for ( int l = 0; l < numTestPts; l++){
@@ -479,9 +478,7 @@ namespace
 
                 // if the root is unique
                 if ( !rootAlreadyfound ){
-                    if ( checkConditionsBBB(delta_1, tA, tB, T, xt10, yt10, phit1, xf, yf, phif, radius, wind_ratio, periodic, path)){
-                        solnFound = true;
-                    }
+                    checkConditionsBBB(delta_1, tA, tB, T, xt10, yt10, phit1, xf, yf, phif, radius, wind_ratio, periodic, path);
                 }
             }
             }

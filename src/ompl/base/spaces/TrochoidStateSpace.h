@@ -167,32 +167,6 @@ namespace ompl
                 triangle inequality. */
             bool isSymmetric_;
         };
-
-        /** \brief A Dubins motion validator that only uses the state validity checker.
-            Motions are checked for validity at a specified resolution.
-
-            This motion validator is almost identical to the DiscreteMotionValidator
-            except that it remembers the optimal TrochoidPath between different calls to
-            interpolate. */
-        class TrochoidMotionValidator : public MotionValidator
-        {
-        public:
-            TrochoidMotionValidator(SpaceInformation *si) : MotionValidator(si)
-            {
-                defaultSettings();
-            }
-            TrochoidMotionValidator(const SpaceInformationPtr &si) : MotionValidator(si)
-            {
-                defaultSettings();
-            }
-            ~TrochoidMotionValidator() override = default;
-            bool checkMotion(const State *s1, const State *s2) const override;
-            bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
-
-        private:
-            TrochoidStateSpace *stateSpace_;
-            void defaultSettings();
-        };
     }
 }
 
