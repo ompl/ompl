@@ -66,7 +66,7 @@ public:
     // Generate a sample in the valid part of the R^3 state space
     // Valid states satisfy the following constraints:
     // -1<= x,y,z <=1
-    // if .25 <= z <= .5, then |x|>.8 and |y|>.8
+    // if .25 <= z <= .5, then |x|>.8 or |y|>.8
     bool sample(ob::State *state) override
     {
         double* val = static_cast<ob::RealVectorStateSpace::StateType*>(state)->values;
@@ -79,8 +79,8 @@ public:
             {
                 case 0: val[0]=x-1;  val[1]=y-1;  break;
                 case 1: val[0]=x-.8; val[1]=y+.8; break;
-                case 2: val[0]=y-1;  val[1]=x-1;  break;
-                case 3: val[0]=y+.8; val[1]=x-.8; break;
+                case 2: val[0]=y-1;  val[1]=x-.8;  break;
+                case 3: val[0]=y+.8; val[1]=x-1; break;
             }
         }
         else
