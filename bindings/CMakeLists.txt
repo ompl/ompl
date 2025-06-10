@@ -13,7 +13,7 @@ set_target_properties(_ompl PROPERTIES
 target_link_libraries(_ompl PRIVATE ompl::ompl)
 target_compile_options(_ompl PRIVATE -Wno-unused-parameter)
 
-file(COPY ompl DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/ompl)
+file(COPY ompl DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 # ---------------------------------------------------------------------
 # Generate type stubs for the single module
