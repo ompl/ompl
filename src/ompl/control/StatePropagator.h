@@ -106,7 +106,7 @@ namespace ompl
                 Store that control in \e result; the duration for which the control should be applied is returned;
                 return < 0.0 if the computation was successful; return the control duration otherwise;
 
-                \note If false is returned, the content of \e result may have been changed,
+                \note If a negative value is returned, the content of \e result may have been changed,
                 but it does not represent a solution; */
             virtual double steer(const base::State * /*from*/, const base::State * /*to*/, Control * /*result*/) const
             {
