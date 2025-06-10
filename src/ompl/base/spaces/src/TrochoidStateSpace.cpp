@@ -140,10 +140,10 @@ namespace
             return false;
         } 
         // check that equal 
-        if ( fabs( (xtB - xtA)/(ytB-ytA) - xtAdot/ytAdot ) >= eps ){
+        if (fabs(ytB-ytA) > eps && fabs(ytAdot) > eps && fabs( (xtB - xtA)/(ytB-ytA) - xtAdot/ytAdot ) >= eps ){
             return false;
         }  
-        if ( fabs( (xtB - xtA)/(ytB-ytA) - xtBdot/ytBdot ) >= eps ){
+        if (fabs(ytB-ytA) > eps && fabs(ytBdot) > eps && fabs( (xtB - xtA)/(ytB-ytA) - xtBdot/ytBdot ) >= eps ){
             return false;
         }  
         // check endpoint
