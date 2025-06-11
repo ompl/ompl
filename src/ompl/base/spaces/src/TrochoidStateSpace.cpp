@@ -222,8 +222,6 @@ namespace
         double xt20 = xf - delta_2 * radius * std::sin(delta_2 * omega * t2pi + phit2) - V_w * t2pi;
         double yt20 = yf + delta_2 * radius * cos(delta_2 * omega * t2pi + phit2);
 
-        bool solnFound = false;
-
         if (delta_1 == delta_2) { // RSR/LSL: analytic solution
             for (int k_int = -2; k_int < 2; k_int++){
                 double k = (double)k_int;
@@ -233,9 +231,7 @@ namespace
                     tA = tA - t2pi*floor(tA/t2pi);
                 }
                 double tB = tA + ( fmod(phit1 - phit2, 2.0*onepi) - 2.0*k*onepi ) / (delta_1*2.0*onepi) * t2pi;
-                if ( checkConditionsBSB(delta_1, delta_2, tA, tB, xt10, yt10, phi0, phit1, xt20, yt20, phit2, xf, yf, radius, wind_ratio, periodic, path) ){
-                    solnFound = true;
-                }
+                checkConditionsBSB(delta_1, delta_2, tA, tB, xt10, yt10, phi0, phit1, xt20, yt20, phit2, xf, yf, radius, wind_ratio, periodic, path);
             }
         } else {  // RSL/LSR: numerical solution
             for (int k_int = -2; k_int < 2; k_int++){
@@ -250,6 +246,9 @@ namespace
                     // root solving 
                     double tA = fixedPointBSB( p0, delta_1, delta_2, k, xt10, yt10, phit1, xt20, yt20, phit2, radius, wind_ratio);
                     // check bounds
+                    if (tA < 0 && fabs(tA) < TROCHOID_EPS) {
+                        tA = 0.0;
+                    }
                     if ( tA > t2pi || tA < 0){
                         tA = tA - t2pi*floor(tA/t2pi);
                     }
@@ -266,9 +265,7 @@ namespace
                     // if the root is unique
                     if ( !rootAlreadyfound ){
                         double tB = delta_1/delta_2*tA + (phit1 - phit2 + 2.0*k*onepi)/(delta_2*omega);
-                        if ( checkConditionsBSB(delta_1, delta_2, tA, tB, xt10, yt10, phi0, phit1, xt20, yt20, phit2, xf, yf, radius, wind_ratio, periodic, path) ){
-                            solnFound = true;
-                        }
+                        checkConditionsBSB(delta_1, delta_2, tA, tB, xt10, yt10, phi0, phit1, xt20, yt20, phit2, xf, yf, radius, wind_ratio, periodic, path);
                     }
                 }
             }
