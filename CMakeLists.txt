@@ -34,6 +34,8 @@ set_package_properties(Python PROPERTIES
     PURPOSE "Used for python bindings.")
 set(Python_FIND_STRATEGY VERSION)
 find_package(Python 3.8 COMPONENTS Interpreter Development)
+option(OMPL_BUILD_PYBINDINGS "Enable compilation of Python bindings" ${Python_FOUND})
+add_feature_info(OMPL_BUILD_PYBINDINGS "${OMPL_BUILD_PYBINDINGS}" "Whether to build the  Python bindings.")
 
 set(OMPL_CMAKE_UTIL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules"
     CACHE FILEPATH "Path to directory with auxiliary CMake scripts for OMPL")
@@ -106,7 +108,7 @@ set_package_properties(Doxygen PROPERTIES
 find_package(Doxygen)
 
 add_subdirectory(src)
-if(TARGET Python::Module)
+if(OMPL_BUILD_PYBINDINGS)
     add_subdirectory(bindings)
 endif()
 add_subdirectory(tests)
@@ -166,7 +168,7 @@ if (OMPL_REGISTRATION)
         file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/.registered" "")
         if (TARGET Python::Module)
             execute_process(COMMAND ${CMAKE_COMMAND} -E env
-               TERM="" "${PYTHON_EXEC}" "-m" "webbrowser" "https://ompl.kavrakilab.org/core/register.html"
+               TERM="" "${PYTHON_EXECUTABLE}" "-m" "webbrowser" "https://ompl.kavrakilab.org/core/register.html"
                 OUTPUT_QUIET ERROR_QUIET)
         endif()
     endif()
