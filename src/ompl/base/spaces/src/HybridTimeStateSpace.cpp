@@ -14,8 +14,8 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Rutgers University nor the names of its
- *     contributors may be used to endorse or promote products derived
+ *   * Neither the name of the University of Santa Cruz nor the names of 
+ *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -64,6 +64,10 @@ void ompl::base::HybridTimeStateSampler::sampleGaussian(State *state, const Stat
     state->as<HybridTimeStateSpace::StateType>()->position =
         rng_.gaussian(mean->as<HybridTimeStateSpace::StateType>()->position, stdDev);
     space_->enforceBounds(state);
+}
+
+void ompl::base::HybridTimeStateSpace::interpolate(const State *from, const State *to, double t, State *state) const {
+    (void)from, (void)to, (void)t, (void)state;
 }
 
 unsigned int ompl::base::HybridTimeStateSpace::getDimension() const

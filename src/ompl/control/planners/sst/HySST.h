@@ -8,15 +8,15 @@
 *  modification, are permitted provided that the following conditions
 *  are met:
 *
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of Rutgers University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Santa Cruz nor the names of 
+ *     its contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
 *
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -240,17 +240,6 @@ namespace ompl
              * \brief Define the jump set
              * @param jumpSet the jump set associated with the hybrid system. 
              */
-            void setGoalTolerance(double tolerance)
-            {
-                if (tolerance < 0)
-                    throw Exception("Goal tolerance must be greater than or equal to 0");
-                tolerance_ = tolerance;
-            }
-
-            /** 
-             * \brief Define the jump set
-             * @param jumpSet the jump set associated with the hybrid system. 
-             */
             void setJumpSet(std::function<bool(Motion *)> jumpSet)
             {
                 jumpSet_ = jumpSet;
@@ -467,9 +456,6 @@ namespace ompl
             /// \brief The maximum flow time for a given flow propagation step. Must be set by the user.
             double tM_{-1.};
 
-            /// \brief The distance tolerance from the goal state for a state to be regarded as a valid final state. Default is .1
-            double tolerance_{.1};
-
             /// \brief The minimum step length for a given flow propagation step. Default value is 1e-6
             double minStepLength = 1e-06;
 
@@ -544,9 +530,8 @@ namespace ompl
             /** 
              * \brief Randomly propagate a new edge.
              * @param m The motion to extend
-             * @param goal The goal state (to check if within tolerance of goal state)
              */
-            std::vector<Motion *> extend(Motion *m, base::Goal *goalState);
+            std::vector<Motion *> extend(Motion *m);
 
             /** \brief Free the memory allocated by this planner */
             void freeMemory();

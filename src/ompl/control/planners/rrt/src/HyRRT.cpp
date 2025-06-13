@@ -14,8 +14,8 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the Willow Garage nor the names of its
- *     contributors may be used to endorse or promote products derived
+ *   * Neither the name of the University of Santa Cruz nor the names of 
+ *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -34,10 +34,7 @@
 
 /* Author: Beverly Xu */
 
-#include <list>
-
 #include "ompl/control/planners/rrt/HyRRT.h"
-// #include "ompl/base/spaces/HybridStateSpace.h"
 #include "ompl/base/Planner.h"
 #include "ompl/base/goals/GoalState.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
@@ -56,7 +53,9 @@ ompl::control::HyRRT::HyRRT(const control::SpaceInformationPtr &si_) : base::Pla
     siC_ = si_.get();
 }
 
-ompl::control::HyRRT::~HyRRT() {}
+ompl::control::HyRRT::~HyRRT() {
+    freeMemory();
+}
 
 void ompl::control::HyRRT::initTree(void)
 {
@@ -94,8 +93,7 @@ base::PlannerStatus ompl::control::HyRRT::solve(const base::PlannerTerminationCo
     checkMandatoryParametersSet();
     initTree();
 
-    // Allocate memory for a random motion
-    auto *randomMotion = new Motion(siC_);
+    base::State *preJump = si_->allocState();
 
     // Main Planning Loop
     // Periodically check if the termination condition is met
@@ -103,16 +101,19 @@ base::PlannerStatus ompl::control::HyRRT::solve(const base::PlannerTerminationCo
     while (!ptc())
     {
     nextIteration:
-        randomSample(randomMotion); // Randomly sample a state from the planning space
+
+        // Allocate memory for a random motion
+        auto *randomMotion = new Motion(siC_);
+        randomSample(randomMotion);  // Randomly sample a state from the planning space
 
         auto *solution = new Motion(siC_);
 
         // Generate random maximum flow time
         double random = rand();
         double randomFlowTimeMax = random / RAND_MAX * tM_;
-        double tFlow = 0; // Tracking variable for the amount of flow time used in a given continuous simulation step
+        double tFlow = 0;  // Tracking variable for the amount of flow time used in a given continuous simulation step
 
-        bool collision = false; // Set collision to false initially
+        bool collision = false;  // Set collision to false initially
 
         // Sample and instantiate parent vertices and states in solutionPairs
         auto *parentMotion = nn_->nearest(randomMotion);
@@ -123,7 +124,8 @@ base::PlannerStatus ompl::control::HyRRT::solve(const base::PlannerTerminationCo
         // Choose whether to begin growing the tree in the flow or jump regime
         bool in_jump = jumpSet_(parentMotion);
         bool in_flow = flowSet_(parentMotion);
-        bool priority = in_jump && in_flow ? random / RAND_MAX > 0.5 : in_jump; // If both are true, equal chance of being in flow or jump set.
+        bool priority = in_jump && in_flow ? random / RAND_MAX > 0.5 :
+                                             in_jump;  // If both are true, equal chance of being in flow or jump set.
 
         // Allocate memory for the new solutionPair
         std::vector<base::State *> *intermediateStates = new std::vector<base::State *>;
@@ -137,7 +139,7 @@ base::PlannerStatus ompl::control::HyRRT::solve(const base::PlannerTerminationCo
 
         // Simulate in either the jump or flow regime
         if (!priority)
-        { // Flow
+        {  // Flow
             while (tFlow < randomFlowTimeMax && flowSet_(parentMotion))
             {
                 tFlow += flowStepDuration_;
@@ -145,9 +147,12 @@ base::PlannerStatus ompl::control::HyRRT::solve(const base::PlannerTerminationCo
                 // Find new state with continuous simulation
                 base::State *intermediateState = si_->allocState();
 
-                intermediateState = this->continuousSimulator_(getFlowControl(compoundControl), previousState, flowStepDuration_, intermediateState);
-                ompl::base::HybridStateSpace::setStateTime(intermediateState, ompl::base::HybridStateSpace::getStateTime(previousState) + flowStepDuration_);
-                ompl::base::HybridStateSpace::setStateJumps(intermediateState, ompl::base::HybridStateSpace::getStateJumps(previousState));
+                intermediateState = this->continuousSimulator_(getFlowControl(compoundControl), previousState,
+                                                               flowStepDuration_, intermediateState);
+                ompl::base::HybridStateSpace::setStateTime(
+                    intermediateState, ompl::base::HybridStateSpace::getStateTime(previousState) + flowStepDuration_);
+                ompl::base::HybridStateSpace::setStateJumps(intermediateState,
+                                                            ompl::base::HybridStateSpace::getStateJumps(previousState));
 
                 // Add new intermediate state to solutionPair
                 intermediateStates->push_back(intermediateState);
@@ -156,7 +161,7 @@ base::PlannerStatus ompl::control::HyRRT::solve(const base::PlannerTerminationCo
                 auto *motion = new Motion(siC_);
                 si_->copyState(motion->state, intermediateState);
                 motion->parent = parentMotion;
-                motion->solutionPair = intermediateStates; // Set the new motion solutionPair
+                motion->solutionPair = intermediateStates;  // Set the new motion solutionPair
 
                 motion->control = compoundControl;
 
@@ -167,26 +172,32 @@ base::PlannerStatus ompl::control::HyRRT::solve(const base::PlannerTerminationCo
                 double *collisionTime = new double(-1.0);
                 collision = collisionChecker_(motion, jumpSet_, intermediateState, collisionTime);
 
-                if (*collisionTime != -1.0) {
+                if (*collisionTime != -1.0)
+                {
                     ompl::base::HybridStateSpace::setStateTime(motion->state, *collisionTime);
+                    ompl::base::HybridStateSpace::setStateTime(intermediateState, *collisionTime);
                 }
 
                 // State has passed all tests so update parent, solutionPair, and temporary states
                 si_->copyState(previousState, intermediateState);
 
                 // Add motion to tree or handle collision/goal
-                bool inGoalSet = distanceFunc_(previousState, pdef_->getGoal()->as<base::GoalState>()->getState()) <= tolerance_;
+                bool inGoalSet = pdef_->getGoal()->isSatisfied(previousState, &dist_);
 
-                // If maximum flow time has been reached, a collision has occured, or a solution has been found, exit the loop
+                // If maximum flow time has been reached, a collision has occured, or a solution has been found, exit
+                // the loop
                 if (tFlow >= randomFlowTimeMax || collision || inGoalSet)
                 {
-
                     if (inGoalSet)
+                    {
                         solution = motion;
+                        nn_->add(solution);
+                    }
                     else if (collision)
                     {
                         collisionParentMotion = motion;
-                        priority = true; // If collision has occurred, continue to jump regime
+                        priority = true;  // If collision has occurred, continue to jump regime
+                        si_->copyState(preJump, intermediateState);
                     }
                     else
                         nn_->add(motion);
@@ -196,7 +207,7 @@ base::PlannerStatus ompl::control::HyRRT::solve(const base::PlannerTerminationCo
         }
 
         if (priority)
-        { // Jump
+        {  // Jump
             // Instantiate and find new state with discrete simulator
             base::State *newState = si_->allocState();
             newState = this->discreteSimulator_(previousState, getJumpControl(compoundControl), newState);
@@ -206,24 +217,36 @@ base::PlannerStatus ompl::control::HyRRT::solve(const base::PlannerTerminationCo
             si_->copyState(motion->state, newState);
             motion->parent = collisionParentMotion;
             motion->control = compoundControl;
-            ompl::base::HybridStateSpace::setStateTime(motion->state, ompl::base::HybridStateSpace::getStateTime(previousState));
-            ompl::base::HybridStateSpace::setStateJumps(motion->state, ompl::base::HybridStateSpace::getStateJumps(previousState) + 1);
+            ompl::base::HybridStateSpace::setStateTime(motion->state,
+                                                       ompl::base::HybridStateSpace::getStateTime(previousState));
+            ompl::base::HybridStateSpace::setStateJumps(motion->state,
+                                                        ompl::base::HybridStateSpace::getStateJumps(previousState) + 1);
 
             // If generated state is in the unsafe set, then continue on to the next iteration
             if (unsafeSet_(motion))
                 goto nextIteration;
 
+            // State has passed all tests so update parent, solutionPair, and temporary states
+            si_->copyState(previousState, newState);
+
             // Add motions to tree, and free up memory allocated to newState
             nn_->add(motion);
-            nn_->add(collisionParentMotion);
+
+            // Add motion to tree or handle collision/goal
+            bool inGoalSet = pdef_->getGoal()->isSatisfied(previousState, &dist_);
+
+            if (inGoalSet)
+                solution = motion;
         }
 
         // If state is within goal set, construct path
-        if (distanceFunc_(previousState, pdef_->getGoal()->as<base::GoalState>()->getState()) <= tolerance_)
+        if (pdef_->getGoal()->isSatisfied(previousState, &dist_))
+        {
+            vector<Motion *> trajectory;
             return constructSolution(solution);
+        }
     }
     return base::PlannerStatus::UNKNOWN;
-
 }
 base::PlannerStatus ompl::control::HyRRT::constructSolution(Motion *last_motion)
 {
@@ -231,7 +254,7 @@ base::PlannerStatus ompl::control::HyRRT::constructSolution(Motion *last_motion)
     nn_->list(trajectory);
     std::vector<Motion *> mpath;
 
-    double finalDistance = distanceFunc_(trajectory.back()->state, pdef_->getGoal()->as<base::GoalState>()->getState());
+    double finalDistance = dist_;
     Motion *solution = last_motion;
 
     int pathSize = 0;
@@ -240,47 +263,45 @@ base::PlannerStatus ompl::control::HyRRT::constructSolution(Motion *last_motion)
     while (solution != nullptr)
     {
         mpath.push_back(solution);
-        if (solution->solutionPair != nullptr)              // A jump motion does not contain an edge
-            pathSize += solution->solutionPair->size() + 1; // +1 for the end state
+        if (solution->solutionPair != nullptr)               // A jump motion does not contain an edge
+            pathSize += solution->solutionPair->size() + 1;  // +1 for the end state
         solution = solution->parent;
     }
 
     // Create a new path object to store the solution path
     auto path(std::make_shared<control::PathControl>(si_));
 
-    // Reserve space for the path states
-    path->getStates().reserve(pathSize);
-
     // Add the states to the path in reverse order (from start to goal)
-    for (int i = mpath.size() - 1; i >= 0; --i)
+    for (std::size_t i = mpath.size() - 1; i < mpath.size(); --i)
     {
         // Append all intermediate states to the path, including starting state,
         // excluding end vertex
         if (mpath[i]->solutionPair != nullptr)
-        { // A jump motion does not contain an edge
+        {  // A jump motion does not contain an edge
             for (unsigned int j = 0; j < mpath[i]->solutionPair->size(); j++)
             {
-                if (i == 0 && j == 0)   // Starting state has no control
-                { 
+                if (i == mpath.size() - 1 && j == 0)  // Starting state has no control
+                {
                     path->append(mpath[i]->solutionPair->at(j));
                     continue;
                 }
-                path->append(mpath[i]->solutionPair->at(j), mpath[i]->control, siC_->getPropagationStepSize()); // Need to make a new motion to append to trajectory matrix
+                path->append(mpath[i]->solutionPair->at(j), mpath[i]->control,
+                             siC_->getPropagationStepSize());  // Need to make a new motion to append to trajectory
+                                                               // matrix
             }
         }
         else
-        { // If a jump motion
-            if (i == 0)
+        {  // If a jump motion
+            if (i == mpath.size() - 1)
                 path->append(mpath[i]->state);
             else
                 path->append(mpath[i]->state, mpath[i]->control, 0);
-
         }
     }
 
     // Add the solution path to the problem definition
     pdef_->addSolutionPath(path, finalDistance > 0.0, finalDistance, getName());
-    pdef_->getSolutionPath()->as<ompl::control::PathControl>()->printAsMatrix(std::cout);
+    OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
 
     // Return a status indicating that an exact solution has been found
     if (finalDistance > 0.0)
@@ -292,7 +313,11 @@ base::PlannerStatus ompl::control::HyRRT::constructSolution(Motion *last_motion)
 void ompl::control::HyRRT::clear()
 {
     Planner::clear();
+    sampler_.reset();
     controlSampler_.reset();
+    freeMemory();
+    if (nn_)
+        nn_->clear();
 }
 
 void ompl::control::HyRRT::setup()
@@ -305,7 +330,27 @@ void ompl::control::HyRRT::setup()
                              { return ompl::control::HyRRT::distanceFunc_(a->state, b->state); });
 }
 
-void ompl::control::HyRRT::freeMemory(void) {}
+void ompl::control::HyRRT::freeMemory(void)
+{
+    if (nn_)
+    {
+        std::vector<Motion *> motions;
+        nn_->list(motions);
+        for (auto &motion : motions)
+        {
+            if (motion->state)
+                si_->freeState(motion->state);
+            if (motion->control)
+                siC_->freeControl(motion->control);
+            if (motion->solutionPair) 
+            {
+                for (base::State *state : *motion->solutionPair)
+                    si_->freeState(state);
+            }
+            delete motion;
+        }
+    }
+}
 
 void ompl::control::HyRRT::getPlannerData(base::PlannerData &data) const
 {
@@ -323,7 +368,6 @@ void ompl::control::HyRRT::getPlannerData(base::PlannerData &data) const
         if (motion->parent == nullptr)
             data.addStartVertex(base::PlannerDataVertex(motion->state));
         else
-            data.addEdge(base::PlannerDataVertex(motion->parent->state),
-                         base::PlannerDataVertex(motion->state));
+            data.addEdge(base::PlannerDataVertex(motion->parent->state), base::PlannerDataVertex(motion->state));
     }
 }

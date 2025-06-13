@@ -14,8 +14,8 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the Willow Garage nor the names of its
- *     contributors may be used to endorse or promote products derived
+ *   * Neither the name of the University of Santa Cruz nor the names of 
+ *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -162,17 +162,6 @@ namespace ompl
                         throw Exception("Flow step length must be less than or equal to the maximum flow time per propagation step (Tm)");
                 }
                 flowStepDuration_ = duration;
-            }
-
-            /** 
-             * \brief Set distance tolerance from goal state. 
-             * @param tolerance must be greater than 0. 
-             */
-            void setGoalTolerance(double tolerance)
-            {
-                if (tolerance < 0)
-                    throw Exception("Goal tolerance must be greater than or equal to 0");
-                tolerance_ = tolerance;
             }
 
             /** 
@@ -323,7 +312,12 @@ namespace ompl
                         std::function<bool(Motion *motion)> obstacleSet, base::State *newState, double *collisionTime) -> bool
             {
                 if (obstacleSet(motion)) {
-                    si_->copyState(motion->parent->state, newState);
+                    if(motion->solutionPair->size() == 1) 
+                        si_->copyState(motion->parent->state, newState);
+                    else
+                        si_->copyState(motion->solutionPair->back(), newState);
+
+                    collisionTime = new double(ompl::base::HybridStateSpace::getStateTime(newState));
                     ompl::base::HybridStateSpace::setStateTime(motion->state, *collisionTime);
                     return true;
                 }
@@ -349,9 +343,6 @@ namespace ompl
 
             /// \brief The maximum flow time for a given flow propagation step. Must be set by the user.
             double tM_;
-
-            /// \brief The distance tolerance from the goal state for a state to be regarded as a valid final state. Default is .1
-            double tolerance_{.1};
 
             /// \brief The flow time for a given integration step, within a flow propagation step. Must be set by user.
             double flowStepDuration_;
@@ -405,6 +396,9 @@ namespace ompl
 
             /// \brief State sampler
             base::StateSamplerPtr sampler_;
+
+            /// \brief Minimum distance from goal to final vertex of generated trajectories.
+            double dist_;
         };
     }
 }

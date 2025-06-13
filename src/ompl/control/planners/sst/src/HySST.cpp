@@ -14,8 +14,8 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Rutgers University nor the names of its
- *     contributors may be used to endorse or promote products derived
+ *   * Neither the name of the University of Santa Cruz nor the names of 
+ *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -35,9 +35,7 @@
 /* Authors: Beverly Xu */
 /* Adapted from: ompl/geometric/planners/src/SST.cpp by  Zakary Littlefield of Rutgers the State University of New Jersey, New Brunswick */
 
-#include <limits>
 #include "ompl/control/planners/sst/HySST.h"
-#include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/base/objectives/MinimaxObjective.h"
 #include "ompl/base/objectives/MaximizeMinClearanceObjective.h"
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
@@ -196,7 +194,7 @@ ompl::control::HySST::Witness *ompl::control::HySST::findClosestWitness(ompl::co
     return closest;
 }
 
-std::vector<ompl::control::HySST::Motion *> ompl::control::HySST::extend(Motion *parentMotion, base::Goal *goalState)
+std::vector<ompl::control::HySST::Motion *> ompl::control::HySST::extend(Motion *parentMotion)
 {
     control::Control *compoundControl = siC_->allocControl();
     siC_->allocControlSampler()->sample(compoundControl);
@@ -226,8 +224,8 @@ std::vector<ompl::control::HySST::Motion *> ompl::control::HySST::extend(Motion 
     {
         while (tFlow < randomFlowTimeMax && flowSet_(parentMotion))
         {
+            if (ompl::base::HybridStateSpace::getStateJumps(parentMotion->state) > 0)
             tFlow += flowStepDuration_;
-            // hybridTimes->push_back(std::pair<double, int>(tFlow + hybridTimeInitial.first, hybridTimeInitial.second));
 
             // Find new state with continuous simulation
             base::State *intermediateState = si_->allocState();
@@ -254,14 +252,14 @@ std::vector<ompl::control::HySST::Motion *> ompl::control::HySST::extend(Motion 
             
             if (*collisionTime != -1.0){
                 ompl::base::HybridStateSpace::setStateTime(motion->state, *collisionTime);
+                ompl::base::HybridStateSpace::setStateTime(intermediateState, *collisionTime);
             }
 
             // State has passed all tests so update parent, edge, and temporary states
             si_->copyState(previousState, intermediateState);
 
             // Calculate distance to goal to check if solution has been found
-            dist_ = distanceFunc_(intermediateState, goalState->as<base::GoalState>()->getState());
-            bool inGoalSet = dist_ <= tolerance_;
+            bool inGoalSet = pdef_->getGoal()->isSatisfied(intermediateState);
 
             // If maximum flow time has been reached, a collision has occured, or a solution has been found, exit the loop
             if (tFlow >= randomFlowTimeMax || collision || inGoalSet)
@@ -301,7 +299,6 @@ std::vector<ompl::control::HySST::Motion *> ompl::control::HySST::extend(Motion 
 
         // Add motions to tree, and free up memory allocated to newState
         collisionParentMotion->numChildren_++;
-        dist_ = distanceFunc_(motion->state, goalState->as<base::GoalState>()->getState());
         return std::vector<Motion *>{motion, collisionParentMotion};
     }
     return std::vector<Motion *>();
@@ -317,21 +314,6 @@ ompl::base::PlannerStatus ompl::control::HySST::solve(const base::PlannerTermina
     checkValidity();
     this->setContinuousSimulator(continuousSimulator);
     checkMandatoryParametersSet();
-
-    base::Goal *goal = pdef_->getGoal().get();
-    auto *goal_s = dynamic_cast<base::GoalSampleableRegion *>(goal);
-
-    if (goal_s == nullptr)
-    {
-        OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
-        return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
-    }
-
-    if (!goal_s->couldSample())
-    {
-        OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
-        return base::PlannerStatus::INVALID_GOAL;
-    }
 
     while (const base::State *st = pis_.nextStart())
     {
@@ -356,8 +338,6 @@ ompl::base::PlannerStatus ompl::control::HySST::solve(const base::PlannerTermina
         return base::PlannerStatus::INVALID_START;
     }
 
-    OMPL_INFORM("%s: Starting planning with %u states already in datastructure", getName().c_str(), nn_->size());
-
     Motion *solution = nullptr;
     Motion *approxsol = nullptr;
     double approxdif = std::numeric_limits<double>::infinity();
@@ -376,7 +356,7 @@ ompl::base::PlannerStatus ompl::control::HySST::solve(const base::PlannerTermina
 
         std::vector<Motion *> dMotion = {new Motion(siC_)};
 
-        dMotion = extend(nmotion, goal);
+        dMotion = extend(nmotion);
 
         if (dMotion.size() == 0) // If extension failed, continue to next iteration
             continue;
@@ -411,10 +391,9 @@ ompl::base::PlannerStatus ompl::control::HySST::solve(const base::PlannerTermina
             closestWitness->linkRep(motion); // Create new edge and set the new node as the representative
 
             nn_->add(motion); // Add new node to tree
+            bool solved = pdef_->getGoal()->isSatisfied(motion->state, &dist_);
             
-            // dist_ is calculated during the call to extend()
-            bool solv = dist_ <= tolerance_;
-            if (solv && motion->accCost_.value() < prevSolutionCost_.value()) // If the new state is a solution and it has a lower cost than the previous solution
+            if (solved && motion->accCost_.value() < prevSolutionCost_.value()) // If the new state is a solution and it has a lower cost than the previous solution
             {
                 approxdif = dist_;
                 solution = motion;
@@ -489,7 +468,9 @@ ompl::base::PlannerStatus ompl::control::HySST::constructSolution(Motion *last_m
     nn_->list(trajectory);
     std::vector<Motion *> mpath;
 
-    double finalDistance = distanceFunc_(trajectory.back()->state, pdef_->getGoal()->as<base::GoalState>()->getState());
+    double finalDistance = 0;
+    pdef_->getGoal()->isSatisfied(trajectory.back()->state, &finalDistance);
+
     Motion *solution = last_motion;
 
     int pathSize = 0;
@@ -538,7 +519,7 @@ ompl::base::PlannerStatus ompl::control::HySST::constructSolution(Motion *last_m
 
     // Add the solution path to the problem definition
     pdef_->addSolutionPath(path, finalDistance > 0.0, finalDistance, getName());
-    pdef_->getSolutionPath()->as<ompl::control::PathControl>()->printAsMatrix(std::cout);
+    OMPL_INFORM("%s: Created %u states", getName().c_str(), nn_->size());
 
     // Return a status indicating that an exact solution has been found
     if (finalDistance > 0.0)

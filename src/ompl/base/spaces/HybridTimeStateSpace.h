@@ -14,8 +14,8 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Rutgers University nor the names of its
- *     contributors may be used to endorse or promote products derived
+ *   * Neither the name of the University of Santa Cruz nor the names of 
+ *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -166,7 +166,7 @@ namespace ompl
 
             bool equalStates(const State *state1, const State *state2) const override;
 
-            void interpolate(const State *from, const State *to, double t, State *state) const;
+            void interpolate(const State *from, const State *to, double t, State *state) const override;
 
             StateSamplerPtr allocDefaultStateSampler() const override;
 
