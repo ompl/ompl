@@ -7,9 +7,18 @@ nanobind_add_module(_ompl
     ${PY_OMPL_SOURCES}
 )
 
-set_target_properties(_ompl PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl
-)
+# If a non-standard CMAKE_LIBRARY_OUTPUT_DIRECTORY is defined (for example, by
+# the wheel build system), place the shared library artifact underneath it as
+# `ompl/_ompl.so`.
+#
+# Otherwise, do the same but relative to the default library output path.
+if (DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+    set_target_properties(_ompl PROPERTIES LIBRARY_OUTPUT_DIRECTORY
+        "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/ompl")
+else()
+    set_target_properties(_ompl PROPERTIES LIBRARY_OUTPUT_DIRECTORY "ompl")
+endif()
+
 target_link_libraries(_ompl PRIVATE ompl::ompl)
 target_compile_options(_ompl PRIVATE -Wno-unused-parameter)
 
