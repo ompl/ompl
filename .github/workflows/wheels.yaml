@@ -34,7 +34,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.23.2
         with:

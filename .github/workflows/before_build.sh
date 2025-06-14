@@ -29,11 +29,7 @@ install_boost() {
 # Work inside a temporary directory.
 cd "$(mktemp -d -t 'ompl-wheels.XXX')"
 
-if [ "${build_os}" == "Linux" ]; then
-    # Install the latest Boost, because it has to be linked to the exact version of
-    # Python for which we are building the wheel.
-    install_boost
-elif [ "${build_os}" == "Darwin" ]; then
+if [ "${build_os}" == "Darwin" ]; then
     # On MacOS, we may be cross-compiling for a different architecture. Detect
     # that here.
     build_arch="${OMPL_BUILD_ARCH:-x86_64}"

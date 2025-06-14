@@ -33,7 +33,9 @@ set_package_properties(Python PROPERTIES
     URL "https://www.python.org"
     PURPOSE "Used for python bindings.")
 set(Python_FIND_STRATEGY VERSION)
-find_package(Python 3.8 COMPONENTS Interpreter Development)
+find_package(Python 3.8
+    COMPONENTS Interpreter Development.Module
+    OPTIONAL_COMPONENTS Development.SABIModule)
 option(OMPL_BUILD_PYBINDINGS "Enable compilation of Python bindings" ${Python_FOUND})
 add_feature_info(OMPL_BUILD_PYBINDINGS "${OMPL_BUILD_PYBINDINGS}" "Whether to build the  Python bindings.")
 
@@ -57,7 +59,7 @@ set_package_properties(Boost PROPERTIES
     URL "https://www.boost.org"
     PURPOSE "Used throughout OMPL for data serialization, graphs, etc.")
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.68 REQUIRED COMPONENTS serialization filesystem system program_options)
+find_package(Boost 1.66 REQUIRED COMPONENTS serialization filesystem system program_options)
 
 enable_testing()
 
