@@ -7,28 +7,25 @@ on:
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}-${{ matrix.arch }}
-    runs-on: ${{ matrix.os }}
+    name: Build wheels for ${{ matrix.target.os }}/cp${{ matrix.python-version }}-${{ matrix.target.suffix }}
+    runs-on: ${{ matrix.target.os }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-        - os: ubuntu-latest
-          pybuilds: cp3{10,11,12,13}-manylinux_x86_64
-          arch: x86_64
-          id: linux_x86_64
-        - os: ubuntu-24.04-arm
-          pybuilds: cp3{10,11,12,13}-manylinux_aarch64
-          arch: aarch64
-          id: linux_arm64
-        - os: macos-13
-          pybuilds: cp3{10,11,12,13}-macosx_x86_64
-          arch: x86_64
-          id: macos_x86
-        - os: macos-15
-          pybuilds: cp3{10,11,12,13}-macosx_arm64
-          arch: arm64
-          id: macos_arm64
+        target:
+          - os: ubuntu-24.04
+            arch: x86_64
+            suffix: manylinux_x86_64
+          - os: ubuntu-24.04-arm
+            arch: aarch64
+            suffix: manylinux_aarch64
+          - os: macos-13
+            arch: x86_64
+            suffix: macosx_x86_64
+          - os: macos-15
+            arch: arm64
+            suffix: macosx_arm64
+        python-version: [310, 311, 312, 313]
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -39,14 +36,14 @@ jobs:
         with:
           package-dir: bindings
         env:
-          CIBW_ARCHS_MACOS: ${{ matrix.arch }}
-          OMPL_BUILD_ARCH: ${{ matrix.arch }}
-          CIBW_BUILD: ${{ matrix.pybuilds }}
+          CIBW_ARCHS_MACOS: ${{ matrix.target.arch }}
+          OMPL_BUILD_ARCH: ${{ matrix.target.arch }}
+          CIBW_BUILD: cp${{matrix.python-version}}-${{ matrix.target.suffix }}
           CIBW_SKIP: "cp*-manylinux_i686 cp*-musllinux* cp*-win32"
           CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET="15.0"
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}-${{ matrix.arch }}
+          name: wheels-${{ matrix.target.os }}-${{ matrix.target.arch }}-cp${{ matrix.python-version }}-${{ matrix.target.suffix }}
           path: wheelhouse
 
   prerelease:
