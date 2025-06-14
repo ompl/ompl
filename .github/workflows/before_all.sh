@@ -11,7 +11,8 @@ if [ "${build_os}" == "Linux" ]; then
         sudo \
         eigen3-devel \
         llvm-devel \
-        clang-devel
+        clang-devel \
+        boost-devel
 
     if [ "${arch}" == "aarch64" ]; then
         echo "Detected AlmaLinux 8 AArch64. Applying architecture-specific fixes..."
@@ -27,7 +28,6 @@ if [ "${build_os}" == "Linux" ]; then
         python_version=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
         echo "Python version: $python_version"
     fi
-
 elif [ "${build_os}" == "Darwin" ]; then
     echo "Detected macOS. Installing dependencies..."
     export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1

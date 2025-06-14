@@ -44,15 +44,18 @@ class CMakeBuild(build_ext):
         # Can be set with Conda-Build, for example.
         cmake_generator = os.environ.get("CMAKE_GENERATOR", "")
 
-        # Set Python_EXECUTABLE instead if you use PYBIND11_FINDPYTHON
-        # EXAMPLE_VERSION_INFO shows you how to pass a value into the C++ code
-        # from Python.
+        # - Hint the desired Python target for CMake to find, per [1].
+        # - Set CMAKE_LIBRARY_OUTPUT_DIRECTORY to a location expected by the
+        #   wheel builder so that libraries are included in the output artifact.
+        # - Disable unnecessary targets.
+        #
+        # [1]: https://cmake.org/cmake/help/latest/module/FindPython.html#hints
         cmake_args = [
-            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
-            f"-DPYTHON_EXECUTABLE={sys.executable}",
-            f"-DPYTHON_INCLUDE_DIRS={get_paths()['include']}",
-            f"-DPYTHON_LIBRARIES={get_paths()['stdlib']}",
             f"-DCMAKE_BUILD_TYPE={cfg}",  # not used on MSVC, but no harm
+            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
+            f"-DPython_EXECUTABLE={sys.executable}",
+            f"-DPython_INCLUDE_DIRS={get_paths()['include']}",
+            f"-DPython_LIBRARIES={get_paths()['stdlib']}",
             "-DOMPL_BUILD_PYBINDINGS=ON",
             "-DOMPL_REGISTRATION=OFF",
             "-DOMPL_BUILD_DEMOS=OFF",

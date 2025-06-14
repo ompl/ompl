@@ -24,6 +24,7 @@ Issues = "http://github.com/ompl/ompl/issues"
 requires = [
     "setuptools>=42",
     "cmake>=3.18",
+    "typing-extensions>=4.0",
     "ninja",
 ]
 build-backend = "setuptools.build_meta"
