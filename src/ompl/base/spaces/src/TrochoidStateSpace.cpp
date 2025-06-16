@@ -79,6 +79,21 @@ namespace
         return dir*omega*delt;
     }
 
+    /**
+     * @brief Compute end points of the trochoid path
+     * 
+     * @param delta_1 Turning direction of the starting trochoid
+     * @param delta_2 Turning direction of the ending trochoid
+     * @param tA      Time value of the starting trochoid
+     * @param tBeta   Duration of first arc and line segment
+     * @param T       Total duration of path
+     * @param phi0    Initial heading
+     * @param radius  Minimum turn radius in air-relative frame
+     * @param wind_ratio Wind ratio
+     * @param xf      Relative target position
+     * @param yf      Relative target position
+     * @param phif    Target heading
+     */
     void computeEndpointBSB(double delta_1, double delta_2, double tA, double tBeta, double T, double phi0, double radius, double wind_ratio, double &xf, double &yf, double &phif) {
       // state after first trochoid straight
         double x0 = 0.0, y0 = 0.0;
@@ -102,6 +117,29 @@ namespace
         }
     }
  
+    /**
+     * @brief Check conditions for the BSB path type. trochoid_path is updated in case the path is shorter 
+     * 
+     * @param delta_1 Turning direction of the starting trochoid
+     * @param delta_2 Turning direction of the ending trochoid
+     * @param tA      Time value of the starting trochoid
+     * @param tB      Time value of the ending trochoid
+     * @param xt10    Constant defined in Eq. (20) in Techy (2009)
+     * @param yt10    Constant defined in Eq. (21) in Techy (2009)
+     * @param phi0    Initial heading
+     * @param phit1   Initial heading in trochoid frame
+     * @param xt20    Constaint defined in Eq. (22) in Techy (2009)
+     * @param yt20    Constant defined in Eq. (23) in Techy (2009)
+     * @param phit2   Target heading in trochoid frame 
+     * @param xf      Relative target position
+     * @param yf      Relative target position
+     * @param radius  Minimum turn radius in air-relative frame
+     * @param wind_ratio Wind ratio
+     * @param periodic Whether the BSB path is periodic
+     * @param trochoid_path Calculated trochoid path object
+     * @return true   Returns true if the condiitons are conistent
+     * @return false  Reutrns false if the computed path are degenerate
+     */
     bool checkConditionsBSB(double delta_1, double delta_2, double tA, double tB, double xt10, double yt10, double phi0, double phit1, double xt20, double yt20, double phit2, double xf, double yf, double radius, double wind_ratio, bool periodic, TrochoidStateSpace::PathType &trochoid_path) {
         // check that tA, tB, and T are valid numbers 
         if ( std::isnan(tA) || std::isnan(tB) ){
@@ -178,6 +216,23 @@ namespace
         }
     }
 
+    /**
+     * @brief Solve BSB Trochoid path. Closed form solution for delta_1==delta_2, or numerically sovled with Eq. 39 in Techy (2009)
+     * 
+     * @param p0      Guess value of t_A for root solving
+     * @param delta_1 Turning direction of the starting trochoid
+     * @param delta_2 Turning direction of the ending trochoid
+     * @param k       Number of turns
+     * @param xt10    Constant defined in Eq. (20) in Techy (2009)
+     * @param yt10    Constant defined in Eq. (21) in Techy (2009)
+     * @param phit1   Initial heading in trochoid frame
+     * @param xt20    Constaint defined in Eq. (22) in Techy (2009)
+     * @param yt20    Constant defined in Eq. (23) in Techy (2009)
+     * @param phit2   Target heading in trochoid frame 
+     * @param radius  Minimum turn radius in air-relative frame
+     * @param wind_ratio Wind ratio
+     * @return double 
+     */
     double fixedPointBSB( double p0, double delta_1, double delta_2, double k, double xt10, double yt10, double phit1, double xt20, double yt20, double phit2, double radius, double wind_ratio )
     {
         double tol = 0.0001;
@@ -206,7 +261,22 @@ namespace
     }
 
 
-
+    /**
+     * @brief Solve for trochoid BSB paths
+     * 
+     * @param x0 Start position x
+     * @param y0 Start position y
+     * @param phi0 Start heading
+     * @param xf Target position x
+     * @param yf Target position y
+     * @param phif End heading
+     * @param delta_1 Turning direction of starting arc
+     * @param delta_2 Turning direction of ending arc
+     * @param radius Minimum air-relative turning radius
+     * @param wind_ratio Wind ratio
+     * @param periodic Whether the path is periodic
+     * @param path Solved trochoid path
+     */
     void trochoidBSB(double x0, double y0, double phi0, double xf, double yf, double phif, double delta_1, double delta_2, double radius, double wind_ratio, bool periodic, TrochoidStateSpace::PathType &path)
     {
 
@@ -274,6 +344,26 @@ namespace
         return;
     }
 
+    /**
+     * @brief Check conditions for BBB Path types
+     * 
+     * @param delta_1 Turning direction of starting trochoid
+     * @param tA      Time value of the starting trochoid
+     * @param tB      Time value of the ending trochoid
+     * @param T       Total duration of path
+     * @param xt10    Constant defined in Eq. (20) in Techy (2009)
+     * @param yt10    Constant defined in Eq. (21) in Techy (2009)
+     * @param phit1   Initial heading in trochoid frame
+     * @param xf      Relative target position
+     * @param yf      Relative target position
+     * @param phif    Target heading
+     * @param radius  Minimum turn radius in air-relative frame
+     * @param wind_ratio Wind ratio
+     * @param periodic Whether the BSB path is periodic
+     * @param trochoid_path Calculated trochoid path object
+     * @return true   Returns true if the condiitons are conistent
+     * @return false  Reutrns false if the computed path are degenerate
+     */
     bool checkConditionsBBB( double delta_1, double tA, double tB, double T, double xt10, double yt10, double phit1, double xf, double yf, double phif, double radius, double wind_ratio, bool periodic, TrochoidStateSpace::PathType &trochoid_path){
 
         if ( std::isnan(tA) || std::isnan(tB) || std::isnan(T) ){
@@ -370,6 +460,23 @@ namespace
 
     }
 
+    /**
+     * @brief Root solve for BBB path type. Implementation of Section V. in Techy (2009).
+     * 
+     * @param p0 Guess value for tA
+     * @param p1 Guess value for T
+     * @param delta_1 Turning direction of start trochoid
+     * @param k Number of turns
+     * @param xt10 Constant defined in Eq. (A1)
+     * @param yt10 Constant defined in Eq. (A2)
+     * @param phit1 Constant defined in Eq. (A3)
+     * @param xf Relative Target position x
+     * @param yf Relative Target position y
+     * @param phif Target heading
+     * @param radius  Minimum turn radius in air-relative frame
+     * @param wind_ratio Wind ratio
+     * @param pvecOut Result of roots solved as a vector
+     */
     void fixedpointBBB(double p0, double p1, double delta_1, double k, double xt10, double yt10, double phit1, double xf, double yf, double phif, double radius, double wind_ratio, std::vector<double> &pvecOut) {
         // Implement TrochoidBBB
         pvecOut.resize(2);
@@ -424,7 +531,22 @@ namespace
         pvecOut[1] = std::numeric_limits<double>::quiet_NaN();
         return;
     }
-
+  
+    /**
+     * @brief 
+     * 
+     * @param x0 Start position x
+     * @param y0 Start position y
+     * @param phit1 Start heading
+     * @param xf Target position x
+     * @param yf Target position y
+     * @param phif End heading
+     * @param delta_1 Turn direction of starting arc
+     * @param radius minimum air-relative turning radius
+     * @param wind_ratio wind ratio
+     * @param periodic Whether the path is periodic
+     * @param path Computed path object
+     */
     void trochoidBBB(double x0, double y0, double phit1, double xf, double yf, double phif, double delta_1, double radius, double wind_ratio, bool periodic, TrochoidStateSpace::PathType &path) {
         double omega = (1/radius);
         double t2pi = 2.0 * onepi * radius;
