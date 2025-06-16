@@ -46,6 +46,18 @@ set(OMPL_DEMO_INSTALL_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ompl/demos"
 set(OMPL_PYTHON_INSTALL_DIR "${Python_SITELIB}"
     CACHE FILEPATH "Path to directory where the OMPL Python bindings will be installed")
 
+if(APPLE)
+    # Need 1.68 or newer when compiling in C++17 mode on MacOS
+    set(OMPL_MIN_BOOST_VERSION 1.68)
+else()
+    # Boost cannot be too new since we use AlmaLinux in CI for building wheels
+    # which currently only has Boost 1.66
+    #
+    # This is the oldest version which has been tested on Linux, but it's
+    # possible that even older versions work fine.
+    set(OMPL_MIN_BOOST_VERSION 1.66)
+endif()
+
 if(MSVC)
     add_definitions(-DBOOST_ALL_NO_LIB)
     add_definitions(-DBOOST_PROGRAM_OPTIONS_DYN_LINK)
@@ -59,7 +71,7 @@ set_package_properties(Boost PROPERTIES
     URL "https://www.boost.org"
     PURPOSE "Used throughout OMPL for data serialization, graphs, etc.")
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.66 REQUIRED COMPONENTS serialization filesystem system program_options)
+find_package(Boost ${OMPL_MIN_BOOST_VERSION} REQUIRED COMPONENTS serialization filesystem system program_options)
 
 enable_testing()
 
