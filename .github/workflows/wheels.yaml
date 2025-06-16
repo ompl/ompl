@@ -32,7 +32,7 @@ jobs:
         with:
           submodules: 'recursive'
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.23.2
+        uses: pypa/cibuildwheel@v3.0.0
         with:
           package-dir: bindings
         env:
