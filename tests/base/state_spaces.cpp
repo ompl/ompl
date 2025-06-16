@@ -50,6 +50,7 @@
 #include "ompl/base/spaces/DiscreteStateSpace.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
 #include "ompl/base/spaces/DubinsStateSpace.h"
+#include "ompl/base/spaces/TrochoidStateSpace.h"
 
 #include "ompl/base/spaces/OwenStateSpace.h"
 #include "ompl/base/spaces/VanaStateSpace.h"
