@@ -1,4 +1,4 @@
-find_package(Boost 1.66 QUIET COMPONENTS unit_test_framework)
+find_package(Boost ${OMPL_MIN_BOOST_VERSION} QUIET COMPONENTS unit_test_framework)
 if(Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
     option(OMPL_BUILD_TESTS "Build OMPL tests" ON)
 else()
