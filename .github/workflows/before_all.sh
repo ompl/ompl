@@ -34,5 +34,6 @@ elif [ "${build_os}" == "Darwin" ]; then
     export HOMEBREW_NO_AUTO_UPDATE=1
     brew install \
         eigen \
-        llvm@18
+        llvm@18 \
+        boost
 fi
