@@ -37,7 +37,6 @@ jobs:
           package-dir: bindings
         env:
           CIBW_ARCHS_MACOS: ${{ matrix.target.arch }}
-          OMPL_BUILD_ARCH: ${{ matrix.target.arch }}
           CIBW_BUILD: cp${{matrix.python-version}}-${{ matrix.target.suffix }}
           CIBW_SKIP: "cp*-manylinux_i686 cp*-musllinux* cp*-win32"
           CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET="15.0"
