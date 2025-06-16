@@ -48,6 +48,9 @@ class CMakeBuild(build_ext):
         # - Set CMAKE_LIBRARY_OUTPUT_DIRECTORY to a location expected by the
         #   wheel builder so that libraries are included in the output artifact.
         # - Disable unnecessary targets.
+        # - Disable generation of symlinked shared library versioning like
+        #   "libompl.so" -> "libompl.1.8.0.so" -> etc. These will result in
+        #   duplicated files in the wheel artifact and aren't necessary.
         #
         # [1]: https://cmake.org/cmake/help/latest/module/FindPython.html#hints
         cmake_args = [
@@ -61,6 +64,7 @@ class CMakeBuild(build_ext):
             "-DOMPL_BUILD_DEMOS=OFF",
             "-DOMPL_BUILD_PYTESTS=OFF",
             "-DOMPL_BUILD_TESTS=OFF",
+            "-DCMAKE_PLATFORM_NO_VERSIONED_SONAME=ON"
         ]
         build_args = []
         # Adding CMake arguments set as environment variable
