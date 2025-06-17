@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2008, Willow Garage, Inc.
+ *  Copyright (c) 2025, Queen's University
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Tyler Wilson */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_RRT_AORRTC_
 #define OMPL_GEOMETRIC_PLANNERS_RRT_AORRTC_
@@ -49,6 +49,28 @@ namespace ompl
 {
     namespace geometric
     {
+        /**
+           @anchor gAORRTC
+           @par Short description
+           AORRTC leverages RRT-Connect to repeatedly search
+           in a cost-augmented space, which is slowly constrained
+           to force the planner to iteratively find better
+           solutions. This meta algorithm repeatedly runs the
+           underlying RRT-Connect search (AOXRRTConnect) and
+           constrains each consecutive search by the cost of the
+           current best solution.
+           @par External documentation
+           J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc.
+           2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI:
+           [10.1109/ROBOT.2000.844730](http://dx.doi.org/10.1109/ROBOT.2000.844730)<br>
+           [[PDF]](http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246)
+           [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html)
+           T. S. Wilson, W. Thomason, Z. Kingston, and J. D. Gammell, AORRTC: Finding optimal paths with AO-x and
+           RRT-Connect, in <em>Proc. Workshop on RoboARCH: Robotics Acceleration with Computing Hardware and Systems,
+           IEEE Intl. Conf. on Robotics and Automation</em>, May 2025.
+        */
+
+        /** \brief Asymptotically Optimal RRT-Connect */
         class AORRTC : public base::Planner
         {
         public:

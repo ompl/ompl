@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2008, Willow Garage, Inc.
+ *  Copyright (c) 2025, Queen's University
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Ioan Sucan */
+/* Author: Tyler Wilson */
 
 #ifndef OMPL_GEOMETRIC_PLANNERS_RRT_AOX_RRT_CONNECT_
 #define OMPL_GEOMETRIC_PLANNERS_RRT_AOX_RRT_CONNECT_
@@ -48,19 +48,33 @@ namespace ompl
     namespace geometric
     {
         /**
-           @anchor gRRTC
+           @anchor gAORRTC RRT-Connect
            @par Short description
-           The basic idea is to grow two RRTs, one from the start and
-           one from the goal, and attempt to connect them.
+           AORRTC leverages RRT-Connect to repeatedly search
+           in a cost-augmented space, which is slowly constrained
+           to force the planner to iteratively find better
+           solutions. This modified RRT-Connect performs
+           its search in the configuration space of the robot
+           with an added cost dimension, and finds higher quality
+           solutions than its current best solution by only
+           allowing connections that could result in an improved
+           solution. This is done by sampling a cost for each new
+           sample uniformly from a range that is both reachable
+           and can improve upon the current solution, and uses
+           this sampled cost as an upper bound for the cost of
+           connections to this sample/
            @par External documentation
            J. Kuffner and S.M. LaValle, RRT-connect: An efficient approach to single-query path planning, in <em>Proc.
            2000 IEEE Intl. Conf. on Robotics and Automation</em>, pp. 995–1001, Apr. 2000. DOI:
            [10.1109/ROBOT.2000.844730](http://dx.doi.org/10.1109/ROBOT.2000.844730)<br>
            [[PDF]](http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246)
            [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html)
+           T. S. Wilson, W. Thomason, Z. Kingston, and J. D. Gammell, AORRTC: Finding optimal paths with AO-x and
+           RRT-Connect, in <em>Proc. Workshop on RoboARCH: Robotics Acceleration with Computing Hardware and Systems,
+           IEEE Intl. Conf. on Robotics and Automation</em>, May 2025.
         */
 
-        /** \brief RRT-Connect (AOXRRTConnect) */
+        /** \brief Modified RRT-Connect for AORRTC (AOXRRTConnect) */
         class AOXRRTConnect : public base::Planner
         {
         public:
