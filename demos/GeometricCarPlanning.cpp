@@ -105,10 +105,10 @@ void plan(const ob::StateSpacePtr& space, bool easy)
     ss.setup();
     ss.print();
 
-    // attempt to solve the problem within 30 seconds of planning time
-    ob::PlannerStatus solved = ss.solve(30.0);
+    // attempt to solve the problem within 300 seconds of planning time
+    ob::PlannerStatus solved = ss.solve(300.0);
 
-    if (solved)
+    if (solved == ob::PlannerStatus::EXACT_SOLUTION)
     {
         std::vector<double> reals;
 
