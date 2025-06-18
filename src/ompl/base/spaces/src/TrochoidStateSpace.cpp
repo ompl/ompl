@@ -45,19 +45,7 @@ using namespace ompl::base;
 namespace
 {
     constexpr double twopi = 2. * boost::math::constants::pi<double>();
-    constexpr double onepi = boost::math::constants::pi<double>();
     const double TROCHOID_EPS = 1e-6;
-    const double TROCHOID_ZERO = -1e-7;
-
-    inline double mod2pi(double x)
-    {
-        if (x < 0 && x > TROCHOID_ZERO)
-            return 0;
-        double xm = x - twopi * floor(x / twopi);
-        if (twopi - xm < .5 * TROCHOID_EPS)
-            xm = 0.;
-        return xm;
-    }
 
     double trochoid_delx(double omega, double dir, double delt, double phi0, double wind_ratio){
         return .0/(dir*omega)*(std::sin(dir*omega*delt+phi0) - std::sin(phi0)) + wind_ratio*delt;
@@ -110,10 +98,10 @@ namespace
         // final state 
         xf = xBfinal + trochoid_delx(omega, delta_2, T-tBeta , hBfinal, wind_ratio);
         yf = yBfinal + trochoid_dely(omega, delta_2, T-tBeta , hBfinal );
-        phif = hBfinal + trochoid_delh(omega, delta_2, T-tBeta ); 
-        phif = fmod(phif, 2.0*M_PI);
+        phif = hBfinal + trochoid_delh(omega, delta_2, T - tBeta);
+        phif = fmod(phif, twopi);
         if ( phif < 0 ){
-            phif = phif + 2.0*M_PI;
+            phif = phif + twopi;
         }
     }
  
@@ -157,7 +145,7 @@ namespace
         double ytB = (-radius/delta_2)*cos(delta_2*(1./radius)*tB + phit2) + yt20;
 
         double eps = 0.001;
-        double t2pi = 2. * onepi * radius;
+        double t2pi = twopi * radius;
 
         if ( tB < -t2pi || tB > t2pi ){
             return false;
@@ -217,8 +205,9 @@ namespace
     }
 
     /**
-     * @brief Solve BSB Trochoid path. Closed form solution for delta_1==delta_2, or numerically sovled with Eq. 39 in Techy (2009)
-     * 
+     * @brief Solve BSB Trochoid path. Closed form solution for delta_1==delta_2, or numerically solved with Eq. 39 in
+     * Techy (2009)
+     *
      * @param p0      Guess value of t_A for root solving
      * @param delta_1 Turning direction of the starting trochoid
      * @param delta_2 Turning direction of the ending trochoid
@@ -228,24 +217,25 @@ namespace
      * @param phit1   Initial heading in trochoid frame
      * @param xt20    Constaint defined in Eq. (22) in Techy (2009)
      * @param yt20    Constant defined in Eq. (23) in Techy (2009)
-     * @param phit2   Target heading in trochoid frame 
+     * @param phit2   Target heading in trochoid frame
      * @param radius  Minimum turn radius in air-relative frame
      * @param wind_ratio Wind ratio
-     * @return double 
+     * @return double
      */
     double fixedPointBSB( double p0, double delta_1, double delta_2, double k, double xt10, double yt10, double phit1, double xt20, double yt20, double phit2, double radius, double wind_ratio )
     {
-        double tol = 0.0001;
-        int N = 50;
-        std::vector<double> pvec(N);
+        constexpr double tol = 0.0001;
+        constexpr int N = 50;
+        std::array<double, N> pvec;
         pvec[0] = p0;
         int i = 1;
         double omega = 1./radius;
-        while (i <= N){
+        while (i < N)
+        {
             double p = pvec[i-1];
             double E = (delta_1-delta_2) / ( delta_2*delta_1*omega ) - (yt20-yt10)/wind_ratio;
-            double F = (xt20-xt10)/wind_ratio + (delta_1/delta_2-1)*p + (phit1-phit2 + 2.0*k*onepi) 
-                                                                /(delta_2*omega);
+            double F = (xt20 - xt10) / wind_ratio + (delta_1 / delta_2 - 1) * p +
+                       (phit1 - phit2 + k * twopi) / (delta_2 * omega);
             double G = (yt20 - yt10) + 1.0/wind_ratio*(delta_2-delta_1)/(delta_1*delta_2*omega);
             double f = E*cos(delta_1*omega*p + phit1) + F*sin(delta_1*omega*p + phit1) - G;
             double fBar = - E*sin(delta_1*omega*p + phit1)*delta_1*omega 
@@ -282,33 +272,34 @@ namespace
 
         double V_w = wind_ratio;
         double omega = 1.0/radius;
-        double t2pi = 2 * onepi * radius;
+        double t2pi = twopi * radius;
 
-        double phit1 = fmod(phi0, 2. * onepi);
+        double phit1 = fmod(phi0, twopi);
         double xt10 = x0 - delta_1 * radius * std::sin(phit1);
         double yt10 = y0 + delta_1 * radius * std::cos(phit1);
 
-        double phit2 = fmod(phif - delta_2 * omega * t2pi, 2. * onepi);
+        double phit2 = fmod(phif - delta_2 * omega * t2pi, twopi);
         double xt20 = xf - delta_2 * radius * std::sin(delta_2 * omega * t2pi + phit2) - V_w * t2pi;
         double yt20 = yf + delta_2 * radius * cos(delta_2 * omega * t2pi + phit2);
 
         if (delta_1 == delta_2) { // RSR/LSL: analytic solution
             for (int k_int = -2; k_int < 2; k_int++){
                 double k = (double)k_int;
-                double alpha = std::atan2(yt20 - yt10, xt20 - xt10 + V_w*( fmod(phit1-phit2, 2.0*onepi) - 2.0*k*onepi )/( delta_1*omega ));
-                double tA = t2pi/(delta_1*2.0*onepi)*( std::asin(V_w*std::sin(alpha)) + alpha - phit1 );
+                double alpha = std::atan2(
+                    yt20 - yt10, xt20 - xt10 + V_w * (fmod(phit1 - phit2, twopi) - k * twopi) / (delta_1 * omega));
+                double tA = t2pi / (delta_1 * twopi) * (std::asin(V_w * std::sin(alpha)) + alpha - phit1);
                 if ( tA > t2pi || tA < 0){
                     tA = tA - t2pi*floor(tA/t2pi);
                 }
-                double tB = tA + ( fmod(phit1 - phit2, 2.0*onepi) - 2.0*k*onepi ) / (delta_1*2.0*onepi) * t2pi;
+                double tB = tA + (fmod(phit1 - phit2, twopi) - k * twopi) / (delta_1 * twopi) * t2pi;
                 checkConditionsBSB(delta_1, delta_2, tA, tB, xt10, yt10, phi0, phit1, xt20, yt20, phit2, xf, yf, radius, wind_ratio, periodic, path);
             }
         } else {  // RSL/LSR: numerical solution
             for (int k_int = -2; k_int < 2; k_int++){
                 double k = (double)k_int;
-                int numTestPts = 10;
-                std::vector<double> rootsComputed(numTestPts);
-                double sameRootEpsilon = 0.001;
+                constexpr int numTestPts = 10;
+                std::array<double, numTestPts> rootsComputed;
+                constexpr double sameRootEpsilon = 0.001;
                 for ( int l = 0; l < numTestPts; l++){
                     bool rootAlreadyfound = false;
                     // initial guess
@@ -334,7 +325,7 @@ namespace
                     rootsComputed[l] = tA;
                     // if the root is unique
                     if ( !rootAlreadyfound ){
-                        double tB = delta_1/delta_2*tA + (phit1 - phit2 + 2.0*k*onepi)/(delta_2*omega);
+                        double tB = delta_1 / delta_2 * tA + (phit1 - phit2 + k * twopi) / (delta_2 * omega);
                         checkConditionsBSB(delta_1, delta_2, tA, tB, xt10, yt10, phi0, phit1, xt20, yt20, phit2, xf, yf, radius, wind_ratio, periodic, path);
                     }
                 }
@@ -370,11 +361,11 @@ namespace
             return false;
         }
         double omega = 1./radius;
-        double t2pi = 2 * onepi * radius;
+        double t2pi = twopi * radius;
         double d2 = -delta_1;
         double d3 = delta_1;
 
-        double phit3 = fmod ( phif - d3*omega*T , 2.0*onepi);
+        double phit3 = fmod(phif - d3 * omega * T, twopi);
         double xt30 = xf - 1.0/(d3*omega)*sin( phif ) - wind_ratio*T;
         double yt30 = yf + 1.0/(d3*omega)*cos( phif );
 
@@ -462,7 +453,7 @@ namespace
 
     /**
      * @brief Root solve for BBB path type. Implementation of Section V. in Techy (2009).
-     * 
+     *
      * @param p0 Guess value for tA
      * @param p1 Guess value for T
      * @param delta_1 Turning direction of start trochoid
@@ -475,45 +466,46 @@ namespace
      * @param phif Target heading
      * @param radius  Minimum turn radius in air-relative frame
      * @param wind_ratio Wind ratio
-     * @param pvecOut Result of roots solved as a vector
+     * @return Result of roots solved as a pair of doubles
      */
-    void fixedpointBBB(double p0, double p1, double delta_1, double k, double xt10, double yt10, double phit1, double xf, double yf, double phif, double radius, double wind_ratio, std::vector<double> &pvecOut) {
+    std::pair<double, double> fixedpointBBB(double p0, double p1, double delta_1, double k, double xt10, double yt10,
+                                            double phit1, double xf, double yf, double phif, double radius,
+                                            double wind_ratio)
+    {
         // Implement TrochoidBBB
-        pvecOut.resize(2);
-        double tol = 0.0001;
-        int N = 50;
+        constexpr double tol = 0.0001;
+        constexpr int N = 50;
         double d2 = -delta_1;
         double d3 = delta_1;
         double omega = 1.0/radius;
-        std::vector<double> pvec1(N);
-        std::vector<double> pvec2(N);
+        std::array<double, N> pvec1;
+        std::array<double, N> pvec2;
         pvec1[0] = p0;
         pvec2[0] = p1;
         int i = 1;
-        while (i <= N){
+        while (i < N)
+        {
             double tA = pvec1[i-1];
             double T = pvec2[i-1];
             // vector F = [f1; f2];
-            double f1 = 2./(delta_1*omega)*sin(delta_1*omega*tA+phit1) + wind_ratio*T +xt10 - xf + 1.0/(d3*omega)*sin(phif) + 2/(d2*omega)*sin( d2*omega*T/2 + (phif+phit1 + k*2*onepi)/2 
-                            + delta_1*omega*tA );
-            double f2 = -2*1.0/(delta_1*omega)*cos(delta_1*omega*tA+phit1) 
-                        + yt10 - yf - 1.0/(d3*omega)*cos(phif) 
-                        - 2*1.0/(d2*omega)
-                        *cos( d2*omega*T/2 + (phif+phit1 + k*2*onepi)/2 
-                                + delta_1*omega*tA );
-            std::vector<double> F(2);
+            double f1 =
+                2. / (delta_1 * omega) * sin(delta_1 * omega * tA + phit1) + wind_ratio * T + xt10 - xf +
+                1.0 / (d3 * omega) * sin(phif) +
+                2 / (d2 * omega) * sin(d2 * omega * T / 2 + (phif + phit1 + k * twopi) / 2 + delta_1 * omega * tA);
+            double f2 = -2 * 1.0 / (delta_1 * omega) * cos(delta_1 * omega * tA + phit1) + yt10 - yf -
+                        1.0 / (d3 * omega) * cos(phif) -
+                        2 * 1.0 / (d2 * omega) *
+                            cos(d2 * omega * T / 2 + (phif + phit1 + k * twopi) / 2 + delta_1 * omega * tA);
             // matrix FBar = [ a b ; c d ];
-            double a = 2*1.0*( cos(delta_1*omega*tA + phit1) 
-                                    - cos( d2*omega*T/2 + (phif+phit1 + k*2*onepi)/2 
-                                            + delta_1*omega*tA ) );
-            double b = wind_ratio+1.0*cos( d2*omega*T/2 
-                                                + (phif+phit1 + k*2*onepi)/2 
-                                                + delta_1*omega*tA );
-            double c = 2*1.0*( sin(delta_1*omega*tA + phit1) 
-                                    - sin( d2*omega*T/2 + (phif+phit1 + k*2*onepi)/2 
-                                            + delta_1*omega*tA ) );
-            double d = 1.0*sin( d2*omega*T/2 + (phif+phit1 + k*2*onepi)/2 
-                                    + delta_1*omega*tA );
+            double a = 2 * 1.0 *
+                       (cos(delta_1 * omega * tA + phit1) -
+                        cos(d2 * omega * T / 2 + (phif + phit1 + k * twopi) / 2 + delta_1 * omega * tA));
+            double b =
+                wind_ratio + 1.0 * cos(d2 * omega * T / 2 + (phif + phit1 + k * twopi) / 2 + delta_1 * omega * tA);
+            double c = 2 * 1.0 *
+                       (sin(delta_1 * omega * tA + phit1) -
+                        sin(d2 * omega * T / 2 + (phif + phit1 + k * twopi) / 2 + delta_1 * omega * tA));
+            double d = 1.0 * sin(d2 * omega * T / 2 + (phif + phit1 + k * twopi) / 2 + delta_1 * omega * tA);
             double det = a*d - b*c;
             // pvec = x - FBar*FBarInv;
             pvec1[i] = pvec1[i-1] - (d/det*f1 - b/det*f2);
@@ -521,17 +513,13 @@ namespace
             // convergence criteria
             if ( (pvec1[i]-pvec1[i-1])*(pvec1[i]-pvec1[i-1]) 
                 + (pvec2[i]-pvec2[i-1])*(pvec2[i]-pvec2[i-1]) < tol ){
-                pvecOut[0] = pvec1[i];
-                pvecOut[1] = pvec2[i];
-                return;
+                return {pvec1[i], pvec2[i]};
             }
             i++;
         }
-        pvecOut[0] = std::numeric_limits<double>::quiet_NaN();
-        pvecOut[1] = std::numeric_limits<double>::quiet_NaN();
-        return;
+        return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
     }
-  
+
     /**
      * @brief 
      * 
@@ -549,7 +537,7 @@ namespace
      */
     void trochoidBBB(double x0, double y0, double phit1, double xf, double yf, double phif, double delta_1, double radius, double wind_ratio, bool periodic, TrochoidStateSpace::PathType &path) {
         double omega = (1/radius);
-        double t2pi = 2.0 * onepi * radius;
+        double t2pi = twopi * radius;
 
         double xt10 = x0 - 1.0/(delta_1*omega)*sin(phit1);
         double yt10 = y0 + 1.0/(delta_1*omega)*cos(phit1);
@@ -557,11 +545,8 @@ namespace
         double delta_2 = - delta_1;
 
         // test a grid of initial conditions, grid resolution
-        int numTestPts = 10;
-        std::vector< std::vector<double> > rootsComputed(numTestPts*numTestPts);
-        for (size_t i = 0; i < rootsComputed.size(); i++){
-            rootsComputed[i].resize(3);
-        }
+        constexpr int numTestPts = 10;
+        std::array<std::array<double, 3>, numTestPts * numTestPts> rootsComputed;
         double sameRootEpsilon = 0.001;
         for (int kint = -2; kint < 3; kint++){
             double k = (double)kint;
@@ -569,15 +554,11 @@ namespace
             for ( int n = 0; n < numTestPts; n++){
                 bool rootAlreadyfound = false;
                 // initial guess
-                std::vector<double> pvecInit(2);
-                std::vector<double> pvecOut(2);
                 double tA_test = (double)(l+1)*t2pi/numTestPts;
                 double T_test = (double)(n+1)*3*t2pi/numTestPts;
-                fixedpointBBB(tA_test, T_test, delta_1, k, xt10, yt10, phit1, xf, yf, phif, radius, wind_ratio, pvecOut);
-                double tA = pvecOut[0];
-                double T = pvecOut[1];
-                double tB = tA + T/2 + (phif - phit1 + 2.0*k*onepi)
-                                    /( 2*delta_2*omega );
+                auto [tA, T] =
+                    fixedpointBBB(tA_test, T_test, delta_1, k, xt10, yt10, phit1, xf, yf, phif, radius, wind_ratio);
+                double tB = tA + T / 2 + (phif - phit1 + k * twopi) / (2 * delta_2 * omega);
 
                 int curRow = (l)*numTestPts+(n);
                 // check if the root has already been computed 
@@ -590,10 +571,8 @@ namespace
                         } 
                     }
                 }
-                // store the computed rootz
-                rootsComputed[curRow][0] = tA;
-                rootsComputed[curRow][1] = tB;
-                rootsComputed[curRow][2] = T;
+                // store the computed roots
+                rootsComputed[curRow] = {tA, tB, T};
 
                 // if the root is unique
                 if ( !rootAlreadyfound ){
@@ -705,15 +684,15 @@ namespace ompl::base
 }  // namespace ompl::base
 
 const std::vector<std::vector<TrochoidStateSpace::TrochoidPathSegmentType> >& TrochoidStateSpace::dubinsPathType() {
-    static std::vector<std::vector<TrochoidStateSpace::TrochoidPathSegmentType> >* pathType
-        = new std::vector<std::vector<TrochoidStateSpace::TrochoidPathSegmentType> >(
-        {{
-            {TROCHOID_LEFT, TROCHOID_STRAIGHT, TROCHOID_LEFT}, {TROCHOID_RIGHT, TROCHOID_STRAIGHT, TROCHOID_RIGHT},
-            {TROCHOID_RIGHT, TROCHOID_STRAIGHT, TROCHOID_LEFT}, {TROCHOID_LEFT, TROCHOID_STRAIGHT, TROCHOID_RIGHT},
-            {TROCHOID_RIGHT, TROCHOID_LEFT, TROCHOID_RIGHT}, {TROCHOID_LEFT, TROCHOID_RIGHT, TROCHOID_LEFT}
-        }}
-        );
-        return *pathType;
+    static const std::vector<std::vector<TrochoidStateSpace::TrochoidPathSegmentType>> *pathType =
+        new std::vector<std::vector<TrochoidStateSpace::TrochoidPathSegmentType>>(
+            {{{TROCHOID_LEFT, TROCHOID_STRAIGHT, TROCHOID_LEFT},
+              {TROCHOID_RIGHT, TROCHOID_STRAIGHT, TROCHOID_RIGHT},
+              {TROCHOID_RIGHT, TROCHOID_STRAIGHT, TROCHOID_LEFT},
+              {TROCHOID_LEFT, TROCHOID_STRAIGHT, TROCHOID_RIGHT},
+              {TROCHOID_RIGHT, TROCHOID_LEFT, TROCHOID_RIGHT},
+              {TROCHOID_LEFT, TROCHOID_RIGHT, TROCHOID_LEFT}}});
+    return *pathType;
     }
 
 double TrochoidStateSpace::distance(const State *state1, const State *state2) const
