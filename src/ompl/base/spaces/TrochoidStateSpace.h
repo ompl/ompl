@@ -86,7 +86,6 @@ namespace ompl
                 }
                 double length() const
                 {
-                    ///TODO: Fix for trochoid paths
                     return length_[0] + length_[1] + length_[2];
                 }
 
