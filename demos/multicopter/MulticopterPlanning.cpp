@@ -525,7 +525,7 @@ bool collisionChecker(ompl::control::HySST::Motion *motion,
 void flowODE(const ompl::control::ODESolver::StateType &q, const ompl::control::Control *c,
              ompl::control::ODESolver::StateType &qdot)
 {
-    // Retrieve control values.  Velocity is the first entry, steering angle is second.
+    // Retrieve control values.
     const double *u = c->as<ompl::control::RealVectorControlSpace::ControlType>()->values;
     const double u_1 = u[0];
     const double u_2 = u[1];
@@ -588,7 +588,7 @@ int main()
     // Set the bounds of space
     ompl::base::RealVectorStateSpace *statespace = new ompl::base::RealVectorStateSpace(0);
     statespace->addDimension(1, 6.0);
-    statespace->addDimension(1, 5);
+    statespace->addDimension(1, 5.0);
     statespace->addDimension(-10, 10);
     statespace->addDimension(-10, 10);
     statespace->addDimension(-10, 10);
@@ -606,9 +606,9 @@ int main()
 
     ompl::base::RealVectorBounds flowBounds(2);
     flowBounds.setLow(0, -0.5);
-    flowBounds.setLow(1, -1);
-    flowBounds.setHigh(0, 1);
-    flowBounds.setHigh(1, 1);
+    flowBounds.setLow(1, -2);
+    flowBounds.setHigh(0, 2);
+    flowBounds.setHigh(1, 2);
     flowControlSpace->setBounds(flowBounds);
 
     ompl::base::RealVectorBounds jumpBounds(2);
@@ -644,7 +644,7 @@ int main()
     ompl::control::ODESolverPtr odeSolver(new ompl::control::ODEBasicSolver<>(si, &flowODE));
 
     si->setStatePropagator(ompl::control::ODESolver::getStatePropagator(odeSolver));
-    si->setPropagationStepSize(0.01);
+    si->setPropagationStepSize(0.05);
     si->setMinMaxControlDuration(1, 1);
 
     si->setup();
@@ -688,17 +688,18 @@ int main()
     cHySST.setDiscreteSimulator(discreteSimulator);
     cHySST.setFlowSet(flowSet);
     cHySST.setJumpSet(jumpSet);
-    cHySST.setTm(0.5);
-    cHySST.setFlowStepDuration(0.01);
+    cHySST.setTm(1);
+    cHySST.setFlowStepDuration(0.05);
     cHySST.setUnsafeSet(unsafeSet);
     cHySST.setCollisionChecker(collisionChecker);
-    cHySST.setSelectionRadius(0.1);
-    cHySST.setPruningRadius(0.05);
-    cHySST.setBatchSize(1);
+    cHySST.setSelectionRadius(0.2);
+    cHySST.setPruningRadius(0.1);
+    cHySST.setBatchSize(1); 
+
 
     // attempt to solve the planning problem within 200 seconds
     ompl::time::point t0 = ompl::time::now();
-    ompl::base::PlannerStatus solved = cHySST.solve(ompl::base::timedPlannerTerminationCondition(200));
+    ompl::base::PlannerStatus solved = cHySST.solve(ompl::base::timedPlannerTerminationCondition(30));
     double planTime = ompl::time::seconds(ompl::time::now() - t0);
 
     if (solved)  // If either approximate or exact solution has beenf ound

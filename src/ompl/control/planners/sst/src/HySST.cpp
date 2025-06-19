@@ -224,7 +224,6 @@ std::vector<ompl::control::HySST::Motion *> ompl::control::HySST::extend(Motion 
     {
         while (tFlow < randomFlowTimeMax && flowSet_(parentMotion))
         {
-            if (ompl::base::HybridStateSpace::getStateJumps(parentMotion->state) > 0)
             tFlow += flowStepDuration_;
 
             // Find new state with continuous simulation
@@ -271,8 +270,9 @@ std::vector<ompl::control::HySST::Motion *> ompl::control::HySST::extend(Motion 
                     collisionParentMotion = motion;
                     priority = true; // If collision has occurred, continue to jump regime
                 }
-                else
+                else {
                     return std::vector<Motion *>{motion}; // Return the motion in vector form
+                }
                 break;
             }
         }
@@ -299,7 +299,11 @@ std::vector<ompl::control::HySST::Motion *> ompl::control::HySST::extend(Motion 
 
         // Add motions to tree, and free up memory allocated to newState
         collisionParentMotion->numChildren_++;
-        return std::vector<Motion *>{motion, collisionParentMotion};
+
+        if (tFlow > 0)  // If coming from flow propagation
+            return std::vector<Motion *>{motion, collisionParentMotion};
+        else
+            return std::vector<Motion *>{motion}; 
     }
     return std::vector<Motion *>();
 }
@@ -379,7 +383,7 @@ ompl::base::PlannerStatus ompl::control::HySST::solve(const base::PlannerTermina
             {
                 collisionParentMotion = dMotion[1];
                 collisionParentMotion->accCost_ = base::Cost(nmotion->accCost_.value() + costFunc_(dMotion[1]).value());
-                cost = base::Cost(costFunc_(dMotion[0]).value() + collisionParentMotion->accCost_.value()); // Since final motion contains a collision, final cost must include the pre-collision motion cost
+                cost = base::Cost(cost.value() + costFunc_(dMotion[1]).value());
 
                 nn_->add(collisionParentMotion);
             }
@@ -405,7 +409,9 @@ ompl::base::PlannerStatus ompl::control::HySST::solve(const base::PlannerTermina
                     prevSolution_.push_back(solTrav);
                     solTrav = solTrav->parent;
                 }
-                prevSolutionCost_ = solution->accCost_;      
+
+                prevSolutionCost_ = solution->accCost_; 
+
                 OMPL_INFORM("Solution found with cost of %f", prevSolutionCost_.value());          
                 solutions++;
                 if(solutions >= batchSize_)

@@ -84,8 +84,8 @@ void flowODE(const ompl::control::ODESolver::StateType& q, const ompl::control::
     qdot.resize(q.size(), 0);
  
     qdot[0] = q[1];            // x-dot
-    qdot[1] = q[2];            // y-dot
-    qdot[2] = 0;    // theta-dot
+    qdot[1] = q[2];            // v-dot
+    qdot[2] = 0;    // a-dot
 }
 
 /** \brief Simulates the dynamics of the ball when in jump regime, with input from the surface. */
