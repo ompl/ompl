@@ -36,6 +36,7 @@
 
 #include <ompl/base/spaces/DubinsStateSpace.h>
 #include <ompl/base/spaces/ReedsSheppStateSpace.h>
+#include <ompl/base/spaces/TrochoidStateSpace.h>
 #include <ompl/base/ScopedState.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <boost/program_options.hpp>
@@ -104,10 +105,10 @@ void plan(const ob::StateSpacePtr& space, bool easy)
     ss.setup();
     ss.print();
 
-    // attempt to solve the problem within 30 seconds of planning time
-    ob::PlannerStatus solved = ss.solve(30.0);
+    // attempt to solve the problem within 300 seconds of planning time
+    ob::PlannerStatus solved = ss.solve(300.0);
 
-    if (solved)
+    if (solved == ob::PlannerStatus::EXACT_SOLUTION)
     {
         std::vector<double> reals;
 
@@ -180,6 +181,7 @@ int main(int argc, char* argv[])
             ("help", "show help message")
             ("dubins", "use Dubins state space")
             ("dubinssym", "use symmetrized Dubins state space")
+            ("trochoid", "use trochoid state space (default wind ratio: 0.3)")
             ("reedsshepp", "use Reeds-Shepp state space (default)")
             ("easyplan", "solve easy planning problem and print path")
             ("hardplan", "solve hard planning problem and print path")
@@ -205,6 +207,8 @@ int main(int argc, char* argv[])
             space = std::make_shared<ob::DubinsStateSpace>();
         if (vm.count("dubinssym") != 0u)
             space = std::make_shared<ob::DubinsStateSpace>(1., true);
+        if (vm.count("trochoid") != 0u)
+            space = std::make_shared<ob::TrochoidStateSpace>(1., 0.3);
         if (vm.count("easyplan") != 0u)
             plan(space, true);
         if (vm.count("hardplan") != 0u)
