@@ -178,7 +178,7 @@ class ompl_base_generator_t(code_generator_t):
 
         self.std_ns.class_('vector< std::shared_ptr<ompl::base::StateSpace> >').rename(
             'vectorStateSpacePtr')
-        #self.std_ns.class_('vector< <ompl::base::PlannerSolution> >').rename(
+        # self.std_ns.class_('vector< <ompl::base::PlannerSolution> >').rename(
         # 'vectorPlannerSolution')
         self.std_ns.class_(f'map< {self.string_decl}, std::shared_ptr<ompl::base::GenericParam> >').rename(
             'mapStringToGenericParam')
@@ -307,11 +307,11 @@ void __set%(member_function_camelize)s(%(cls)s* self, double %(member_function)s
         # I don't know how to export a C-style array of an enum type
         for stype in ['ReedsShepp']:
             self.ompl_ns.enumeration(stype + 'PathSegmentType').exclude()
-            self.ompl_ns.class_(stype + 'Path').exclude()
-            
+            self.ompl_ns.class_(stype + "StateSpace").class_("PathType").exclude()
+
         for stype in ['Dubins', 'ReedsShepp']:
             self.ompl_ns.class_(stype + "StateSpace").member_function(
-                stype[0].lower() + stype[1:],
+                "getPath",
                 arg_types=[
                     "::ompl::base::State const *",
                     "::ompl::base::State const *",
@@ -319,13 +319,14 @@ void __set%(member_function_camelize)s(%(cls)s* self, double %(member_function)s
             ).exclude()
 
         # access to public member variables
-        self.ompl_ns.class_('DubinsPath').variable("type_").include()
-        self.ompl_ns.class_('DubinsPath').variable("length_").include()
-        self.ompl_ns.class_('DubinsPath').variable("reverse_").include()
+        cls = self.ompl_ns.class_("DubinsStateSpace").class_("PathType")
+        cls.variable("type_").include()
+        cls.variable("length_").include()
+        cls.variable("reverse_").include()
 
         # Disable the other dubins overload
         self.ompl_ns.class_("DubinsStateSpace").member_function(
-            "dubins",
+            "getPath",
             arg_types=[
                 "::ompl::base::State const *",
                 "::ompl::base::State const *",
@@ -397,7 +398,7 @@ void __set%(member_function_camelize)s(%(cls)s* self, double %(member_function)s
             self.add_function_wrapper(
                 'double(ompl::base::AtlasChart *)', 'AtlasChartBiasFunction',
                 'Bias function for sampling a chart from an atlas.')
-                    # add code for numpy.array <-> Eigen conversions
+            # add code for numpy.array <-> Eigen conversions
             self.mb.add_declaration_code(open(join(dirname(__file__), \
                 'numpy_eigen.cpp'), 'r').read())
             self.mb.add_registration_code("""
@@ -417,7 +418,7 @@ void __set%(member_function_camelize)s(%(cls)s* self, double %(member_function)s
             ]
 
             for cls in [self.ompl_ns.class_('Constraint')]: #,
-#                        self.ompl_ns.class_('ConstraintIntersection')]:
+                #                        self.ompl_ns.class_('ConstraintIntersection')]:
                 for method in ['function', 'jacobian']:
                     for signature in signatures:
                         try:
@@ -441,8 +442,8 @@ void __set%(member_function_camelize)s(%(cls)s* self, double %(member_function)s
             pass
 
         # Exclude PlannerData::getEdges function that returns a map of PlannerDataEdge* for now
-        #self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()
-        #self.std_ns.class_('map< unsigned int, ompl::base::PlannerDataEdge const*>').include()
+        # self.ompl_ns.class_('PlannerData').member_functions('getEdges').exclude()
+        # self.std_ns.class_('map< unsigned int, ompl::base::PlannerDataEdge const*>').include()
         mapUintToPlannerDataEdge_cls = self.std_ns.class_(
             'map< unsigned int, const ompl::base::PlannerDataEdge *>')
         mapUintToPlannerDataEdge_cls.rename('mapUintToPlannerDataEdge')
@@ -521,7 +522,7 @@ void __set%(member_function_camelize)s(%(cls)s* self, double %(member_function)s
                 arg_types=['::std::ostream &']).exclude()
         except declaration_not_found_t:
             pass
-        
+
         # add wrappers for std::optional types and 3D Dubins PathTypes
         for dubins3d in ['Owen', 'Vana', 'VanaOwen']:
             self.add_optional_wrapper(f'ompl::base::{dubins3d}StateSpace::PathType')
