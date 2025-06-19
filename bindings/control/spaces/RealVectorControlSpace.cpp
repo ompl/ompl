@@ -18,72 +18,60 @@ void ompl::binding::control::initSpaces_RealVectorControlSpace(nb::module_ &m)
 {
     nb::class_<oc::RealVectorControlUniformSampler, oc::ControlSampler>(m, "RealVectorControlUniformSampler")
         .def(nb::init<const oc::ControlSpace *>(),
-             nb::arg("space"),
-             "Construct a RealVectorControlUniformSampler for a given control space")
+             nb::arg("space"))
         .def("sample", &oc::RealVectorControlUniformSampler::sample,
-             nb::arg("control"),
-             "Sample a random control uniformly within the bounds");
+             nb::arg("control"));
 
     nb::class_<oc::RealVectorControlSpace::ControlType, oc::Control>(m, "RealVectorControlType")
         .def("__getitem__", [](const oc::RealVectorControlSpace::ControlType &ctrl, unsigned int i) {
             return ctrl[i];
-        }, "Get the i-th component of this control")
+        }, nb::rv_policy::reference_internal)
         .def("__setitem__", [](oc::RealVectorControlSpace::ControlType &ctrl, unsigned int i, double value) {
             ctrl[i] = value;
-        }, "Set the i-th component of this control");
+        });
 
     // 3) Bind the RealVectorControlSpace class
     nb::class_<oc::RealVectorControlSpace, oc::ControlSpace>(m, "RealVectorControlSpace")
         // Constructor that takes (StateSpacePtr, dimension)
         .def(nb::init<const ob::StateSpacePtr &, unsigned int>(),
-             nb::arg("stateSpace"), nb::arg("dim"),
-             "Construct a RealVectorControlSpace for a given dimension")
+             nb::arg("stateSpace"), nb::arg("dim"))
 
         // setBounds
         .def("setBounds", &oc::RealVectorControlSpace::setBounds,
-             nb::arg("bounds"),
-             "Set the lower/upper bounds for each dimension of this control space")
+             nb::arg("bounds"))
 
         // getBounds
         .def("getBounds", &oc::RealVectorControlSpace::getBounds,
-             nb::rv_policy::reference_internal,
-             "Get the current bounds (RealVectorBounds) of this control space")
+             nb::rv_policy::reference_internal)
 
         // getDimension
-        .def("getDimension", &oc::RealVectorControlSpace::getDimension,
-             "Return the dimension of this control space")
+        .def("getDimension", &oc::RealVectorControlSpace::getDimension)
 
         // copyControl
         .def("copyControl", &oc::RealVectorControlSpace::copyControl,
-             nb::arg("destination"), nb::arg("source"),
-             "Copy one control into another")
+             nb::arg("destination"), nb::arg("source"))
 
         // equalControls
         .def("equalControls", &oc::RealVectorControlSpace::equalControls,
-             nb::arg("control1"), nb::arg("control2"),
-             "Return whether two controls are equal")
+             nb::arg("control1"), nb::arg("control2"))
 
         // allocDefaultControlSampler
-        .def("allocDefaultControlSampler", &oc::RealVectorControlSpace::allocDefaultControlSampler,
-             "Allocate the default control sampler for this space (uniform)")
+        .def("allocDefaultControlSampler", &oc::RealVectorControlSpace::allocDefaultControlSampler)
 
         // allocControl / freeControl
-        .def("allocControl", &oc::RealVectorControlSpace::allocControl,
-             "Allocate memory for a control in this space")
+        .def("allocControl", &oc::RealVectorControlSpace::allocControl)
+
         .def("freeControl", &oc::RealVectorControlSpace::freeControl,
-             nb::arg("control"),
-             "Free the memory for a control allocated by allocControl()")
+             nb::arg("control"))
 
         // nullControl
         .def("nullControl", &oc::RealVectorControlSpace::nullControl,
-             nb::arg("control"),
-             "Set the control to a 'null' value (commonly all zeros)")
+             nb::arg("control"))
 
         // printControl
         .def("printControl", [](const oc::RealVectorControlSpace &space, const oc::Control *ctrl) {
              space.printControl(ctrl, std::cout);
-        }, nb::arg("control"),
-        "Return a string describing the specified control")
+        }, nb::arg("control"))
 
         // getValueAddressAtIndex
         .def("getValueAddressAtIndex", &oc::RealVectorControlSpace::getValueAddressAtIndex,
@@ -93,19 +81,15 @@ void ompl::binding::control::initSpaces_RealVectorControlSpace(nb::module_ &m)
         // printSettings
         .def("printSettings", [](const oc::RealVectorControlSpace &space) {
              space.printSettings(std::cout);
-        }, "Return a string describing the control space settings")
+        })
 
         // setup
-        .def("setup", &oc::RealVectorControlSpace::setup,
-             "Setup this control space (usually checks bounds, etc.)")
+        .def("setup", &oc::RealVectorControlSpace::setup)
 
         // getSerializationLength, serialize, deserialize
-        .def("getSerializationLength", &oc::RealVectorControlSpace::getSerializationLength,
-             "Return the number of bytes needed to serialize a control of this space")
+        .def("getSerializationLength", &oc::RealVectorControlSpace::getSerializationLength)
         .def("serialize", &oc::RealVectorControlSpace::serialize,
-             nb::arg("serialization"), nb::arg("ctrl"),
-             "Serialize the given control into the provided memory buffer")
+             nb::arg("serialization"), nb::arg("ctrl"))
         .def("deserialize", &oc::RealVectorControlSpace::deserialize,
-             nb::arg("ctrl"), nb::arg("serialization"),
-             "Deserialize from the given memory buffer into the provided control");
+             nb::arg("ctrl"), nb::arg("serialization"));
 }

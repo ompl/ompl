@@ -37,11 +37,9 @@ void ompl::binding::base::init_Goal(nb::module_ &m)
 
     nb::class_<ob::Goal, PyGoal /* <-- trampoline */>(m, "Goal")
         // constructor
-        .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"),
-             "Construct a Goal checker on the given SpaceInformation")
+        .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
         // getters
-        .def("getType", &ob::Goal::getType, "Return the GoalType bitmask for this goal")
-        .def("hasType", &ob::Goal::hasType, nb::arg("type"), "Return true if this goal has the given GoalType flag")
-        .def("getSpaceInformation", &ob::Goal::getSpaceInformation, nb::rv_policy::reference_internal,
-             "Return the SpaceInformation associated with this goal");
+        .def("getType", &ob::Goal::getType)
+        .def("hasType", &ob::Goal::hasType, nb::arg("type"))
+        .def("getSpaceInformation", &ob::Goal::getSpaceInformation, nb::rv_policy::reference_internal);
 }
