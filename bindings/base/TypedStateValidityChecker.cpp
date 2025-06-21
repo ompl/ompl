@@ -6,4 +6,5 @@ namespace nb = nanobind;
 
 void ompl::binding::base::init_TypedStateValidityChecker(nb::module_& m)
 {
+    // TODO [ompl::base::TypedStateValidityChecker][TRAMPOLINE]
 }

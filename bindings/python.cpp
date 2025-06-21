@@ -15,13 +15,13 @@ NB_MODULE(_ompl, m)
     nb::module_ base = m.def_submodule("base");
 
     ompl::binding::base::init_Cost(base);
-    ompl::binding::base::init_DiscreteMotionValidator(base);
     ompl::binding::base::init_GenericParam(base);
     ompl::binding::base::init_Goal(base);
     ompl::binding::base::init_GoalTypes(base);
     ompl::binding::base::init_MotionValidator(base);
+    ompl::binding::base::init_DiscreteMotionValidator(base);
     ompl::binding::base::init_OptimizationObjective(base);
-    ompl::binding::base::init_ConstrainedSpaceInformation(base);
+    ompl::binding::base::init_ValidStateSampler(base);
     ompl::binding::base::init_Constraint(base);
     ompl::binding::base::init_Path(base);
     ompl::binding::base::init_Planner(base);
@@ -45,13 +45,13 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::init_StateValidityChecker(base);
     ompl::binding::base::init_TypedSpaceInformation(base);
     ompl::binding::base::init_TypedStateValidityChecker(base);
-    ompl::binding::base::init_ValidStateSampler(base);
     ompl::binding::base::initGoals_GoalRegion(base);
     ompl::binding::base::initGoals_GoalSampleableRegion(base);
     ompl::binding::base::initGoals_GoalSpace(base);
     ompl::binding::base::initGoals_GoalState(base);
     ompl::binding::base::initGoals_GoalStates(base);
     ompl::binding::base::initGoals_GoalLazySamples(base);
+    ompl::binding::base::init_ConstrainedSpaceInformation(base);
     ompl::binding::base::initObjectives_ControlDurationObjective(base);
     ompl::binding::base::initObjectives_MechanicalWorkOptimizationObjective(base);
     ompl::binding::base::initObjectives_MinimaxObjective(base);
@@ -64,9 +64,7 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initSamplersDeterministic_DeterministicSequence(base);
     ompl::binding::base::initSamplersDeterministic_HaltonSequence(base);
     ompl::binding::base::initSamplersDeterministic_PrecomputedSequence(base);
-    ompl::binding::base::initSamplersInformed_OrderedInfSampler(base);
-    ompl::binding::base::initSamplersInformed_PathLengthDirectInfSampler(base);
-    ompl::binding::base::initSamplersInformed_RejectionInfSampler(base);
+
     ompl::binding::base::initSamplers_BridgeTestValidStateSampler(base);
     ompl::binding::base::initSamplers_ConditionalStateSampler(base);
     ompl::binding::base::initSamplers_DeterministicStateSampler(base);
@@ -76,7 +74,10 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initSamplers_MinimumClearanceValidStateSampler(base);
     ompl::binding::base::initSamplers_ObstacleBasedValidStateSampler(base);
     ompl::binding::base::initSamplers_UniformValidStateSampler(base);
-    
+    ompl::binding::base::initSamplersInformed_OrderedInfSampler(base);
+    ompl::binding::base::initSamplersInformed_PathLengthDirectInfSampler(base);
+    ompl::binding::base::initSamplersInformed_RejectionInfSampler(base);
+
     ompl::binding::base::initSpaces_DiscreteStateSpace(base);
     ompl::binding::base::initSpaces_RealVectorBounds(base);
     ompl::binding::base::initSpaces_RealVectorStateProjections(base);

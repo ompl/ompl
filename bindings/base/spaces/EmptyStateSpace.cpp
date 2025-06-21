@@ -9,10 +9,11 @@ namespace ob = ompl::base;
 
 void ompl::binding::base::initSpaces_EmptyStateSpace(nb::module_ &m)
 {
+    // TODO [ob::EmptyStateSpace][TEST]
     nb::class_<ob::EmptyStateSpace, ob::RealVectorStateSpace>(m, "EmptyStateSpace")
-        .def(nb::init<>(), "Construct an EmptyStateSpace with 0 dimensions")
-        .def("getMeasure", &ob::EmptyStateSpace::getMeasure, "Return the measure of the space (always 0)")
-        .def("getDimension", &ob::EmptyStateSpace::getDimension, "Return the dimension (always 0)")
-        .def("getMaximumExtent", &ob::EmptyStateSpace::getMaximumExtent, "Return the maximum extent (always 0)")
-        .def("setup", &ob::EmptyStateSpace::setup, "No-op setup override for EmptyStateSpace");
+        .def(nb::init<>())
+        .def("getMeasure", &ob::EmptyStateSpace::getMeasure)
+        .def("getDimension", &ob::EmptyStateSpace::getDimension)
+        .def("getMaximumExtent", &ob::EmptyStateSpace::getMaximumExtent)
+        .def("setup", &ob::EmptyStateSpace::setup);
 }

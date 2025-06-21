@@ -6,4 +6,5 @@ namespace nb = nanobind;
 
 void ompl::binding::base::init_TypedSpaceInformation(nb::module_& m)
 {
+    // TODO [ob::TypedSpaceInformation][TRAMPOLINE]
 }

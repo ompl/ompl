@@ -11,55 +11,47 @@ namespace ob = ompl::base;
 
 void ompl::binding::base::initSpacesConstraint_AtlasStateSpace(nb::module_ &m)
 {
-    //
-    // AtlasStateSampler
-    //
-    nb::class_<ob::AtlasStateSampler, ob::StateSampler>(m, "AtlasStateSampler")
-        .def(nb::init<const ob::AtlasStateSpace *>(), nb::arg("space"),
-             "Construct an atlas sampler for the given AtlasStateSpace")
-        .def("sampleUniform", &ob::AtlasStateSampler::sampleUniform, nb::arg("state"),
-             "Sample uniformly on the atlas manifold")
-        .def("sampleUniformNear", &ob::AtlasStateSampler::sampleUniformNear, nb::arg("state"), nb::arg("near"),
-             nb::arg("distance"), "Sample uniformly near another state and project onto the manifold")
-        .def("sampleGaussian", &ob::AtlasStateSampler::sampleGaussian, nb::arg("state"), nb::arg("mean"),
-             nb::arg("stdDev"), "Sample from a Gaussian around `mean` and project onto the manifold");
 
-    nb::class_<ompl::base::AtlasStateSpace::StateType, ompl::base::ConstrainedStateSpace::StateType> stateType(m, "AtlasStateType");
-    //
-    // AtlasStateSpace
-    //
+    // TODO [ob::AtlasStateSampler][TEST]
+    nb::class_<ob::AtlasStateSampler, ob::StateSampler>(m, "AtlasStateSampler")
+        .def(nb::init<const ob::AtlasStateSpace *>(), nb::arg("space"))
+        .def("sampleUniform", &ob::AtlasStateSampler::sampleUniform, nb::arg("state"))
+        .def("sampleUniformNear", &ob::AtlasStateSampler::sampleUniformNear, nb::arg("state"), nb::arg("near"),
+             nb::arg("distance"))
+        .def("sampleGaussian", &ob::AtlasStateSampler::sampleGaussian, nb::arg("state"), nb::arg("mean"),
+             nb::arg("stdDev"));
+
+     // TODO [ob::AtlasStateSampler][TEST]
+    nb::class_<ompl::base::AtlasStateSpace::StateType, ompl::base::ConstrainedStateSpace::StateType> stateType(m, "Atla"
+                                                                                                                  "sSta"
+                                                                                                                  "teTy"
+                                                                                                                  "pe");
+                                                                                                                  
+    // TODO [ob::AtlasStateSpace][TEST]
     nb::class_<ob::AtlasStateSpace, ob::ConstrainedStateSpace>(m, "AtlasStateSpace")
         .def(nb::init<const ob::StateSpacePtr &, const ob::ConstraintPtr &, bool>(), nb::arg("ambientSpace"),
-             nb::arg("constraint"), nb::arg("separate") = true,
-             "Construct an AtlasStateSpace from an ambient (unconstrained) space,\n"
-             "a Constraint, and an optional `separate` flag")
-        .def("clear", &ob::AtlasStateSpace::clear, "Remove all charts and anchors")
-        .def("allocDefaultStateSampler", &ob::AtlasStateSpace::allocDefaultStateSampler,
-             "Return the default (atlas-aware) sampler")
-        .def("allocStateSampler", &ob::AtlasStateSpace::allocStateSampler, "Alias for allocDefaultStateSampler")
+             nb::arg("constraint"), nb::arg("separate") = true)
+        .def("clear", &ob::AtlasStateSpace::clear)
+        .def("allocDefaultStateSampler", &ob::AtlasStateSpace::allocDefaultStateSampler)
+        .def("allocStateSampler", &ob::AtlasStateSpace::allocStateSampler)
         // setters
-        .def("setEpsilon", &ob::AtlasStateSpace::setEpsilon, nb::arg("epsilon"), "Set chart radius ε (must be > 0)")
-        .def("setRho", &ob::AtlasStateSpace::setRho, nb::arg("rho"), "Set sampling radius Rho (must be > 0)")
-        .def("setAlpha", &ob::AtlasStateSpace::setAlpha, nb::arg("alpha"), "Set chart angle Alpha (in (0, π/2))")
-        .def("setExploration", &ob::AtlasStateSpace::setExploration, nb::arg("exploration"),
-             "Set exploration fraction (in [0,1))")
-        .def("setMaxChartsPerExtension", &ob::AtlasStateSpace::setMaxChartsPerExtension, nb::arg("charts"),
-             "Set maximum number of new charts per extension")
-        .def("setSeparated", &ob::AtlasStateSpace::setSeparated, nb::arg("separate"),
-             "Enable/disable sampling in separated charts")
-        .def("setBackoff", &ob::AtlasStateSpace::setBackoff, nb::arg("backoff"),
-             "Set backoff fraction for chart proposals")
+        .def("setEpsilon", &ob::AtlasStateSpace::setEpsilon, nb::arg("epsilon"))
+        .def("setRho", &ob::AtlasStateSpace::setRho, nb::arg("rho"))
+        .def("setAlpha", &ob::AtlasStateSpace::setAlpha, nb::arg("alpha"))
+        .def("setExploration", &ob::AtlasStateSpace::setExploration, nb::arg("exploration"))
+        .def("setMaxChartsPerExtension", &ob::AtlasStateSpace::setMaxChartsPerExtension, nb::arg("charts"))
+        .def("setSeparated", &ob::AtlasStateSpace::setSeparated, nb::arg("separate"))
+        .def("setBackoff", &ob::AtlasStateSpace::setBackoff, nb::arg("backoff"))
         // getters
-        .def("getEpsilon", &ob::AtlasStateSpace::getEpsilon, "Get current ε")
-        .def("getRho", &ob::AtlasStateSpace::getRho, "Get current Rho")
-        .def("getAlpha", &ob::AtlasStateSpace::getAlpha, "Get current Alpha")
-        .def("getExploration", &ob::AtlasStateSpace::getExploration, "Get current exploration fraction")
-        .def("getRhoS", &ob::AtlasStateSpace::getRho_s, "Get adjusted sampling radius Rhoₛ")
-        .def("getMaxChartsPerExtension", &ob::AtlasStateSpace::getMaxChartsPerExtension,
-             "Get charts-per-extension limit")
-        .def("isSeparated", &ob::AtlasStateSpace::isSeparated, "Whether sampling is separated per chart")
-        .def("getChartCount", &ob::AtlasStateSpace::getChartCount, "Return number of charts currently in the atlas")
-        .def("getBackoff", &ob::AtlasStateSpace::getBackoff, "Get chart-backoff fraction")
+        .def("getEpsilon", &ob::AtlasStateSpace::getEpsilon)
+        .def("getRho", &ob::AtlasStateSpace::getRho)
+        .def("getAlpha", &ob::AtlasStateSpace::getAlpha)
+        .def("getExploration", &ob::AtlasStateSpace::getExploration)
+        .def("getRhoS", &ob::AtlasStateSpace::getRho_s)
+        .def("getMaxChartsPerExtension", &ob::AtlasStateSpace::getMaxChartsPerExtension)
+        .def("isSeparated", &ob::AtlasStateSpace::isSeparated)
+        .def("getChartCount", &ob::AtlasStateSpace::getChartCount)
+        .def("getBackoff", &ob::AtlasStateSpace::getBackoff)
         // discrete geodesic
         .def(
             "discreteGeodesic",
@@ -69,7 +61,5 @@ void ompl::binding::base::initSpacesConstraint_AtlasStateSpace(nb::module_ &m)
                 bool ok = space.discreteGeodesic(from, to, interpolate, &geod);
                 return std::make_pair(ok, geod);
             },
-            nb::arg("from"), nb::arg("to"), nb::arg("interpolate") = false,
-            "Compute a discrete geodesic on the manifold;\n"
-            "returns (success: bool, path: List[State])");
+            nb::arg("from"), nb::arg("to"), nb::arg("interpolate") = false);
 }

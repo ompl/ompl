@@ -43,6 +43,7 @@ ompl::base::SpaceTimeStateSpace::SpaceTimeStateSpace(const StateSpacePtr& spaceC
         throw ompl::Exception("Error in SpaceTimeStateSpace Construction: Time weight must be between 0 and 1");
 
     setName("SpaceTimeStateSpace" + getName());
+    type_ = STATE_SPACE_SPACE_TIME;
     addSubspace(spaceComponent, (1 - timeWeight)); // space component
     addSubspace(std::make_shared<TimeStateSpace>(), timeWeight); // time component
     lock();

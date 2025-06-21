@@ -10,7 +10,6 @@ namespace ob = ompl::base;
 void ompl::binding::base::initSamplers_ObstacleBasedValidStateSampler(nb::module_& m)
 {
     // TODO [ob::ObstacleBasedValidStateSampler][TEST]
-    // TODO [ob::ObstacleBasedValidStateSampler][MISSING]["Inherited functions"]
     nb::class_<ob::ObstacleBasedValidStateSampler, ob::ValidStateSampler>(m, "ObstacleBasedValidStateSampler")
         .def(nb::init<const ob::SpaceInformation*>())
         .def("sample", &ob::ObstacleBasedValidStateSampler::sample, nb::arg("state"))

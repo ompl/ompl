@@ -7,5 +7,6 @@ namespace nb = nanobind;
 
 void ompl::binding::base::init_MotionValidator(nb::module_& m)
 {
+    // TODO [ompl::base::MotionValidator][IMPLEMENT]
     nb::class_<ompl::base::MotionValidator>(m, "MotionValidator");
 }

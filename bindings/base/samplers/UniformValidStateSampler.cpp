@@ -11,7 +11,6 @@ namespace ob = ompl::base;
 void ompl::binding::base::initSamplers_UniformValidStateSampler(nb::module_& m)
 {
     // TODO [ob::UniformValidStateSampler][TEST]
-    // TODO [ob::UniformValidStateSampler][MISSING]["Inherited functions"]
     nb::class_<ob::UniformValidStateSampler, ob::ValidStateSampler>(m, "UniformValidStateSampler")
         .def(nb::init<const ob::SpaceInformation*>(), "Constructor that takes a SpaceInformation instance")
         .def("sample", &ob::UniformValidStateSampler::sample, nb::arg("state"))

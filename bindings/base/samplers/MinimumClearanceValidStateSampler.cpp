@@ -10,7 +10,7 @@ namespace ob = ompl::base;
 void ompl::binding::base::initSamplers_MinimumClearanceValidStateSampler(nb::module_& m)
 {
     // TODO [ob::MinimumClearanceValidStateSampler][TEST]
-    // TODO [ob::MinimumClearanceValidStateSampler][MISSING]["Inherited functions", "double 	getMinimumObstacleClearance () const"]
+    // TODO [ob::MinimumClearanceValidStateSampler][MISSING]["double getMinimumObstacleClearance () const"]
     nb::class_<ob::MinimumClearanceValidStateSampler, ob::ValidStateSampler>(m, "MinimumClearanceValidStateSampler")
         .def(nb::init<const ob::SpaceInformation*>())
         .def("sample", &ob::MinimumClearanceValidStateSampler::sample, nb::arg("state"))

@@ -35,6 +35,7 @@ void ompl::binding::base::init_Goal(nb::module_ &m)
         }
     };
 
+    // TODO [ob::Goal][TEST]
     nb::class_<ob::Goal, PyGoal /* <-- trampoline */>(m, "Goal")
         // constructor
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))

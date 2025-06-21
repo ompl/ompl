@@ -14,41 +14,33 @@ namespace ob = ompl::base;
 
 void ompl::binding::base::init_Planner(nb::module_ &m)
 {
-    nb::class_<ompl::base::PlannerInputStates>(m, "PlannerInputStates",
-                                               "Wrapper class to maintain the set of input states that a planner can "
-                                               "use")
+    nb::class_<ompl::base::PlannerInputStates>(m, "PlannerInputStates")
         // Constructors
-        .def(nb::init<const ompl::base::PlannerPtr &>(), "Constructor that takes a planner instance")
-        .def(nb::init<const ompl::base::Planner *>(), "Constructor that takes a planner pointer")
-        .def(nb::init<>(), "Default constructor")
+        .def(nb::init<const ompl::base::PlannerPtr &>())
+        .def(nb::init<const ompl::base::Planner *>())
+        .def(nb::init<>())
 
         // Core functionality
-        .def("clear", &ompl::base::PlannerInputStates::clear, "Clear all input states")
-        .def("restart", &ompl::base::PlannerInputStates::restart,
-             "Start the iteration over input states from the beginning")
-        .def("update", &ompl::base::PlannerInputStates::update, "Update the set of input states")
-        .def("use", &ompl::base::PlannerInputStates::use, "Use the states from the specified problem definition")
-        .def("checkValidity", &ompl::base::PlannerInputStates::checkValidity, "Check if the input states are valid")
+        .def("clear", &ompl::base::PlannerInputStates::clear)
+        .def("restart", &ompl::base::PlannerInputStates::restart)
+        .def("update", &ompl::base::PlannerInputStates::update)
+        .def("use", &ompl::base::PlannerInputStates::use)
+        .def("checkValidity", &ompl::base::PlannerInputStates::checkValidity)
 
         // State iteration
-        .def("nextStart", &ompl::base::PlannerInputStates::nextStart, "Get the next start state", nb::rv_policy::reference_internal)
-        .def("nextGoal", nb::overload_cast<>(&ompl::base::PlannerInputStates::nextGoal), "Get the next goal state", nb::rv_policy::reference_internal)
+        .def("nextStart", &ompl::base::PlannerInputStates::nextStart,nb::rv_policy::reference_internal)
+        .def("nextGoal", nb::overload_cast<>(&ompl::base::PlannerInputStates::nextGoal), nb::rv_policy::reference_internal)
         .def("nextGoal",
              nb::overload_cast<const ompl::base::PlannerTerminationCondition &>(
-                 &ompl::base::PlannerInputStates::nextGoal),
-             "Get the next goal state with termination condition", nb::rv_policy::reference_internal)
+                 &ompl::base::PlannerInputStates::nextGoal), nb::rv_policy::reference_internal)
 
         // State availability checks
-        .def("haveMoreStartStates", &ompl::base::PlannerInputStates::haveMoreStartStates,
-             "Check if there are more start states")
-        .def("haveMoreGoalStates", &ompl::base::PlannerInputStates::haveMoreGoalStates,
-             "Check if there are more goal states")
+        .def("haveMoreStartStates", &ompl::base::PlannerInputStates::haveMoreStartStates)
+        .def("haveMoreGoalStates", &ompl::base::PlannerInputStates::haveMoreGoalStates)
 
         // State counting
-        .def("getSeenStartStatesCount", &ompl::base::PlannerInputStates::getSeenStartStatesCount,
-             "Get the number of start states seen so far")
-        .def("getSampledGoalsCount", &ompl::base::PlannerInputStates::getSampledGoalsCount,
-             "Get the number of sampled goal states");
+        .def("getSeenStartStatesCount", &ompl::base::PlannerInputStates::getSeenStartStatesCount)
+        .def("getSampledGoalsCount", &ompl::base::PlannerInputStates::getSampledGoalsCount);
         struct PyPlanner : ob::Planner
     {
         // We declare an NB_TRAMPOLINE for 8 override slots (the number of virtual methods we plan to override).
@@ -103,29 +95,25 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
         // Expose additional methods
         .def(
             "getSpaceInformation", [](ob::Planner &p) -> ob::SpaceInformationPtr { return p.getSpaceInformation(); },
-            nb::rv_policy::reference_internal, "Return the SpaceInformation associated with this planner.")
+            nb::rv_policy::reference_internal)
         .def("getProblemDefinition",
              static_cast<ob::ProblemDefinitionPtr &(ob::Planner::*)()>(&ob::Planner::getProblemDefinition),
-             nb::rv_policy::reference_internal, "Return a reference to the ProblemDefinition (non-const).")
-        .def("setProblemDefinition", &ob::Planner::setProblemDefinition, nb::arg("pdef"),
-             "Set the ProblemDefinition for this planner.")
+             nb::rv_policy::reference_internal)
+        .def("setProblemDefinition", &ob::Planner::setProblemDefinition, nb::arg("pdef"))
         .def ("getPlannerInputStates", &ob::Planner::getPlannerInputStates,
-              nb::rv_policy::reference_internal, "Return a reference to the PlannerInputStates.")
+              nb::rv_policy::reference_internal)
         .def(
-            "solve", [](ob::Planner &pl, double solveTime) { return pl.solve(solveTime); }, nb::arg("solveTime"),
-            "Attempt to solve for a given time (seconds).")
+            "solve", [](ob::Planner &pl, double solveTime) { return pl.solve(solveTime); }, nb::arg("solveTime"))
         .def(
             "solve", [](ob::Planner &pl, const ob::PlannerTerminationConditionFn &fn, double checkInterval)
-            { return pl.solve(fn, checkInterval); }, nb::arg("terminationConditionFn"), nb::arg("checkInterval") = 0.0,
-            "Attempt to solve with a termination condition function.")
-        .def("getName", &ob::Planner::getName, "Return the planner's name.")
-        .def("setName", &ob::Planner::setName, nb::arg("name"), "Set the planner's name.")
-        .def("getSpecs", &ob::Planner::getSpecs, nb::rv_policy::reference_internal,
-             "Return the PlannerSpecs describing the planner's capabilities.")
+            { return pl.solve(fn, checkInterval); }, nb::arg("terminationConditionFn"), nb::arg("checkInterval") = 0.0)
+        .def("getName", &ob::Planner::getName)
+        .def("setName", &ob::Planner::setName, nb::arg("name"))
+        .def("getSpecs", &ob::Planner::getSpecs, nb::rv_policy::reference_internal)
         .def("params", static_cast<ob::ParamSet &(ob::Planner::*)()>(&ob::Planner::params),
-             nb::rv_policy::reference_internal, "Return a reference to the planner's ParamSet (modifiable).")
+             nb::rv_policy::reference_internal)
         .def("paramsConst", static_cast<const ob::ParamSet &(ob::Planner::*)() const>(&ob::Planner::params),
-             nb::rv_policy::reference_internal, "Return a constant reference to the planner's ParamSet.")
+             nb::rv_policy::reference_internal)
         .def("getPlannerProgressProperties", &ob::Planner::getPlannerProgressProperties,
-             nb::rv_policy::reference_internal, "Return a map of property names to progress property functions.");
+             nb::rv_policy::reference_internal);
 }

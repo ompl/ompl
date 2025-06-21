@@ -1,74 +1,106 @@
 import time
+
+import sys
+sys.path.insert(0, "/home/wg/Documents/ompl_test_env/ompl/build/bindings/")
+
 from ompl import base as ob
 from ompl import geometric as og
 
 try:
     import numpy as np
-    import pybullet as p
+    import pybullet
     import pybullet_data
+    from pybullet_utils import bullet_client
 except ImportError:
     print("Error: Please install the required packages.")
     exit(1)
     
-def setup_pybullet(mode=p.DIRECT):
-    """Start PyBullet in the given mode, load plane, Panda, and two box obstacles."""
-    p.connect(mode)
-    p.setGravity(0, 0, -9.81)
-    p.setAdditionalSearchPath(pybullet_data.getDataPath())
 
-    # Ground plane
-    p.loadURDF("plane.urdf")
+class PyBulletEnv:
+    def __init__(self, gui:bool = True):
+        self.gui = gui
+        self.create_env()
+        self.dim = 7
 
-    # Panda arm, fixed base
-    panda = p.loadURDF(
-        "franka_panda/panda.urdf",
-        basePosition=[0, 0, 0],
-        baseOrientation=p.getQuaternionFromEuler([0, 0, 0]),
-        useFixedBase=True
-    )
+    def create_env(self):
+        self.env = bullet_client.BulletClient(connection_mode=pybullet.GUI if self.gui else pybullet.DIRECT)
+        self.env.setAdditionalSearchPath(pybullet_data.getDataPath())
+        self.env.loadURDF("plane.urdf")
 
-    # Two box obstacles
-    box_col = p.createCollisionShape(p.GEOM_BOX, halfExtents=[0.2, 0.2, 0.2])
-    obs0 = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=box_col,
-                             basePosition=[0.5,  0.0, 0.2])
-    obs1 = p.createMultiBody(baseMass=0, baseCollisionShapeIndex=box_col,
-                             basePosition=[0.3,  0.3, 1.0])
+        self.robot = self.env.loadURDF(
+            "franka_panda/panda.urdf",
+            basePosition=[0, 0, 0],
+            baseOrientation=self.env.getQuaternionFromEuler([0, 0, 0]),
+            useFixedBase=True
+        )
 
-    return panda, [obs0, obs1]
+        self.obs = []
+        plane = self.env.loadURDF("plane.urdf")
+        self.obs.append(plane)
 
-def get_revolute_joint_indices(robot_id):
-    joints = []
-    for i in range(p.getNumJoints(robot_id)):
-        info = p.getJointInfo(robot_id, i)
-        if info[2] == p.JOINT_REVOLUTE:
-            joints.append(i)
-    return joints
+        box_col = self.env.createCollisionShape(self.env.GEOM_BOX, halfExtents=[0.2, 0.2, 0.2])
+        obs0 = self.env.createMultiBody(baseMass=0, baseCollisionShapeIndex=box_col,
+                                        basePosition=[0.5,  0.0, 0.2])
+        obs1 = self.env.createMultiBody(baseMass=0, baseCollisionShapeIndex=box_col,
+                                        basePosition=[0.3,  0.3, 1.0])
+        self.obs.append(obs0)
+        self.obs.append(obs1)
 
-def get_joint_limits(robot_id, joint_indices):
-    lowers, uppers = [], []
-    for j in joint_indices:
-        info = p.getJointInfo(robot_id, j)
-        lowers.append(info[8])
-        uppers.append(info[9])
-    return lowers, uppers
+    def step(self):
+        self.env.stepSimulation()
 
-def make_state_validity_checker(robot_id, obs_list, joint_indices):
-    def is_valid(state):
-        # Apply the joint angles
-        for idx, angle in zip(joint_indices, state):
-            p.resetJointState(robot_id, idx, angle)
-        # Step once to register collisions
-        p.stepSimulation()
-        # Check contacts with each obstacle
-        for obs in obs_list:
-            if p.getContactPoints(bodyA=robot_id, bodyB=obs):
+    def disconnect(self):
+        self.env.disconnect()
+
+    def get_joint_limits(self):
+        lowers, uppers = [], []
+       
+        for j in range(self.dim):
+            info = self.env.getJointInfo(self.robot, j)
+            lowers.append(info[8])
+            uppers.append(info[9])
+        return np.array(lowers), np.array(uppers)
+    
+    def set_config(self, config):
+        for j, angle in enumerate(config):
+            self.env.resetJointState(self.robot, j, angle)
+        self.env.stepSimulation()
+
+    def get_config(self):
+        config = []
+        for j in range(self.dim):
+            joint_angle = self.env.getJointState(self.robot, j)[0]
+            config.append(joint_angle)
+        return config
+    
+    def is_valid(self, config):
+        self.set_config(config)
+
+        # self collision check
+        if self.env.getContactPoints(self.robot, self.robot):
+            return False
+        # obstacle collision check
+        for obs in self.obs:
+            if self.env.getContactPoints(bodyA=self.robot, bodyB=obs):
                 return False
         return True
+
+def state_to_list(state, num_arms):
+    joint_angles = []
+    for i in range(num_arms):
+        joint_angles.append(state[i])
+    return joint_angles
+
+def make_state_validity_checker(env: PyBulletEnv):
+    def is_valid(state):
+        joint_angles = state_to_list(state, env.dim)
+        return env.is_valid(joint_angles)
     return is_valid
 
-def plan_with_rrt(robot_id, obs_list, joint_indices, lowers, uppers):
-    dim = len(joint_indices)
-    # 1) Joint‐space
+def plan(env: PyBulletEnv, start, goal, planner_type='RRTConnect', time_limit=10.0, simplify=True):
+    lowers, uppers = env.get_joint_limits()
+    dim = env.dim
+
     space = ob.RealVectorStateSpace(dim)
     bounds = ob.RealVectorBounds(dim)
     for i in range(dim):
@@ -76,66 +108,50 @@ def plan_with_rrt(robot_id, obs_list, joint_indices, lowers, uppers):
         bounds.setHigh(i, uppers[i])
     space.setBounds(bounds)
 
-    # 2) SpaceInformation
     si = ob.SpaceInformation(space)
-    si.setStateValidityChecker(make_state_validity_checker(robot_id, obs_list, joint_indices))
-    si.setup()
+    si.setStateValidityChecker(make_state_validity_checker(env))
 
-    # 3) Start & goal
-    start = si.allocState()
-    goal  = si.allocState()
-    # start at zeros, goal at some demo config
-    demo_goal = [0.3207, 0.5475, 0.2826, -1.0339, -0.3758, 1.4597, 0.0110]
+
+    start_state = si.allocState()
+    goal_state = si.allocState()
+    
     for i in range(dim):
-        start[i] = 0.0
-        goal[i]  = demo_goal[i]
-
-    # 4) RRT planner
-    rrt = og.RRT(si)
-    rrt.setGoalBias(0.1)
-    rrt.setRange(0.5)
+        start_state[i] = start[i]
+        goal_state[i] = goal[i]
 
     ss = og.SimpleSetup(si)
-    ss.setStartAndGoalStates(start, goal)
-    ss.setPlanner(rrt)
+    ss.setStartAndGoalStates(start_state, goal_state)
 
-    # 5) Solve with a 20 s cap
-    print(f"Planning in DIRECT mode (no GUI)…")
-    t0 = time.time()
-    solved = ss.solve(ob.PlannerTerminationCondition(lambda: time.time() - t0 > 20))
-    path = None
-    if solved:
-        path = ss.getSolutionPath()
-        path.interpolate()  # densify
-        if solved.StatusType == ob.EXACT_SOLUTION:
-            print("✓ Exact solution found.")
-        else:
-            print("✓ Approximate solution found.")
-        print("  Path length:    ", path.length())
-        print("  Num of states:  ", path.getStateCount())
+    if planner_type == 'RRT':
+        planner = og.RRT(si)
+    elif planner_type == 'RRTConnect':
+        planner = og.RRTConnect(si)
     else:
-        print("✘ No solution found within 20 s")
+        raise ValueError("Unsupported planner type")
+
+    ss.setPlanner(planner)
+    solved = ss.solve(time_limit)  # 10 seconds timeout
+    if solved.StatusType != ob.EXACT_SOLUTION:
+        print("No solution found")
+        return None
+    
+    if simplify:
+        ss.simplifySolution(1)
+
+    path = ss.getSolutionPath()
+    path.interpolate() 
     return path
+
 if __name__ == "__main__":
-    # 1) PLAN in DIRECT mode
-    panda_id, obstacles = setup_pybullet(mode=p.DIRECT)
-    joint_idxs = get_revolute_joint_indices(panda_id)
-    low, high = get_joint_limits(panda_id, joint_idxs)
-    solution_path = plan_with_rrt(panda_id, obstacles, joint_idxs, low, high)
+    env = PyBulletEnv(gui=True)
+    start_config = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    goal_config = [0.3207, 0.5475, 0.2826, -1.0339, -0.3758, 1.4597, 0.0110]
 
-    # Clean up the DIRECT connection
-    p.disconnect()
+    path = plan(env, start_config, goal_config, planner_type='RRTConnect')
 
-    # 2) VISUALIZE in GUI mode
-    if solution_path is not None:
-        panda_id, obstacles = setup_pybullet(mode=p.GUI)
-        # Play back each state
-        print("Replaying path in GUI…")
-        while True:
-            for state in solution_path.getStates():
-                for idx, angle in zip(joint_idxs, state):
-                    p.resetJointState(panda_id, idx, angle)
-                p.stepSimulation()
-                time.sleep(0.1)
-    else:
-        print("Nothing to show.")
+    if path:
+        while True: 
+            for state in path.getStates():
+                joint_angles = state_to_list(state, env.dim)
+                env.set_config(joint_angles)
+                time.sleep(0.1)    

@@ -23,8 +23,7 @@ void ompl::binding::base::initSpaces_SO2StateSpace(nb::module_ &m)
     nb::class_<ompl::base::SO2StateSpace::StateType, ompl::base::State>(m, "SO2State")
         .def("setIdentity", &ompl::base::SO2StateSpace::StateType::setIdentity,
              "Set the state to the identity (zero angle)")
-        .def_rw("value", &ompl::base::SO2StateSpace::StateType::value,
-             "The value of the SO2 state (typically an angle in radians)");
+        .def_rw("value", &ompl::base::SO2StateSpace::StateType::value);
 
     nb::class_<ompl::base::SO2StateSpace,
                ompl::base::StateSpace>(m, "SO2StateSpace")
@@ -45,9 +44,9 @@ void ompl::binding::base::initSpaces_SO2StateSpace(nb::module_ &m)
         .def("allocState", &ompl::base::SO2StateSpace::allocState)
         .def("printState", [](const ompl::base::SO2StateSpace &ss, const ompl::base::State *state) {
             ss.printState(state, std::cout);
-        }, nb::arg("state"), "Print the state to standard output")
+        }, nb::arg("state"))
         .def("printSettings", [](const ompl::base::SO2StateSpace &ss) {
             ss.printSettings(std::cout);
-        }, "Print the settings of the state space to standard output")
+        })
         .def("registerProjections", &ompl::base::SO2StateSpace::registerProjections);
 }
