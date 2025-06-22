@@ -693,7 +693,7 @@ namespace ompl
         {
              if(isVertexEmpty_)
              {  return true; }
-             if(!found_meeting_ && largerThan(C_curr,fmin_))
+             if(!found_meeting_ && betterThan(fmin_,C_curr))
              { return false; } 
              
              if(betterThan(C_curr,solutionCost_) && !PathValidity(V_meet.second))
