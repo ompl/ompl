@@ -6,4 +6,5 @@ namespace nb = nanobind;
 
 void ompl::binding::geometric::initPlannersPrm_ConnectionStrategy(nb::module_& m)
 {
+    // TODO [og::KStrategy][TRAMPOLINE]
 }

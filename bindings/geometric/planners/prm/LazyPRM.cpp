@@ -3,7 +3,12 @@
 #include "../../init.hh"
 
 namespace nb = nanobind;
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
 
 void ompl::binding::geometric::initPlannersPrm_LazyPRM(nb::module_& m)
 {
+    // TODO [og::LazyPRM][IMPLEMENT]
+    nb::class_<og::LazyPRM, ob::Planner>(m, "LazyPRM")
+        ;
 }

@@ -3,7 +3,12 @@
 #include "../../init.hh"
 
 namespace nb = nanobind;
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
 
 void ompl::binding::geometric::initPlannersInformedtrees_BITstar(nb::module_& m)
 {
+    // TODO [og::BITstar][IMPLEMENT]
+    nb::class_<og::BITstar, ob::Planner>(m, "BITstar")
+        ;
 }

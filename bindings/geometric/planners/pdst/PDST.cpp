@@ -3,7 +3,12 @@
 #include "../../init.hh"
 
 namespace nb = nanobind;
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
 
 void ompl::binding::geometric::initPlannersPdst_PDST(nb::module_& m)
 {
+    // TODO [og::PDST][IMPLEMENT]
+    nb::class_<og::PDST, ob::Planner>(m, "PDST")
+        ;
 }

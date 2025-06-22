@@ -3,7 +3,12 @@
 #include "../../init.hh"
 
 namespace nb = nanobind;
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
 
 void ompl::binding::geometric::initPlannersRrt_RRTstar(nb::module_& m)
 {
+    // TODO [og::RRTstar][IMPLEMENT]
+    nb::class_<og::RRTstar, ob::Planner>(m, "RRTstar")
+        ;
 }

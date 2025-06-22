@@ -3,7 +3,12 @@
 #include "../../init.hh"
 
 namespace nb = nanobind;
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
 
 void ompl::binding::geometric::initPlannersRrt_pRRT(nb::module_& m)
 {
+    // TODO [og::pRRT][IMPLEMENT]
+    nb::class_<og::pRRT, ob::Planner>(m, "pRRT")
+        ;
 }

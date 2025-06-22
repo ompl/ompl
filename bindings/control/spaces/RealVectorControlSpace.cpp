@@ -75,8 +75,7 @@ void ompl::binding::control::initSpaces_RealVectorControlSpace(nb::module_ &m)
 
         // getValueAddressAtIndex
         .def("getValueAddressAtIndex", &oc::RealVectorControlSpace::getValueAddressAtIndex,
-             nb::arg("control"), nb::arg("index"),
-             "Return a pointer to the i-th value in the given control")
+             nb::arg("control"), nb::arg("index"))
 
         // printSettings
         .def("printSettings", [](const oc::RealVectorControlSpace &space) {

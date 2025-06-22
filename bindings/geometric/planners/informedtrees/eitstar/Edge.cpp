@@ -6,4 +6,5 @@ namespace nb = nanobind;
 
 void ompl::binding::geometric::initPlannersInformedtreesEitstar_Edge(nb::module_& m)
 {
+    // TODO [og::eitstar::Edge][IMPLEMENT]
 }

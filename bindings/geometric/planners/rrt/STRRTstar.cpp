@@ -10,6 +10,7 @@ namespace og = ompl::geometric;
 
 void ompl::binding::geometric::initPlannersRrt_STRRTstar(nb::module_& m)
 {
+    // TODO [og::STRRTstar][IMPLEMENT]
     nb::class_<og::STRRTstar, ob::Planner>(m, "STRRTstar")
         .def(nb::init<const ob::SpaceInformationPtr &>(),
              nb::arg("si"))

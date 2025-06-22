@@ -123,6 +123,13 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::initPlannersExperience_ThunderRetrieveRepair(geometric);
     ompl::binding::geometric::initPlannersFmt_BFMT(geometric);
     ompl::binding::geometric::initPlannersFmt_FMT(geometric);
+
+    ompl::binding::geometric::initPlannersInformedtrees_BITstar(geometric);
+    ompl::binding::geometric::initPlannersInformedtrees_ABITstar(geometric);
+    ompl::binding::geometric::initPlannersInformedtrees_AITstar(geometric);
+    ompl::binding::geometric::initPlannersInformedtrees_EITstar(geometric);
+    ompl::binding::geometric::initPlannersInformedtrees_EIRMstar(geometric);
+
     ompl::binding::geometric::initPlannersInformedtreesAitstar_Edge(geometric);
     ompl::binding::geometric::initPlannersInformedtreesAitstar_ImplicitGraph(geometric);
     ompl::binding::geometric::initPlannersInformedtreesAitstar_Queuetypes(geometric);
@@ -140,11 +147,7 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::initPlannersInformedtreesEitstar_ReverseQueue(geometric);
     ompl::binding::geometric::initPlannersInformedtreesEitstar_State(geometric);
     ompl::binding::geometric::initPlannersInformedtreesEitstar_Vertex(geometric);
-    ompl::binding::geometric::initPlannersInformedtrees_ABITstar(geometric);
-    ompl::binding::geometric::initPlannersInformedtrees_AITstar(geometric);
-    ompl::binding::geometric::initPlannersInformedtrees_BITstar(geometric);
-    ompl::binding::geometric::initPlannersInformedtrees_EIRMstar(geometric);
-    ompl::binding::geometric::initPlannersInformedtrees_EITstar(geometric);
+
     ompl::binding::geometric::initPlannersKpiece_BKPIECE1(geometric);
     ompl::binding::geometric::initPlannersKpiece_Discretization(geometric);
     ompl::binding::geometric::initPlannersKpiece_KPIECE1(geometric);
@@ -159,22 +162,24 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::initPlannersPrm_SPARStwo(geometric);
     ompl::binding::geometric::initPlannersRlrt_BiRLRT(geometric);
     ompl::binding::geometric::initPlannersRlrt_RLRT(geometric);
+
+    ompl::binding::geometric::initPlannersRrt_RRT(geometric);
+    ompl::binding::geometric::initPlannersRrt_RRTstar(geometric);
+    ompl::binding::geometric::initPlannersRrt_LazyRRT(geometric);
     ompl::binding::geometric::initPlannersRrt_BiTRRT(geometric);
     ompl::binding::geometric::initPlannersRrt_InformedRRTstar(geometric);
     ompl::binding::geometric::initPlannersRrt_LBTRRT(geometric);
     ompl::binding::geometric::initPlannersRrt_LazyLBTRRT(geometric);
-    ompl::binding::geometric::initPlannersRrt_LazyRRT(geometric);
-    ompl::binding::geometric::initPlannersRrt_RRT(geometric);
     ompl::binding::geometric::initPlannersRrt_RRTConnect(geometric);
     ompl::binding::geometric::initPlannersRrt_RRTXstatic(geometric);
     ompl::binding::geometric::initPlannersRrt_RRTsharp(geometric);
-    ompl::binding::geometric::initPlannersRrt_RRTstar(geometric);
     ompl::binding::geometric::initPlannersRrt_SORRTstar(geometric);
     ompl::binding::geometric::initPlannersRrt_STRRTstar(geometric);
     ompl::binding::geometric::initPlannersRrt_TRRT(geometric);
     ompl::binding::geometric::initPlannersRrt_TSRRT(geometric);
     ompl::binding::geometric::initPlannersRrt_VFRRT(geometric);
     ompl::binding::geometric::initPlannersRrt_pRRT(geometric);
+
     ompl::binding::geometric::initPlannersSbl_SBL(geometric);
     ompl::binding::geometric::initPlannersSbl_pSBL(geometric);
     ompl::binding::geometric::initPlannersSst_SST(geometric);
