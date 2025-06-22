@@ -16,10 +16,10 @@ namespace ob = ompl::base;
 
 void ompl::binding::control::init_ControlSampler(nb::module_& m)
 {
-    // TODO: Virtual class
+    // TODO [oc::ControlSampler][TRAMPOLINE]
     nb::class_<oc::ControlSampler>(m, "ControlSampler");
 
-    // TODO: Virtual method addSampler
+    // TODO [oc::UniformControlSampler][TRAMPOLINE]
     nb::class_<oc::CompoundControlSampler, oc::ControlSampler>(m, "CompoundControlSampler")
         .def(nb::init<const oc::ControlSpace*>(),
              nb::arg("space"),

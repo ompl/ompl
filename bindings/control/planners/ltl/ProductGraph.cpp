@@ -6,4 +6,5 @@ namespace nb = nanobind;
 
 void ompl::binding::control::initPlannersLtl_ProductGraph(nb::module_& m)
 {
+    // TODO [oc::ProductGraph][IMPLEMENT]
 }

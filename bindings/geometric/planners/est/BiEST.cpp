@@ -3,7 +3,12 @@
 #include "../../init.hh"
 
 namespace nb = nanobind;
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
 
 void ompl::binding::geometric::initPlannersEst_BiEST(nb::module_& m)
 {
+    // TODO [og::BiEST][IMPLEMENT]
+    nb::class_<og::BiEST, ob::Planner>(m, "BiEST")
+        ;
 }

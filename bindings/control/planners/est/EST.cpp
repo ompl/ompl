@@ -5,12 +5,13 @@
 
 namespace nb = nanobind;
 namespace oc = ompl::control;
+namespace ob = ompl::base;
 
 void ompl::binding::control::initPlannersEst_EST(nb::module_& m)
 {
     // TODO [ob::EST][TEST]
     // TODO [ob::EST][MISSING]
-    nb::class_<ompl::control::EST, ompl::control::Planner>(m, "EST")
+    nb::class_<ompl::control::EST, ob::Planner>(m, "EST")
         .def(nb::init<const oc::SpaceInformationPtr &>(), nb::arg("si"))
-        .def("solve", &oc::EST::solve, nb::arg("terminationCondition"))
+        .def("solve", &oc::EST::solve, nb::arg("terminationCondition"));
 }

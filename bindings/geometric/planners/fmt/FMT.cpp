@@ -3,7 +3,12 @@
 #include "../../init.hh"
 
 namespace nb = nanobind;
+namespace ob = ompl::base;
+namespace og = ompl::geometric;
 
 void ompl::binding::geometric::initPlannersFmt_FMT(nb::module_& m)
 {
+    // TODO [og::FMT][IMPLEMENT]
+    nb::class_<og::FMT, ob::Planner>(m, "FMT")
+        ;
 }

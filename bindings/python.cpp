@@ -30,6 +30,7 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::init_PlannerDataStorage(base);
     ompl::binding::base::init_PlannerStatus(base);
     ompl::binding::base::init_PlannerTerminationCondition(base);
+    ompl::binding::base::init_StateSampler(base);
     ompl::binding::base::init_PrecomputedStateSampler(base);
     ompl::binding::base::init_ProblemDefinition(base);
     ompl::binding::base::init_ProjectionEvaluator(base);
@@ -37,7 +38,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::init_SolutionNonExistenceProof(base);
     ompl::binding::base::init_SpaceInformation(base);
     ompl::binding::base::init_State(base);
-    ompl::binding::base::init_StateSampler(base);
     ompl::binding::base::init_StateSamplerArray(base);
     ompl::binding::base::init_StateSpace(base);
     ompl::binding::base::init_StateSpaceTypes(base);

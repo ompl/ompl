@@ -15,7 +15,7 @@ namespace ob = ompl::base;
 
 void ompl::binding::control::init_ControlSpace(nb::module_ &m)
 {
-    // TODO: Virtual class
+    // TODO [oc::ControlSpace][TRAMPOLINE]
     nb::class_<oc::ControlSpace>(m, "ControlSpace");
         
     nb::class_<oc::CompoundControlSpace, oc::ControlSpace>(m, "CompoundControlSpace")

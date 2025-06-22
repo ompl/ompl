@@ -6,4 +6,5 @@ namespace nb = nanobind;
 
 void ompl::binding::control::initPlannersLtl_Automaton(nb::module_& m)
 {
+    // TODO [oc::Automaton][IMPLEMENT]
 }

@@ -26,59 +26,43 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
 {
     nb::class_<oc::SimpleSetup>(m, "SimpleSetup")
         // Constructors
-        .def(nb::init<oc::SpaceInformationPtr>(), nb::arg("spaceInfo"),
-             "Construct a SimpleSetup given a SpaceInformation pointer.")
-        .def(nb::init<oc::ControlSpacePtr>(), nb::arg("controlSpace"),
-             "Construct a SimpleSetup from a ControlSpace (internally building a new SpaceInformation).")
+        .def(nb::init<oc::SpaceInformationPtr>(), nb::arg("spaceInfo"))
+        .def(nb::init<oc::ControlSpacePtr>(), nb::arg("controlSpace"))
 
         // getSpaceInformation, returns SpaceInformationPtr
-        .def("getSpaceInformation", &oc::SimpleSetup::getSpaceInformation, nb::rv_policy::reference_internal,
-             "Return the underlying SpaceInformation (control-based).")
+        .def("getSpaceInformation", &oc::SimpleSetup::getSpaceInformation, nb::rv_policy::reference_internal)
 
         // ProblemDefinition
         .def("getProblemDefinition",
-             static_cast<ob::ProblemDefinitionPtr &(oc::SimpleSetup::*)()>(&oc::SimpleSetup::getProblemDefinition),
-             nb::rv_policy::reference_internal, "Return the problem definition (non-const).")
+             static_cast<ob::ProblemDefinitionPtr &(oc::SimpleSetup::*)()>(&oc::SimpleSetup::getProblemDefinition))
         .def("getProblemDefinitionConst",
              static_cast<const ob::ProblemDefinitionPtr &(oc::SimpleSetup::*)() const>(
-                 &oc::SimpleSetup::getProblemDefinition),
-             nb::rv_policy::reference_internal, "Return the problem definition (const).")
+                 &oc::SimpleSetup::getProblemDefinition))
 
         // getStateSpace, getControlSpace
-        .def("getStateSpace", &oc::SimpleSetup::getStateSpace, nb::rv_policy::reference_internal,
-             "Return the underlying state space.")
-        .def("getControlSpace", &oc::SimpleSetup::getControlSpace, nb::rv_policy::reference_internal,
-             "Return the underlying control space.")
+        .def("getStateSpace", &oc::SimpleSetup::getStateSpace, nb::rv_policy::reference_internal)
+        .def("getControlSpace", &oc::SimpleSetup::getControlSpace, nb::rv_policy::reference_internal)
 
         // Common getters
-        .def("getStateValidityChecker", &oc::SimpleSetup::getStateValidityChecker, nb::rv_policy::reference_internal,
-             "Return the current state validity checker.")
-        .def("getStatePropagator", &oc::SimpleSetup::getStatePropagator, nb::rv_policy::reference_internal,
-             "Return the currently set state propagator.")
-        .def("getGoal", &oc::SimpleSetup::getGoal, nb::rv_policy::reference_internal,
-             "Return the current goal definition.")
-        .def("getPlanner", &oc::SimpleSetup::getPlanner, nb::rv_policy::reference_internal,
-             "Return the current planner, if any.")
-        .def("getPlannerAllocator", &oc::SimpleSetup::getPlannerAllocator, nb::rv_policy::reference_internal,
-             "Return the current planner allocator function, if any.")
+        .def("getStateValidityChecker", &oc::SimpleSetup::getStateValidityChecker, nb::rv_policy::reference_internal)
+        .def("getStatePropagator", &oc::SimpleSetup::getStatePropagator, nb::rv_policy::reference_internal)
+        .def("getGoal", &oc::SimpleSetup::getGoal, nb::rv_policy::reference_internal)
+        .def("getPlanner", &oc::SimpleSetup::getPlanner, nb::rv_policy::reference_internal)
+        .def("getPlannerAllocator", &oc::SimpleSetup::getPlannerAllocator, nb::rv_policy::reference_internal)
 
         // solution path checks
-        .def("haveExactSolutionPath", &oc::SimpleSetup::haveExactSolutionPath,
-             "Return whether an exact solution path is found.")
-        .def("haveSolutionPath", &oc::SimpleSetup::haveSolutionPath,
-             "Return whether any solution path is found (approx or exact).")
+        .def("haveExactSolutionPath", &oc::SimpleSetup::haveExactSolutionPath)
+        .def("haveSolutionPath", &oc::SimpleSetup::haveSolutionPath)
 
         // getSolutionPath: returns a PathControl& => use reference_internal
         .def(
             "getSolutionPath", [](oc::SimpleSetup &self) -> oc::PathControl & { return self.getSolutionPath(); },
-            nb::rv_policy::reference_internal,
-            "Return the current solution path as a PathControl object.")
+            nb::rv_policy::reference_internal)
 
         // getPlannerData
         .def(
             "getPlannerData", [](const oc::SimpleSetup &ss, ob::PlannerData &pd) { ss.getPlannerData(pd); },
-            nb::arg("plannerData"), nb::rv_policy::reference_internal,
-            "Fill the provided PlannerData structure with the exploration data from the current planner.")
+            nb::arg("plannerData"), nb::rv_policy::reference_internal)
 
         // setStateValidityChecker (two overloads)
         .def("setStateValidityChecker", nb::overload_cast<const ompl::base::StateValidityCheckerFn &>(
@@ -86,16 +70,13 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
         // setStatePropagator
         .def(
             "setStatePropagator",
-            static_cast<void (oc::SimpleSetup::*)(const oc::StatePropagatorFn &)>(&oc::SimpleSetup::setStatePropagator),
-            nb::arg("propagatorFn"), "Set the state propagator from a function/lambda.")
+            static_cast<void (oc::SimpleSetup::*)(const oc::StatePropagatorFn &)>(&oc::SimpleSetup::setStatePropagator))
         .def("setStatePropagator",
              static_cast<void (oc::SimpleSetup::*)(const oc::StatePropagatorPtr &)>(
-                 &oc::SimpleSetup::setStatePropagator),
-             nb::arg("propagatorPtr"), "Set the state propagator from a StatePropagator pointer.")
+                 &oc::SimpleSetup::setStatePropagator))
 
         // setOptimizationObjective
-        .def("setOptimizationObjective", &oc::SimpleSetup::setOptimizationObjective, nb::arg("objective"),
-             "Set the optimization objective for planning, if desired.")
+        .def("setOptimizationObjective", &oc::SimpleSetup::setOptimizationObjective, nb::arg("objective"))
 
         // start/goal states
         .def(
@@ -108,8 +89,7 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
                 auto g = state2ScopedState(space, goal);
                 ss.setStartAndGoalStates(s, g, threshold);
             },
-            nb::arg("start"), nb::arg("goal"), nb::arg("threshold") = std::numeric_limits<double>::epsilon(),
-            "Set a single start state and a single goal state.")
+            nb::arg("start"), nb::arg("goal"), nb::arg("threshold") = std::numeric_limits<double>::epsilon())
         .def(
             "setGoalState",
             [](oc::SimpleSetup &ss, const ob::State *goal, double threshold)
@@ -119,8 +99,7 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
                 auto g = state2ScopedState(space, goal);
                 ss.setGoalState(g, threshold);
             },
-            nb::arg("goal"), nb::arg("threshold") = std::numeric_limits<double>::epsilon(),
-            "Set the goal from a single state.")
+            nb::arg("goal"), nb::arg("threshold") = std::numeric_limits<double>::epsilon())
         .def(
             "addStartState",
             [](oc::SimpleSetup &ss, const ob::State *state)
@@ -130,8 +109,8 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
                 auto s = state2ScopedState(space, state);
                 ss.addStartState(s);
             },
-            nb::arg("state"), "Add an additional start state.")
-        .def("clearStartStates", &oc::SimpleSetup::clearStartStates, "Clear all previously-set start states.")
+            nb::arg("state"))
+        .def("clearStartStates", &oc::SimpleSetup::clearStartStates)
         .def(
             "setStartState",
             [](oc::SimpleSetup &ss, const ob::State *state)
@@ -141,30 +120,24 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
                 auto s = state2ScopedState(space, state);
                 ss.setStartState(s);
             },
-            nb::arg("state"), "Clear existing start states and set one new start state.")
-        .def("setGoal", &oc::SimpleSetup::setGoal, nb::arg("goal"), "Set the goal pointer directly.")
+            nb::arg("state"))
+        .def("setGoal", &oc::SimpleSetup::setGoal, nb::arg("goal"))
 
         // setPlanner, setPlannerAllocator
-        .def("setPlanner", &oc::SimpleSetup::setPlanner, nb::arg("planner"),
-             "Set a planner instance for this setup. Must match the SpaceInformation.")
-        .def("setPlannerAllocator", &oc::SimpleSetup::setPlannerAllocator, nb::arg("allocator"),
-             "Set a function/functor that creates a Planner. Overwrites any existing planner.")
+        .def("setPlanner", &oc::SimpleSetup::setPlanner, nb::arg("planner"))
+        .def("setPlannerAllocator", &oc::SimpleSetup::setPlannerAllocator, nb::arg("allocator"))
 
         // solve() methods (two overloads)
-        .def("solve", nb::overload_cast<double>(&oc::SimpleSetup::solve), nb::arg("time") = 1.0,
-             "Attempt to solve the problem within the specified time limit.")
+        .def("solve", nb::overload_cast<double>(&oc::SimpleSetup::solve), nb::arg("time") = 1.0)
         .def("solve", nb::overload_cast<const ob::PlannerTerminationCondition &>(&oc::SimpleSetup::solve),
-             nb::arg("terminationCondition"),
-             "Attempt to solve the problem until the given termination condition is satisfied.")
+             nb::arg("terminationCondition"))
 
         // getLastPlannerStatus, getLastPlanComputationTime
-        .def("getLastPlannerStatus", &oc::SimpleSetup::getLastPlannerStatus,
-             "Return the PlannerStatus result from the last solve call.")
-        .def("getLastPlanComputationTime", &oc::SimpleSetup::getLastPlanComputationTime,
-             "Return how many seconds the last solve invocation took to find or fail to find a solution.")
+        .def("getLastPlannerStatus", &oc::SimpleSetup::getLastPlannerStatus)
+        .def("getLastPlanComputationTime", &oc::SimpleSetup::getLastPlanComputationTime)
 
         // clear
-        .def("clear", &oc::SimpleSetup::clear, "Clear the setup, forgetting all states, solutions, and planners.")
+        .def("clear", &oc::SimpleSetup::clear)
 
         // print
         .def(
@@ -174,9 +147,8 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
                 std::ostringstream oss;
                 ss.print(oss);
                 return oss.str();
-            },
-            "Return a string describing the SimpleSetup configuration.")
+            })
 
         // setup
-        .def("setup", &oc::SimpleSetup::setup, "Finalize the setup (call before solve).");
+        .def("setup", &oc::SimpleSetup::setup);
 }

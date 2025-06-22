@@ -7,9 +7,6 @@ namespace ob = ompl::base;
 
 void ompl::binding::base::init_StateValidityChecker(nb::module_& m)
 {
-    // TODO [ob::StateValidityChecker][IMPLEMENT]
-    nb::enum_<ob::StateValidityCheckerSpecs>(m, "StateValidityCheckerSpecs")
-        ;
 
     // TODO [ob::StateValidityChecker][IMPLEMENT]
     nb::class_<ob::StateValidityChecker>(m, "StateValidityChecker")
