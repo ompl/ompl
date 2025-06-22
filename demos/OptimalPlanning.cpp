@@ -131,7 +131,6 @@ public:
 
         // Distance formula between two points, offset by the circle's
         // radius
-        return ((x >= 1.4 && x <= 1.5 && y >= 0.6 && y <=1.4) || ( y >= 1.3 && y <= 1.4 && x>= 0.6 && x<= 1.4)) ? 0.0 : 0.1;
         return sqrt((x - 0.5) * (x - 0.5) + (y - 0.5) * (y - 0.5)) - 0.25;
     }
 };

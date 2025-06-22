@@ -1379,7 +1379,7 @@ namespace ompl
           
         bool BLITstar::CCD(const keyEdgePair &edge)
         {
-            return isValidAtResolution(edge,space_->validSegmentCount(edge.first->getState(), edge.second->getState()),false);  
+            return isValidAtResolution(edge,space_->validSegmentCount(edge.first->getState(), edge.second->getState()),iSolution_);  
         }
         
         bool BLITstar::isValidAtResolution(const keyEdgePair &edge, std::size_t numChecks, bool sparseCheck)
