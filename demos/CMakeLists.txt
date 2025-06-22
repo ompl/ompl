@@ -16,6 +16,7 @@ if (OMPL_BUILD_DEMOS)
             Boost::program_options)
     endmacro(add_ompl_demo)
 
+    add_ompl_demo(demo_BouncingBallPlanning BouncingBallPlanning.cpp)    
     add_ompl_demo(demo_RigidBodyPlanning RigidBodyPlanning.cpp)
     add_ompl_demo(demo_RigidBodyPlanningWithIK RigidBodyPlanningWithIK.cpp)
     add_ompl_demo(demo_RigidBodyPlanningWithControls RigidBodyPlanningWithControls.cpp)
@@ -73,6 +74,10 @@ if (OMPL_BUILD_DEMOS)
 
             add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
         endif()
+
+        add_ompl_demo(demo_MulticopterPlanning 
+                    multicopter/MulticopterPlanning.cpp
+                    multicopter/Quartic.cpp)
 
         add_ompl_demo(demo_PlanarManipulator
             PlanarManipulator/PlanarManipulatorDemo.cpp
