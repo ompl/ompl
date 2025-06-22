@@ -251,16 +251,11 @@ void plan(double runTime, optimalPlanner plannerType, planningObjective objectiv
     auto space(std::make_shared<ob::RealVectorStateSpace>(2));
 
     // Set the bounds of space to be in [0,1].
-    //space->setBounds(0.0, 1.0);
-
-    ob::RealVectorBounds bounds(2); 
-    bounds.setLow(0, 0);  // Lower bound for x-dimension
-    bounds.setHigh(0, 2);  // Upper bound for x-dimension
-    bounds.setLow(1, 0);  // Lower bound for y-dimension
-    bounds.setHigh(1, 2);  // Upper bound for y-dimension 
+    space->setBounds(0.0, 1.0);
+    
     // Construct a space information instance for this state space
-    space->setBounds(bounds);
     auto si(std::make_shared<ob::SpaceInformation>(space));
+    
     // Set the object used to check which states in the space are valid
     si->setStateValidityChecker(std::make_shared<ValidityChecker>(si));
 
@@ -275,8 +270,8 @@ void plan(double runTime, optimalPlanner plannerType, planningObjective objectiv
     // Set our robot's goal state to be the top-right corner of the
     // environment, or (1,1).
     ob::ScopedState<> goal(space);
-    goal->as<ob::RealVectorStateSpace::StateType>()->values[0] = 1.8;
-    goal->as<ob::RealVectorStateSpace::StateType>()->values[1] = 1.8;
+    goal->as<ob::RealVectorStateSpace::StateType>()->values[0] = 1.0;
+    goal->as<ob::RealVectorStateSpace::StateType>()->values[1] = 1.0;
 
     // Create a problem instance
     auto pdef(std::make_shared<ob::ProblemDefinition>(si));
