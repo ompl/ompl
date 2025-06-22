@@ -583,7 +583,7 @@ namespace
         }  
     }
 
-    bool isLongPathCase(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double wind_ratio)
+    bool isLongPathCase(double x0, double y0, double phi0, double xf, double yf, double phif, double radius, double /* wind_ratio */)
     {   
         double dx = (xf - x0)/radius, dy = (yf - y0)/radius;
         double d = sqrt(dx*dx + dy*dy), theta = atan2(dy, dx);
