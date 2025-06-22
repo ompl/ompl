@@ -532,7 +532,7 @@ namespace ompl
         
         void BLITstar::lookingForBestNeighbor(ompl::base::Cost curMin_, size_t neighbor)
         {
-              if(objective_->isCostBetterThan(curMin_,minimalneighbor_))
+              if(betterThan(curMin_,minimalneighbor_))
               {
                  minimalneighbor_ = curMin_;
                  bestNeighbor_ = neighbor;
@@ -693,10 +693,10 @@ namespace ompl
         {
              if(isVertexEmpty_)
              {  return true; }
-             if(!found_meeting_ && objective_->isCostLargerThan(C_curr,fmin_))
+             if(!found_meeting_ && largerThan(C_curr,fmin_))
              { return false; } 
              
-             if(objective_->isCostBetterThan(C_curr,solutionCost_) && !PathValidity(V_meet.second))
+             if(betterThan(C_curr,solutionCost_) && !PathValidity(V_meet.second))
              {
                  C_curr = solutionCost_;
                  BestVertex_->resetMeet();
@@ -744,7 +744,7 @@ namespace ompl
             }
             else
             {
-                   if(find_solution_ && objective_->isCostBetterThan(C_curr, solutionCost_))
+                   if(find_solution_ && betterThan(C_curr, solutionCost_))
                    { 
                           iSolution_ = true;
                           solutionCost_ = C_curr;
@@ -766,7 +766,7 @@ namespace ompl
          
         bool BLITstar::largerThan(const ompl::base::Cost & cost1, const ompl::base::Cost & cost2)
         {
-            return cost1.value() + 0.000001 < cost2.value();
+            return cost1.value()  > cost2.value()+ 0.000001;
         }  
          
         bool BLITstar::isVertexBetter(const blitstar::KeyVertexPair &lhs, const blitstar::KeyVertexPair &rhs) const
@@ -794,7 +794,7 @@ namespace ompl
                     // g_hat(x_v) = g(x_u) + c(x_u, x_v) 
                     auto edgeCost = child->getEdgeCostFromForwardParent();
                     auto gValue =  objective_->combineCosts(vertex->getCostToComeFromStart(),edgeCost);
-                    if(iSolution_ && !child->hasReverseParent() && objective_->isCostLargerThan(objective_->combineCosts(gValue,gValue),solutionCost_))
+                    if(iSolution_ && !child->hasReverseParent() && largerThan(objective_->combineCosts(gValue,gValue),solutionCost_))
                     {      continue;   }
                     // h_bar(x_v): lower cost bound to go such as Eculidean distance. 
                     auto hValue = child->getLowerCostBoundToGoal();       
@@ -846,7 +846,7 @@ namespace ompl
                     auto est_gValue = objective_->combineCosts(vertex->getCostToComeFromStart(), edgeCost);
                     
                     // If g_F(x_v) > g_F(x_u) + c_hat(x_u,x_v), this neighbor is a promising vertex to provide a better solution. 
-                    if (objective_->isCostBetterThan(est_gValue, gValue)&& !neighbor->isGoal() )
+                    if (betterThan(est_gValue, gValue)&& !neighbor->isGoal() )
                     { 
                          neighbor->setForwardId(forwardId_);
                          bool fValid_ = false, rValid_ = false, supposeMeet = false;
@@ -905,7 +905,7 @@ namespace ompl
                                     auto Totalcost = objective_->combineCosts(est_gValue,neighbor->getCostToComeFromGoal());
                                     lookingForBestNeighbor(Totalcost, neighbor->getId());
                                     supposeMeet = true;
-                                    if(objective_->isCostBetterThan(Totalcost,C_curr)&& (iSolution_ || ((fValid_ = CCD(fEdge)) && (rValid_=CCD(rEdge)))) )//
+                                    if(betterThan(Totalcost,C_curr)&& (iSolution_ || ((fValid_ = CCD(fEdge)) && (rValid_=CCD(rEdge)))) )//
                                     {
                                            updateBestSolutionFoundSoFar(neighbor,Totalcost,est_gValue,hValue,neighbor->getCostToComeFromGoal());
                                            insertOrUpdateInForwardVertexQueue(neighbor,est_gValue,hValue,vertex->meetVertex()); 
@@ -935,7 +935,7 @@ namespace ompl
                          
                          // Refine the heuristic value on-the-fly and insert it into the forward queue
                          updateCostToGo(est_gValue, hValue,hValue,false);  
-                         if(iSolution_ && !neighbor->hasReverseParent() && objective_->isCostLargerThan(hValue,solutionCost_))
+                         if(iSolution_ && !neighbor->hasReverseParent() && largerThan(hValue,solutionCost_))
                          {      continue;   }
                          insertOrUpdateInForwardVertexQueue(neighbor,est_gValue,hValue,vertex->meetVertex()&& !supposeMeet);   
                     } 
@@ -943,7 +943,7 @@ namespace ompl
             }
             
             // Check whether the current vertex is the meeting vertex.
-            found_meeting_ = (vertex->meetVertex() && objective_->isCostBetterThan(minimalneighbor_,C_curr)) ? true : false;
+            found_meeting_ = (vertex->meetVertex() && betterThan(minimalneighbor_,C_curr)) ? true : false;
             
             // Check if its valid reverse parent can offer a better solution      
             if(iSolution_ && vertex->hasReverseEdgeParent())
@@ -952,7 +952,7 @@ namespace ompl
                   auto edgeCost = vertex->getValidReverseEdgeCost();
                   auto curValue = objective_->combineCosts(vertex->getCostToComeFromStart(),edgeCost);
                   auto hValue = reverseParent->getLowerCostBoundToGoal();
-                  if(objective_->isCostBetterThan(curValue,reverseParent->getCostToComeFromStart()))
+                  if(betterThan(curValue,reverseParent->getCostToComeFromStart()))
                   {
                          reverseParent->setCostToComeFromStart(curValue);  
                          reverseParent->setForwardVertexParent(vertex,edgeCost);
@@ -974,11 +974,11 @@ namespace ompl
         }
         void BLITstar::updateCostToGo(ompl::base::Cost &costToCome, ompl::base::Cost &costToGo, ompl::base::Cost costFromOriginal, bool meetOnPath)
         {
-                    if(objective_->isCostBetterThan(costToGo,costToCome))
+                    if(betterThan(costToGo,costToCome))
                     {
                             costToGo =   costToCome;
                     }
-                    if(meetOnPath && objective_->isCostBetterThan(costFromOriginal,costToGo))
+                    if(meetOnPath && betterThan(costFromOriginal,costToGo))
                     {
                             costToGo = costFromOriginal;
                     }
@@ -992,7 +992,7 @@ namespace ompl
                          if(vertex->hasReverseParent() && vertex->getReverseId() == reverseId_)
                          {
                              auto bettersolution_ = objective_->combineCosts(vertex->getCostToComeFromGoal(),vertex->getCostToComeFromStart());
-                             if(objective_->isCostBetterThan(bettersolution_,C_curr))
+                             if(betterThan(bettersolution_,C_curr))
                              {
                                 updateBestSolutionFoundSoFar(vertex,bettersolution_,costToCome,costToGo,vertex->getCostToComeFromGoal());
                              }
@@ -1014,7 +1014,7 @@ namespace ompl
                          if(vertex->hasForwardParent() && vertex->getForwardId() == forwardId_)
                          {
                              auto bettersolution_ = objective_->combineCosts(vertex->getCostToComeFromGoal(),vertex->getCostToComeFromStart());
-                             if(objective_->isCostBetterThan(bettersolution_,C_curr))
+                             if(betterThan(bettersolution_,C_curr))
                              {
                                  updateBestSolutionFoundSoFar(vertex,bettersolution_,costToCome,costToGo,vertex->getCostToComeFromStart());
                              }
@@ -1053,7 +1053,7 @@ namespace ompl
                     }
                     auto edgeCost = child->getEdgeCostFromReverseParent() ;
                     auto gValue = objective_->combineCosts(vertex->getCostToComeFromGoal(),edgeCost);
-                    if(iSolution_ && !child->hasForwardParent() && objective_->isCostLargerThan(objective_->combineCosts(gValue,gValue),solutionCost_))
+                    if(iSolution_ && !child->hasForwardParent() && largerThan(objective_->combineCosts(gValue,gValue),solutionCost_))
                     {      continue;   }
                     auto hValue = child->getLowerCostBoundToStart(); 
                          child->setCostToComeFromGoal(gValue);                                              
@@ -1094,7 +1094,7 @@ namespace ompl
                     auto gValue = neighbor->hasReverseParent() ? neighbor->getCostToComeFromGoal() :objective_->infiniteCost();
                     auto edgeCost = objective_->motionCostHeuristic(neighbor->getState(), vertex->getState());
                     auto est_gValue = objective_->combineCosts(vertex->getCostToComeFromGoal(), edgeCost);   
-                    if (objective_->isCostBetterThan(est_gValue, gValue) && !neighbor->isStart())
+                    if (betterThan(est_gValue, gValue) && !neighbor->isStart())
                     {
                          neighbor->setReverseId(reverseId_);
                          if(!iSolution_ && !SCD(make_pair(neighbor,vertex)))
@@ -1144,7 +1144,7 @@ namespace ompl
                                 auto Totalcost = objective_->combineCosts(est_gValue,neighbor->getCostToComeFromStart()); 
                                 supposeMeet = true;
                                 lookingForBestNeighbor(Totalcost, neighbor->getId());
-                                if(objective_->isCostBetterThan(Totalcost,C_curr)&&(iSolution_|| ((fValid_ = CCD(fEdge))&&(rValid_=CCD(rEdge)))))//
+                                if(betterThan(Totalcost,C_curr)&&(iSolution_|| ((fValid_ = CCD(fEdge))&&(rValid_=CCD(rEdge)))))//
                                 {
                                      updateBestSolutionFoundSoFar(neighbor,Totalcost,est_gValue,hValue,neighbor->getCostToComeFromStart());
                                      insertOrUpdateInReverseVertexQueue(neighbor,est_gValue,hValue,vertex->meetVertex());
@@ -1173,20 +1173,20 @@ namespace ompl
                             }
                          } 
                          updateCostToGo(est_gValue, hValue,hValue,false);
-                         if(iSolution_&& !neighbor->hasForwardParent()  && objective_->isCostLargerThan(hValue,solutionCost_))
+                         if(iSolution_&& !neighbor->hasForwardParent()  && largerThan(hValue,solutionCost_))
                          {      continue;   }  
                          insertOrUpdateInReverseVertexQueue(neighbor,est_gValue,hValue,vertex->meetVertex()&& !supposeMeet); 
                     } 
                 }
             }
-            found_meeting_ = (vertex->meetVertex() && objective_->isCostBetterThan(minimalneighbor_,C_curr)) ? true : false; 
+            found_meeting_ = (vertex->meetVertex() && betterThan(minimalneighbor_,C_curr)) ? true : false; 
             if(iSolution_ && vertex->hasForwardEdgeParent())
             {
                   auto forwardParent = vertex->getForwardEdgeParent();
                   auto edgeCost = vertex->getValidForwardEdgeCost(); 
                   auto curValue = objective_->combineCosts(vertex->getCostToComeFromGoal(),edgeCost);
                   auto hValue = forwardParent->getLowerCostBoundToStart();
-                  if(objective_->isCostBetterThan(curValue,forwardParent->getCostToComeFromGoal()))
+                  if(betterThan(curValue,forwardParent->getCostToComeFromGoal()))
                   {
                          forwardParent->setCostToComeFromGoal(curValue); 
                          vertex->resetForwardEdgeParent();
@@ -1321,6 +1321,8 @@ namespace ompl
             {
                  return true;
             }
+            
+            // Check if the search is exhausted in either direction
             if(forwardVertexQueue_.empty() || reverseVertexQueue_.empty())
             {    
                  C_curr = solutionCost_;
@@ -1332,6 +1334,7 @@ namespace ompl
             ForwardCost = forwardVertexQueue_.top()->data.first[0u];
             ReverseCost = reverseVertexQueue_.top()->data.first[0u];
             
+            // Check if the best vertex is on an obsolete search direction
             if(forwardInvalid_ && forwardVertex_->getForwardId() != forwardId_)
             {
                 forwardVertexQueue_.pop(); 
@@ -1346,8 +1349,8 @@ namespace ompl
                 return false;   
             } 
              
-            // If the minimum priority is from forward search
-            if(objective_->isCostBetterThan(ForwardCost, ReverseCost))
+            // Select the vertex with the lowest priority from both queues for expansion
+            if(betterThan(ForwardCost, ReverseCost))
             {
                    BestVertex_ = forwardVertexQueue_.top()->data.second;
                    forwardVertexQueue_.pop();

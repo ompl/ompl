@@ -69,12 +69,7 @@ void ompl::base::OptimizationObjective::setCostThreshold(Cost c)
 
 bool ompl::base::OptimizationObjective::isCostBetterThan(Cost c1, Cost c2) const
 {
-    return c1.value() + 0.000001 < c2.value();
-}
-
-bool ompl::base::OptimizationObjective::isCostLargerThan(Cost c1, Cost c2) const
-{
-    return c1.value() > c2.value()+ 0.000001;
+    return c1.value() < c2.value();
 }
 
 bool ompl::base::OptimizationObjective::isCostEquivalentTo(Cost c1, Cost c2) const

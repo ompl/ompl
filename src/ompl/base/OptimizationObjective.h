@@ -102,7 +102,6 @@ namespace ompl
              * returns true if if c1 is less than c2. */
             virtual bool isCostBetterThan(Cost c1, Cost c2) const;
             
-            virtual bool isCostLargerThan(Cost c1, Cost c2) const;
 
             /** \brief Compare whether cost \e c1 and cost \e c2 are equivalent. By default defined as
              * !isCostBetterThan(c1, c2) && !isCostBetterThan(c2, c1), as if c1 is not better than c2, and c2 is not
