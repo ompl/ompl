@@ -99,6 +99,15 @@ if (OMPL_BUILD_DEMOS)
         add_ompl_demo(demo_TriangulationDemo TriangulationDemo.cpp)
         add_ompl_demo(demo_LTLWithTriangulation LTLWithTriangulation.cpp)
     endif()
+
+    add_ompl_demo(demo_VampDemo vampdemo/VampDemo.cpp)
+    # target_link_libraries(demo_VampDemo PRIVATE _core_ext)  # Removed to avoid CMake error
+    target_include_directories(demo_VampDemo PRIVATE
+        ${CMAKE_SOURCE_DIR}/external/vamp/src/impl
+        ${CMAKE_BINARY_DIR}/_deps/pdqsort-src
+        ${CMAKE_SOURCE_DIR}/external/vamp/include
+    )
+    target_compile_options(demo_VampDemo PRIVATE -mavx -mavx2 -mfma)
 endif(OMPL_BUILD_DEMOS)
 
 file(GLOB OMPL_DEMO_PY_FILES "*.py")
