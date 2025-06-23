@@ -4,9 +4,10 @@
 #include "init.hh"
 
 namespace nb = nanobind;
+namespace ob = ompl::base;
 
 void ompl::binding::base::init_MotionValidator(nb::module_& m)
 {
-    // TODO [ompl::base::MotionValidator][IMPLEMENT]
-    nb::class_<ompl::base::MotionValidator>(m, "MotionValidator");
+    // TODO [ob::MotionValidator][IMPLEMENT]
+    nb::class_<ob::MotionValidator>(m, "MotionValidator");
 }

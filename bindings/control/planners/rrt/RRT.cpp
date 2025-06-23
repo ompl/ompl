@@ -16,6 +16,7 @@ namespace ob = ompl::base;
 
 void ompl::binding::control::initPlannersRrt_RRT(nb::module_ &m)
 {
+     // TAG [oc::RRT][Planner]
     nb::class_<oc::RRT, ob::Planner>(m, "RRT")
         // --- Constructor
         .def(nb::init<const oc::SpaceInformationPtr &>(),

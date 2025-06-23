@@ -4,9 +4,10 @@
 #include "init.hh"
 
 namespace nb = nanobind;
+namespace ob = ompl::base;
 
 void ompl::binding::base::init_ValidStateSampler(nb::module_& m)
 {
-    // TODO [ompl::base::ValidStateSampler][IMPLEMENT]
-    nb::class_<ompl::base::ValidStateSampler>(m, "ValidStateSampler");
+    // TODO [ob::ValidStateSampler][IMPLEMENT]
+    nb::class_<ob::ValidStateSampler>(m, "ValidStateSampler");
 }

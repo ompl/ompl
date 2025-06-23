@@ -3,9 +3,10 @@
 #include "init.hh"
 
 namespace nb = nanobind;
+namespace oc = ompl::control;
 
 void ompl::binding::control::init_StatePropagator(nb::module_& m)
 {
-    // TODO [ompl::control::StatePropagator][IMPLEMENT]
-    nb::class_<ompl::control::StatePropagator>(m, "StatePropagator");
+    // TODO [oc::StatePropagator][IMPLEMENT]
+    nb::class_<oc::StatePropagator>(m, "StatePropagator");
 }

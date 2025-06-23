@@ -9,6 +9,7 @@ namespace ob = ompl::base;
 void ompl::binding::control::initPlannersSyclop_SyclopRRT(nb::module_& m)
 {
     // TODO [oc::SyclopRRT][IMPLEMENT]
+    // TAG [oc::SyclopRRT][Planner]
     nb::class_<oc::SyclopRRT, oc::Syclop>(m, "SyclopRRT")
         ;
 }
