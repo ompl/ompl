@@ -200,7 +200,7 @@ namespace ompl
                 std::shared_ptr<Vertex> bestApproximateGoal_;
 
                 /** \brief Whether to use a k-nearest RGG. If false, BLIT* uses an r-disc RGG. */
-                bool useKNearest_{false};
+                bool useKNearest_{true};
 
                 /** \brief The maximum number of goals BIT* will sample. */
                 unsigned int maxNumGoals_{10u};

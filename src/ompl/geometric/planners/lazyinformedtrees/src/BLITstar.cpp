@@ -139,6 +139,9 @@ namespace ompl
 
                 // Initialize the solution cost to be infinite.
                 solutionCost_ = objective_->infiniteCost();
+                
+                iSolution_ = false;
+                
                 C_curr = objective_->infiniteCost();
                 approximateSolutionCostToGoal_ = objective_->infiniteCost();
 

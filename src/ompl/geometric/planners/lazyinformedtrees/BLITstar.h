@@ -304,7 +304,7 @@ namespace ompl
             
             std::size_t meetId_{0u};
             /** \brief The number of samples per batch. */
-            std::size_t batchSize_{300u};
+            std::size_t batchSize_{100u};
             
             /** \brief The option that specifies whether to track approximate solutions. */
             bool trackApproximateSolutions_{true};
