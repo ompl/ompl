@@ -9,6 +9,7 @@ namespace og = ompl::geometric;
 void ompl::binding::geometric::initPlannersFmt_BFMT(nb::module_& m)
 {
     // TODO [og::BFMT][IMPLEMENT]
+    // TAG [og::BFMT][Planner]
     nb::class_<og::BFMT, ob::Planner>(m, "BFMT")
         ;
 }

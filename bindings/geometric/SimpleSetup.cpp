@@ -34,118 +34,97 @@ void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m)
 nb::class_<og::SimpleSetup>(m, "SimpleSetup")
      // Constructors
      .def(nb::init<const ob::SpaceInformationPtr &>(),
-          nb::arg("si"),
-          "Construct a SimpleSetup instance with a given SpaceInformation.")
+          nb::arg("si"))
      .def(nb::init<const ob::StateSpacePtr &>(),
-          nb::arg("space"),
-          "Construct a SimpleSetup instance with a given StateSpace.")
+          nb::arg("space"))
      
      // getSpaceInformation
      .def("getSpaceInformation",
           &og::SimpleSetup::getSpaceInformation,
-          nb::rv_policy::reference_internal,
-          "Return the SpaceInformation associated with this setup.")
+          nb::rv_policy::reference_internal)
      
      // getProblemDefinition (two overloads: const and non-const)
      .def("getProblemDefinition",
           static_cast<ob::ProblemDefinitionPtr &(og::SimpleSetup::*)()>(&og::SimpleSetup::getProblemDefinition),
-          nb::rv_policy::reference_internal,
-          "Return the problem definition (non-const).")
+          nb::rv_policy::reference_internal)
      .def("getProblemDefinitionConst",
           static_cast<const ob::ProblemDefinitionPtr &(og::SimpleSetup::*)() const>(&og::SimpleSetup::getProblemDefinition),
-          nb::rv_policy::reference_internal,
-          "Return the problem definition (const).")
+          nb::rv_policy::reference_internal)
      
      // getStateSpace
      .def("getStateSpace",
           &og::SimpleSetup::getStateSpace,
-          nb::rv_policy::reference_internal,
-          "Return the underlying StateSpace.")
+          nb::rv_policy::reference_internal)
      
      // getStateValidityChecker
      .def("getStateValidityChecker",
           &og::SimpleSetup::getStateValidityChecker,
-          nb::rv_policy::reference_internal,
-          "Return the current StateValidityChecker.")
+          nb::rv_policy::reference_internal)
      
      // getGoal
      .def("getGoal",
           &og::SimpleSetup::getGoal,
-          nb::rv_policy::reference_internal,
-          "Return the current Goal.")
+          nb::rv_policy::reference_internal)
      
      // getPlanner
      .def("getPlanner",
           &og::SimpleSetup::getPlanner,
-          nb::rv_policy::reference_internal,
-          "Return the planner instance used by this setup.")
+          nb::rv_policy::reference_internal)
      
      // getPlannerAllocator
      .def("getPlannerAllocator",
           &og::SimpleSetup::getPlannerAllocator,
-          nb::rv_policy::reference_internal,
-          "Return the planner allocator, if any, used by this setup.")
+          nb::rv_policy::reference_internal)
      
      // getPathSimplifier
      .def("getPathSimplifier",
           static_cast<og::PathSimplifierPtr &(og::SimpleSetup::*)()>(&og::SimpleSetup::getPathSimplifier),
-          nb::rv_policy::reference_internal,
-          "Return the PathSimplifier used by this setup (non-const).")
+          nb::rv_policy::reference_internal)
      .def("getPathSimplifierConst",
           static_cast<const og::PathSimplifierPtr &(og::SimpleSetup::*)() const>(&og::SimpleSetup::getPathSimplifier),
-          nb::rv_policy::reference_internal,
-          "Return the PathSimplifier used by this setup (const).")
+          nb::rv_policy::reference_internal)
      
      // getOptimizationObjective
      .def("getOptimizationObjective",
           &og::SimpleSetup::getOptimizationObjective,
-          nb::rv_policy::reference_internal,
-          "Return the optimization objective for this setup.")
+          nb::rv_policy::reference_internal)
      
      // haveExactSolutionPath, haveSolutionPath
      .def("haveExactSolutionPath",
-          &og::SimpleSetup::haveExactSolutionPath,
-          "Return true if the problem has an exact solution.")
+          &og::SimpleSetup::haveExactSolutionPath)
      .def("haveSolutionPath",
-          &og::SimpleSetup::haveSolutionPath,
-          "Return true if the problem has any solution (approx or exact).")
+          &og::SimpleSetup::haveSolutionPath)
      
      // getSolutionPlannerName
      .def("getSolutionPlannerName",
-          &og::SimpleSetup::getSolutionPlannerName,
-          "Return the planner name that produced the solution, if any.")
+          &og::SimpleSetup::getSolutionPlannerName)
      
      // getSolutionPath returns a PathGeometric&. We should return a reference.
      .def("getSolutionPath",
           [](og::SimpleSetup &self) -> og::PathGeometric & {
                return self.getSolutionPath();
           },
-          nb::rv_policy::reference_internal,
-          "Return the solution path, if any (PathGeometric).")
+          nb::rv_policy::reference_internal)
      
      // getPlannerData
      .def("getPlannerData",
           [](og::SimpleSetup &self, ob::PlannerData &pd) {
                self.getPlannerData(pd);
           },
-          nb::arg("plannerData"),
-          "Fill the PlannerData with info about the current exploration.")
+          nb::arg("plannerData"))
      
      // setStateValidityChecker (two overloads: pointer vs function).
      .def("setStateValidityChecker",
           static_cast<void (og::SimpleSetup::*)(const ob::StateValidityCheckerPtr &)>(&og::SimpleSetup::setStateValidityChecker),
-          nb::arg("svc"),
-          "Set the state validity checker by pointer.")
+          nb::arg("svc"))
      .def("setStateValidityChecker",
           static_cast<void (og::SimpleSetup::*)(const ob::StateValidityCheckerFn &)>(&og::SimpleSetup::setStateValidityChecker),
-          nb::arg("svc"),
-          "Set the state validity checker by function/lambda.")
+          nb::arg("svc"))
      
      // setOptimizationObjective
      .def("setOptimizationObjective",
           &og::SimpleSetup::setOptimizationObjective,
-          nb::arg("objective"),
-          "Set the optimization objective for planning.")
+          nb::arg("objective"))
      
      // setStartAndGoalStates, addStartState, etc.
      .def("setStartAndGoalStates",
@@ -157,12 +136,10 @@ nb::class_<og::SimpleSetup>(m, "SimpleSetup")
                ss.setStartAndGoalStates(s, g, threshold);
           },
           nb::arg("start"), nb::arg("goal"),
-          nb::arg("threshold") = std::numeric_limits<double>::epsilon(),
-          "Set start and goal states for the problem.")
+          nb::arg("threshold") = std::numeric_limits<double>::epsilon())
      
      .def("clearStartStates",
-          &og::SimpleSetup::clearStartStates,
-          "Clear all previously set start states.")
+          &og::SimpleSetup::clearStartStates)
 
      .def("addStartState",
           [](og::SimpleSetup &ss, const ob::State * state) {
@@ -170,8 +147,7 @@ nb::class_<og::SimpleSetup>(m, "SimpleSetup")
                auto s = state2ScopedState(space, state);
                ss.addStartState(s);
           },
-          nb::arg("state"),
-          "Add an additional start state.")
+          nb::arg("state"))
 
      .def("setStartState",
           [](og::SimpleSetup &ss, const ob::State * state) {
@@ -179,8 +155,7 @@ nb::class_<og::SimpleSetup>(m, "SimpleSetup")
                auto s = state2ScopedState(space, state);
                ss.setStartState(s);
           },
-          nb::arg("state"),
-          "Clear existing start states and set one new start state.")
+          nb::arg("state"))
 
      .def("setGoalState",
           [](og::SimpleSetup &ss, const ob::State * state, double threshold) {
@@ -189,58 +164,47 @@ nb::class_<og::SimpleSetup>(m, "SimpleSetup")
                ss.setGoalState(s);
           },
           nb::arg("goal"),
-          nb::arg("threshold") = std::numeric_limits<double>::epsilon(),
-          "Set the goal from a single state with threshold.")        
+          nb::arg("threshold") = std::numeric_limits<double>::epsilon())        
      
      .def ("setGoal", &og::SimpleSetup::setGoal,
-          nb::arg("goal"),
-          "Set the goal from a Goal object.")
+          nb::arg("goal"))
      .def("setPlanner",
           &og::SimpleSetup::setPlanner,
           nb::arg("planner"),
           "Set a planner for this setup.")
      .def("setPlannerAllocator",
           &og::SimpleSetup::setPlannerAllocator,
-          nb::arg("allocator"),
-          "Set a planner allocator function. This resets the current planner.")
+          nb::arg("allocator"))
      
      // solve (two overloads)
      .def("solve",
           static_cast<ob::PlannerStatus (og::SimpleSetup::*)(double)>(&og::SimpleSetup::solve),
-          nb::arg("time") = 1.0,
-          "Solve the problem within the given time limit.")
+          nb::arg("time") = 1.0)
      .def("solve",
           static_cast<ob::PlannerStatus (og::SimpleSetup::*)(const ob::PlannerTerminationCondition &)>(&og::SimpleSetup::solve),
-          nb::arg("ptc"),
-          "Solve the problem until the termination condition becomes true.")
+          nb::arg("ptc"))
      
      // getLastPlannerStatus
      .def("getLastPlannerStatus",
-          &og::SimpleSetup::getLastPlannerStatus,
-          "Return the PlannerStatus from the last solve call.")
+          &og::SimpleSetup::getLastPlannerStatus)
      
      // getLastPlanComputationTime, getLastSimplificationTime
      .def("getLastPlanComputationTime",
-          &og::SimpleSetup::getLastPlanComputationTime,
-          "Return time (seconds) spent on the last plan computation.")
+          &og::SimpleSetup::getLastPlanComputationTime)
      .def("getLastSimplificationTime",
-          &og::SimpleSetup::getLastSimplificationTime,
-          "Return time (seconds) spent on the last path simplification.")
+          &og::SimpleSetup::getLastSimplificationTime)
      
      // simplifySolution (two overloads)
      .def("simplifySolution",
           static_cast<void (og::SimpleSetup::*)(double)>(&og::SimpleSetup::simplifySolution),
-          nb::arg("duration") = 0.0,
-          "Simplify the solution path up to a specified time duration.")
+          nb::arg("duration") = 0.0)
      .def("simplifySolution",
           static_cast<void (og::SimpleSetup::*)(const ob::PlannerTerminationCondition &)>(&og::SimpleSetup::simplifySolution),
-          nb::arg("ptc"),
-          "Simplify the solution path until the termination condition becomes true.")
+          nb::arg("ptc"))
      
      // clear
      .def("clear",
-          &og::SimpleSetup::clear,
-          "Clear the setup (including states, planner data, etc.).")
+          &og::SimpleSetup::clear)
      
      // print
      .def("print",
@@ -248,11 +212,9 @@ nb::class_<og::SimpleSetup>(m, "SimpleSetup")
                std::ostringstream oss;
                self.print(oss);
                return oss.str();
-          },
-          "Return a string describing the SimpleSetup.")
+          })
      
      // setup
      .def("setup",
-          &og::SimpleSetup::setup,
-          "Perform final configuration steps before calling solve.");
+          &og::SimpleSetup::setup);
 }

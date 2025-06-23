@@ -9,6 +9,7 @@ namespace og = ompl::geometric;
 void ompl::binding::geometric::initPlannersPrm_LazyPRMstar(nb::module_& m)
 {
     // TODO [og::LazyPRMstar][IMPLEMENT]
+    // TAG [og::LazyPRMstar][Planner]
     nb::class_<og::LazyPRMstar, og::LazyPRM>(m, "LazyPRMstar")
         ;
 }

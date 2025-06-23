@@ -9,6 +9,7 @@ namespace og = ompl::geometric;
 void ompl::binding::geometric::initPlannersExperience_ThunderRetrieveRepair(nb::module_& m)
 {
     // TODO [og::ThunderRetrieveRepair][IMPLEMENT]
+    // TAG [og::ThunderRetrieveRepair][Planner]
     nb::class_<og::ThunderRetrieveRepair, ob::Planner>(m, "ThunderRetrieveRepair")
         ;
 }

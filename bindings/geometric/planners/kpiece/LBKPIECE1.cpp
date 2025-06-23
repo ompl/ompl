@@ -9,6 +9,7 @@ namespace og = ompl::geometric;
 void ompl::binding::geometric::initPlannersKpiece_LBKPIECE1(nb::module_& m)
 {
     // TODO [og::LBKPIECE1][IMPLEMENT]
+    // TAG [og::LBKPIECE1][Planner]
     nb::class_<og::LBKPIECE1, ob::Planner>(m, "LBKPIECE1")
         ;
 }

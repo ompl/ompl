@@ -11,6 +11,7 @@ using namespace ompl::base;
 
 void ompl::binding::geometric::initPlannersRrt_RRTConnect(nb::module_& m)
 {
+    // TAG [og::RRTConnect][Planner]
     nb::class_<RRTConnect, Planner>(m, "RRTConnect")
         .def(nb::init<const SpaceInformationPtr&, bool>(),
              nb::arg("si"),

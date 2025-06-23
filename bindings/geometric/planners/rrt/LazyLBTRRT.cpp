@@ -9,6 +9,7 @@ namespace og = ompl::geometric;
 void ompl::binding::geometric::initPlannersRrt_LazyLBTRRT(nb::module_& m)
 {
     // TODO [og::LazyLBTRRT][IMPLEMENT]
+    // TAG [og::LazyLBTRRT][Planner]
     nb::class_<og::LazyLBTRRT, ob::Planner>(m, "LazyLBTRRT")
         ;
 }

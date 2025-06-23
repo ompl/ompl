@@ -9,6 +9,7 @@ namespace og = ompl::geometric;
 void ompl::binding::geometric::initPlannersPrm_PRMstar(nb::module_& m)
 {
     // TODO [og::PRMstar][IMPLEMENT]
+    // TAG [og::PRMstar][Planner]
     nb::class_<og::PRMstar, og::PRM>(m, "PRMstar")
         ;
 }

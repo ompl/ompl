@@ -14,6 +14,7 @@ namespace og = ompl::geometric;
 
 void ompl::binding::geometric::initPlannersRrt_RRT(nb::module_ &m)
 {
+    // TAG [og::RRT][Planner]
     nb::class_<og::RRT, ob::Planner>(m, "RRT")
         // Constructor
         .def(nb::init<const ob::SpaceInformationPtr &, bool>(),

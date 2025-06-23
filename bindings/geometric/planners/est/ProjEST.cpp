@@ -9,6 +9,7 @@ namespace og = ompl::geometric;
 void ompl::binding::geometric::initPlannersEst_ProjEST(nb::module_& m)
 {
     // TODO [og::ProjEST][IMPLEMENT]
+    // TAG [og::ProjEST][Planner]
     nb::class_<og::ProjEST, ob::Planner>(m, "ProjEST")
         ;
 }

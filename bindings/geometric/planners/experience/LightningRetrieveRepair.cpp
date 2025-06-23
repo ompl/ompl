@@ -9,6 +9,7 @@ namespace og = ompl::geometric;
 void ompl::binding::geometric::initPlannersExperience_LightningRetrieveRepair(nb::module_& m)
 {
     // TODO [og::LightningRetrieveRepair][IMPLEMENT]
+    // TAG [og::LightningRetrieveRepair][Planner]
     nb::class_<og::LightningRetrieveRepair, ob::Planner>(m, "LightningRetrieveRepair")
         ;
 }

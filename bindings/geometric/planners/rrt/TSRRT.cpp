@@ -13,6 +13,7 @@ void ompl::binding::geometric::initPlannersRrt_TSRRT(nb::module_& m)
         ;
 
     // TODO [og::TSRRT][IMPLEMENT]
+    // TAG [og::TSRRT][Planner]
     nb::class_<og::TSRRT, ob::Planner>(m, "TSRRT")
-        ''
+        ;
 }

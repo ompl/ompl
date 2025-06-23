@@ -9,6 +9,7 @@ namespace og = ompl::geometric;
 void ompl::binding::geometric::initPlannersRrt_pRRT(nb::module_& m)
 {
     // TODO [og::pRRT][IMPLEMENT]
+    // TAG [og::pRRT][Planner]
     nb::class_<og::pRRT, ob::Planner>(m, "pRRT")
         ;
 }

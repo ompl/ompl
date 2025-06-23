@@ -9,6 +9,7 @@ namespace og = ompl::geometric;
 void ompl::binding::geometric::initPlannersInformedtrees_ABITstar(nb::module_& m)
 {
     // TODO [og::ABITstar][IMPLEMENT]
+    // TAG [og::ABITstar][Planner]
     nb::class_<og::ABITstar, og::BITstar>(m, "ABITstar")
         ;
 }
