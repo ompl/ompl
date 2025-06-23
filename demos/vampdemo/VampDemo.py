@@ -21,12 +21,12 @@ import ompl.base as ob
 import ompl.geometric as og
 import ompl.util as ou
 
-# VAMP imports
+# VAMP imports - using the correct API
 import vamp
-import vamp.robots.panda as panda_robot
-import vamp.robots.ur5 as ur5_robot
-import vamp.robots.fetch as fetch_robot
-
+from vamp import panda as panda_robot
+from vamp import ur5 as ur5_robot
+from vamp import fetch as fetch_robot
+from vamp import Sphere, Cuboid, Cylinder, Environment
 
 class RobotType(Enum):
     PANDA = "panda"
@@ -44,6 +44,83 @@ class PlannerType(Enum):
     BITSTAR = "bitstar"
     RRTCONNECT = "rrtconnect"
     PRM = "prm"
+
+
+class VAMPStateValidityChecker(ob.StateValidityChecker):
+    """Custom state validity checker using VAMP."""
+    
+    def __init__(self, si, robot, environment):
+        super().__init__(si)
+        self.robot = robot
+        self.environment = environment
+    
+    def isValid(self, state):
+        """Check if a state is valid using VAMP."""
+        # Convert OMPL state to VAMP configuration
+        config = self._ompl_state_to_vamp_config(state)
+        
+        # Create environment for validation
+        env = Environment()
+        for obj in self.environment:
+            if isinstance(obj, Sphere):
+                env.add_sphere(obj)
+            elif isinstance(obj, Cuboid):
+                env.add_cuboid(obj)
+            elif isinstance(obj, Cylinder):
+                env.add_capsule(obj)
+        
+        # Use VAMP to validate the configuration (convert to list)
+        return self.robot.validate(config.tolist(), env)
+    
+    def _ompl_state_to_vamp_config(self, state):
+        """Convert OMPL state to VAMP configuration."""
+        dimension = self.robot.dimension()
+        config_values = []
+        
+        for i in range(dimension):
+            config_values.append(state[i])
+        
+        return np.array(config_values, dtype=np.float32)
+
+
+class VAMPMotionValidator(ob.MotionValidator):
+    """Custom motion validator using VAMP."""
+    
+    def __init__(self, si, robot, environment):
+        super().__init__(si)
+        self.robot = robot
+        self.environment = environment
+    
+    def checkMotion(self, s1, s2, lastValid=None):
+        """Check if motion between two states is valid using VAMP. Compatible with OMPL's expected signature."""
+        config1 = self._ompl_state_to_vamp_config(s1)
+        config2 = self._ompl_state_to_vamp_config(s2)
+        env = Environment()
+        for obj in self.environment:
+            if isinstance(obj, Sphere):
+                env.add_sphere(obj)
+            elif isinstance(obj, Cuboid):
+                env.add_cuboid(obj)
+            elif isinstance(obj, Cylinder):
+                env.add_capsule(obj)
+        return self._interpolated_motion_is_valid(config1, config2, env)
+
+    def _interpolated_motion_is_valid(self, config1, config2, env, steps=20):
+        """Linearly interpolate between config1 and config2 and check validity at each step."""
+        for i in range(steps + 1):
+            alpha = i / steps
+            interp = (1 - alpha) * config1 + alpha * config2
+            if not self.robot.validate(interp.tolist(), env):
+                return False
+        return True
+
+    def _ompl_state_to_vamp_config(self, state):
+        """Convert OMPL state to VAMP configuration."""
+        dimension = self.robot.dimension()
+        config_values = []
+        for i in range(dimension):
+            config_values.append(state[i])
+        return np.array(config_values, dtype=np.float32)
 
 
 class VampOMPLIntegration:
@@ -113,7 +190,7 @@ class VampOMPLIntegration:
         radius = 0.15
         spheres = []
         for pos in sphere_positions:
-            spheres.append(vamp.collision.factory.sphere.array(pos, radius))
+            spheres.append(Sphere(pos, radius))
         
         return spheres
     
@@ -148,12 +225,18 @@ class VampOMPLIntegration:
                 [0.15, -0.3, 0.12], [0.15, -0.3, 0.24]
             ]
         
-        # Create boxes
+        # Create boxes using Cuboid constructor
         boxes = []
         for i in range(0, len(box_positions), 2):
             min_corner = box_positions[i]
             max_corner = box_positions[i + 1]
-            boxes.append(vamp.collision.factory.box.array(min_corner, max_corner))
+            
+            # Compute center and half extents
+            center = [(a + b) / 2 for a, b in zip(min_corner, max_corner)]
+            half_extents = [abs(b - a) / 2 for a, b in zip(min_corner, max_corner)]
+            euler_xyz = [0.0, 0.0, 0.0]  # axis-aligned
+            
+            boxes.append(Cuboid(center, euler_xyz, half_extents))
         
         return boxes
     
@@ -162,42 +245,93 @@ class VampOMPLIntegration:
         return []
     
     def _get_start_goal_configurations(self):
-        """Get robot-specific start and goal configurations."""
+        """Get robot-specific start and goal configurations (match C++)."""
         if self.robot_type == RobotType.PANDA:
             start_config = [0., -0.785, 0., -2.356, 0., 1.571, 0.785]
             goal_config = [2.35, 1., 0., -0.8, 0, 2.5, 0.785]
         elif self.robot_type == RobotType.UR5:
             start_config = [0., -1.57, 0., -1.57, 0., 0.]
             goal_config = [1.57, -0.785, 0., -2.356, 0., 1.57]
-        else:  # FETCH
-            start_config = [0., 0., 0., 0., 0., 0., 0.]
-            goal_config = [1.57, 0.785, 0., -1.57, 0., 0., 0.]
-        
+        else:  # FETCH (8 DOF)
+            # C++ uses 7-DOF, pad with 0 for torso_lift_joint
+            start_config = [0.0, 0., 0., 0., 0., 0., 0., 0.]
+            goal_config = [0.0, 1.57, 0.785, 0., -1.57, 0., 0., 0.]
         return start_config, goal_config
     
     def _setup_ompl(self):
         """Setup OMPL state space, space information, and problem definition."""
         # Get robot dimension
-        dimension = self.robot.dimension
+        dimension = self.robot.dimension()
+        print(f"DEBUG: Robot type {self.robot_type}, dimension = {dimension}")
         
         # Create state space
         space = ob.RealVectorStateSpace(dimension)
         
-        # Set bounds (using normalized configuration space)
+        # Set bounds using hardcoded joint limits (match C++ behavior)
         bounds = ob.RealVectorBounds(dimension)
+        if self.robot_type == RobotType.PANDA:
+            # Panda joint limits (approximate)
+            joint_limits = [
+                (-2.8973, 2.8973),   # joint 1
+                (-1.7628, 1.7628),   # joint 2
+                (-2.8973, 2.8973),   # joint 3
+                (-3.0718, -0.0698),  # joint 4
+                (-2.8973, 2.8973),   # joint 5
+                (-0.0175, 3.7525),   # joint 6
+                (-2.8973, 2.8973)    # joint 7
+            ]
+        elif self.robot_type == RobotType.UR5:
+            # UR5 joint limits (approximate, 6 DOF)
+            joint_limits = [
+                (-2*3.14159, 2*3.14159),  # joint 1
+                (-2*3.14159, 2*3.14159),  # joint 2
+                (-2*3.14159, 2*3.14159),  # joint 3
+                (-2*3.14159, 2*3.14159),  # joint 4
+                (-2*3.14159, 2*3.14159),  # joint 5
+                (-2*3.14159, 2*3.14159)   # joint 6
+            ]
+        else:  # FETCH (8 DOF)
+            # Only use as many joint limits as the robot's dimension
+            fetch_limits = [
+                (0.0, 0.386),                # torso_lift_joint (prismatic)
+                (-2*3.14159, 2*3.14159),  # joint 1
+                (-2*3.14159, 2*3.14159),  # joint 2
+                (-2*3.14159, 2*3.14159),  # joint 3
+                (-2*3.14159, 2*3.14159),  # joint 4
+                (-2*3.14159, 2*3.14159),  # joint 5
+                (-2*3.14159, 2*3.14159),  # joint 6
+                (-2*3.14159, 2*3.14159)   # joint 7
+            ]
+            joint_limits = fetch_limits[:dimension]
+        
         for i in range(dimension):
-            bounds.setLow(i, 0.0)
-            bounds.setHigh(i, 1.0)
+            bounds.setLow(i, joint_limits[i][0])
+            bounds.setHigh(i, joint_limits[i][1])
+        
+        # Debug: Print bounds and start/goal configs
+        start_config, goal_config = self._get_start_goal_configurations()
+        print(f"DEBUG: Bounds for {self.robot_type.value}:")
+        for i in range(dimension):
+            print(f"  Joint {i}: [{bounds.low[i]:.4f}, {bounds.high[i]:.4f}]")
+        print(f"DEBUG: Start config: {start_config}")
+        print(f"DEBUG: Goal config: {goal_config}")
+        
+        # Check if start/goal are within bounds
+        start_in_bounds = all(bounds.low[i] <= start_config[i] <= bounds.high[i] for i in range(dimension))
+        goal_in_bounds = all(bounds.low[i] <= goal_config[i] <= bounds.high[i] for i in range(dimension))
+        print(f"DEBUG: Start in bounds: {start_in_bounds}")
+        print(f"DEBUG: Goal in bounds: {goal_in_bounds}")
+        
         space.setBounds(bounds)
         
         # Create space information
         self.si = ob.SpaceInformation(space)
         
         # Set state validity checker using VAMP
-        self.si.setStateValidityChecker(ob.StateValidityCheckerFn(self._is_state_valid))
+        self.si.setStateValidityChecker(VAMPStateValidityChecker(self.si, self.robot, self.environment))
         
         # Set motion validator using VAMP
-        self.si.setMotionValidator(ob.MotionValidatorFn(self._check_motion))
+        self.si.setMotionValidator(VAMPMotionValidator(self.si, self.robot, self.environment))
         
         self.si.setup()
         
@@ -205,8 +339,6 @@ class VampOMPLIntegration:
         self.pdef = ob.ProblemDefinition(self.si)
         
         # Set start and goal states
-        start_config, goal_config = self._get_start_goal_configurations()
-        
         start_state = ob.State(space)
         goal_state = ob.State(space)
         
@@ -219,33 +351,6 @@ class VampOMPLIntegration:
         # Set optimization objective
         obj = ob.PathLengthOptimizationObjective(self.si)
         self.pdef.setOptimizationObjective(obj)
-    
-    def _is_state_valid(self, state):
-        """Check if a state is valid using VAMP."""
-        # Convert OMPL state to VAMP configuration
-        config = self._ompl_state_to_vamp_config(state)
-        
-        # Use VAMP to validate the configuration
-        return self.robot.validate(config, self.environment)
-    
-    def _check_motion(self, s1, s2):
-        """Check if motion between two states is valid using VAMP."""
-        # Convert OMPL states to VAMP configurations
-        config1 = self._ompl_state_to_vamp_config(s1)
-        config2 = self._ompl_state_to_vamp_config(s2)
-        
-        # Use VAMP to validate the motion
-        return self.robot.validate_motion(config1, config2, self.environment)
-    
-    def _ompl_state_to_vamp_config(self, state):
-        """Convert OMPL state to VAMP configuration."""
-        dimension = self.robot.dimension
-        config_values = []
-        
-        for i in range(dimension):
-            config_values.append(state[i])
-        
-        return np.array(config_values, dtype=np.float32)
     
     def _create_planner(self):
         """Create OMPL planner based on type."""
@@ -285,12 +390,14 @@ class VampOMPLIntegration:
         print(f"\nPlanning completed in {planning_duration:.2f}ms")
         
         # Check solution
-        if solved == ob.PlannerStatus.EXACT_SOLUTION:
+        print(f"DEBUG: Solution status: {solved}")
+        if str(solved) == "Exact solution":
             print("✓ Found solution! Simplifying path...")
             
             # Get solution path
             path = self.pdef.getSolutionPath()
-            path_geometric = og.PathGeometric.cast(path)
+            # In Python, the path should already be PathGeometric
+            path_geometric = path
             
             # Get initial cost
             obj = self.pdef.getOptimizationObjective()
@@ -311,6 +418,9 @@ class VampOMPLIntegration:
             else:
                 print("✗ Path simplification failed")
             
+            return True
+        elif str(solved) == "Approximate solution":
+            print("✓ Found approximate solution!")
             return True
         else:
             print("✗ No solution found")
@@ -352,6 +462,8 @@ def run_vamp_demo():
             
         except Exception as e:
             print(f"✗ Error: {e}")
+            import traceback
+            traceback.print_exc()
             total_count += 1
     
     print(f"\n{'=' * 60}")
@@ -370,4 +482,6 @@ if __name__ == "__main__":
         run_vamp_demo()
     except Exception as e:
         print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1) 
