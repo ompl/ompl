@@ -100,14 +100,36 @@ if (OMPL_BUILD_DEMOS)
         add_ompl_demo(demo_LTLWithTriangulation LTLWithTriangulation.cpp)
     endif()
 
-    add_ompl_demo(demo_VampDemo vampdemo/VampDemo.cpp)
-    # target_link_libraries(demo_VampDemo PRIVATE _core_ext)  # Removed to avoid CMake error
-    target_include_directories(demo_VampDemo PRIVATE
-        ${CMAKE_SOURCE_DIR}/external/vamp/src/impl
-        ${CMAKE_BINARY_DIR}/_deps/pdqsort-src
-        ${CMAKE_SOURCE_DIR}/external/vamp/include
-    )
-    target_compile_options(demo_VampDemo PRIVATE -mavx -mavx2 -mfma)
+    # Add VAMP demo only if VAMP is available and properly configured
+    if (OMPL_HAVE_VAMP)
+        # Build VAMP demo directly using VAMP headers and OMPL
+        add_ompl_demo(demo_VampDemo vampdemo/VampDemo.cpp)
+        
+        # Add VAMP include directories
+        target_include_directories(demo_VampDemo PRIVATE
+            ${CMAKE_SOURCE_DIR}/external/vamp/src/impl
+        )
+        
+        # Add VAMP dependencies as include directories
+        # These paths will be created when VAMP builds its dependencies
+        target_include_directories(demo_VampDemo PRIVATE
+            ${CMAKE_BINARY_DIR}/_deps/pdqsort-src
+            ${CMAKE_BINARY_DIR}/_deps/nigh-src/src
+            ${CMAKE_BINARY_DIR}/_deps/simdxorshift-src/include
+        )
+        
+        # Make the VAMP demo depend on VAMP being built first (so dependencies are downloaded)
+        # The _core_ext target triggers the dependency download
+        if(TARGET _core_ext)
+            add_dependencies(demo_VampDemo _core_ext)
+            message(STATUS "VAMP demo depends on _core_ext target")
+        else()
+            message(WARNING "VAMP _core_ext target not found - dependencies may not be downloaded")
+        endif()
+        
+        message(STATUS "VAMP demo will be built using VAMP headers and OMPL")
+    endif()
+    
 endif(OMPL_BUILD_DEMOS)
 
 file(GLOB OMPL_DEMO_PY_FILES "*.py")

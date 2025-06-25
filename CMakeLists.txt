@@ -138,113 +138,30 @@ find_program(R_EXEC R)
 add_subdirectory(src)
 add_subdirectory(py-bindings)
 add_subdirectory(tests)
+
+# VAMP build options
+option(VAMP_PORTABLE_BUILD "Build VAMP with portable SIMD settings for distribution (package maintainers)" OFF)
+if(VAMP_PORTABLE_BUILD)
+    message(STATUS "VAMP: Using portable build mode for distribution")
+else()
+    message(STATUS "VAMP: Using native build mode for best performance")
+endif()
+
+# VAMP submodule integration
+option(OMPL_BUILD_VAMP "Build VAMP submodule" OFF)
+if(OMPL_BUILD_VAMP)
+    include(CMakeModules/VampConfig.cmake)
+    configure_vamp()
+    set(OMPL_HAVE_VAMP TRUE)
+    message(STATUS "VAMP integration enabled via OMPL_BUILD_VAMP=ON")
+else()
+    set(OMPL_HAVE_VAMP FALSE)
+    message(STATUS "VAMP integration disabled. Use -DOMPL_BUILD_VAMP=ON to enable.")
+endif()
+
 add_subdirectory(demos)
 add_subdirectory(scripts)
 add_subdirectory(doc)
-
-
-# VAMP submodule integration
-option(OMPL_BUILD_VAMP "Build VAMP submodule" ON)
-if(OMPL_BUILD_VAMP)
-    # Check if vamp submodule is initialized
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/vamp/CMakeLists.txt")
-        message(STATUS "Building VAMP submodule...")
-        
-        # Set up Python environment for VAMP BEFORE including VAMP
-        # This ensures nanobind gets the correct Python configuration
-        if(PYTHON_FOUND)
-            message(STATUS "Setting up Python environment for VAMP/nanobind...")
-            
-            # Create the Python::Module target that nanobind expects
-            if(NOT TARGET Python::Module)
-                add_library(Python::Module INTERFACE IMPORTED)
-                if(PYTHON_INCLUDE_DIRS)
-                    set_target_properties(Python::Module PROPERTIES
-                        INTERFACE_INCLUDE_DIRECTORIES "${PYTHON_INCLUDE_DIRS}")
-                endif()
-                if(PYTHON_LIBRARIES)
-                    set_target_properties(Python::Module PROPERTIES
-                        INTERFACE_LINK_LIBRARIES "${PYTHON_LIBRARIES}")
-                endif()
-            endif()
-            
-            # Create Python::Interpreter target as well
-            if(NOT TARGET Python::Interpreter)
-                add_library(Python::Interpreter INTERFACE IMPORTED)
-                if(PYTHON_INCLUDE_DIRS)
-                    set_target_properties(Python::Interpreter PROPERTIES
-                        INTERFACE_INCLUDE_DIRECTORIES "${PYTHON_INCLUDE_DIRS}")
-                endif()
-            endif()
-            
-            # Set up modern CMake Python variables
-            set(Python_Interpreter_FOUND TRUE)
-            set(Python_Development_FOUND TRUE)
-            if(PYTHON_EXEC)
-                set(Python_EXECUTABLE ${PYTHON_EXEC})
-            endif()
-            if(PYTHON_INCLUDE_DIRS)
-                set(Python_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS})
-            endif()
-            if(PYTHON_LIBRARIES)
-                set(Python_LIBRARIES ${PYTHON_LIBRARIES})
-            endif()
-            if(PYTHON_VERSION)
-                set(Python_VERSION ${PYTHON_VERSION})
-            endif()
-            if(PYTHON_VERSION_MAJOR)
-                set(Python_VERSION_MAJOR ${PYTHON_VERSION_MAJOR})
-            endif()
-            if(PYTHON_VERSION_MINOR)
-                set(Python_VERSION_MINOR ${PYTHON_VERSION_MINOR})
-            endif()
-            
-            message(STATUS "Python environment setup complete for VAMP/nanobind")
-            
-            # Set VAMP compiler flags before including VAMP
-            if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-                # Store current flags
-                set(OLD_CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
-                set(OLD_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-                
-                # Set VAMP-specific flags
-                set(VAMP_ARCH "-march=native -mavx2")
-                set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${VAMP_ARCH}")
-                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${VAMP_ARCH}")
-                
-                message(STATUS "Setting VAMP AVX2 compiler flags: ${VAMP_ARCH}")
-            endif()
-            
-            # Set vamp-specific options
-            set(VAMP_BUILD_CPP_DEMO OFF CACHE BOOL "Build VAMP C++ Demo Scripts" FORCE)
-            set(VAMP_BUILD_OMPL_DEMO ON CACHE BOOL "Build VAMP C++ OMPL Integration Demo Scripts" FORCE)
-            set(VAMP_OMPL_PATH "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING "OMPL path for VAMP integration" FORCE)
-            
-            # Add vamp as subdirectory
-            add_subdirectory(external/vamp)
-            
-            # Restore original flags after VAMP is configured
-            if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-                set(CMAKE_C_FLAGS ${OLD_CMAKE_C_FLAGS})
-                set(CMAKE_CXX_FLAGS ${OLD_CMAKE_CXX_FLAGS})
-            endif()
-            
-            # Make vamp targets available to OMPL
-            set(OMPL_HAVE_VAMP TRUE)
-            message(STATUS "VAMP integration enabled")
-        else()
-            message(WARNING "Python not found. VAMP requires Python 3.8+ with development headers.")
-            set(OMPL_BUILD_VAMP FALSE)
-        endif()
-    else()
-        message(WARNING "VAMP submodule not found. Run 'git submodule update --init --recursive' to initialize it.")
-        set(OMPL_HAVE_VAMP FALSE)
-    endif()
-else()
-    set(OMPL_HAVE_VAMP FALSE)
-    message(STATUS "VAMP build disabled")
-endif()
-
 
 if(NOT MSVC)
     target_link_flags(ompl)
