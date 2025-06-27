@@ -1,7 +1,7 @@
 import time
 
 import sys
-sys.path.insert(0, "/home/wg/Documents/ompl_test_env/ompl/build/bindings/")
+# sys.path.insert(0, "/home/wg/Documents/ompl_test_env/ompl/build/bindings/")
 
 from ompl import base as ob
 from ompl import geometric as og

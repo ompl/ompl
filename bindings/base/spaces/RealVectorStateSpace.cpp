@@ -27,6 +27,7 @@ void ompl::binding::base::initSpaces_RealVectorStateSpace(nb::module_ &m)
     // Bind RealVectorStateSpace
     nb::class_<ompl::base::RealVectorStateSpace, ompl::base::StateSpace>(m, "RealVectorStateSpace")
         .def(nb::init<unsigned int>())
+        .def(nb::init<>())
         .def("getDimension", &ompl::base::RealVectorStateSpace::getDimension)
         .def("addDimension", nb::overload_cast<double, double>(&ompl::base::RealVectorStateSpace::addDimension))
         .def("addDimension",
