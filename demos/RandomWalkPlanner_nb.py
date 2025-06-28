@@ -34,7 +34,7 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 ######################################################################
 
-# Author: Mark Moll
+# Author: Mark Moll, Weihang Guo
 
 try:
     from ompl import base as ob
