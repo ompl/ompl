@@ -106,6 +106,7 @@ ompl::base::ConstrainedStateSpace::ConstrainedStateSpace(const StateSpacePtr &sp
   , k_(constraint_->getManifoldDimension())
 {
     setDelta(magic::CONSTRAINED_STATE_SPACE_DELTA);
+    type_ = StateSpaceType::STATE_SPACE_CONSTRAINED;
 }
 
 void ompl::base::ConstrainedStateSpace::constrainedSanityChecks(unsigned int flags) const

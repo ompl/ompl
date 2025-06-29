@@ -4,6 +4,7 @@
 #include <nanobind/stl/vector.h>
 
 #include "ompl/base/spaces/constraint/AtlasStateSpace.h"
+#include "ompl/base/spaces/constraint/AtlasChart.h"
 #include "../../init.hh"
 
 namespace nb = nanobind;
@@ -11,6 +12,13 @@ namespace ob = ompl::base;
 
 void ompl::binding::base::initSpacesConstraint_AtlasStateSpace(nb::module_ &m)
 {
+    m.attr("ATLAS_STATE_SPACE_SAMPLES") = nb::cast(ompl::magic::ATLAS_STATE_SPACE_SAMPLES);
+    m.attr("ATLAS_STATE_SPACE_EPSILON") = nb::cast(0.05);
+    m.attr("ATLAS_STATE_SPACE_RHO_MULTIPLIER") = nb::cast(5);
+    m.attr("ATLAS_STATE_SPACE_ALPHA") = nb::cast(boost::math::constants::pi<double>() / 8.0);
+    m.attr("ATLAS_STATE_SPACE_EXPLORATION") = nb::cast(0.75);
+    m.attr("ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION") = nb::cast(200);
+    m.attr("ATLAS_STATE_SPACE_BACKOFF") = nb::cast(0.75);
 
     // TODO [ob::AtlasStateSampler][TEST]
     nb::class_<ob::AtlasStateSampler, ob::StateSampler>(m, "AtlasStateSampler")
@@ -61,5 +69,7 @@ void ompl::binding::base::initSpacesConstraint_AtlasStateSpace(nb::module_ &m)
                 bool ok = space.discreteGeodesic(from, to, interpolate, &geod);
                 return std::make_pair(ok, geod);
             },
-            nb::arg("from"), nb::arg("to"), nb::arg("interpolate") = false);
-}
+            nb::arg("from"), nb::arg("to"), nb::arg("interpolate") = false)
+        .def("anchorChart", &ob::AtlasStateSpace::anchorChart, nb::arg("state"), nb::rv_policy::reference_internal)
+        .def("estimateFrontierPercent", &ob::AtlasStateSpace::estimateFrontierPercent);
+    }

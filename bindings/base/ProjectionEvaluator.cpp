@@ -2,6 +2,7 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/trampoline.h>
 #include <nanobind/eigen/dense.h>
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/base/StateSpace.h"
@@ -12,6 +13,7 @@ namespace nb = nanobind;
 
 void ompl::binding::base::init_ProjectionEvaluator(nb::module_ &m)
 {
+
     // Bind ProjectionMatrix
     // TODO [ompl::base::ProjectionMatrix][TEST]
     nb::class_<ompl::base::ProjectionMatrix>(m, "ProjectionMatrix")
@@ -31,7 +33,26 @@ void ompl::binding::base::init_ProjectionEvaluator(nb::module_ &m)
 
     // Bind ProjectionEvaluator
     // TODO [ompl::base::ProjectionEvaluator][TEST]
-    nb::class_<ompl::base::ProjectionEvaluator>(m, "ProjectionEvaluator")
+    struct PyProjectionEvaluator : ompl::base::ProjectionEvaluator
+    {
+        NB_TRAMPOLINE(ompl::base::ProjectionEvaluator, 3);
+        unsigned int getDimension() const override
+        {
+            NB_OVERRIDE_PURE(getDimension);
+        }
+        // virtual void 	project (const State *state, Eigen::Ref< Eigen::VectorXd > projection) const =0
+        void project(const ompl::base::State *state, Eigen::Ref<Eigen::VectorXd> projection) const override
+        {
+            NB_OVERRIDE_PURE(project, state, projection);
+        }
+        // virtual void 	setCellSizes (const std::vector< double > &cellSizes)
+        void setCellSizes(const std::vector<double> &cellSizes) override
+        {
+            NB_OVERRIDE(setCellSizes, cellSizes);
+        }
+    };
+    nb::class_<ompl::base::ProjectionEvaluator, PyProjectionEvaluator /* <-- trampoline */>(m, "ProjectionEvaluator")
+        .def(nb::init<const ompl::base::StateSpacePtr &>(), nb::arg("space"))
         .def("setCellSizes", nb::overload_cast<unsigned int, double>(&ompl::base::ProjectionEvaluator::setCellSizes), nb::arg("dim"), nb::arg("cellSize"))
         .def("mulCellSizes", &ompl::base::ProjectionEvaluator::mulCellSizes, "Multiply the cell sizes by a factor", nb::arg("factor"))
         .def("userConfigured", &ompl::base::ProjectionEvaluator::userConfigured)

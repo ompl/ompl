@@ -99,6 +99,9 @@ namespace ompl
             /** \brief ompl::base::SpaceTimeStateSpace */
             STATE_SPACE_SPACE_TIME = 17, 
             
+            /** \brief ompl::base::ConstrainedStateSpace */
+            STATE_SPACE_CONSTRAINED = 18,
+
             /** \brief Number of state space types; To add new types,
                 use values that are larger than the count*/
             STATE_SPACE_TYPE_COUNT

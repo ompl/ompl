@@ -1,5 +1,6 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/eigen/dense.h>
 #include "ompl/base/spaces/WrapperStateSpace.h"
 #include "ompl/base/StateSampler.h"
 #include "ompl/base/ProjectionEvaluator.h"
