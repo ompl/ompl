@@ -79,8 +79,8 @@ namespace ompl::base
 
             friend std::ostream &operator<<(std::ostream &os, const PathType &path);
 
-            DubinsStateSpace::DubinsPath pathXY_;
-            DubinsStateSpace::DubinsPath pathSZ_;
+            DubinsStateSpace::PathType pathXY_;
+            DubinsStateSpace::PathType pathSZ_;
             DubinsStateSpace::StateType *startSZ_{nullptr};
             double horizontalRadius_{1.};
             double verticalRadius_{1.};
@@ -236,7 +236,7 @@ namespace ompl::base
          * \brief Whether a path in SZ space satisfies Dubins path type and pitch constraints
          * \return true iff path is of type LRL or RLR and the pitch in state lies in-between min and max pitch
          */
-        bool isValid(DubinsStateSpace::DubinsPath const &path, StateType const *state) const;
+        bool isValid(DubinsStateSpace::PathType const &path, StateType const *state) const;
 
         /** Turning radius */
         double rho_;
