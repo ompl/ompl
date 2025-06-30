@@ -429,8 +429,9 @@ namespace ompl
                            std::function<bool(Motion *motion)> obstacleSet, base::State *newState, double *collisionTime) -> bool
             {
                 if (obstacleSet(motion)) {
-                    si_->copyState(motion->parent->state, newState);
-                    ompl::base::HybridStateSpace::setStateTime(motion->state, *collisionTime);
+                    si_->copyState(newState, motion->solutionPair->back());
+                    *collisionTime = ompl::base::HybridStateSpace::getStateTime(motion->solutionPair->back()) - flowStepDuration_;
+                    motion->solutionPair->resize(motion->solutionPair->size() - 1);
                     return true;
                 }
                 return false;

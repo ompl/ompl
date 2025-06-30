@@ -307,21 +307,21 @@ namespace ompl
              * @param collisionTime The time of collision (if a collision occurs). If no collision occurs, this value is -1.0
              * @return true if a collision occurs, false otherwise
              */
-            std::function<bool(Motion *motion, std::function<bool(Motion *motion)> obstacleSet, base::State *newState, double *collisionTime)> collisionChecker_ =
-                [this](Motion *motion,
-                        std::function<bool(Motion *motion)> obstacleSet, base::State *newState, double *collisionTime) -> bool
+            std::function<bool(Motion *motion,
+                               std::function<bool(Motion *motion)> obstacleSet,
+                               base::State *newState, double *collisionTime)>
+                collisionChecker_ =
+                    [this](Motion *motion,
+                           std::function<bool(Motion *motion)> obstacleSet, base::State *newState, double *collisionTime) -> bool
             {
                 if (obstacleSet(motion)) {
-                    if(motion->solutionPair->size() == 1) 
-                        si_->copyState(motion->parent->state, newState);
-                    else
-                        si_->copyState(motion->solutionPair->back(), newState);
-
-                    collisionTime = new double(ompl::base::HybridStateSpace::getStateTime(newState));
-                    ompl::base::HybridStateSpace::setStateTime(motion->state, *collisionTime);
+                    si_->copyState(newState, motion->solutionPair->back());
+                    *collisionTime = ompl::base::HybridStateSpace::getStateTime(motion->solutionPair->back()) - flowStepDuration_;
+                    motion->solutionPair->resize(motion->solutionPair->size() - 1);
                     return true;
                 }
                 return false;
+            };e;
             };
 
             /// \brief Control Sampler

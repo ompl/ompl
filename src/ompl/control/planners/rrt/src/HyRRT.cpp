@@ -93,8 +93,6 @@ base::PlannerStatus ompl::control::HyRRT::solve(const base::PlannerTerminationCo
     checkMandatoryParametersSet();
     initTree();
 
-    base::State *preJump = si_->allocState();
-
     // Main Planning Loop
     // Periodically check if the termination condition is met
     // If it is, terminate planning
@@ -119,7 +117,7 @@ base::PlannerStatus ompl::control::HyRRT::solve(const base::PlannerTerminationCo
         auto *parentMotion = nn_->nearest(randomMotion);
         base::State *previousState = si_->allocState();
         si_->copyState(previousState, parentMotion->state);
-        auto *collisionParentMotion = nn_->nearest(randomMotion);
+        auto *collisionParentMotion = parentMotion;
 
         // Choose whether to begin growing the tree in the flow or jump regime
         bool in_jump = jumpSet_(parentMotion);
@@ -197,10 +195,11 @@ base::PlannerStatus ompl::control::HyRRT::solve(const base::PlannerTerminationCo
                     {
                         collisionParentMotion = motion;
                         priority = true;  // If collision has occurred, continue to jump regime
-                        si_->copyState(preJump, intermediateState);
                     }
                     else
+                    {
                         nn_->add(motion);
+                    }
                     break;
                 }
             }
@@ -215,6 +214,7 @@ base::PlannerStatus ompl::control::HyRRT::solve(const base::PlannerTerminationCo
             // Create motion to add to tree
             auto *motion = new Motion(siC_);
             si_->copyState(motion->state, newState);
+
             motion->parent = collisionParentMotion;
             motion->control = compoundControl;
             ompl::base::HybridStateSpace::setStateTime(motion->state,
@@ -236,7 +236,9 @@ base::PlannerStatus ompl::control::HyRRT::solve(const base::PlannerTerminationCo
             bool inGoalSet = pdef_->getGoal()->isSatisfied(previousState, &dist_);
 
             if (inGoalSet)
+            {
                 solution = motion;
+            }
         }
 
         // If state is within goal set, construct path

@@ -370,6 +370,14 @@ ompl::base::PlannerStatus ompl::control::HySST::solve(const base::PlannerTermina
         base::Cost incCost = costFunc_(dMotion[0]);    // Compute incremental cost
         base::Cost cost = base::Cost(nmotion->accCost_.value() + incCost.value()); // Combine total cost
 
+        auto *collisionParentMotion = new Motion(siC_);
+        if (dMotion.size() > 1) // If collision occured during extension
+        {
+            collisionParentMotion = dMotion[1];
+            collisionParentMotion->accCost_ = base::Cost(nmotion->accCost_.value() + costFunc_(dMotion[1]).value());
+            cost = base::Cost(cost.value() + costFunc_(dMotion[1]).value());
+        }
+
         Witness *closestWitness = findClosestWitness(rmotion);            // Find closest witness
 
         if (closestWitness->rep_ == rmotion || cost.value() < closestWitness->rep_->accCost_.value()) // If the newly propagated state is a child of the new representative of the witness (previously had no rep) or it dominates the old representative's cost
@@ -377,14 +385,9 @@ ompl::base::PlannerStatus ompl::control::HySST::solve(const base::PlannerTermina
             Motion *oldRep = closestWitness->rep_; // Set a copy of the old representative
             /* create a motion copy  of the newly propagated state */
             auto *motion = new Motion(siC_);
-            auto *collisionParentMotion = new Motion(siC_);
 
             if (dMotion.size() > 1) // If collision occured during extension
             {
-                collisionParentMotion = dMotion[1];
-                collisionParentMotion->accCost_ = base::Cost(nmotion->accCost_.value() + costFunc_(dMotion[1]).value());
-                cost = base::Cost(cost.value() + costFunc_(dMotion[1]).value());
-
                 nn_->add(collisionParentMotion);
             }
 
