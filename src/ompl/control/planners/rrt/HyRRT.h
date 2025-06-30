@@ -321,7 +321,6 @@ namespace ompl
                     return true;
                 }
                 return false;
-            };e;
             };
 
             /// \brief Control Sampler

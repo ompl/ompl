@@ -16,6 +16,9 @@ if (OMPL_BUILD_DEMOS)
             Boost::program_options)
     endmacro(add_ompl_demo)
 
+
+    add_ompl_demo(demo_SSTPinballPlanning SSTPinballPlanning.cpp)
+    add_ompl_demo(demo_PinballPlanning PinballPlanning.cpp)
     add_ompl_demo(demo_BouncingBallPlanning BouncingBallPlanning.cpp)    
     add_ompl_demo(demo_RigidBodyPlanning RigidBodyPlanning.cpp)
     add_ompl_demo(demo_RigidBodyPlanningWithIK RigidBodyPlanningWithIK.cpp)
