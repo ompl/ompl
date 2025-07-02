@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the Willow Garage nor the names of its
+ *   * Neither the name of the Queen's University nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -45,7 +45,7 @@
 #include <stdexcept>
 
 ompl::geometric::AOXRRTConnect::AOXRRTConnect(const base::SpaceInformationPtr &si, bool addIntermediateStates)
-  : base::Planner(si, addIntermediateStates ? "AOXRRTConnectIntermediate" : "AOXRRTConnect")
+  : ompl::geometric::RRTConnect(si, addIntermediateStates)
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.directed = true;
@@ -101,55 +101,10 @@ void ompl::geometric::AOXRRTConnect::setup()
     tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 }
 
-void ompl::geometric::AOXRRTConnect::freeMemoryPublic()
-{
-    freeMemory();
-}
-
-void ompl::geometric::AOXRRTConnect::freeMemory()
-{
-    std::vector<Motion *> motions;
-
-    if (tStart_)
-    {
-        tStart_->list(motions);
-        for (auto &motion : motions)
-        {
-            if (motion->state != nullptr)
-                si_->freeState(motion->state);
-            delete motion;
-        }
-    }
-
-    if (tGoal_)
-    {
-        tGoal_->list(motions);
-        for (auto &motion : motions)
-        {
-            if (motion->state != nullptr)
-                si_->freeState(motion->state);
-            delete motion;
-        }
-    }
-}
-
 void ompl::geometric::AOXRRTConnect::setPathCost(double pc)
 {
     bestCost_ = base::Cost(pc);
     opt_->setCostThreshold(bestCost_);
-}
-
-void ompl::geometric::AOXRRTConnect::clear()
-{
-    Planner::clear();
-    sampler_.reset();
-    freeMemory();
-    if (tStart_)
-        tStart_->clear();
-    if (tGoal_)
-        tGoal_->clear();
-    connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
-    distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
 }
 
 ompl::geometric::AOXRRTConnect::GrowState ompl::geometric::AOXRRTConnect::growTree(TreeData &tree, TreeGrowingInfo &tgi,
@@ -193,6 +148,8 @@ ompl::geometric::AOXRRTConnect::GrowState ompl::geometric::AOXRRTConnect::growTr
          * thinks it is making progress, when none is actually occurring. */
         if (si_->equalStates(nmotion->state, tgi.xstate))
         {
+            si_->freeState(root_motion->state);
+            delete root_motion;
             return TRAPPED;
         }
 
@@ -205,6 +162,8 @@ ompl::geometric::AOXRRTConnect::GrowState ompl::geometric::AOXRRTConnect::growTr
 
     if (!validMotion)
     {
+        si_->freeState(root_motion->state);
+        delete root_motion;
         return TRAPPED;
     }
 
@@ -291,6 +250,8 @@ ompl::geometric::AOXRRTConnect::GrowState ompl::geometric::AOXRRTConnect::growTr
         tgi.xmotion = motion;
     }
 
+    si_->freeState(root_motion->state);
+    delete root_motion;
     return reach ? REACHED : ADVANCED;
 }
 
@@ -457,6 +418,7 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
 
             Motion *nmotion;
             auto rootDist = otherTree->getDistanceFunction()(addedMotion, root_motion);
+            delete root_motion;
 
             otherTree->nearestR(addedMotion, rootDist, nearest_vec);
             int idx = 0;
@@ -571,44 +533,4 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
     }
 
     return solved ? base::PlannerStatus::EXACT_SOLUTION : base::PlannerStatus::TIMEOUT;
-}
-
-void ompl::geometric::AOXRRTConnect::getPlannerData(base::PlannerData &data) const
-{
-    Planner::getPlannerData(data);
-
-    std::vector<Motion *> motions;
-    if (tStart_)
-        tStart_->list(motions);
-
-    for (auto &motion : motions)
-    {
-        if (motion->parent == nullptr)
-            data.addStartVertex(base::PlannerDataVertex(motion->state, 1));
-        else
-        {
-            data.addEdge(base::PlannerDataVertex(motion->parent->state, 1), base::PlannerDataVertex(motion->state, 1));
-        }
-    }
-
-    motions.clear();
-    if (tGoal_)
-        tGoal_->list(motions);
-
-    for (auto &motion : motions)
-    {
-        if (motion->parent == nullptr)
-            data.addGoalVertex(base::PlannerDataVertex(motion->state, 2));
-        else
-        {
-            // The edges in the goal tree are reversed to be consistent with start tree
-            data.addEdge(base::PlannerDataVertex(motion->state, 2), base::PlannerDataVertex(motion->parent->state, 2));
-        }
-    }
-
-    // Add the edge connecting the two trees
-    data.addEdge(data.vertexIndex(connectionPoint_.first), data.vertexIndex(connectionPoint_.second));
-
-    // Add some info.
-    data.properties["approx goal distance REAL"] = ompl::toString(distanceBetweenTrees_);
 }

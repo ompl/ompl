@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the Willow Garage nor the names of its
+ *   * Neither the name of the Queen's University nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -40,6 +40,7 @@
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/geometric/planners/PlannerIncludes.h"
+#include <ompl/geometric/planners/rrt/RRTConnect.h>
 
 #include "ompl/base/Path.h"
 
@@ -75,7 +76,7 @@ namespace ompl
         */
 
         /** \brief Modified RRT-Connect for AORRTC (AOXRRTConnect) */
-        class AOXRRTConnect : public base::Planner
+        class AOXRRTConnect : public ompl::geometric::RRTConnect
         {
         public:
             /** \brief Constructor */
@@ -83,41 +84,7 @@ namespace ompl
 
             ~AOXRRTConnect() override;
 
-            void getPlannerData(base::PlannerData &data) const override;
-
             base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
-
-            void clear() override;
-
-            /** \brief Return true if the intermediate states generated along motions are to be added to the tree itself
-             */
-            bool getIntermediateStates() const
-            {
-                return addIntermediateStates_;
-            }
-
-            /** \brief Specify whether the intermediate states generated along motions are to be added to the tree
-             * itself */
-            void setIntermediateStates(bool addIntermediateStates)
-            {
-                addIntermediateStates_ = addIntermediateStates;
-            }
-
-            /** \brief Set the range the planner is supposed to use.
-
-                This parameter greatly influences the runtime of the
-                algorithm. It represents the maximum length of a
-                motion to be added in the tree of motions. */
-            void setRange(double distance)
-            {
-                maxDistance_ = distance;
-            }
-
-            /** \brief Get the range the planner is using */
-            double getRange() const
-            {
-                return maxDistance_;
-            }
 
             void setFoundPath(const base::PathPtr &p)
             {
@@ -144,8 +111,6 @@ namespace ompl
             void setup() override;
 
             void setPathCost(double pc);
-
-            void freeMemoryPublic();
 
         protected:
             /** \brief Representation of a motion */
@@ -178,20 +143,6 @@ namespace ompl
                 bool start;
             };
 
-            /** \brief The state of the tree after an attempt to extend it */
-            enum GrowState
-            {
-                /// no progress has been made
-                TRAPPED,
-                /// progress has been made towards the randomly sampled state
-                ADVANCED,
-                /// the randomly sampled state was reached
-                REACHED
-            };
-
-            /** \brief Free the memory allocated by this planner */
-            void freeMemory();
-
             /** \brief Compute distance between motions (actually distance between contained states) */
             double distanceFunction(const Motion *a, const Motion *b) const
             {
@@ -217,24 +168,6 @@ namespace ompl
 
             base::State *startState{nullptr};
             base::State *goalState{nullptr};
-
-            /** \brief A flag that toggles between expanding the start tree (true) or goal tree (false). */
-            bool startTree_{true};
-
-            /** \brief The maximum length of a motion to be added to a tree */
-            double maxDistance_{0.};
-
-            /** \brief Flag indicating whether intermediate states are added to the built tree of motions */
-            bool addIntermediateStates_;
-
-            /** \brief The random number generator */
-            RNG rng_;
-
-            /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
-            std::pair<base::State *, base::State *> connectionPoint_;
-
-            /** \brief Distance between the nearest pair of start tree and goal tree nodes. */
-            double distanceBetweenTrees_;
 
             /** \brief Best cost found so far by algorithm */
             base::Cost bestCost_{std::numeric_limits<double>::quiet_NaN()};
