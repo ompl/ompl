@@ -10,8 +10,8 @@ if [ "${build_os}" == "Linux" ]; then
     yum -y install \
         sudo \
         eigen3-devel \
-        llvm-devel \
-        clang-devel
+        llvm-devel-18.* \
+        clang-devel-18.*
 
     if [ "${arch}" == "aarch64" ]; then
         echo "Detected AlmaLinux 8 AArch64. Applying architecture-specific fixes..."
