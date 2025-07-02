@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the Willow Garage nor the names of its
+ *   * Neither the name of the Queen's University nor the names of its
  *     contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -58,9 +58,6 @@ void ompl::geometric::AORRTC::clear()
     setup_ = false;
     Planner::clear();
     freeMemory();
-
-    init_planner->clear();
-    aox_planner->clear();
 }
 
 ompl::base::Cost ompl::geometric::AORRTC::bestCost() const
@@ -107,7 +104,8 @@ void ompl::geometric::AORRTC::setProblemDefinition(const base::ProblemDefinition
 
 void ompl::geometric::AORRTC::freeMemory()
 {
-    aox_planner->freeMemoryPublic();
+    init_planner->clear();
+    aox_planner->clear();
 }
 
 void ompl::geometric::AORRTC::simplifySolution(const base::PathPtr &p, const base::PlannerTerminationCondition &ptc)
