@@ -102,32 +102,18 @@ if (OMPL_BUILD_DEMOS)
 
     # Add VAMP demo only if VAMP is available and properly configured
     if (OMPL_HAVE_VAMP)
-        # Build VAMP demo directly using VAMP headers and OMPL
+        # Build VAMP demo directly using VAMP C++ library and OMPL
         add_ompl_demo(demo_VampDemo vampdemo/VampDemo.cpp)
         
-        # Add VAMP include directories
-        target_include_directories(demo_VampDemo PRIVATE
-            ${CMAKE_SOURCE_DIR}/external/vamp/src/impl
-        )
-        
-        # Add VAMP dependencies as include directories
-        # These paths will be created when VAMP builds its dependencies
-        target_include_directories(demo_VampDemo PRIVATE
-            ${CMAKE_BINARY_DIR}/_deps/pdqsort-src
-            ${CMAKE_BINARY_DIR}/_deps/nigh-src/src
-            ${CMAKE_BINARY_DIR}/_deps/simdxorshift-src/include
-        )
-        
-        # Make the VAMP demo depend on VAMP being built first (so dependencies are downloaded)
-        # The _core_ext target triggers the dependency download
-        if(TARGET _core_ext)
-            add_dependencies(demo_VampDemo _core_ext)
-            message(STATUS "VAMP demo depends on _core_ext target")
+        # Link against VAMP C++ library
+        if(TARGET vamp_cpp)
+            target_link_libraries(demo_VampDemo PRIVATE vamp_cpp)
+            message(STATUS "VAMP demo linked against vamp_cpp library")
         else()
-            message(WARNING "VAMP _core_ext target not found - dependencies may not be downloaded")
+            message(WARNING "VAMP vamp_cpp target not found - demo may not build correctly")
         endif()
         
-        message(STATUS "VAMP demo will be built using VAMP headers and OMPL")
+        message(STATUS "VAMP demo will be built using VAMP C++ library and OMPL")
     endif()
     
 endif(OMPL_BUILD_DEMOS)

@@ -5,6 +5,8 @@
 #include <chrono>
 #include <memory>
 #include <string>
+#include <typeinfo>
+#include <cxxabi.h>
 
 #include <vamp/collision/factory.hh>
 #include <vamp/planning/validate.hh>
@@ -183,14 +185,14 @@ private:
         std::vector<std::array<float, 3>> box_positions;
         
         if (robot_type_ == RobotType::PANDA) {
-            // Table scene for Panda
+            // Table scene for Panda - table at waist height to avoid base collision
             box_positions = {
-                // Table surface
-                {0.0, 0.0, 0.0}, {0.0, 0.0, 0.02},
-                // Obstacles on table
-                {0.3, 0.2, 0.1}, {0.3, 0.2, 0.2},
-                {-0.2, 0.3, 0.1}, {-0.2, 0.3, 0.2},
-                {0.1, -0.25, 0.1}, {0.1, -0.25, 0.2}
+                // Table surface (1m x 1m table at Z=0.8m height)
+                {-0.5, -0.5, 0.8}, {0.5, 0.5, 0.82},
+                // Obstacles on table surface
+                {0.2, 0.1, 0.82}, {0.3, 0.2, 0.92},
+                {-0.2, 0.2, 0.82}, {-0.1, 0.3, 0.92},
+                {0.0, -0.2, 0.82}, {0.1, -0.1, 0.92}
             };
         } else if (robot_type_ == RobotType::UR5) {
             // Table scene for UR5
@@ -251,31 +253,50 @@ private:
     void setupStateSpace()
     {
         auto space = std::make_shared<ob::RealVectorStateSpace>(dimension);
-
-        // Get bounds from VAMP Robot information
-        static constexpr std::array<float, dimension> zeros = {};
-        static constexpr std::array<float, dimension> ones = {};
-        
-        // Initialize arrays with proper values
-        std::array<float, dimension> zeros_array, ones_array;
-        zeros_array.fill(0.0f);
-        ones_array.fill(1.0f);
-
-        auto zero_v = Configuration(zeros_array);
-        auto one_v = Configuration(ones_array);
-
-        Robot::scale_configuration(zero_v);
-        Robot::scale_configuration(one_v);
-
         ob::RealVectorBounds bounds(dimension);
-        for (auto i = 0U; i < dimension; ++i)
-        {
-            bounds.setLow(i, zero_v[{i, 0}]);
-            bounds.setHigh(i, one_v[{i, 0}]);
+        
+        // Use hardcoded bounds based on robot type to avoid Configuration issues
+        if (robot_type_ == RobotType::PANDA) {
+            // Panda joint limits from URDF
+            std::vector<std::pair<double, double>> panda_limits = {
+                {-2.9671, 2.9671},   // joint1
+                {-1.8326, 1.8326},   // joint2  
+                {-2.9671, 2.9671},   // joint3
+                {-3.1416, 0.0873},   // joint4
+                {-2.9671, 2.9671},   // joint5
+                {-0.0873, 3.8223},   // joint6
+                {-2.9671, 2.9671}    // joint7
+            };
+            for (auto i = 0U; i < dimension; ++i) {
+                bounds.setLow(i, panda_limits[i].first);
+                bounds.setHigh(i, panda_limits[i].second);
+            }
+        } else if (robot_type_ == RobotType::UR5) {
+            // UR5 joint limits
+            for (auto i = 0U; i < dimension; ++i) {
+                bounds.setLow(i, -3.14159265);
+                bounds.setHigh(i, 3.14159265);
+            }
+        } else { // FETCH
+            // Fetch joint limits - mixed joint types
+            std::vector<std::pair<double, double>> fetch_limits = {
+                {0.0, 0.38615},        // torso_lift_joint (prismatic)
+                {-1.6056, 1.6056},     // shoulder_pan_joint
+                {-1.221, 1.518},       // shoulder_lift_joint
+                {-3.14159, 3.14159},   // upperarm_roll_joint
+                {-2.251, 2.251},       // elbow_flex_joint
+                {-3.14159, 3.14159},   // forearm_roll_joint
+                {-2.16, 2.16},         // wrist_flex_joint
+                {-3.14159, 3.14159}    // wrist_roll_joint
+            };
+            for (auto i = 0U; i < dimension; ++i) {
+                bounds.setLow(i, fetch_limits[i].first);
+                bounds.setHigh(i, fetch_limits[i].second);
+            }
         }
+        
 
         space->setBounds(bounds);
-
         // Create space information
         si_ = std::make_shared<ob::SpaceInformation>(space);
         si_->setStateValidityChecker(std::make_shared<VAMPStateValidator>(si_, env_v_));
@@ -286,30 +307,46 @@ private:
     // Get robot-specific start and goal configurations
     std::pair<std::array<float, dimension>, std::array<float, dimension>> getStartGoalConfigurations()
     {
-        // Helper to fill a std::array<float, dimension> from a C array or initializer list
-        auto fill = [](const std::initializer_list<float>& vals) {
-            std::array<float, dimension> arr{};
-            auto it = vals.begin();
-            for (size_t i = 0; i < dimension && it != vals.end(); ++i, ++it) {
-                arr[i] = *it;
-            }
-            return arr;
-        };
         if (robot_type_ == RobotType::PANDA) {
-            return {
-                fill({0., -0.785, 0., -2.356, 0., 1.571, 0.785}),
-                fill({2.35, 1., 0., -0.8, 0, 2.5, 0.785})
-            };
+            if (env_type_ == EnvironmentType::TABLE_SCENE) {
+                // Use two validated SRDF poses for table scene
+                static constexpr std::array<float, 7> start = {0., -0.785, 0., -2.356, 0., 1.571, 0.785}; // "ready" pose
+                static constexpr std::array<float, 7> goal = {0., -0.5599, 0., -2.97, 0., 0., 0.785}; // "transport" pose
+                
+                std::array<float, dimension> start_padded{}, goal_padded{};
+                std::copy(start.begin(), start.end(), start_padded.begin());
+                std::copy(goal.begin(), goal.end(), goal_padded.begin());
+                
+                return {start_padded, goal_padded};
+            } else {
+                // Original start/goal for sphere cage and other environments
+                static constexpr std::array<float, 7> start = {0., -0.785, 0., -2.356, 0., 1.571, 0.785};
+                static constexpr std::array<float, 7> goal = {2.35, 1., 0., -0.8, 0, 2.5, 0.785};
+                
+                std::array<float, dimension> start_padded{}, goal_padded{};
+                std::copy(start.begin(), start.end(), start_padded.begin());
+                std::copy(goal.begin(), goal.end(), goal_padded.begin());
+                
+                return {start_padded, goal_padded};
+            }
         } else if (robot_type_ == RobotType::UR5) {
-            return {
-                fill({0., -1.57, 0., -1.57, 0., 0.}),
-                fill({1.57, -0.785, 0., -2.356, 0., 1.57})
-            };
+            static constexpr std::array<float, 6> start = {0., -1.57, 0., -1.57, 0., 0.};
+            static constexpr std::array<float, 6> goal = {1.57, -0.785, 0., -2.356, 0., 1.57};
+            
+            std::array<float, dimension> start_padded{}, goal_padded{};
+            std::copy(start.begin(), start.end(), start_padded.begin());
+            std::copy(goal.begin(), goal.end(), goal_padded.begin());
+            
+            return {start_padded, goal_padded};
         } else { // FETCH
-            return {
-                fill({0., 0., 0., 0., 0., 0., 0.}),
-                fill({1.57, 0.785, 0., -1.57, 0., 0., 0.})
-            };
+            static constexpr std::array<float, 8> start = {0., 0., 0., 0., 0., 0., 0., 0.};
+            static constexpr std::array<float, 8> goal = {0.1, 1.57, 0.785, 0., -1.57, 0., 0., 0.};
+            
+            std::array<float, dimension> start_padded{}, goal_padded{};
+            std::copy(start.begin(), start.end(), start_padded.begin());
+            std::copy(goal.begin(), goal.end(), goal_padded.begin());
+            
+            return {start_padded, goal_padded};
         }
     }
 
@@ -317,10 +354,21 @@ private:
     void setupProblemDefinition()
     {
         auto [start_config, goal_config] = getStartGoalConfigurations();
-        
+        // Bounds check for start/goal arrays
+        if (start_config.size() != dimension || goal_config.size() != dimension) {
+            std::cerr << "[ERROR] Start/goal array size does not match robot dimension!\n";
+            std::cerr << "[ERROR] start_config.size() = " << start_config.size() << ", goal_config.size() = " << goal_config.size() << ", dimension = " << dimension << std::endl;
+            throw std::runtime_error("Start/goal array size mismatch");
+        }
         auto space = si_->getStateSpace();
         ob::ScopedState<> start_ompl(space), goal_ompl(space);
         
+        for (auto v : start_config) std::cout << v << " ";
+        std::cout << std::endl;
+
+        for (auto v : goal_config) std::cout << v << " ";
+        std::cout << std::endl;
+
         for (auto i = 0U; i < dimension; ++i)
         {
             start_ompl[i] = start_config[i];
@@ -354,6 +402,17 @@ public:
     VampOMPLIntegration(RobotType robot_type, EnvironmentType env_type, PlannerType planner_type)
         : robot_type_(robot_type), env_type_(env_type), planner_type_(planner_type)
     {
+        switch (robot_type_) {
+            case RobotType::PANDA: std::cout << "PANDA"; break;
+            case RobotType::UR5: std::cout << "UR5"; break;
+            case RobotType::FETCH: std::cout << "FETCH"; break;
+        }
+        std::cout << std::endl;
+        // Print the C++ type of the Robot template parameter
+        // int status;
+        // char* realname = abi::__cxa_demangle(typeid(Robot).name(), 0, 0, &status);
+        // if (realname) free(realname);
+
         // Create environment based on type
         switch (env_type_) {
             case EnvironmentType::SPHERE_CAGE:
@@ -374,6 +433,10 @@ public:
     // Run the planning demo
     bool runDemo(double planning_time = 5.0, double simplification_time = 1.0, bool optimize = false)
     {
+        // Print C++ type and dimension again for confirmation
+        // int status;
+        // char* realname = abi::__cxa_demangle(typeid(Robot).name(), 0, 0, &status);
+        // if (realname) free(realname);
         std::cout << "\n=== VAMP + OMPL Integration Demo ===" << std::endl;
         std::cout << "Robot: ";
         switch (robot_type_) {
@@ -464,6 +527,11 @@ public:
     }
 };
 
+// Forward declarations for separate robot functions
+bool runPandaDemo(EnvironmentType env_type, PlannerType planner_type, const std::string& description);
+bool runUR5Demo(EnvironmentType env_type, PlannerType planner_type, const std::string& description);
+bool runFetchDemo(EnvironmentType env_type, PlannerType planner_type, const std::string& description);
+
 // Main demo function
 void runVampDemo()
 {
@@ -488,31 +556,22 @@ void runVampDemo()
         std::cout << "\n" << std::string(60, '-') << std::endl;
         std::cout << "Demo: " << description << std::endl;
         std::cout << std::string(60, '-') << std::endl;
-
+        
         try {
-            // Create and run demo based on robot type
             bool success = false;
             switch (robot_type) {
-                case RobotType::PANDA: {
-                    VampOMPLIntegration<vamp::robots::Panda> demo(robot_type, env_type, planner_type);
-                    success = demo.runDemo(3.0, 0.5, false);
+                case RobotType::PANDA:
+                    success = runPandaDemo(env_type, planner_type, description);
                     break;
-                }
-                case RobotType::UR5: {
-                    VampOMPLIntegration<vamp::robots::UR5> demo(robot_type, env_type, planner_type);
-                    success = demo.runDemo(3.0, 0.5, false);
+                case RobotType::UR5:
+                    success = runUR5Demo(env_type, planner_type, description);
                     break;
-                }
-                case RobotType::FETCH: {
-                    VampOMPLIntegration<vamp::robots::Fetch> demo(robot_type, env_type, planner_type);
-                    success = demo.runDemo(3.0, 0.5, false);
+                case RobotType::FETCH:
+                    success = runFetchDemo(env_type, planner_type, description);
                     break;
-                }
             }
-            
             if (success) success_count++;
             total_count++;
-            
         } catch (const std::exception& e) {
             std::cout << "✗ Error: " << e.what() << std::endl;
             total_count++;
@@ -525,9 +584,28 @@ void runVampDemo()
     std::cout << "Successful demos: " << success_count << "/" << total_count << std::endl;
     std::cout << "Success rate: " << (100.0 * success_count / total_count) << "%" << std::endl;
     std::cout << std::endl;
-    std::cout << "VAMP provides vectorized collision checking and motion validation" << std::endl;
-    std::cout << "that significantly accelerates OMPL planners while maintaining" << std::endl;
-    std::cout << "the same interface and functionality." << std::endl;
+}
+
+// Separate robot demo functions
+bool runPandaDemo(EnvironmentType env_type, PlannerType planner_type, const std::string& description)
+{
+    std::cout << "Running Panda demo: " << description << std::endl;
+    VampOMPLIntegration<vamp::robots::Panda> demo(RobotType::PANDA, env_type, planner_type);
+    return demo.runDemo(3.0, 0.5, false);
+}
+
+bool runUR5Demo(EnvironmentType env_type, PlannerType planner_type, const std::string& description)
+{
+    std::cout << "Running UR5 demo: " << description << std::endl;
+    VampOMPLIntegration<vamp::robots::UR5> demo(RobotType::UR5, env_type, planner_type);
+    return demo.runDemo(3.0, 0.5, false);
+}
+
+bool runFetchDemo(EnvironmentType env_type, PlannerType planner_type, const std::string& description)
+{
+    std::cout << "Running Fetch demo: " << description << std::endl;
+    VampOMPLIntegration<vamp::robots::Fetch> demo(RobotType::FETCH, env_type, planner_type);
+    return demo.runDemo(3.0, 0.5, false);
 }
 
 int main(int argc, char **argv)

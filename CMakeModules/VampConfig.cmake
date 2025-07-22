@@ -29,17 +29,12 @@ function(configure_vamp)
         return()
     endif()
 
-    # Check Python requirements
-    if(NOT PYTHON_FOUND)
-        message(WARNING "Python not found. VAMP requires Python 3.8+ with development headers.")
-        set(OMPL_HAVE_VAMP FALSE PARENT_SCOPE)
-        return()
-    endif()
-
     message(STATUS "Configuring VAMP integration...")
 
-    # Setup Python environment for nanobind
-    setup_vamp_python_environment()
+    # Setup Python environment for nanobind (only if Python is available)
+    # if(PYTHON_FOUND)
+    #     setup_vamp_python_environment()
+    # endif()
     
     # Configure VAMP build options
     configure_vamp_build_options()
@@ -61,62 +56,76 @@ function(configure_vamp)
 endfunction()
 
 # Setup Python environment for VAMP/nanobind
-function(setup_vamp_python_environment)
-    # Create Python::Module target that nanobind expects
-    if(NOT TARGET Python::Module)
-        add_library(Python::Module INTERFACE IMPORTED)
-        if(PYTHON_INCLUDE_DIRS)
-            set_target_properties(Python::Module PROPERTIES
-                INTERFACE_INCLUDE_DIRECTORIES "${PYTHON_INCLUDE_DIRS}")
-        endif()
-        if(PYTHON_LIBRARIES)
-            set_target_properties(Python::Module PROPERTIES
-                INTERFACE_LINK_LIBRARIES "${PYTHON_LIBRARIES}")
-        endif()
-    endif()
+# function(setup_vamp_python_environment)
+#     # Create Python::Module target that nanobind expects
+#     if(NOT TARGET Python::Module)
+#         add_library(Python::Module INTERFACE IMPORTED)
+#         if(PYTHON_INCLUDE_DIRS)
+#             set_target_properties(Python::Module PROPERTIES
+#                 INTERFACE_INCLUDE_DIRECTORIES "${PYTHON_INCLUDE_DIRS}")
+#         endif()
+#         if(PYTHON_LIBRARIES)
+#             set_target_properties(Python::Module PROPERTIES
+#                 INTERFACE_LINK_LIBRARIES "${PYTHON_LIBRARIES}")
+#         endif()
+#     endif()
     
-    # Create Python::Interpreter target
-    if(NOT TARGET Python::Interpreter)
-        add_library(Python::Interpreter INTERFACE IMPORTED)
-        if(PYTHON_INCLUDE_DIRS)
-            set_target_properties(Python::Interpreter PROPERTIES
-                INTERFACE_INCLUDE_DIRECTORIES "${PYTHON_INCLUDE_DIRS}")
-        endif()
-    endif()
+#     # Create Python::Interpreter target
+#     if(NOT TARGET Python::Interpreter)
+#         add_library(Python::Interpreter INTERFACE IMPORTED)
+#         if(PYTHON_INCLUDE_DIRS)
+#             set_target_properties(Python::Interpreter PROPERTIES
+#                 INTERFACE_INCLUDE_DIRECTORIES "${PYTHON_INCLUDE_DIRS}")
+#         endif()
+#     endif()
     
-    # Set up modern CMake Python variables
-    set(Python_Interpreter_FOUND TRUE PARENT_SCOPE)
-    set(Python_Development_FOUND TRUE PARENT_SCOPE)
-    if(PYTHON_EXEC)
-        set(Python_EXECUTABLE ${PYTHON_EXEC} PARENT_SCOPE)
-    endif()
-    if(PYTHON_INCLUDE_DIRS)
-        set(Python_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS} PARENT_SCOPE)
-    endif()
-    if(PYTHON_LIBRARIES)
-        set(Python_LIBRARIES ${PYTHON_LIBRARIES} PARENT_SCOPE)
-    endif()
-    if(PYTHON_VERSION)
-        set(Python_VERSION ${PYTHON_VERSION} PARENT_SCOPE)
-    endif()
-    if(PYTHON_VERSION_MAJOR)
-        set(Python_VERSION_MAJOR ${PYTHON_VERSION_MAJOR} PARENT_SCOPE)
-    endif()
-    if(PYTHON_VERSION_MINOR)
-        set(Python_VERSION_MINOR ${PYTHON_VERSION_MINOR} PARENT_SCOPE)
-    endif()
+#     # Set up modern CMake Python variables
+#     set(Python_Interpreter_FOUND TRUE PARENT_SCOPE)
+#     set(Python_Development_FOUND TRUE PARENT_SCOPE)
+#     if(PYTHON_EXEC)
+#         set(Python_EXECUTABLE ${PYTHON_EXEC} PARENT_SCOPE)
+#     endif()
+#     if(PYTHON_INCLUDE_DIRS)
+#         set(Python_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS} PARENT_SCOPE)
+#     endif()
+#     if(PYTHON_LIBRARIES)
+#         set(Python_LIBRARIES ${PYTHON_LIBRARIES} PARENT_SCOPE)
+#     endif()
+#     if(PYTHON_VERSION)
+#         set(Python_VERSION ${PYTHON_VERSION} PARENT_SCOPE)
+#     endif()
+#     if(PYTHON_VERSION_MAJOR)
+#         set(Python_VERSION_MAJOR ${PYTHON_VERSION_MAJOR} PARENT_SCOPE)
+#     endif()
+#     if(PYTHON_VERSION_MINOR)
+#         set(Python_VERSION_MINOR ${PYTHON_VERSION_MINOR} PARENT_SCOPE)
+#     endif()
     
-    message(STATUS "Python environment configured for VAMP/nanobind")
-endfunction()
+#     message(STATUS "Python environment configured for VAMP/nanobind")
+# endfunction()
 
 # Configure VAMP build options
 function(configure_vamp_build_options)
     # Pass VAMP build options to submodule
     set(VAMP_PORTABLE_BUILD ${VAMP_PORTABLE_BUILD} CACHE BOOL "Build VAMP with portable SIMD settings" FORCE)
     
+    # Set VAMP Python bindings - default OFF unless user explicitly enables
+    if(NOT DEFINED VAMP_BUILD_PYTHON_BINDINGS)
+        set(VAMP_BUILD_PYTHON_BINDINGS OFF CACHE BOOL "Build VAMP Python bindings" FORCE)
+    endif()
+    if(VAMP_BUILD_PYTHON_BINDINGS)
+        if(PYTHON_FOUND)
+            message(STATUS "VAMP: Python bindings enabled (user request)")
+        else()
+            message(FATAL_ERROR "VAMP: Python bindings requested but Python not found")
+        endif()
+    else()
+        message(STATUS "VAMP: Python bindings disabled")
+    endif()
+    
     # Set VAMP-specific options
-    set(VAMP_BUILD_CPP_DEMO ON CACHE BOOL "Build VAMP C++ Demo Scripts" FORCE)
-    set(VAMP_BUILD_OMPL_DEMO ON CACHE BOOL "Build VAMP C++ OMPL Integration Demo Scripts" FORCE)
+    set(VAMP_BUILD_CPP_DEMO OFF CACHE BOOL "Build VAMP C++ Demo Scripts" FORCE)
+    set(VAMP_BUILD_OMPL_DEMO OFF CACHE BOOL "Build VAMP C++ OMPL Integration Demo Scripts" FORCE)
     set(VAMP_OMPL_PATH "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING "OMPL path for VAMP integration" FORCE)
 endfunction()
 
@@ -170,28 +179,51 @@ endfunction()
 
 # Configure VAMP targets for OMPL integration
 function(configure_vamp_targets)
-    # Make VAMP targets available to OMPL
-    if(TARGET _core_ext)
-        # Set VAMP target properties
-        set_target_properties(_core_ext PROPERTIES
+    # Make VAMP C++ library available to OMPL
+    if(TARGET vamp_cpp)
+        # Set VAMP C++ library properties
+        set_target_properties(vamp_cpp PROPERTIES
             POSITION_INDEPENDENT_CODE ON
             CXX_VISIBILITY_PRESET hidden
             VISIBILITY_INLINES_HIDDEN ON
         )
         
-        # Apply SIMD flags to VAMP target
+        # Apply SIMD flags to VAMP C++ library
         if(DEFINED VAMP_SIMD_FLAGS)
-            target_compile_options(_core_ext PRIVATE ${VAMP_SIMD_FLAGS})
+            target_compile_options(vamp_cpp INTERFACE ${VAMP_SIMD_FLAGS})
         endif()
         
-        message(STATUS "VAMP target _core_ext configured")
+        message(STATUS "VAMP C++ library target configured")
     endif()
+    
+    # Make VAMP Python module available if built
+    # if(TARGET _core_ext)
+    #     # Set VAMP Python module properties
+    #     set_target_properties(_core_ext PROPERTIES
+    #         POSITION_INDEPENDENT_CODE ON
+    #         CXX_VISIBILITY_PRESET hidden
+    #         VISIBILITY_INLINES_HIDDEN ON
+    #     )
+        
+    #     # Apply SIMD flags to VAMP Python module
+    #     if(DEFINED VAMP_SIMD_FLAGS)
+    #         target_compile_options(_core_ext PRIVATE ${VAMP_SIMD_FLAGS})
+    #     endif()
+        
+    #     message(STATUS "VAMP Python module target configured")
+    # endif()
     
     # Print VAMP build configuration
     if(VAMP_PORTABLE_BUILD)
         message(STATUS "VAMP: Using portable build mode for distribution")
     else()
         message(STATUS "VAMP: Using native build mode for best performance")
+    endif()
+    
+    if(VAMP_BUILD_PYTHON_BINDINGS)
+        message(STATUS "VAMP: Python bindings enabled")
+    else()
+        message(STATUS "VAMP: Python bindings disabled")
     endif()
 endfunction()
 
