@@ -408,10 +408,6 @@ public:
             case RobotType::FETCH: std::cout << "FETCH"; break;
         }
         std::cout << std::endl;
-        // Print the C++ type of the Robot template parameter
-        // int status;
-        // char* realname = abi::__cxa_demangle(typeid(Robot).name(), 0, 0, &status);
-        // if (realname) free(realname);
 
         // Create environment based on type
         switch (env_type_) {
@@ -431,12 +427,9 @@ public:
     }
 
     // Run the planning demo
-    bool runDemo(double planning_time = 5.0, double simplification_time = 1.0, bool optimize = false)
+    bool runDemo(double planning_time = 1.0, double simplification_time = 1.0, bool optimize = false)
     {
-        // Print C++ type and dimension again for confirmation
-        // int status;
-        // char* realname = abi::__cxa_demangle(typeid(Robot).name(), 0, 0, &status);
-        // if (realname) free(realname);
+
         std::cout << "\n=== VAMP + OMPL Integration Demo ===" << std::endl;
         std::cout << "Robot: ";
         switch (robot_type_) {
@@ -479,9 +472,9 @@ public:
         auto start_time = std::chrono::steady_clock::now();
         ob::PlannerStatus solved = planner->solve(planning_time);
         auto end_time = std::chrono::steady_clock::now();
-        auto planning_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+        auto planning_duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
 
-        std::cout << "\nPlanning completed in " << planning_duration.count() << "ms" << std::endl;
+        std::cout << "\nPlanning completed in " << planning_duration.count() << "μs" << std::endl;
 
         // Check solution
         if (solved == ob::PlannerStatus::EXACT_SOLUTION)
@@ -499,11 +492,11 @@ public:
             auto simplify_start = std::chrono::steady_clock::now();
             bool simplified = simplifier.simplify(path_geometric, simplification_time);
             auto simplify_end = std::chrono::steady_clock::now();
-            auto simplify_duration = std::chrono::duration_cast<std::chrono::milliseconds>(simplify_end - simplify_start);
+            auto simplify_duration = std::chrono::duration_cast<std::chrono::microseconds>(simplify_end - simplify_start);
 
             if (simplified) {
                 auto simplified_cost = path_geometric.cost(obj);
-                std::cout << "✓ Path simplified in " << simplify_duration.count() << "ms" << std::endl;
+                std::cout << "✓ Path simplified in " << simplify_duration.count() << "μs" << std::endl;
                 std::cout << "Initial cost: " << initial_cost.value() << std::endl;
                 std::cout << "Simplified cost: " << simplified_cost.value() << std::endl;
                 std::cout << "Path length: " << path_geometric.getStateCount() << " states" << std::endl;
@@ -543,10 +536,10 @@ void runVampDemo()
 
     // Demo configurations
     std::vector<std::tuple<RobotType, EnvironmentType, PlannerType, std::string>> demos = {
-        {RobotType::PANDA, EnvironmentType::SPHERE_CAGE, PlannerType::BITSTAR, "Panda in Sphere Cage with BIT*"},
-        {RobotType::PANDA, EnvironmentType::TABLE_SCENE, PlannerType::RRTCONNECT, "Panda in Table Scene with RRT-Connect"},
+        {RobotType::PANDA, EnvironmentType::SPHERE_CAGE, PlannerType::RRTCONNECT, "Panda in Sphere Cage with BIT*"},
         {RobotType::UR5, EnvironmentType::SPHERE_CAGE, PlannerType::PRM, "UR5 in Sphere Cage with PRM"},
-        {RobotType::FETCH, EnvironmentType::EMPTY, PlannerType::BITSTAR, "Fetch in Empty Environment with BIT*"}
+        {RobotType::FETCH, EnvironmentType::EMPTY, PlannerType::BITSTAR, "Fetch in Empty Environment with BIT*"},
+        {RobotType::PANDA, EnvironmentType::TABLE_SCENE, PlannerType::RRTCONNECT, "Panda in Table Scene with RRT-Connect"}
     };
 
     int success_count = 0;
@@ -578,12 +571,6 @@ void runVampDemo()
         }
     }
 
-    std::cout << "\n" << std::string(60, '=') << std::endl;
-    std::cout << "Demo Summary" << std::endl;
-    std::cout << std::string(60, '=') << std::endl;
-    std::cout << "Successful demos: " << success_count << "/" << total_count << std::endl;
-    std::cout << "Success rate: " << (100.0 * success_count / total_count) << "%" << std::endl;
-    std::cout << std::endl;
 }
 
 // Separate robot demo functions
@@ -591,21 +578,21 @@ bool runPandaDemo(EnvironmentType env_type, PlannerType planner_type, const std:
 {
     std::cout << "Running Panda demo: " << description << std::endl;
     VampOMPLIntegration<vamp::robots::Panda> demo(RobotType::PANDA, env_type, planner_type);
-    return demo.runDemo(3.0, 0.5, false);
+    return demo.runDemo(1.0, 0.5, false);
 }
 
 bool runUR5Demo(EnvironmentType env_type, PlannerType planner_type, const std::string& description)
 {
     std::cout << "Running UR5 demo: " << description << std::endl;
     VampOMPLIntegration<vamp::robots::UR5> demo(RobotType::UR5, env_type, planner_type);
-    return demo.runDemo(3.0, 0.5, false);
+    return demo.runDemo(1.0, 0.5, false);
 }
 
 bool runFetchDemo(EnvironmentType env_type, PlannerType planner_type, const std::string& description)
 {
     std::cout << "Running Fetch demo: " << description << std::endl;
     VampOMPLIntegration<vamp::robots::Fetch> demo(RobotType::FETCH, env_type, planner_type);
-    return demo.runDemo(3.0, 0.5, false);
+    return demo.runDemo(1.0, 0.5, false);
 }
 
 int main(int argc, char **argv)
