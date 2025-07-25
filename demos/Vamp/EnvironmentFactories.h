@@ -32,7 +32,7 @@ public:
 };
 
 /**
- * @brief Creates a sphere cage environment using exact working configuration from original demo
+ * @brief Creates a sphere cage environment
  */
 class SphereCageEnvironmentFactory : public EnvironmentFactory {
 public:
@@ -47,9 +47,8 @@ public:
     vamp::collision::Environment<float> createEnvironment() override
     {
         vamp::collision::Environment<float> environment;
-        
-        // Use exact sphere positions from working original demo for Panda
-        // This will work for all robots since it's a general cage
+
+        // Create a cage of spheres arranged in two rings
         std::vector<std::array<float, 3>> sphere_positions = {
             {0.55, 0, 0.25}, {0.35, 0.35, 0.25}, {0, 0.55, 0.25},
             {-0.55, 0, 0.25}, {-0.35, -0.35, 0.25}, {0, -0.55, 0.25},
@@ -82,13 +81,14 @@ private:
 };
 
 /**
- * @brief Creates a table scene environment using exact working configuration from original demo
+ * @brief Creates a table scene environment
  */
 class TableSceneEnvironmentFactory : public EnvironmentFactory {
 public:
     /**
-     * @brief Constructor - uses working Panda table scene configuration
-     */
+     * @brief Constructor with default parameters for table scene
+    */
+
     TableSceneEnvironmentFactory()
     {
     }
@@ -97,7 +97,7 @@ public:
     {
         vamp::collision::Environment<float> environment;
         
-        // Use exact box configuration from working original demo for Panda table scene
+        // Define positions for the table surface and obstacles
         std::vector<std::array<float, 3>> box_positions = {
             // Table surface (1m x 1m table at Z=0.8m height)
             {-0.5, -0.5, 0.8}, {0.5, 0.5, 0.82},

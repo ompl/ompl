@@ -148,7 +148,7 @@ else()
 endif()
 
 # VAMP submodule integration
-option(OMPL_BUILD_VAMP "Build VAMP submodule" OFF)
+option(OMPL_BUILD_VAMP "Build VAMP submodule" ON)
 if(OMPL_BUILD_VAMP)
     include(CMakeModules/VampConfig.cmake)
     configure_vamp()
@@ -253,7 +253,7 @@ set_package_properties(castxml PROPERTIES
 # Add VAMP to feature summary
 set_package_properties(VAMP PROPERTIES
     URL "https://github.com/KavrakiLab/vamp"
-    PURPOSE "VAMP (Visualization and Analysis of Motion Planning) provides tools for motion planning visualization and analysis.")
+    PURPOSE "VAMP (Vector Accelerated Motion Planning)")
 if(OMPL_HAVE_VAMP)
     set(VAMP_FOUND TRUE)
 else()

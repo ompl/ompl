@@ -30,11 +30,6 @@ function(configure_vamp)
     endif()
 
     message(STATUS "Configuring VAMP integration...")
-
-    # Setup Python environment for nanobind (only if Python is available)
-    # if(PYTHON_FOUND)
-    #     setup_vamp_python_environment()
-    # endif()
     
     # Configure VAMP build options
     configure_vamp_build_options()
@@ -55,55 +50,6 @@ function(configure_vamp)
     message(STATUS "VAMP integration configured successfully")
 endfunction()
 
-# Setup Python environment for VAMP/nanobind
-# function(setup_vamp_python_environment)
-#     # Create Python::Module target that nanobind expects
-#     if(NOT TARGET Python::Module)
-#         add_library(Python::Module INTERFACE IMPORTED)
-#         if(PYTHON_INCLUDE_DIRS)
-#             set_target_properties(Python::Module PROPERTIES
-#                 INTERFACE_INCLUDE_DIRECTORIES "${PYTHON_INCLUDE_DIRS}")
-#         endif()
-#         if(PYTHON_LIBRARIES)
-#             set_target_properties(Python::Module PROPERTIES
-#                 INTERFACE_LINK_LIBRARIES "${PYTHON_LIBRARIES}")
-#         endif()
-#     endif()
-    
-#     # Create Python::Interpreter target
-#     if(NOT TARGET Python::Interpreter)
-#         add_library(Python::Interpreter INTERFACE IMPORTED)
-#         if(PYTHON_INCLUDE_DIRS)
-#             set_target_properties(Python::Interpreter PROPERTIES
-#                 INTERFACE_INCLUDE_DIRECTORIES "${PYTHON_INCLUDE_DIRS}")
-#         endif()
-#     endif()
-    
-#     # Set up modern CMake Python variables
-#     set(Python_Interpreter_FOUND TRUE PARENT_SCOPE)
-#     set(Python_Development_FOUND TRUE PARENT_SCOPE)
-#     if(PYTHON_EXEC)
-#         set(Python_EXECUTABLE ${PYTHON_EXEC} PARENT_SCOPE)
-#     endif()
-#     if(PYTHON_INCLUDE_DIRS)
-#         set(Python_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS} PARENT_SCOPE)
-#     endif()
-#     if(PYTHON_LIBRARIES)
-#         set(Python_LIBRARIES ${PYTHON_LIBRARIES} PARENT_SCOPE)
-#     endif()
-#     if(PYTHON_VERSION)
-#         set(Python_VERSION ${PYTHON_VERSION} PARENT_SCOPE)
-#     endif()
-#     if(PYTHON_VERSION_MAJOR)
-#         set(Python_VERSION_MAJOR ${PYTHON_VERSION_MAJOR} PARENT_SCOPE)
-#     endif()
-#     if(PYTHON_VERSION_MINOR)
-#         set(Python_VERSION_MINOR ${PYTHON_VERSION_MINOR} PARENT_SCOPE)
-#     endif()
-    
-#     message(STATUS "Python environment configured for VAMP/nanobind")
-# endfunction()
-
 # Configure VAMP build options
 function(configure_vamp_build_options)
     # Pass VAMP build options to submodule
@@ -112,15 +58,6 @@ function(configure_vamp_build_options)
     # Set VAMP Python bindings - default OFF unless user explicitly enables
     if(NOT DEFINED VAMP_BUILD_PYTHON_BINDINGS)
         set(VAMP_BUILD_PYTHON_BINDINGS OFF CACHE BOOL "Build VAMP Python bindings" FORCE)
-    endif()
-    if(VAMP_BUILD_PYTHON_BINDINGS)
-        if(PYTHON_FOUND)
-            message(STATUS "VAMP: Python bindings enabled (user request)")
-        else()
-            message(FATAL_ERROR "VAMP: Python bindings requested but Python not found")
-        endif()
-    else()
-        message(STATUS "VAMP: Python bindings disabled")
     endif()
     
     # Set VAMP-specific options
@@ -220,8 +157,13 @@ function(configure_vamp_targets)
         message(STATUS "VAMP: Using native build mode for best performance")
     endif()
     
+    # Check and report Python bindings status
     if(VAMP_BUILD_PYTHON_BINDINGS)
-        message(STATUS "VAMP: Python bindings enabled")
+        if(PYTHON_FOUND)
+            message(STATUS "VAMP: Python bindings enabled (user request)")
+        else()
+            message(FATAL_ERROR "VAMP: Python bindings requested but Python not found")
+        endif()
     else()
         message(STATUS "VAMP: Python bindings disabled")
     endif()

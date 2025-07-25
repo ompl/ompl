@@ -103,11 +103,11 @@ if (OMPL_BUILD_DEMOS)
     # Add VAMP demo only if VAMP is available and properly configured
     if (OMPL_HAVE_VAMP)
         # Build VAMP demo directly using VAMP C++ library and OMPL
-        add_ompl_demo(demo_VampDemo vampdemo/VampDemo.cpp)
+        add_ompl_demo(demo_Vamp Vamp/VampDemo.cpp)
         
         # Link against VAMP C++ library
         if(TARGET vamp_cpp)
-            target_link_libraries(demo_VampDemo PRIVATE vamp_cpp)
+            target_link_libraries(demo_Vamp PRIVATE vamp_cpp)
             message(STATUS "VAMP demo linked against vamp_cpp library")
         else()
             message(WARNING "VAMP vamp_cpp target not found - demo may not build correctly")

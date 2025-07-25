@@ -283,7 +283,6 @@ void controlLoop() {
 
 VAMP Paper - The theory behind vectorized planning
 OMPL Documentation - Sampling-based planning algorithms
-Example Notebooks - Jupyter notebooks with visualizations
 
 🤝 Contributing
 We welcome contributions! Whether it's:
@@ -304,4 +303,4 @@ If you use this work in your research, please cite:
   year={2023}
 }
 
-Built with ❤️ by roboticists who believe motion planning should be as fast as control
+by roboticists who believe motion planning should be as fast as control
