@@ -1,9 +1,5 @@
 # Demos {#demos}
 
-\defgroup demos Demos
-\ingroup demos
-@{
-
 - [Rigid body planning](RigidBodyPlanning_8cpp_source.html) [[Python version]](RigidBodyPlanning_8py_source.html). This demo is essentially the same example described in the first tutorial. It illustrates how to use the main classes.
 - [State sampling](StateSampling_8cpp_source.html) [[Python version]](StateSampling_8py_source.html). This is the demo program used in the last beginner tutorial.
 - **[VAMP Integration: Microsecond Motion Planning](VampDemocpp_source.html)** . This demo showcases the integration between VAMP (Vector-Accelerated Motion Planning) and OMPL, achieving motion planning in *microseconds* using SIMD-accelerated collision checking and forward kinematics. VAMP processes multiple robot configurations simultaneously using vectorized instructions, resulting in planning speeds up to 25 kHz. The demo supports popular robots (Panda, UR5, Fetch, Baxter), provide ways to extend to new robots and demonstrates both vectorized state validation and motion validation techniques. See the comprehensive [VAMP demo README](../../demos/Vamp/Readme.md) for detailed architecture overview, usage examples, and performance benchmarks.

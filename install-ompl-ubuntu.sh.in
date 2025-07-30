@@ -51,24 +51,10 @@ install_python_binding_dependencies()
         ${SUDO} pip3 install ${PIP_ARGS} -vU https://github.com/CastXML/pygccxml/archive/develop.zip pyplusplus
 }
 
-install_app_dependencies()
-{
-    ${SUDO} apt-get -y install \
-        freeglut3-dev \
-        libassimp-dev \
-        libccd-dev \
-        libfcl-dev
-}
-
 install_ompl()
 {
-    if [ -z $APP ]; then
-        wget -O - https://github.com/ompl/ompl/archive/@PROJECT_VERSION@.tar.gz | tar zxf -
-        cd ompl-@PROJECT_VERSION@
-    else
-        wget -O - https://github.com/ompl/omplapp/releases/download/@PROJECT_VERSION@/omplapp-@PROJECT_VERSION@-Source.tar.gz | tar zxf -
-        cd omplapp-@PROJECT_VERSION@-Source
-    fi
+    wget -O - https://github.com/ompl/ompl/archive/@PROJECT_VERSION@.tar.gz | tar zxf -
+    cd ompl-@PROJECT_VERSION@
     cmake \
         -G Ninja \
         -B build \
@@ -83,11 +69,6 @@ install_ompl()
 for i in "$@"
 do
 case $i in
-    -a|--app)
-        APP=1
-        PYTHON=1
-        shift
-        ;;
     -p|--python)
         PYTHON=1
         shift
@@ -96,7 +77,6 @@ case $i in
         # unknown option -> show help
         echo "Usage: `basename $0` [-p] [-a]"
         echo "  -p: enable Python bindings"
-        echo "  -a: enable OMPL.app (implies '-p')"
         echo "  -g: install latest commit from main branch on GitHub"
     ;;
 esac
@@ -105,8 +85,5 @@ done
 install_common_dependencies
 if [ ! -z $PYTHON ]; then
     install_python_binding_dependencies
-fi
-if [ ! -z $APP ]; then
-    install_app_dependencies
 fi
 install_ompl

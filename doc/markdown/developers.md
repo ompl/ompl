@@ -4,7 +4,7 @@ OMPL is developed and maintained by the [Kavraki Lab](http://kavrakilab.org) at 
 
 ## Contributors (in alphabetical order)
 
-A breakdown of all contributions by commits can be found on GitHub for the [OMPL](https://github.com/ompl/ompl/graphs/contributors) and [OMPL.app](https://github.com/ompl/omplapp/graphs/contributors) repositories. Note that the number of commits or number of lines of code written by a contributor is a far from perfect indicator of the significance of a person's contributions. Indeed, some significant contributions like the initial RRT* implementation do not even show up on these pages, since this code predates the move to Github. Below is a manually curated list of people who have made significant contributions and the groups they were affiliated with at the time.
+A breakdown of all contributions by commits can be found on GitHub for the [OMPL](https://github.com/ompl/ompl/graphs/contributors) repository. Note that the number of commits or number of lines of code written by a contributor is a far from perfect indicator of the significance of a person's contributions. Indeed, some significant contributions like the initial RRT* implementation do not even show up on these pages, since this code predates the move to GitHub. Below is a manually curated list of people who have made significant contributions and the groups they were affiliated with at the time.
 
 - [Jennifer Barry](http://people.csail.mit.edu/jbarry), Leslie Pack Kaelbling and Tomás Lozano-Pérez's [Learning in Intelligent Systems Group](http://lis.csail.mit.edu), MIT (now at Robotics and AI Institute)
 - [Prudhvi Boyapalli](http://www.prudhviboyapalli.com), Rice University

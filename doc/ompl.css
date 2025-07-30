@@ -1,3 +1,206 @@
+/* The standard CSS for doxygen 1.14.0*/
+/* mmoll: doxygen 1.14 *still* uses dark theme colors sometimes even if configure
+   it to use only light theme. So we redefine the dark theme colors to be the
+   same as the light theme colors. */
+@media (prefers-color-scheme: dark) {
+  html:not(.dark-mode) {
+    color-scheme: light;
+
+/* page base colors */
+--page-background-color: white;
+--page-foreground-color: black;
+--page-link-color: #3D578C;
+--page-visited-link-color: #3D578C;
+--page-external-link-color: #334975;
+
+/* index */
+--index-odd-item-bg-color: #F8F9FC;
+--index-even-item-bg-color: white;
+--index-header-color: black;
+--index-separator-color: #A0A0A0;
+
+/* header */
+--header-background-color: #F9FAFC;
+--header-separator-color: #C4CFE5;
+--group-header-separator-color: #D9E0EE;
+--group-header-color: #354C7B;
+--inherit-header-color: gray;
+
+--footer-foreground-color: #2A3D61;
+--footer-logo-width: 75px;
+--citation-label-color: #334975;
+--glow-color: cyan;
+
+--title-background-color: white;
+--title-separator-color: #C4CFE5;
+--directory-separator-color: #9CAFD4;
+--separator-color: #4A6AAA;
+
+--blockquote-background-color: #F7F8FB;
+--blockquote-border-color: #9CAFD4;
+
+--scrollbar-thumb-color: #C4CFE5;
+--scrollbar-background-color: #F9FAFC;
+
+--icon-background-color: #728DC1;
+--icon-foreground-color: white;
+/*
+--icon-doc-image: url('doc.svg');
+--icon-folder-open-image: url('folderopen.svg');
+--icon-folder-closed-image: url('folderclosed.svg');*/
+--icon-folder-open-fill-color: #C4CFE5;
+--icon-folder-fill-color: #D8DFEE;
+--icon-folder-border-color: #4665A2;
+--icon-doc-fill-color: #D8DFEE;
+--icon-doc-border-color: #4665A2;
+
+/* brief member declaration list */
+--memdecl-background-color: #F9FAFC;
+--memdecl-separator-color: #DEE4F0;
+--memdecl-foreground-color: #555;
+--memdecl-template-color: #4665A2;
+--memdecl-border-color: #D5DDEC;
+
+/* detailed member list */
+--memdef-border-color: #A8B8D9;
+--memdef-title-background-color: #E2E8F2;
+--memdef-proto-background-color: #EEF1F7;
+--memdef-proto-text-color: #253555;
+--memdef-doc-background-color: white;
+--memdef-param-name-color: #602020;
+--memdef-template-color: #4665A2;
+
+/* tables */
+--table-cell-border-color: #2D4068;
+--table-header-background-color: #374F7F;
+--table-header-foreground-color: #FFFFFF;
+
+/* labels */
+--label-background-color: #728DC1;
+--label-left-top-border-color: #5373B4;
+--label-right-bottom-border-color: #C4CFE5;
+--label-foreground-color: white;
+
+/** navigation bar/tree/menu */
+--nav-background-color: #F9FAFC;
+--nav-foreground-color: #364D7C;
+--nav-border-color: #C4CFE5;
+--nav-breadcrumb-separator-color: #C4CFE5;
+--nav-breadcrumb-active-bg: #EEF1F7;
+--nav-breadcrumb-color: #354C7B;
+--nav-breadcrumb-border-color: #E1E7F2;
+--nav-splitbar-bg-color: #DCE2EF;
+--nav-splitbar-handle-color: #9CAFD4;
+--nav-font-size-level1: 13px;
+--nav-font-size-level2: 10px;
+--nav-font-size-level3: 9px;
+--nav-text-normal-color: #283A5D;
+--nav-text-hover-color: white;
+--nav-text-active-color: white;
+--nav-menu-button-color: #364D7C;
+--nav-menu-background-color: white;
+--nav-menu-foreground-color: #555555;
+--nav-menu-active-bg: #DCE2EF;
+--nav-menu-active-color: #9CAFD4;
+--nav-menu-toggle-color: rgba(255, 255, 255, 0.5);
+--nav-arrow-color: #B6C4DF;
+--nav-arrow-selected-color: #90A5CE;
+
+/* sync icon */
+--sync-icon-border-color: #C4CFE5;
+--sync-icon-background-color: #F9FAFC;
+--sync-icon-selected-background-color: #EEF1F7;
+--sync-icon-color: #C4CFE5;
+--sync-icon-selected-color: #6884BD;
+
+/* table of contents */
+--toc-background-color: #F4F6FA;
+--toc-border-color: #D8DFEE;
+--toc-header-color: #4665A2;
+--toc-down-arrow-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='10px' width='5px' fill='grey'><text x='0' y='5' font-size='10'>&%238595;</text></svg>");
+
+/** search field */
+--search-background-color: white;
+--search-foreground-color: #909090;
+--search-active-color: black;
+--search-filter-background-color: rgba(255,255,255,.7);
+--search-filter-backdrop-filter: blur(4px);
+--search-filter-foreground-color: black;
+--search-filter-border-color: rgba(150,150,150,.4);
+--search-filter-highlight-text-color: white;
+--search-filter-highlight-bg-color: #3D578C;
+--search-results-foreground-color: #425E97;
+--search-results-background-color: rgba(255,255,255,.8);
+--search-results-backdrop-filter: blur(4px);
+--search-results-border-color: rgba(150,150,150,.4);
+--search-box-border-color: #B6C4DF;
+--search-close-icon-bg-color: #A0A0A0;
+--search-close-icon-fg-color: white;
+
+/** code fragments */
+--code-keyword-color: #008000;
+--code-type-keyword-color: #604020;
+--code-flow-keyword-color: #E08000;
+--code-comment-color: #800000;
+--code-preprocessor-color: #806020;
+--code-string-literal-color: #002080;
+--code-char-literal-color: #008080;
+--code-xml-cdata-color: black;
+--code-vhdl-digit-color: #FF00FF;
+--code-vhdl-char-color: #000000;
+--code-vhdl-keyword-color: #700070;
+--code-vhdl-logic-color: #FF0000;
+--code-link-color: #4665A2;
+--code-external-link-color: #4665A2;
+--fragment-foreground-color: black;
+--fragment-background-color: #FBFCFD;
+--fragment-border-color: #C4CFE5;
+--fragment-lineno-border-color: #00FF00;
+--fragment-lineno-background-color: #E8E8E8;
+--fragment-lineno-foreground-color: black;
+--fragment-lineno-link-fg-color: #4665A2;
+--fragment-lineno-link-bg-color: #D8D8D8;
+--fragment-lineno-link-hover-fg-color: #4665A2;
+--fragment-lineno-link-hover-bg-color: #C8C8C8;
+--fragment-copy-ok-color: #2EC82E;
+--tooltip-foreground-color: black;
+--tooltip-background-color: rgba(255,255,255,0.8);
+--tooltip-arrow-background-color: white;
+--tooltip-border-color: rgba(150,150,150,0.7);
+--tooltip-backdrop-filter: blur(3px);
+--tooltip-doc-color: grey;
+--tooltip-declaration-color: #006318;
+--tooltip-link-color: #4665A2;
+--tooltip-shadow: 0 4px 8px 0 rgba(0,0,0,.25);
+--fold-line-color: #808080;
+
+/** special sections */
+--warning-color-bg: #f8d1cc;
+--warning-color-hl: #b61825;
+--warning-color-text: #75070f;
+--note-color-bg: #faf3d8;
+--note-color-hl: #f3a600;
+--note-color-text: #5f4204;
+--todo-color-bg: #e4f3ff;
+--todo-color-hl: #1879C4;
+--todo-color-text: #274a5c;
+--test-color-bg: #e8e8ff;
+--test-color-hl: #3939C4;
+--test-color-text: #1a1a5c;
+--deprecated-color-bg: #ecf0f3;
+--deprecated-color-hl: #5b6269;
+--deprecated-color-text: #43454a;
+--bug-color-bg: #e4dafd;
+--bug-color-hl: #5b2bdd;
+--bug-color-text: #2a0d72;
+--invariant-color-bg: #d8f1e3;
+--invariant-color-hl: #44b86f;
+--invariant-color-text: #265532;
+}
+}
+
+.contents a, .contents a:visited { color: #007bff; }
+
 h1 { margin-top: 1em; }
 h2 {
     margin-bottom: .25em;
@@ -194,4 +397,3 @@ ul.navbar-nav.mr-auto { overflow: visible; }
 div.toc li.level2 { margin-left: 4px; }
 div.toc li.level3 { margin-left: 8px; }
 div.fragment { padding: 8px; }
-@OMPL_CSS@
