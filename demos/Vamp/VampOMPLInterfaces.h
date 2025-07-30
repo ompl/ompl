@@ -92,11 +92,12 @@ struct PlanningConfig {
     double simplification_time = 0.5;  ///< Time for path simplification
     bool optimize_path = false;         ///< Whether to optimize for path cost
     std::string planner_name = "BIT*"; ///< Name of planner to use
+    bool write_path = false;           ///< Whether to write solution path to file
     
     PlanningConfig() = default;
-    PlanningConfig(double plan_time, double simp_time, bool optimize, const std::string& planner)
+    PlanningConfig(double plan_time, double simp_time, bool optimize, const std::string& planner, bool write_path_to_file = false)
         : planning_time(plan_time), simplification_time(simp_time), 
-          optimize_path(optimize), planner_name(planner) {}
+          optimize_path(optimize), planner_name(planner), write_path(write_path_to_file) {}
 };
 
 /**

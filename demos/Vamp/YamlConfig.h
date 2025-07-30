@@ -84,27 +84,6 @@ private:
     std::pair<std::string, std::string> parseKeyValue(const std::string& line) {
         size_t colon_pos = line.find(':');
         if (colon_pos == std::string::npos) {
-            // Handle YAML list items (lines starting with -)
-            if (line.find('-') == 0) {
-                std::string item_content = trim(line.substr(1)); // Remove the '-'
-                if (item_content.find(':') != std::string::npos) {
-                    // This is a list item with key-value pair like "- type: sphere"
-                    size_t inner_colon = item_content.find(':');
-                    std::string key = trim(item_content.substr(0, inner_colon));
-                    std::string value = trim(item_content.substr(inner_colon + 1));
-                    
-                    // Remove quotes if present
-                    if (!value.empty() && ((value.front() == '"' && value.back() == '"') ||
-                                           (value.front() == '\'' && value.back() == '\''))) {
-                        value = value.substr(1, value.length() - 2);
-                    }
-                    
-                    return std::make_pair(key, value);
-                } else {
-                    // Simple list item without colon
-                    return std::make_pair(item_content, "");
-                }
-            }
             return std::make_pair(trim(line), "");
         }
         
@@ -160,11 +139,10 @@ public:
             YamlNode& new_node = node_stack.back()->children[key];
             new_node.value = value;
             
-            // Debug output (only show first few levels to avoid spam)
-            if (node_stack.size() <= 3) {  
+            // Debug output
+            if (node_stack.size() <= 3) {  // Only show first few levels to avoid spam
                 std::string indent_str(node_stack.size() * 2, ' ');
-                // Uncomment for YAML parsing debugging:
-                // std::cout << "Parse: " << indent_str << "'" << key << "' = '" << value << "'" << std::endl;
+                std::cout << "🔍 Parse: " << indent_str << "'" << key << "' = '" << value << "' (indent=" << current_indent << ", stack_size=" << node_stack.size() << ")" << std::endl;
             }
             
             // If this could have children (no value or empty value), add to stack
@@ -195,11 +173,6 @@ struct VampYamlConfig {
         struct {
             std::string name = "sphere_cage";
             std::string description = "";
-            
-            // Custom obstacles configuration
-            struct {
-                std::vector<std::map<std::string, std::string>> obstacles;
-            } custom;
         } environment;
         
         struct {
@@ -248,43 +221,26 @@ struct VampYamlConfig {
     bool loadFromFile(const std::string& filename) {
         SimpleYamlParser parser;
         if (!parser.parseFile(filename)) {
-            std::cerr << "Failed to parse YAML file: " << filename << std::endl;
+            std::cout << "🔍 Debug: parseFile failed!" << std::endl;
             return false;
         }
         
         const auto& root = parser.getRoot();
+        std::cout << "🔍 Debug: Root has " << root.children.size() << " children" << std::endl;
+        std::cout << "🔍 Debug: Root children keys: ";
+        for (const auto& [key, value] : root.children) {
+            std::cout << "'" << key << "' ";
+        }
+        std::cout << std::endl;
         
         // Parse planning configuration
         const auto& plan = root["planning"];
+        std::cout << "🔍 Debug: Planning node exists: " << plan.exists() << std::endl;
         planning.robot.name = plan["robot"]["name"].getString(planning.robot.name);
         planning.robot.urdf_path = plan["robot"]["urdf_path"].getString(planning.robot.urdf_path);
         
         planning.environment.name = plan["environment"]["name"].getString(planning.environment.name);
         planning.environment.description = plan["environment"]["description"].getString(planning.environment.description);
-        
-        // Parse custom obstacles if present
-        const auto& custom_env = plan["environment"]["custom"];
-        if (custom_env.exists()) {
-            const auto& obstacles_node = custom_env["obstacles"];
-            if (obstacles_node.exists()) {
-                
-                for (const auto& [obstacle_name, obstacle_node] : obstacles_node.children) {
-                    std::map<std::string, std::string> obstacle_map;
-                    
-                    // Parse each obstacle's properties
-                    for (const auto& [prop_key, prop_value] : obstacle_node.children) {
-                        obstacle_map[prop_key] = prop_value.value;
-                    }
-                    
-                    // Also handle direct value assignments (for simple properties)
-                    if (!obstacle_node.value.empty()) {
-                        obstacle_map["value"] = obstacle_node.value;
-                    }
-                    
-                    planning.environment.custom.obstacles.push_back(obstacle_map);
-                }
-            }
-        }
         
         planning.planner.name = plan["planner"]["name"].getString(planning.planner.name);
         planning.planner.planning_time = plan["planner"]["planning_time"].getDouble(planning.planner.planning_time);
@@ -323,9 +279,6 @@ struct VampYamlConfig {
         std::cout << "Planning:" << std::endl;
         std::cout << "  Robot: " << planning.robot.name << std::endl;
         std::cout << "  Environment: " << planning.environment.name << std::endl;
-        if (!planning.environment.custom.obstacles.empty()) {
-            std::cout << "  Custom obstacles: " << planning.environment.custom.obstacles.size() << std::endl;
-        }
         std::cout << "  Planner: " << planning.planner.name << std::endl;
         std::cout << "  Planning time: " << planning.planner.planning_time << "s" << std::endl;
         std::cout << "  Write path: " << (planning.output.write_path ? "yes" : "no") << std::endl;

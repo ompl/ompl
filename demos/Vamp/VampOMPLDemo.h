@@ -30,6 +30,12 @@
 #include "EnvironmentFactories.h"
 #include "VampOMPLPlanner.h"
 
+// Standard library includes to fix compilation errors
+#include <memory>
+#include <thread>
+#include <functional>
+#include <tuple>
+
 // VAMP robot includes
 #include <vamp/robots/panda.hh>
 #include <vamp/robots/ur5.hh>
@@ -47,6 +53,7 @@ struct DemoConfiguration {
     double planning_time;            ///< Planning time in seconds
     double simplification_time;      ///< Simplification time in seconds
     bool optimize_path;              ///< Whether to optimize path cost
+    bool write_path;                 ///< Whether to write solution path to file
     std::string description;         ///< Description of this demo
     
     DemoConfiguration(const std::string& robot = "panda",
@@ -55,10 +62,11 @@ struct DemoConfiguration {
                      double plan_time = 1.0,
                      double simp_time = 0.5,
                      bool optimize = false,
+                     bool write_path_to_file = false,
                      const std::string& desc = "VAMP-OMPL Demo")
         : robot_name(robot), environment_name(env), planner_name(planner),
           planning_time(plan_time), simplification_time(simp_time),
-          optimize_path(optimize), description(desc)
+          optimize_path(optimize), write_path(write_path_to_file), description(desc)
     {
     }
 };
@@ -207,7 +215,8 @@ inline PlanningConfig createPlanningConfig(const DemoConfiguration& demo_config)
     return PlanningConfig(demo_config.planning_time, 
                          demo_config.simplification_time,
                          demo_config.optimize_path,
-                         demo_config.planner_name);
+                         demo_config.planner_name,
+                         demo_config.write_path);
 }
 
 /**
@@ -223,11 +232,18 @@ inline void printPlanningResults(const DemoConfiguration& demo_config,
     std::cout << "Success: " << (result.success ? "✓" : "✗") << std::endl;
     
     if (result.success) {
+        std::cout << "Planner Name: " << demo_config.planner_name << std::endl;
         std::cout << "Planning time: " << result.planning_time_us << " μs" << std::endl;
         std::cout << "Simplification time: " << result.simplification_time_us << " μs" << std::endl;
         std::cout << "Initial path cost: " << result.initial_cost << std::endl;
         std::cout << "Final path cost: " << result.final_cost << std::endl;
         std::cout << "Path length: " << result.path_length << " states" << std::endl;
+        
+        if (demo_config.write_path) {
+            std::cout << "Path writing: ✓ Enabled (check for .txt file)" << std::endl;
+        } else {
+            std::cout << "Path writing: ✗ Disabled" << std::endl;
+        }
         
         if (result.final_cost < result.initial_cost) {
             double improvement = (result.initial_cost - result.final_cost) / result.initial_cost * 100;
@@ -352,53 +368,6 @@ bool dispatchByRobotType(const std::string& robot_name, Func&& func)
  * - Programmatically-defined custom environments with ObstacleConfig vectors
  * - Empty custom environments for testing
  * 
- * 
- * @param env_name Name of the environment to create
- * @param yaml_obstacles Optional YAML-parsed obstacle specifications
- * @param custom_obstacles Optional programmatically-defined obstacles
- * @param custom_env_name Name for custom environments (used in logging/visualization)
- * @return Unique pointer to the appropriate EnvironmentFactory implementation
- * 
- * @throws std::invalid_argument if env_name is not recognized and no custom data provided
- */
-inline std::unique_ptr<EnvironmentFactory> createUnifiedEnvironmentFactory(
-    const std::string& env_name,
-    const std::vector<std::map<std::string, std::string>>* yaml_obstacles = nullptr,
-    const std::vector<ObstacleConfig>* custom_obstacles = nullptr,
-    const std::string& custom_env_name = "Custom Environment")
-{
-    // Handle custom environments first
-    if (env_name == "custom" || yaml_obstacles || custom_obstacles) {
-        if (yaml_obstacles && !yaml_obstacles->empty()) {
-            return createCustomEnvironmentFromYaml(*yaml_obstacles, custom_env_name);
-        } else if (custom_obstacles && !custom_obstacles->empty()) {
-            return std::make_unique<CustomEnvironmentFactory>(*custom_obstacles, custom_env_name, 
-                                                            "Custom environment with user-defined obstacles");
-        } else {
-            // Empty custom environment
-            return std::make_unique<CustomEnvironmentFactory>(std::vector<ObstacleConfig>{}, 
-                                                            "Empty Custom Environment", 
-                                                            "Empty custom environment");
-        }
-    }
-    
-    // Handle standard environments
-    return createEnvironmentFactory(env_name);
-}
-
-/**
- * @brief Unified environment factory creation with support for all environment types
- * 
- * This factory function provides a single entry point for creating any type of
- * environment, whether predefined or custom. It abstracts the complexity of
- * different environment creation patterns behind a uniform interface.
- * 
- * Supported Environment Types:
- * - Standard environments: "empty", "sphere_cage", "table", "custom_mixed", etc.
- * - YAML-defined custom environments with obstacle specifications
- * - Programmatically-defined custom environments with ObstacleConfig vectors
- * - Empty custom environments for testing
- * 
  * Priority Order:
  * 1. Custom environments (yaml_obstacles or custom_obstacles provided)
  * 2. Named custom environments (env_name starts with "custom")
@@ -443,11 +412,11 @@ inline std::unique_ptr<EnvironmentFactory> createUnifiedEnvironmentFactory(
 inline std::vector<DemoConfiguration> getPredefinedDemos()
 {
     return {
-        DemoConfiguration("panda", "sphere_cage", "RRT-Connect", 1.0, 0.5, false, 
+        DemoConfiguration("panda", "sphere_cage", "RRT-Connect", 1.0, 0.5, false, false, 
                          "Panda in Sphere Cage with RRT-Connect"),
-        DemoConfiguration("ur5", "sphere_cage", "PRM", 1.0, 0.5, false,
+        DemoConfiguration("ur5", "sphere_cage", "PRM", 1.0, 0.5, false, false,
                          "UR5 in Sphere Cage with PRM"),
-        DemoConfiguration("fetch", "empty", "RRT-Connect", 1.0, 0.5, false,
+        DemoConfiguration("fetch", "empty", "RRT-Connect", 1.0, 0.5, false, false,
                          "Fetch in Empty Environment with RRT-Connect"),
         DemoConfiguration("panda", "table", "RRT-Connect", 1.0, 0.5, false, true,
                          "Panda in Table Scene with RRT-Connect (with path saving)")
@@ -465,13 +434,112 @@ bool runSingleDemo(const DemoConfiguration& demo_config)
 }
 
 /**
- * @brief Run a single demo with the specified configuration
+ * @brief Interactive custom environment builder demo
+ * 
+ * This function provides an interactive interface for users to build custom environments
+ * by adding obstacles (spheres, cuboids, capsules) and then running a planning demo.
  */
 template<typename Robot>
-bool runSingleDemo(const DemoConfiguration& demo_config)
+bool runInteractiveCustomDemo(const std::string& robot_name)
 {
-    auto env_factory = createUnifiedEnvironmentFactory(demo_config.environment_name);
-    return executePlanning<Robot>(demo_config, std::move(env_factory), "Single Demo");
+    std::cout << "\n🎨 Custom Environment Builder" << std::endl;
+    std::cout << "==============================" << std::endl;
+    std::cout << "Build your custom environment by adding obstacles!" << std::endl;
+    
+    std::vector<ObstacleConfig> custom_obstacles;
+    
+    while (true) {
+        std::cout << "\nCurrent environment has " << custom_obstacles.size() << " obstacles." << std::endl;
+        std::cout << "What would you like to add?" << std::endl;
+        std::cout << "1. Sphere" << std::endl;
+        std::cout << "2. Cuboid (Box)" << std::endl;
+        std::cout << "3. Capsule" << std::endl;
+        std::cout << "4. Finish and run planning demo" << std::endl;
+        std::cout << "5. Cancel and return to main menu" << std::endl;
+        std::cout << "Enter choice (1-5): ";
+        
+        int choice;
+        std::cin >> choice;
+        
+        if (choice == 4) {
+            // Finish and run demo
+            break;
+        } else if (choice == 5) {
+            // Cancel
+            std::cout << "❌ Custom environment builder cancelled." << std::endl;
+            return false;
+        } else if (choice >= 1 && choice <= 3) {
+            std::cout << "\nAdding obstacle..." << std::endl;
+            std::cout << "Enter position (x y z): ";
+            std::array<float, 3> position;
+            std::cin >> position[0] >> position[1] >> position[2];
+            
+            if (choice == 1) {
+                // Sphere
+                std::cout << "Enter radius: ";
+                float radius;
+                std::cin >> radius;
+                ObstacleConfig config("sphere", position, radius);
+                config.name = "custom_sphere_" + std::to_string(custom_obstacles.size());
+                custom_obstacles.push_back(config);
+                std::cout << "✓ Added sphere at (" << position[0] << ", " << position[1] << ", " << position[2] << ") with radius " << radius << std::endl;
+                
+            } else if (choice == 2) {
+                // Cuboid
+                std::cout << "Enter half extents (x y z): ";
+                std::array<float, 3> half_extents;
+                std::cin >> half_extents[0] >> half_extents[1] >> half_extents[2];
+                ObstacleConfig config("cuboid", position, half_extents);
+                config.name = "custom_cuboid_" + std::to_string(custom_obstacles.size());
+                custom_obstacles.push_back(config);
+                std::cout << "✓ Added cuboid at (" << position[0] << ", " << position[1] << ", " << position[2] << ") with half extents (" << half_extents[0] << ", " << half_extents[1] << ", " << half_extents[2] << ")" << std::endl;
+                
+            } else if (choice == 3) {
+                // Capsule
+                std::cout << "Enter radius: ";
+                float radius;
+                std::cin >> radius;
+                std::cout << "Enter length: ";
+                float length;
+                std::cin >> length;
+                ObstacleConfig config("capsule", position, radius);
+                config.length = length;
+                config.orientation_euler_xyz = {0.0f, 0.0f, 1.0f}; // Default vertical orientation
+                config.name = "custom_capsule_" + std::to_string(custom_obstacles.size());
+                custom_obstacles.push_back(config);
+                std::cout << "✓ Added capsule at (" << position[0] << ", " << position[1] << ", " << position[2] << ") with radius " << radius << " and length " << length << std::endl;
+            }
+        } else {
+            std::cout << "Invalid choice. Please try again." << std::endl;
+        }
+    }
+    
+    // Create demo configuration with custom environment
+    std::cout << "\nChoose planner for your custom environment:" << std::endl;
+    std::cout << "1. BIT* (optimal)" << std::endl;
+    std::cout << "2. RRT-Connect (fast)" << std::endl;
+    std::cout << "3. PRM (multi-query)" << std::endl;
+    std::cout << "Enter choice (1-3): ";
+    
+    int planner_choice;
+    std::cin >> planner_choice;
+    
+    std::string planner_name = "BIT*";
+    if (planner_choice == 2) planner_name = "RRT-Connect";
+    else if (planner_choice == 3) planner_name = "PRM";
+    
+    // Create demo configuration
+    DemoConfiguration config(robot_name, "custom", planner_name, 2.0, 1.0, false, true,
+                           "Interactive Custom Environment: " + robot_name + " + " + planner_name);
+    
+    // Create environment factory with custom obstacles
+    auto env_factory = createUnifiedEnvironmentFactory("custom", nullptr, &custom_obstacles, "Interactive Custom Environment");
+    
+    std::cout << "\n🚀 Running planning demo with your custom environment!" << std::endl;
+    return executePlanning<Robot>(config, std::move(env_factory), "Interactive Custom Environment Demo");
+}
+
+/**
  * @brief Run all predefined demos
  */
 inline void runAllDemos()

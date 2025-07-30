@@ -1,6 +1,5 @@
 # VAMP-OMPL Configuration File
-# This file demonstrates all configuration options for both planning and visualization
-# Including custom obstacles, standard environments, and visualization settings
+# This file contains all configuration options for both planning and visualization
 
 # ==============================================================================
 # PLANNING CONFIGURATION
@@ -13,68 +12,20 @@ planning:
     
   # Environment configuration  
   environment:
-    name: "custom"                   # Options: "empty", "sphere_cage", "table", "custom"
-    description: "Custom environment with mixed obstacle types for demonstration"
-    
-    # Custom obstacles section (only used when name: "custom")
-    # This section shows how to define your own obstacles
-    custom:
-      obstacles:
-        # Example sphere obstacles
-        demo_sphere_1:
-          type: "sphere"
-          name: "demo_sphere_1"
-          position_x: 0.4
-          position_y: 0.2
-          position_z: 0.6
-          radius: 0.08
-          
-        demo_sphere_2:
-          type: "sphere" 
-          name: "demo_sphere_2"
-          position_x: -0.3
-          position_y: -0.2
-          position_z: 0.7
-          radius: 0.1
-          
-        # Example cuboid obstacle
-        demo_box:
-          type: "cuboid"
-          name: "demo_box"
-          position_x: 0.0
-          position_y: -0.4
-          position_z: 0.5
-          half_extents_x: 0.08
-          half_extents_y: 0.15
-          half_extents_z: 0.06
-          orientation_x: 0.0           # Roll in radians
-          orientation_y: 0.0           # Pitch in radians
-          orientation_z: 0.785         # Yaw in radians (45 degrees)
-          
-        # Example capsule obstacle
-        demo_capsule:
-          type: "capsule"
-          name: "demo_capsule"
-          position_x: 0.2
-          position_y: 0.3
-          position_z: 0.4
-          orientation_x: 0.0           # Roll in radians
-          orientation_y: 1.571         # Pitch in radians (90 degrees)
-          orientation_z: 0.0           # Yaw in radians
-          radius: 0.05
-          length: 0.2
+    name: "sphere_cage"              # Options: "empty", "sphere_cage", "table"
+    description: "Sphere cage environment for demonstration"
     
   # Planner configuration
   planner:
     name: "BIT*"                     # Options: "BIT*", "RRT-Connect", "PRM"
-    planning_time: 2.0               # Maximum planning time in seconds
+    planning_time: 1.0               # Maximum planning time in seconds
     simplification_time: 0.5         # Time for path simplification in seconds
     optimize_path: false             # Whether to optimize for path cost
     
   # Output configuration
   output:
     write_path: true                 # Whether to write solution path to file
-    description: "VAMP-OMPL Custom Environment Demo"
+    description: "VAMP-OMPL Demo from YAML Config"
 
 # ==============================================================================
 # VISUALIZATION CONFIGURATION
@@ -86,7 +37,7 @@ visualization:
   
   # Animation settings
   animation:
-    duration: 8.0                    # Animation duration in seconds
+    duration: 5.0                   # Animation duration in seconds
     loop: false                      # Whether to loop animation continuously
     draw_trajectory: true            # Whether to draw trajectory lines
     
@@ -106,48 +57,60 @@ visualization:
     name: ""                         # Override environment name (leave empty to use planning.environment.name)
 
 # ==============================================================================
-# QUICK CONFIGURATION TEMPLATES
+# PREDEFINED CONFIGURATIONS (Examples)
 # ==============================================================================
-# To use these templates, replace the 'planning' section above with one of these:
+# Uncomment and modify any of these predefined configs as needed:
 
-# Template 1: Standard Sphere Cage Environment
+# # Configuration 1: Panda + Sphere Cage + BIT*
 # planning:
 #   robot:
 #     name: "panda"
 #   environment:
 #     name: "sphere_cage"
-#     description: "Standard sphere cage environment"
 #   planner:
-#     name: "RRT-Connect"
+#     name: "BIT*"
 #     planning_time: 1.0
+#     simplification_time: 0.5
 #   output:
 #     write_path: true
-#     description: "Panda + Sphere Cage Demo"
+# visualization:
+#   enabled: true
+#   animation:
+#     duration: 15.0
+#     loop: true
 
-# Template 2: Table Scene Environment  
+# # Configuration 2: UR5 + Table Scene + RRT-Connect
 # planning:
 #   robot:
 #     name: "ur5"
 #   environment:
 #     name: "table"
-#     description: "Table manipulation environment"
 #   planner:
-#     name: "BIT*"
+#     name: "RRT-Connect"
 #     planning_time: 2.0
+#     simplification_time: 1.0
 #   output:
 #     write_path: true
-#     description: "UR5 + Table Scene Demo"
+# visualization:
+#   enabled: true
+#   animation:
+#     duration: 12.0
+#     draw_trajectory: true
 
-# Template 3: Empty Environment
+# # Configuration 3: Fetch + Empty + PRM  
 # planning:
 #   robot:
 #     name: "fetch"
 #   environment:
 #     name: "empty"
-#     description: "Empty space for basic motion"
 #   planner:
 #     name: "PRM"
 #     planning_time: 1.5
+#     simplification_time: 0.5
 #   output:
 #     write_path: true
-#     description: "Fetch + Empty Space Demo" 
+# visualization:
+#   enabled: true
+#   animation:
+#     duration: 8.0
+#     loop: false 

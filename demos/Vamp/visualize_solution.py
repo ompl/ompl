@@ -121,12 +121,12 @@ class URDFPathResolver:
             "../../external/vamp/resources"
         ]
         
-        for base_dir in search_dirs:
-            full_path = os.path.join(base_dir, robot_path)
+        for search_dir in search_dirs:
+            full_path = os.path.join(search_dir, robot_path)
             if os.path.exists(full_path):
                 return full_path
                 
-        raise FileNotFoundError(f"Could not find URDF for {robot_name}")
+        raise FileNotFoundError(f"Could not find URDF file for {robot_name} at {robot_path}")
 
 
 class RobotConfig:

@@ -2,8 +2,13 @@
 
 #include "VampOMPLInterfaces.h"
 #include "OMPLPlanningContext.h"
+#include <ompl/geometric/PathGeometric.h>
 #include <memory>
 #include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <string>
+#include <filesystem>
 
 namespace vamp_ompl {
 
@@ -75,12 +80,7 @@ public:
      * This must be called before planning
      */
     void initialize()
-    {
-        std::cout << "Initializing VAMP-OMPL Planner..." << std::endl;
-        std::cout << "Robot: " << robot_config_->getRobotName() << std::endl;
-        std::cout << "Environment: " << env_factory_->getEnvironmentName() << std::endl;
-        std::cout << "Description: " << env_factory_->getDescription() << std::endl;
-        
+    {   
         // Create collision environment
         auto env_input = env_factory_->createEnvironment();
         environment_ = EnvironmentVector(env_input);
@@ -108,7 +108,18 @@ public:
             throw std::runtime_error("Planner not initialized. Call initialize() first.");
         }
         
-        return ompl_context_.plan(config);
+        auto result = ompl_context_.plan(config);
+        
+        // Write solution path to file if requested and planning succeeded
+        if (config.write_path && result.success && result.solution_path) {
+            try {
+                writeSolutionPath(result, config.planner_name);
+            } catch (const std::exception& e) {
+                std::cerr << "Warning: Failed to write solution path: " << e.what() << std::endl;
+            }
+        }
+        
+        return result;
     }
     
     /**
