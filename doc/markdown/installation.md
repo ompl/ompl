@@ -69,8 +69,10 @@ sudo apt-get install ros-`rosversion -d`-ompl</pre>
     <p>OMPL requires <a href="https://www.boost.org">Boost</a> (version 1.68 or higher), <a href="https://www.cmake.org">CMake</a> (version 3.5 or higher), and <a href="http://eigen.tuxfamily.org">Eigen</a> (version 3.3 or higher).
     To be able to generate python bindings you need to install the <a href="https://www.python.org">Python</a> library and header files and <a href="installPyPlusPlus.html">Py++</a>.
     Finally, you need a C++17 compiler (g++-7 or newer).</p>
+    <p><strong>Note:</strong> OMPL includes VAMP (Vector-Accelerated Motion Planning) by default, which requires <code>git</code> for submodule initialization.</p>
     <p>Once the dependencies are installed, OMPL can then be compiled like so:</p>
     <ul>
+    <li>Initialize git submodules for VAMP: <pre class="fragment">git submodule update --init --recursive</pre></li>
     <li>Create a build directory and run cmake: <pre class="fragment">cd ompl
 mkdir -p build/Release
 cd build/Release

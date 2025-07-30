@@ -18,14 +18,14 @@ endfunction()
 # VAMP configuration function
 function(configure_vamp)
     if(NOT OMPL_BUILD_VAMP)
-        set(OMPL_HAVE_VAMP FALSE PARENT_SCOPE)
+        set(OMPL_HAVE_VAMP FALSE CACHE BOOL "Whether VAMP integration is available" FORCE)
         return()
     endif()
 
     # Check if VAMP submodule exists
     if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/vamp/CMakeLists.txt")
         message(WARNING "VAMP submodule not found. Run 'git submodule update --init --recursive' to initialize it.")
-        set(OMPL_HAVE_VAMP FALSE PARENT_SCOPE)
+        set(OMPL_HAVE_VAMP FALSE CACHE BOOL "Whether VAMP integration is available" FORCE)
         return()
     endif()
 
@@ -46,7 +46,7 @@ function(configure_vamp)
     # Configure VAMP targets
     configure_vamp_targets()
     
-    set(OMPL_HAVE_VAMP TRUE PARENT_SCOPE)
+    set(OMPL_HAVE_VAMP TRUE CACHE BOOL "Whether VAMP integration is available" FORCE)
     message(STATUS "VAMP integration configured successfully")
 endfunction()
 
@@ -55,10 +55,8 @@ function(configure_vamp_build_options)
     # Pass VAMP build options to submodule
     set(VAMP_PORTABLE_BUILD ${VAMP_PORTABLE_BUILD} CACHE BOOL "Build VAMP with portable SIMD settings" FORCE)
     
-    # Set VAMP Python bindings - default OFF unless user explicitly enables
-    if(NOT DEFINED VAMP_BUILD_PYTHON_BINDINGS)
-        set(VAMP_BUILD_PYTHON_BINDINGS OFF CACHE BOOL "Build VAMP Python bindings" FORCE)
-    endif()
+    # Set VAMP Python bindings - use top-level option value
+    set(VAMP_BUILD_PYTHON_BINDINGS ${VAMP_BUILD_PYTHON_BINDINGS} CACHE BOOL "Build VAMP Python bindings" FORCE)
     
     # Set VAMP-specific options
     set(VAMP_BUILD_CPP_DEMO OFF CACHE BOOL "Build VAMP C++ Demo Scripts" FORCE)
@@ -133,23 +131,6 @@ function(configure_vamp_targets)
         message(STATUS "VAMP C++ library target configured")
     endif()
     
-    # Make VAMP Python module available if built
-    # if(TARGET _core_ext)
-    #     # Set VAMP Python module properties
-    #     set_target_properties(_core_ext PROPERTIES
-    #         POSITION_INDEPENDENT_CODE ON
-    #         CXX_VISIBILITY_PRESET hidden
-    #         VISIBILITY_INLINES_HIDDEN ON
-    #     )
-        
-    #     # Apply SIMD flags to VAMP Python module
-    #     if(DEFINED VAMP_SIMD_FLAGS)
-    #         target_compile_options(_core_ext PRIVATE ${VAMP_SIMD_FLAGS})
-    #     endif()
-        
-    #     message(STATUS "VAMP Python module target configured")
-    # endif()
-    
     # Print VAMP build configuration
     if(VAMP_PORTABLE_BUILD)
         message(STATUS "VAMP: Using portable build mode for distribution")
@@ -157,16 +138,6 @@ function(configure_vamp_targets)
         message(STATUS "VAMP: Using native build mode for best performance")
     endif()
     
-    # Check and report Python bindings status
-    if(VAMP_BUILD_PYTHON_BINDINGS)
-        if(PYTHON_FOUND)
-            message(STATUS "VAMP: Python bindings enabled (user request)")
-        else()
-            message(FATAL_ERROR "VAMP: Python bindings requested but Python not found")
-        endif()
-    else()
-        message(STATUS "VAMP: Python bindings disabled")
-    endif()
 endfunction()
 
 # Function to apply VAMP SIMD flags to a target

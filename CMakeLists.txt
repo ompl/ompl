@@ -137,14 +137,21 @@ find_program(R_EXEC R)
 
 add_subdirectory(src)
 add_subdirectory(py-bindings)
-add_subdirectory(tests)
 
 # VAMP build options
 option(VAMP_PORTABLE_BUILD "Build VAMP with portable SIMD settings for distribution (package maintainers)" OFF)
+option(VAMP_BUILD_PYTHON_BINDINGS "Build VAMP Python bindings (requires OMPL_BUILD_VAMP=ON)" OFF)
+
 if(VAMP_PORTABLE_BUILD)
     message(STATUS "VAMP: Using portable build mode for distribution")
 else()
     message(STATUS "VAMP: Using native build mode for best performance")
+endif()
+
+if(VAMP_BUILD_PYTHON_BINDINGS)
+    message(STATUS "VAMP: Python bindings enabled")
+else()
+    message(STATUS "VAMP: Python bindings disabled (C++ only)")
 endif()
 
 # VAMP submodule integration
@@ -152,12 +159,14 @@ option(OMPL_BUILD_VAMP "Build VAMP submodule" ON)
 if(OMPL_BUILD_VAMP)
     include(CMakeModules/VampConfig.cmake)
     configure_vamp()
-    set(OMPL_HAVE_VAMP TRUE)
+    set(OMPL_HAVE_VAMP TRUE CACHE BOOL "Whether VAMP integration is available" FORCE)
     message(STATUS "VAMP integration enabled via OMPL_BUILD_VAMP=ON")
 else()
-    set(OMPL_HAVE_VAMP FALSE)
+    set(OMPL_HAVE_VAMP FALSE CACHE BOOL "Whether VAMP integration is available" FORCE)
     message(STATUS "VAMP integration disabled. Use -DOMPL_BUILD_VAMP=ON to enable.")
 endif()
+
+add_subdirectory(tests)
 
 add_subdirectory(demos)
 add_subdirectory(scripts)
