@@ -73,7 +73,7 @@ _arXiv_, 2013 [[PDF]](https://arxiv.org/pdf/1308.0189.pdf)
 
 ### Authors: Ioan Sucan and Sachin Chitta (Willow Garage)
 
-- [MoveIt!](https://moveit.ros.org) wraps OMPL as a planning plugin.
+- [MoveIt](https://moveit.ai) wraps OMPL as a planning plugin.
 
 ## RRT* and extensions
 

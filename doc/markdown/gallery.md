@@ -2,13 +2,13 @@
 
 ## MoveIt
 
-A 2017 highlight reel for [MoveIt](https://moveit.ros.org), the [ROS](https://www.ros.org) package that provides a high-level interface to OMPL and other motion planning packages.
+A 2021 highlight reel for [MoveIt](https://moveit.ai), the [ROS](https://www.ros.org) package that provides a high-level interface to OMPL and other motion planning packages.
 
 \htmlonly
 <div class="row justify-content-center">
   <div class="col-md-8 col-sm-10">
     <div class="embed-responsive embed-responsive-16by9">
-      <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/0og1SaZYtRc"></iframe>
+      <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/7KvF7Dj7bz0"></iframe>
     </div>
   </div>
 </div>
@@ -88,9 +88,9 @@ An example of using OMPL to plan for a robotic system simulated with [ODE](http:
 </div>
 \endhtmlonly
 
-## Planning Using OMPL.app {#gallery_omplapp}
+## Rigid-Body Motion Planning {#gallery_rigidbody}
 
-Below are some rigid body motion planning problems and corresponding solutions found by OMPL.app. The planar examples use a kinematic car model.
+Below are some rigid-body motion planning problems and corresponding solutions found by OMPL. The planar examples use a kinematic car model.
 
 \htmlonly
 <div class="row">

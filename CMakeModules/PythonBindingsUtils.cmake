@@ -140,16 +140,9 @@ function(create_module_target module)
                 COMMENT "Copying python module ${module} into place")
         endif(WIN32)
 
-        # put omplapp bindings in separate component
-        if(${module} STREQUAL "app")
-            set(_component "omplapp")
-        else()
-            set(_component "python")
-        endif()
-
         install(TARGETS py_ompl_${module}
             DESTINATION "${OMPL_PYTHON_INSTALL_DIR}/ompl/${module}/"
-            COMPONENT ${_component})
+            COMPONENT "python")
         include_directories("${CMAKE_CURRENT_BINARY_DIR}/bindings/${module}" "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
     else(NUM_SOURCE_FILES GREATER 0)
         if(PY_OMPL_GENERATE)

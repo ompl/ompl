@@ -4,112 +4,7 @@
 
 OMPL contains a ompl::Benchmark class that facilitates solving a motion planning problem repeatedly with different parameters, different planners, different samplers, or even differently configured versions of the same planning algorithm. Below, we will describe how you can use this class.
 
-\ifnot OMPLAPP
-For a command line program for rigid body motion planning and basic kinodynamic motion planning, see the [ompl_benchmark](https://ompl.kavrakilab.org/benchmark.html) program in OMPL.app.
-\endif
-
 For interactive visualization of benchmark databases, please see [plannerarena.org](http://plannerarena.org).
-
-\if OMPLAPP
-
-## Create a benchmark configuration file {#benchmark_config}
-
-OMPL.app contains a command line program called `ompl_benchmark`, that can read a text based configuration file using an ini style format with key/value pairs. This is the same format that can be read and saved with the OMPL.app GUI. The GUI ignores the settings related to benchmarking. However, it is often convenient to create an initial configuration with the GUI and add the benchmark settings with a text editor. Currently the base functionality of the `ompl_benchmark` program only applies to geometric planning in SE(2) and SE(3) and kinodynamic planning for certain systems, but the program can be extended by the user to other types of planning problems.
-
-There are a number of _required_ parameters necessary to define the problem. These exist under the “**[problem]**” heading:
-
-- __name__: An identifying name for the problem to be solved.
-- __robot__: The path to a mesh file describing the geometry of the robot.
-- __start.[x|y|z|theta], start.axis.[x|y|z]__: Values describing the start state of the robot. In 2D, the orientation is specified with just __start.theta__, while in 3D the axis-angle orientation is used.
-- __goal.[x|y|z|theta], goal.axis.[x|y|z]__: Values describing the goal state of the robot.
-.
-
-The following parameters are _optional_ under the “**[problem]**” heading:
-
-- __world__: The path to a mesh file describing the geometry of the environment. If unspecified, it is assumed that the robot operates in an empty workspace.
-- __objective__: Some planners in OMPL can optimize paths as a function of various optimization objective. The __objective__ parameter can be set to `length`, `max_min_clearance`, or `mechanical_work`, to minimize path length, maximize minimum clearance along the path, or mechanical work of the path, respectively. If unspecified, it is assumed the objective is `length`.
-- __objective.threshold__: If an objective is specified, you can optionally also specify the __objective.threshold__, which causes optimizing planners to terminate once they find a path with cost better than the specified threshold (a real-valued number). If unspecified, the best possible value is chosen for a threshold (e.g., for path length that would be 0), so that optimizing planners will try to find a shortest possible path.
-- __control__: There a few built-in kinodynamic systems in OMPL.app. The __control__ parameter can be set to `kinematic_car`, `dynamic_car`, `blimp`, and `quadrotor`. If unspecified, rigid-body planning is assumed. Beware that kinodynamic planning is *much* harder than rigid-body planning.
-- __sampler__: This parameter specified the sampler to be used by the planner. The following samplers are available: `uniform`, `gaussian`, `obstacle_based`, `max_clearance`. If unspecified, the uniform sampler is used.
-- __volume.[min|max].[x|y|z]__: It is sometimes necessary to specify the bounds of the workspace. Without any specification, OMPL.app assumes a tight bounding box around the environment (if specified) and the start and goal states, but depending on the environment this may not be a good assumption.
-
-Parameters relating to benchmarking must be declared under the “**[benchmark]**” heading:
-
-- __time_limit__: The amount of time (seconds) for each plan computation.
-- __mem_limit__: The maximum amount of memory (MB) for each planner. Memory measurements are not very accurate, so it is recommended to set this to a very large value.
-- __run_count__: The number of times to repeat the experiment for each planner.
-- __output__: Output directory where the benchmark log file will be saved. This parameter is optional; by default the log file is saved in the same directory as the configuration file.
-- __save_paths__: This _optional_ parameter can be set to `none`, `all`, or `shortest` to save _no_ solution paths (the default value), _all_ solution paths (including approximate solutions), or the _shortest_ exact solution for each planner, respectively. These paths can then be “played back” in the [OMPL.app GUI](gui.html#gui_paths).
-
-The last required element to specify are the planners to benchmark.  These are specified under the “**[planner]**” heading.  The following planners are valid for geometric benchmarking:
-`kpiece`,  `bkpiece`,  `lbkpiece`,  `est`,  `sbl`,  `prm`,  `lazyprm`,  `lazyprmstar`,  `rrt`,  `rrtconnect`,  `lazyrrt`,  `rrtstar`,  `lbtrrt`,  `trrt`,  `spars`,  `spars2`,  `stride`,  `pdst`,  `fmt`, and  `aps`.
-The following planners are valid for kinodynamic planning (i.e., when the  `control` parameter is set):
- `kpiece`,  `rrt`,  `est`,  `pdst`,  `sycloprrt`, and  `syclopest`.
-
-An example of a minimal SE(2) configuration comparing the rrt and est planners is given below:
-
-~~~{.yaml}
-[problem]
-name=my_benchmark_problem
-robot=my_robot_mesh.dae
-start.x=0.0
-start.y=0.0
-start.theta=0.0
-goal.x=1.0
-goal.y=1.0
-goal.theta=0.0
-
-[benchmark]
-time_limit=10.0
-mem_limit=1000.0
-run_count = 3
-
-[planner]
-est=
-rrt=
-~~~
-
-Any parameter defined by these planners may also be configured for the benchmark. For example, the geometric::RRT planner defines two parameters, “range” and “goal_bias”, both real valued. The default values can be changed under the “planner” heading in the following manner:
-
-- __rrt.range__=50.0
-- __rrt.goal_bias__=0.10
-
-There are many other optional parameters that can be specified or changed. The `ompl_benchmark` executable takes advantage of the ompl::base::ParamSet class, and uses this functionality to set any parameter defined in the file. If a class exposes a parameter, chances are that it is possible to tune it via the config file. OMPL.app provides two example configuration files inside of the benchmark directory, example.cfg and example_complex.cfg showing the configuration of many of these optional parameters.
-
-It is possible to create multiple instances of the same planner and configure each differently. This code, for example, creates two instances of `rrtconnect` with different values for its range parameter:
-
-~~~{.yaml}
-rrtconnect=
-rrtconnect.range=100
-rrtconnect=
-rrtconnect.range=200
-~~~
-
-Moreover, the problem settings can be changed between different planner instances.
-Below, some of the problem settings are changed for the second instance of `kpiece`.
-
-~~~{.yaml}
-kpiece=
-kpiece=
-# increase the size of the projection by a specific factor, in every dimension
-problem.projection.cellsize_factor = 4.0
-# specify a different sampler
-problem.sampler=obstacle_based
-~~~
-
-When using multiple planner instances, a useful parameter is “name”, as it can be used to rename a planner. For example, two instances of geometric::PRM can be created but named differently. Having different names is useful when processing the resulting log data using the [benchmark script](#benchmark_log).
-
-~~~{.yaml}
-prm=
-problem.sampler=uniform
-prm.name=uniprm
-prm=
-problem.sampler=obstacle_based
-prm.name=obprm
-~~~
-
-Finally, to execute the benchmark configuration file, simply run the `ompl_benchmark` executable in the OMPL.app bin directory, and supply the path to the config file as the first argument.
-\endif
 
 ## Writing benchmarking code {#benchmark_code}
 
@@ -285,7 +180,7 @@ With the Benchmark class one can thus measure how the cost is decreasing over ti
 
 ## Sample benchmark results {#benchmark_sample_results}
 
-Below are sample results for running benchmarks for two example problems: the “cubicles” environment and the “Twistycool” environment. The complete benchmarking program (SE3RigidBodyPlanningBenchmark.cpp), the environment and robot files are included with OMPL.app, so you can rerun the exact same benchmarks on your own machine. See the [gallery](gallery.html#gallery_omplapp) for visualizations of sample solutions to both problems. The results below were run on a recent model Apple MacBook Pro (2.66 GHz Intel Core i7, 8GB of RAM). It is important to note that none of the planner parameters were tuned; all benchmarks were run with default settings. From these results one cannot draw any firm conclusions about which planner is “better” than some other planner.
+Below are sample results for running benchmarks for two example problems. See the [gallery](gallery.html#gallery_rigidbody) for visualizations of sample solutions to both problems. The results below were run on a recent model Apple MacBook Pro (2.66 GHz Intel Core i7, 8GB of RAM). It is important to note that none of the planner parameters were tuned; all benchmarks were run with default settings. From these results one cannot draw any firm conclusions about which planner is “better” than some other planner.
 
 These are the PDF files with plots as generated by the ompl_benchmark_statistics.py script:
 
@@ -424,7 +319,7 @@ dev.off()
 dbDisconnect(con)
 ~~~
 
-For a small database with 1 experiment (the “cubicles” problem from OMPL.app) and 5 planner configurations we then obtain the following two plots:
+For a small database with 1 experiment and 5 planner configurations we then obtain the following two plots:
 \htmlonly
 <div class="row">
 <div class="col-md-6 col-sm-6">
