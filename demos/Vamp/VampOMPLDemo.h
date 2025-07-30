@@ -107,6 +107,76 @@ createRobotConfig<vamp::robots::Fetch>(const std::string& robot_name, const std:
 }
 
 /**
+ * @brief Parse obstacles from YAML configuration and create CustomEnvironmentFactory
+ */
+inline std::unique_ptr<CustomEnvironmentFactory> createCustomEnvironmentFromYaml(
+    const std::vector<std::map<std::string, std::string>>& yaml_obstacles,
+    const std::string& name = "Custom YAML Environment")
+{
+    auto factory = std::make_unique<CustomEnvironmentFactory>(
+        std::vector<ObstacleConfig>{}, name, "Environment created from YAML configuration"
+    );
+    
+    for (const auto& obstacle_map : yaml_obstacles) {
+        try {
+            std::string type = obstacle_map.at("type");
+            
+            // Parse position (required for all)
+            std::array<float, 3> position;
+            position[0] = std::stof(obstacle_map.at("position_x"));
+            position[1] = std::stof(obstacle_map.at("position_y"));
+            position[2] = std::stof(obstacle_map.at("position_z"));
+            
+            std::string obs_name = "";
+            auto name_it = obstacle_map.find("name");
+            if (name_it != obstacle_map.end()) {
+                obs_name = name_it->second;
+            }
+            
+            if (type == "sphere") {
+                float radius = std::stof(obstacle_map.at("radius"));
+                factory->addSphere(position, radius, obs_name);
+                
+            } else if (type == "cuboid") {
+                std::array<float, 3> half_extents;
+                half_extents[0] = std::stof(obstacle_map.at("half_extents_x"));
+                half_extents[1] = std::stof(obstacle_map.at("half_extents_y"));
+                half_extents[2] = std::stof(obstacle_map.at("half_extents_z"));
+                
+                std::array<float, 3> orientation = {0.0f, 0.0f, 0.0f};
+                auto orient_x = obstacle_map.find("orientation_x");
+                auto orient_y = obstacle_map.find("orientation_y");
+                auto orient_z = obstacle_map.find("orientation_z");
+                if (orient_x != obstacle_map.end()) orientation[0] = std::stof(orient_x->second);
+                if (orient_y != obstacle_map.end()) orientation[1] = std::stof(orient_y->second);
+                if (orient_z != obstacle_map.end()) orientation[2] = std::stof(orient_z->second);
+                
+                factory->addCuboid(position, half_extents, orientation, obs_name);
+                
+            } else if (type == "capsule") {
+                float radius = std::stof(obstacle_map.at("radius"));
+                float length = std::stof(obstacle_map.at("length"));
+                
+                std::array<float, 3> orientation;
+                orientation[0] = std::stof(obstacle_map.at("orientation_x"));
+                orientation[1] = std::stof(obstacle_map.at("orientation_y"));
+                orientation[2] = std::stof(obstacle_map.at("orientation_z"));
+                
+                factory->addCapsule(position, orientation, radius, length, obs_name);
+                
+            } else {
+                std::cerr << "Warning: Unknown obstacle type '" << type << "' in YAML. Skipping." << std::endl;
+            }
+            
+        } catch (const std::exception& e) {
+            std::cerr << "Error parsing obstacle from YAML: " << e.what() << std::endl;
+        }
+    }
+    
+    return factory;
+}
+
+/**
  * @brief Create environment factory by name
  */
 inline std::unique_ptr<EnvironmentFactory> createEnvironmentFactory(const std::string& env_name)
@@ -117,9 +187,15 @@ inline std::unique_ptr<EnvironmentFactory> createEnvironmentFactory(const std::s
         return std::make_unique<SphereCageEnvironmentFactory>();
     } else if (env_name == "table") {
         return std::make_unique<TableSceneEnvironmentFactory>();
+    } else if (env_name == "custom_mixed") {
+        return CustomEnvironmentFactory::createSampleEnvironment("mixed");
+    } else if (env_name == "custom_spheres") {
+        return CustomEnvironmentFactory::createSampleEnvironment("spheres_only");
+    } else if (env_name == "custom_cuboids") {
+        return CustomEnvironmentFactory::createSampleEnvironment("cuboids_only");
     } else {
         throw std::invalid_argument("Unknown environment: " + env_name + 
-                                  ". Available: empty, sphere_cage, table");
+                                  ". Available: empty, sphere_cage, table, custom_mixed, custom_spheres, custom_cuboids");
     }
 }
 
@@ -185,30 +261,27 @@ inline void printPlanningResults(const DemoConfiguration& demo_config,
  *       4. Result formatting and display
  */
 template<typename Robot>
-bool runSingleDemo(const DemoConfiguration& demo_config)
+bool executePlanning(const DemoConfiguration& demo_config, 
+                    std::unique_ptr<EnvironmentFactory> env_factory,
+                    const std::string& execution_context = "Demo")
 {
     try {
         std::cout << "\n" << std::string(60, '-') << std::endl;
-        std::cout << "Starting Demo: " << demo_config.description << std::endl;
+        std::cout << "Starting " << execution_context << ": " << demo_config.description << std::endl;
         std::cout << std::string(60, '-') << std::endl;
         
-        // Create robot and environment configurations
+        // Create robot configuration
         auto robot_config = createRobotConfig<Robot>(demo_config.robot_name, demo_config.environment_name);
-        auto env_factory = createEnvironmentFactory(demo_config.environment_name);
         
         // Create planner
         auto planner = createVampOMPLPlanner(std::move(robot_config), std::move(env_factory));
         
-        // Print configuration
+        // Print configuration and initialize
         planner->printConfiguration();
-        
-        // Initialize
         planner->initialize();
         
-        // Create planning configuration
+        // Create planning configuration and execute
         auto planning_config = createPlanningConfig(demo_config);
-        
-        // Plan
         std::cout << "\nStarting planning..." << std::endl;
         auto result = planner->plan(planning_config);
         
@@ -218,7 +291,50 @@ bool runSingleDemo(const DemoConfiguration& demo_config)
         return result.success;
         
     } catch (const std::exception& e) {
-        std::cout << "✗ Demo failed: " << e.what() << std::endl;
+        std::cout << "✗ " << execution_context << " failed: " << e.what() << std::endl;
+        return false;
+    }
+}
+
+/**
+ * @brief Type-safe robot dispatch mechanism using template metaprogramming
+ * 
+ * This function implements a compile-time type dispatch pattern that eliminates
+ * runtime type checking overhead. It allows the same planning logic to work
+ * with different robot types while maintaining full type safety.
+ * 
+ * Implementation Pattern:
+ * The function accepts a generic callable (lambda, function object, or function pointer)
+ * and invokes it with the appropriate robot type as a template parameter. This
+ * enables the compiler to generate optimized code paths for each robot type.
+ * 
+ * Usage Example:
+ * @code
+ * dispatchByRobotType("panda", []<typename Robot>() {
+ *     return runSingleDemo<Robot>(config);
+ * });
+ * @endcode
+ * 
+ * @tparam Func Callable type that accepts a robot type as template parameter
+ * @param robot_name String identifier for the robot type ("panda", "ur5", "fetch")
+ * @param func Callable to invoke with the appropriate robot type
+ * @return Result of the callable function, or false if robot type is unsupported
+ * 
+ * @note This pattern avoids dynamic_cast and virtual dispatch overhead while
+ *       providing extensibility for new robot types through template specialization
+ */
+template<typename Func>
+bool dispatchByRobotType(const std::string& robot_name, Func&& func)
+{
+    if (robot_name == "panda") {
+        return func.template operator()<vamp::robots::Panda>();
+    } else if (robot_name == "ur5") {
+        return func.template operator()<vamp::robots::UR5>();
+    } else if (robot_name == "fetch") {
+        return func.template operator()<vamp::robots::Fetch>();
+    } else {
+        std::cout << "❌ Unsupported robot: " << robot_name << 
+                     ". Available: panda, ur5, fetch" << std::endl;
         return false;
     }
 }
@@ -271,6 +387,57 @@ inline std::unique_ptr<EnvironmentFactory> createUnifiedEnvironmentFactory(
 }
 
 /**
+ * @brief Unified environment factory creation with support for all environment types
+ * 
+ * This factory function provides a single entry point for creating any type of
+ * environment, whether predefined or custom. It abstracts the complexity of
+ * different environment creation patterns behind a uniform interface.
+ * 
+ * Supported Environment Types:
+ * - Standard environments: "empty", "sphere_cage", "table", "custom_mixed", etc.
+ * - YAML-defined custom environments with obstacle specifications
+ * - Programmatically-defined custom environments with ObstacleConfig vectors
+ * - Empty custom environments for testing
+ * 
+ * Priority Order:
+ * 1. Custom environments (yaml_obstacles or custom_obstacles provided)
+ * 2. Named custom environments (env_name starts with "custom")
+ * 3. Standard predefined environments
+ * 
+ * @param env_name Name of the environment to create
+ * @param yaml_obstacles Optional YAML-parsed obstacle specifications
+ * @param custom_obstacles Optional programmatically-defined obstacles
+ * @param custom_env_name Name for custom environments (used in logging/visualization)
+ * @return Unique pointer to the appropriate EnvironmentFactory implementation
+ * 
+ * @throws std::invalid_argument if env_name is not recognized and no custom data provided
+ */
+inline std::unique_ptr<EnvironmentFactory> createUnifiedEnvironmentFactory(
+    const std::string& env_name,
+    const std::vector<std::map<std::string, std::string>>* yaml_obstacles = nullptr,
+    const std::vector<ObstacleConfig>* custom_obstacles = nullptr,
+    const std::string& custom_env_name = "Custom Environment")
+{
+    // Handle custom environments first
+    if (env_name == "custom" || yaml_obstacles || custom_obstacles) {
+        if (yaml_obstacles && !yaml_obstacles->empty()) {
+            return createCustomEnvironmentFromYaml(*yaml_obstacles, custom_env_name);
+        } else if (custom_obstacles && !custom_obstacles->empty()) {
+            return std::make_unique<CustomEnvironmentFactory>(*custom_obstacles, custom_env_name, 
+                                                            "Custom environment with user-defined obstacles");
+        } else {
+            // Empty custom environment
+            return std::make_unique<CustomEnvironmentFactory>(std::vector<ObstacleConfig>{}, 
+                                                            "Empty Custom Environment", 
+                                                            "Empty custom environment");
+        }
+    }
+    
+    // Handle standard environments
+    return createEnvironmentFactory(env_name);
+}
+
+/**
  * @brief Get predefined demo configurations
  */
 inline std::vector<DemoConfiguration> getPredefinedDemos()
@@ -282,9 +449,19 @@ inline std::vector<DemoConfiguration> getPredefinedDemos()
                          "UR5 in Sphere Cage with PRM"),
         DemoConfiguration("fetch", "empty", "RRT-Connect", 1.0, 0.5, false,
                          "Fetch in Empty Environment with RRT-Connect"),
-        DemoConfiguration("panda", "table", "RRT-Connect", 1.0, 0.5, false,
-                         "Panda in Table Scene with RRT-Connect")
+        DemoConfiguration("panda", "table", "RRT-Connect", 1.0, 0.5, false, true,
+                         "Panda in Table Scene with RRT-Connect (with path saving)")
     };
+}
+
+/**
+ * @brief Run a single demo with the specified configuration (simplified version)
+ */
+template<typename Robot>
+bool runSingleDemo(const DemoConfiguration& demo_config)
+{
+    auto env_factory = createUnifiedEnvironmentFactory(demo_config.environment_name);
+    return executePlanning<Robot>(demo_config, std::move(env_factory), "Single Demo");
 }
 
 /**
@@ -295,6 +472,29 @@ bool runSingleDemo(const DemoConfiguration& demo_config)
 {
     auto env_factory = createUnifiedEnvironmentFactory(demo_config.environment_name);
     return executePlanning<Robot>(demo_config, std::move(env_factory), "Single Demo");
+ * @brief Run all predefined demos
+ */
+inline void runAllDemos()
+{
+    std::cout << "\n🚀 VAMP + OMPL Integration Demo Suite" << std::endl;
+    std::cout << "======================================" << std::endl;
+    std::cout << "This demo showcases the integration of VAMP (Vector-Accelerated Motion Planning)" << std::endl;
+    std::cout << "with OMPL using a clean, extensible architecture." << std::endl;
+    
+    auto demos = getPredefinedDemos();
+    int success_count = 0;
+    
+    for (const auto& demo : demos) {
+        bool success = dispatchByRobotType(demo.robot_name, [&demo]<typename Robot>() {
+            return runSingleDemo<Robot>(demo);
+        });
+        
+        if (success) success_count++;
+    }
+    
+    std::cout << "\n🏁 Demo Suite Complete!" << std::endl;
+    std::cout << "Success rate: " << success_count << "/" << demos.size() 
+              << " (" << (100.0 * success_count / demos.size()) << "%)" << std::endl;
 }
 
 } // namespace vamp_ompl

@@ -8,12 +8,24 @@
 namespace vamp_ompl {
 
 /**
- * @brief Main VAMP-OMPL integration planner
+ * @brief Main VAMP-OMPL integration planner implementing the Facade pattern
  * 
- * This class acts as a thin coordination layer that brings together:
- * - Robot configuration (joint limits, default poses)
- * - Environment factory (collision environment creation)
- * - OMPL planning context (space setup, planning execution)
+ * This class acts as a unified interface that coordinates between the VAMP collision
+ * detection system and OMPL's motion planning algorithms. It implements the Facade
+ * design pattern to hide the complexity of integrating these two systems.
+ * 
+ * Key Responsibilities:
+ * - Configuration management: Maintains robot and environment configurations
+ * - Lifecycle management: Handles initialization, planning, and cleanup phases
+ * - Performance optimization: Leverages VAMP's vectorized collision detection
+ * - Result processing: Handles path writing, timing, and result formatting
+ * 
+ * Architecture Benefits:
+ * - Single point of integration between VAMP and OMPL
+ * - Type-safe template-based robot support
+ * - Minimal coupling between subsystems
+ * - Consistent error handling and reporting
+ * - Extensible to new robot types and environments
  * 
  * The class follows the single responsibility principle and delegates
  * specific tasks to specialized components.

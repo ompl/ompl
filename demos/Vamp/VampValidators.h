@@ -1,3 +1,25 @@
+/**
+ * @file VampValidators.h
+ * @brief VAMP-optimized state and motion validators for OMPL integration
+ * 
+ * This file implements the core validation components that bridge OMPL's validation
+ * interface with VAMP's vectorized collision detection system. The validators are
+ * designed to maximize SIMD utilization for significant performance improvements.
+ * 
+ * Key Performance Features:
+ * - Vectorized collision checking: Process 8 configurations simultaneously
+ * - SIMD-optimized memory layout: Structure-of-Arrays for cache efficiency
+ * - "Rake" motion validation: Spatially distributed sampling for faster motion checks
+ * - Zero-copy integration: Direct OMPL-to-VAMP configuration conversion
+ * 
+ * Validation Architecture:
+ * - VampStateValidator: Point-in-space collision queries
+ * - VampMotionValidator: Edge-based motion validation with vectorized sampling
+ * 
+ * The validators maintain OMPL's validation interface while leveraging VAMP's
+ * advanced collision detection capabilities, providing seamless integration
+ * with any OMPL-compatible planner.
+ */
 #pragma once
 
 #include "VampOMPLInterfaces.h"
@@ -8,10 +30,24 @@
 namespace vamp_ompl {
 
 /**
- * @brief State validity checker using VAMP collision detection
+ * @brief SIMD-accelerated state validity checker for single configuration validation
  * 
- * This class is focused solely on checking whether individual states
- * are valid (collision-free) using VAMP's collision detection.
+ * This validator implements OMPL's StateValidityChecker interface using VAMP's
+ * vectorized collision detection system. While OMPL requests single-state validation,
+ * this class leverages VAMP's ability to check multiple configurations simultaneously
+ * by using the same configuration in all SIMD lanes.
+ * 
+ * Performance Optimization:
+ * The validator uses VAMP's validate_motion function with identical start and end
+ * configurations, effectively performing a point collision check but within VAMP's
+ * optimized SIMD framework. This approach maintains consistency with motion validation
+ * while providing optimal performance for state queries.
+ * 
+ * Memory Layout:
+ * Configurations are converted from OMPL's AOS (Array of Structs) format to VAMP's
+ * SOA (Struct of Arrays) format to enable efficient SIMD operations.
+ * 
+ * @tparam Robot VAMP robot type providing collision checking capabilities
  */
 template<typename Robot>
 class VampStateValidator : public ob::StateValidityChecker {
@@ -66,10 +102,26 @@ private:
 };
 
 /**
- * @brief Motion validity checker using VAMP collision detection
+ * @brief SIMD-accelerated motion validator implementing the "rake" sampling approach
  * 
- * This class is focused solely on checking whether motions between
- * two states are valid (collision-free) using VAMP's motion validation.
+ * This validator implements OMPL's MotionValidator interface using VAMP's advanced
+ * motion validation system. Unlike traditional motion validators that check states
+ * sequentially along a path, this class uses VAMP's "rake" approach to check
+ * multiple spatially distributed points simultaneously.
+ * 
+ * The "Rake" Concept:
+ * Instead of: Check(t=0.1) → Check(t=0.2) → Check(t=0.3) → ... (sequential)
+ * VAMP does: Check(t=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]) (parallel)
+ * 
+ * This spatial distribution allows SIMD instructions to process 8 collision checks
+ * simultaneously, resulting in significant performance improvements for motion validation.
+ * 
+ * Resolution Control:
+ * The validation resolution is controlled by Robot::resolution, which determines
+ * how many intermediate points are sampled along each motion. Higher resolution
+ * provides more thorough validation at the cost of computational overhead.
+ * 
+ * @tparam Robot VAMP robot type with resolution parameter
  */
 template<typename Robot>
 class VampMotionValidator : public ob::MotionValidator {

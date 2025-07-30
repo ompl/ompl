@@ -1,0 +1,168 @@
+# VAMP-OMPL Custom Obstacles Demo Configuration
+# This file demonstrates how to define custom environments with specific obstacle positions
+
+# ==============================================================================
+# PLANNING CONFIGURATION
+# ==============================================================================
+planning:
+  # Robot configuration
+  robot:
+    name: "panda"                    # Options: "panda", "ur5", "fetch"
+    urdf_path: ""                    # Custom URDF path (optional, leave empty for default)
+    
+  # Environment configuration with custom obstacles
+  environment:
+    name: "custom"                   # Use "custom" to enable custom obstacles
+    description: "Custom environment with mixed obstacle types"
+    
+    # Custom obstacles definition
+    custom:
+      obstacles:
+        sphere_1:
+          type: "sphere"
+          name: "sphere_1"
+          position_x: 0.3
+          position_y: 0.2
+          position_z: 0.6
+          radius: 0.08
+          
+        sphere_2:
+          type: "sphere"
+          name: "sphere_2"
+          position_x: -0.25
+          position_y: -0.3
+          position_z: 0.7
+          radius: 0.1
+          
+        box_1:
+          type: "cuboid"
+          name: "box_1"
+          position_x: 0.0
+          position_y: -0.4
+          position_z: 0.5
+          half_extents_x: 0.06
+          half_extents_y: 0.15
+          half_extents_z: 0.08
+          orientation_x: 0.0
+          orientation_y: 0.0
+          orientation_z: 0.785    # 45 degrees in radians
+          
+        box_2:
+          type: "cuboid"
+          name: "box_2"
+          position_x: -0.35
+          position_y: 0.1
+          position_z: 0.4
+          half_extents_x: 0.1
+          half_extents_y: 0.05
+          half_extents_z: 0.2
+          orientation_x: 0.0
+          orientation_y: 0.0
+          orientation_z: 0.0      # Axis-aligned
+          
+        capsule_1:
+          type: "capsule"
+          name: "capsule_1"
+          position_x: 0.4
+          position_y: -0.1
+          position_z: 0.8
+          orientation_x: 1.57   # 90 degrees - vertical capsule
+          orientation_y: 0.0
+          orientation_z: 0.0
+          radius: 0.05
+          length: 0.2
+          
+        capsule_2:
+          type: "capsule"
+          name: "capsule_2"
+          position_x: -0.1
+          position_y: 0.35
+          position_z: 0.6
+          orientation_x: 0.0
+          orientation_y: 1.57   # 90 degrees - horizontal capsule
+          orientation_z: 0.0
+          radius: 0.06
+          length: 0.25
+          
+  # Planner configuration
+  planner:
+    name: "BIT*"                     # Options: "BIT*", "RRT-Connect", "PRM"
+    planning_time: 3.0               # Longer time for complex custom environment
+    simplification_time: 1.0         # More time for path simplification
+    optimize_path: false             # Whether to optimize for path cost
+    
+  # Output configuration
+  output:
+    write_path: true                 # Write solution path to file for visualization
+    description: "Custom Obstacles Demo - Mixed Environment"
+
+# ==============================================================================
+# VISUALIZATION CONFIGURATION
+# ==============================================================================
+visualization:
+  # Basic settings
+  enabled: true                      # Run visualization after planning
+  auto_start: false                  # Wait for user input before starting animation
+  
+  # Animation settings
+  animation:
+    duration: 8.0                    # Longer duration for complex paths
+    loop: true                       # Loop animation continuously
+    draw_trajectory: true            # Show trajectory lines
+    
+  # Display settings
+  display:
+    gui: true                        # Show PyBullet GUI
+    interactive_mode: false          # Use automatic file detection
+    verbose: false                   # Minimal debug output
+    
+  # Robot visualization settings (optional overrides)
+  robot:
+    name: ""                         # Use planning robot name
+    urdf_path: ""                    # Use planning robot URDF
+    
+  # Environment visualization settings (optional overrides)
+  environment:
+    name: ""                         # Use planning environment name
+
+# ==============================================================================
+# NOTES AND EXAMPLES
+# ==============================================================================
+# 
+# Obstacle Types and Parameters:
+# 
+# SPHERE:
+#   - type: "sphere"
+#   - position_x, position_y, position_z: center coordinates
+#   - radius: sphere radius
+#   - name: optional obstacle name
+# 
+# CUBOID:
+#   - type: "cuboid"
+#   - position_x, position_y, position_z: center coordinates
+#   - half_extents_x, half_extents_y, half_extents_z: half-sizes along each axis
+#   - orientation_x, orientation_y, orientation_z: Euler angles (roll, pitch, yaw) in radians
+#   - name: optional obstacle name
+# 
+# CAPSULE:
+#   - type: "capsule"
+#   - position_x, position_y, position_z: center coordinates
+#   - orientation_x, orientation_y, orientation_z: Euler angles (roll, pitch, yaw) in radians
+#   - radius: capsule radius
+#   - length: capsule length
+#   - name: optional obstacle name
+#
+# Coordinate System:
+#   - X: forward/backward relative to robot base
+#   - Y: left/right relative to robot base
+#   - Z: up/down (vertical)
+#   - Typical robot workspace: X,Y ∈ [-0.5, 0.5], Z ∈ [0.2, 1.0]
+#
+# Euler Angles (in radians):
+#   - 0.0     = 0 degrees
+#   - 0.785   = 45 degrees
+#   - 1.57    = 90 degrees
+#   - 3.14    = 180 degrees
+#
+# Example Usage:
+#   ./VampDemo yaml custom_obstacles_demo.yaml 

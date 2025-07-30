@@ -5,6 +5,8 @@
 #include <vector>
 #include <array>
 #include <cmath>
+#include <map>
+#include <sstream>
 
 namespace vamp_ompl {
 
@@ -294,7 +296,7 @@ public:
     }
     
     /**
-     * @brief Get the obstacle configurations
+     * @brief Get the obstacle configurations for serialization/debugging
      */
     const std::vector<ObstacleConfig>& getObstacles() const {
         return obstacles_;

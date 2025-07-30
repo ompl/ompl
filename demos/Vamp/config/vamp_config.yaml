@@ -1,0 +1,153 @@
+# VAMP-OMPL Configuration File
+# This file demonstrates all configuration options for both planning and visualization
+# Including custom obstacles, standard environments, and visualization settings
+
+# ==============================================================================
+# PLANNING CONFIGURATION
+# ==============================================================================
+planning:
+  # Robot configuration
+  robot:
+    name: "panda"                    # Options: "panda", "ur5", "fetch"
+    urdf_path: ""                    # Custom URDF path (optional, leave empty for default)
+    
+  # Environment configuration  
+  environment:
+    name: "custom"                   # Options: "empty", "sphere_cage", "table", "custom"
+    description: "Custom environment with mixed obstacle types for demonstration"
+    
+    # Custom obstacles section (only used when name: "custom")
+    # This section shows how to define your own obstacles
+    custom:
+      obstacles:
+        # Example sphere obstacles
+        demo_sphere_1:
+          type: "sphere"
+          name: "demo_sphere_1"
+          position_x: 0.4
+          position_y: 0.2
+          position_z: 0.6
+          radius: 0.08
+          
+        demo_sphere_2:
+          type: "sphere" 
+          name: "demo_sphere_2"
+          position_x: -0.3
+          position_y: -0.2
+          position_z: 0.7
+          radius: 0.1
+          
+        # Example cuboid obstacle
+        demo_box:
+          type: "cuboid"
+          name: "demo_box"
+          position_x: 0.0
+          position_y: -0.4
+          position_z: 0.5
+          half_extents_x: 0.08
+          half_extents_y: 0.15
+          half_extents_z: 0.06
+          orientation_x: 0.0           # Roll in radians
+          orientation_y: 0.0           # Pitch in radians
+          orientation_z: 0.785         # Yaw in radians (45 degrees)
+          
+        # Example capsule obstacle
+        demo_capsule:
+          type: "capsule"
+          name: "demo_capsule"
+          position_x: 0.2
+          position_y: 0.3
+          position_z: 0.4
+          orientation_x: 0.0           # Roll in radians
+          orientation_y: 1.571         # Pitch in radians (90 degrees)
+          orientation_z: 0.0           # Yaw in radians
+          radius: 0.05
+          length: 0.2
+    
+  # Planner configuration
+  planner:
+    name: "BIT*"                     # Options: "BIT*", "RRT-Connect", "PRM"
+    planning_time: 2.0               # Maximum planning time in seconds
+    simplification_time: 0.5         # Time for path simplification in seconds
+    optimize_path: false             # Whether to optimize for path cost
+    
+  # Output configuration
+  output:
+    write_path: true                 # Whether to write solution path to file
+    description: "VAMP-OMPL Custom Environment Demo"
+
+# ==============================================================================
+# VISUALIZATION CONFIGURATION
+# ==============================================================================
+visualization:
+  # Basic settings
+  enabled: true                      # Whether to run visualization after planning
+  auto_start: true                   # Whether to start animation automatically (false = wait for user input)
+  
+  # Animation settings
+  animation:
+    duration: 8.0                    # Animation duration in seconds
+    loop: false                      # Whether to loop animation continuously
+    draw_trajectory: true            # Whether to draw trajectory lines
+    
+  # Display settings
+  display:
+    gui: true                        # Whether to show PyBullet GUI (false = headless)
+    interactive_mode: false          # Whether to use interactive file selector
+    verbose: false                   # Whether to show PyBullet debug output
+    
+  # Robot visualization settings (optional overrides)
+  robot:
+    name: ""                         # Override robot name (leave empty to use planning.robot.name)
+    urdf_path: ""                    # Override URDF path (leave empty to use planning.robot.urdf_path)
+    
+  # Environment visualization settings (optional overrides)
+  environment:
+    name: ""                         # Override environment name (leave empty to use planning.environment.name)
+
+# ==============================================================================
+# QUICK CONFIGURATION TEMPLATES
+# ==============================================================================
+# To use these templates, replace the 'planning' section above with one of these:
+
+# Template 1: Standard Sphere Cage Environment
+# planning:
+#   robot:
+#     name: "panda"
+#   environment:
+#     name: "sphere_cage"
+#     description: "Standard sphere cage environment"
+#   planner:
+#     name: "RRT-Connect"
+#     planning_time: 1.0
+#   output:
+#     write_path: true
+#     description: "Panda + Sphere Cage Demo"
+
+# Template 2: Table Scene Environment  
+# planning:
+#   robot:
+#     name: "ur5"
+#   environment:
+#     name: "table"
+#     description: "Table manipulation environment"
+#   planner:
+#     name: "BIT*"
+#     planning_time: 2.0
+#   output:
+#     write_path: true
+#     description: "UR5 + Table Scene Demo"
+
+# Template 3: Empty Environment
+# planning:
+#   robot:
+#     name: "fetch"
+#   environment:
+#     name: "empty"
+#     description: "Empty space for basic motion"
+#   planner:
+#     name: "PRM"
+#     planning_time: 1.5
+#   output:
+#     write_path: true
+#     description: "Fetch + Empty Space Demo" 
