@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE(VampBasicSIMDTest)
 #endif
 }
 
-// Test memory alignment for SIMD operations (basic requirement)
+// Test memory alignment for SIMD operations
 BOOST_AUTO_TEST_CASE(VampMemoryAlignmentTest)
 {
     BOOST_TEST_MESSAGE("Testing SIMD-compatible memory alignment");
