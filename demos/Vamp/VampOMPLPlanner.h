@@ -17,6 +17,11 @@ namespace vamp_ompl {
  * 
  * The class follows the single responsibility principle and delegates
  * specific tasks to specialized components.
+ * This class acts as a unified interface that coordinates between the VAMP collision
+ * detection system and OMPL's motion planning algorithms. It implements the Facade
+ * design pattern to hide the complexity of integrating these two systems.
+ * 
+ * @tparam Robot VAMP robot type (e.g., vamp::robots::Panda)
  */
 template<typename Robot>
 class VampOMPLPlanner {
@@ -112,11 +117,112 @@ public:
         // Set custom problem
         ompl_context_.setProblem(start_config, goal_config);
         
-        return ompl_context_.plan(config);
+        auto result = ompl_context_.plan(config);
+        
+        // Write solution path to file if requested and planning succeeded
+        if (config.write_path && result.success && result.solution_path) {
+            try {
+                writeSolutionPath(result, config.planner_name);
+            } catch (const std::exception& e) {
+                std::cerr << "Warning: Failed to write solution path: " << e.what() << std::endl;
+            }
+        }
+        
+        return result;
+    }
+
+    /**
+     * @brief Write the interpolated solution path to a text file
+     * @param result Planning result containing the solution path
+     * @param planner_name Name of the planner used (for filename)
+     * @param num_waypoints Number of waypoints to interpolate (default: 100)
+     * @param output_dir Output directory path (default: tries demos/Vamp/, falls back to current dir)
+     */
+    void writeSolutionPath(const PlanningResult& result, 
+                          const std::string& planner_name,
+                          size_t num_waypoints = 100,
+                          const std::string& output_dir = "") const
+    {
+        if (!result.success || !result.solution_path) {
+            throw std::runtime_error("No valid solution path to write");
+        }
+
+        // Cast to geometric path
+        auto path_geometric = std::dynamic_pointer_cast<ompl::geometric::PathGeometric>(result.solution_path);
+        if (!path_geometric) {
+            throw std::runtime_error("Solution path is not a geometric path");
+        }
+
+        // Interpolate the path to get evenly spaced waypoints
+        path_geometric->interpolate(num_waypoints);
+
+        // Determine output directory
+        std::string target_dir = output_dir;
+        if (target_dir.empty()) {
+            // Try to use demos/Vamp/ directory first
+            if (std::filesystem::exists("demos/Vamp/")) {
+                target_dir = "demos/Vamp/";
+            } else if (std::filesystem::exists("../demos/Vamp/")) {
+                target_dir = "../demos/Vamp/";
+            } else if (std::filesystem::exists("../../demos/Vamp/")) {
+                target_dir = "../../demos/Vamp/";
+            } else {
+                // Fall back to current directory
+                target_dir = "./";
+            }
+        }
+
+        // Ensure directory exists
+        std::filesystem::create_directories(target_dir);
+
+        // Generate filename with robot, environment, and planner info
+        std::string filename = target_dir + "solution_path_" + 
+                              robot_config_->getRobotName() + "_" +
+                              env_factory_->getEnvironmentName() + "_" + 
+                              planner_name + ".txt";
+
+        std::ofstream file(filename);
+        if (!file.is_open()) {
+            throw std::runtime_error("Failed to open file: " + filename);
+        }
+
+        // Write header
+        file << "# Solution Path for " << robot_config_->getRobotName() 
+             << " in " << env_factory_->getEnvironmentName() 
+             << " environment using " << planner_name << " planner\n";
+        file << "# Format: Each row contains joint values for one waypoint\n";
+        file << "# Number of joints: " << dimension << "\n";
+        file << "# Number of waypoints: " << path_geometric->getStateCount() << "\n";
+        file << "# Path cost: " << result.final_cost << "\n";
+        file << "#\n";
+
+        // Write column headers
+        file << "# ";
+        for (size_t i = 0; i < dimension; ++i) {
+            file << "joint_" << i;
+            if (i < dimension - 1) file << "\t";
+        }
+        file << "\n";
+
+        // Write waypoints
+        for (size_t i = 0; i < path_geometric->getStateCount(); ++i) {
+            const auto* state = path_geometric->getState(i)->as<ompl::base::RealVectorStateSpace::StateType>();
+            
+            for (size_t j = 0; j < dimension; ++j) {
+                file << std::fixed << std::setprecision(6) << (*state)[j];
+                if (j < dimension - 1) file << "\t";
+            }
+            file << "\n";
+        }
+
+        file.close();
+        std::cout << "✓ Solution path written to: " << filename << std::endl;
+        std::cout << "  - Waypoints: " << path_geometric->getStateCount() << std::endl;
+        std::cout << "  - Path cost: " << result.final_cost << std::endl;
     }
     
     /**
-     * @brief Get robot configuration (for inspection or modification)
+     * @brief Get robot configuration
      * @return Reference to robot configuration
      */
     const RobotConfig<Robot>& getRobotConfig() const
@@ -125,7 +231,7 @@ public:
     }
     
     /**
-     * @brief Get environment factory (for inspection)
+     * @brief Get environment factory
      * @return Reference to environment factory
      */
     const EnvironmentFactory& getEnvironmentFactory() const
@@ -134,7 +240,7 @@ public:
     }
     
     /**
-     * @brief Get OMPL planning context (for advanced usage)
+     * @brief Get OMPL planning context
      * @return Reference to OMPL planning context
      */
     const OMPLPlanningContext<Robot>& getOMPLContext() const

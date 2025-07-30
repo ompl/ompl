@@ -1,3 +1,25 @@
+/**
+ * @file VampOMPLDemo.h
+ * @brief High-level VAMP-OMPL integration demo framework
+ * 
+ * This file provides a complete demonstration framework for VAMP-OMPL integration,
+ * showcasing vectorized motion planning with microsecond-level performance.
+ * 
+ * Key Features:
+ * - Template-based robot support (Panda, UR5, Fetch)
+ * - Flexible environment system with custom obstacle support
+ * - Unified planning interface with multiple OMPL planners
+ * - YAML-driven configuration for reproducible experiments
+ * - Integrated path visualization capabilities
+ * 
+ * Architecture Overview:
+ * The demo follows a layered architecture with clear separation of concerns:
+ * 1. Configuration Layer: DemoConfiguration, YAML parsing
+ * 2. Planning Layer: Robot configs, environment factories, OMPL context
+ * 3. Execution Layer: Unified planning functions, result handling
+ * 4. Visualization Layer: Path writing and PyBullet integration
+ * 
+ */
 #pragma once
 
 // Include all VAMP-OMPL integration components
@@ -144,6 +166,23 @@ inline void printPlanningResults(const DemoConfiguration& demo_config,
 
 /**
  * @brief Run a single demo with the specified configuration
+ * @brief Unified planning execution interface
+ * 
+ * This function serves as the central planning execution point. It provides
+ * a consistent interface for any robot type and environment combination.
+ * 
+ * 
+ * @tparam Robot The robot type (e.g., vamp::robots::Panda)
+ * @param demo_config Configuration specifying robot, environment, planner, and timing
+ * @param env_factory Factory for creating the collision environment
+ * @param execution_context Descriptive context for logging and error reporting
+ * @return true if planning succeeded, false otherwise
+ * 
+ * @note This function handles the complete planning pipeline:
+ *       1. Robot configuration creation and validation
+ *       2. Planner initialization with VAMP validators
+ *       3. Planning execution with timing measurement
+ *       4. Result formatting and display
  */
 template<typename Robot>
 bool runSingleDemo(const DemoConfiguration& demo_config)
@@ -185,6 +224,53 @@ bool runSingleDemo(const DemoConfiguration& demo_config)
 }
 
 /**
+ * @brief Unified environment factory creation with support for all environment types
+ * 
+ * This factory function provides a single entry point for creating any type of
+ * environment, whether predefined or custom. It abstracts the complexity of
+ * different environment creation patterns behind a uniform interface.
+ * 
+ * Supported Environment Types:
+ * - Standard environments: "empty", "sphere_cage", "table", "custom_mixed", etc.
+ * - YAML-defined custom environments with obstacle specifications
+ * - Programmatically-defined custom environments with ObstacleConfig vectors
+ * - Empty custom environments for testing
+ * 
+ * 
+ * @param env_name Name of the environment to create
+ * @param yaml_obstacles Optional YAML-parsed obstacle specifications
+ * @param custom_obstacles Optional programmatically-defined obstacles
+ * @param custom_env_name Name for custom environments (used in logging/visualization)
+ * @return Unique pointer to the appropriate EnvironmentFactory implementation
+ * 
+ * @throws std::invalid_argument if env_name is not recognized and no custom data provided
+ */
+inline std::unique_ptr<EnvironmentFactory> createUnifiedEnvironmentFactory(
+    const std::string& env_name,
+    const std::vector<std::map<std::string, std::string>>* yaml_obstacles = nullptr,
+    const std::vector<ObstacleConfig>* custom_obstacles = nullptr,
+    const std::string& custom_env_name = "Custom Environment")
+{
+    // Handle custom environments first
+    if (env_name == "custom" || yaml_obstacles || custom_obstacles) {
+        if (yaml_obstacles && !yaml_obstacles->empty()) {
+            return createCustomEnvironmentFromYaml(*yaml_obstacles, custom_env_name);
+        } else if (custom_obstacles && !custom_obstacles->empty()) {
+            return std::make_unique<CustomEnvironmentFactory>(*custom_obstacles, custom_env_name, 
+                                                            "Custom environment with user-defined obstacles");
+        } else {
+            // Empty custom environment
+            return std::make_unique<CustomEnvironmentFactory>(std::vector<ObstacleConfig>{}, 
+                                                            "Empty Custom Environment", 
+                                                            "Empty custom environment");
+        }
+    }
+    
+    // Handle standard environments
+    return createEnvironmentFactory(env_name);
+}
+
+/**
  * @brief Get predefined demo configurations
  */
 inline std::vector<DemoConfiguration> getPredefinedDemos()
@@ -202,35 +288,13 @@ inline std::vector<DemoConfiguration> getPredefinedDemos()
 }
 
 /**
- * @brief Run all predefined demos
+ * @brief Run a single demo with the specified configuration
  */
-inline void runAllDemos()
+template<typename Robot>
+bool runSingleDemo(const DemoConfiguration& demo_config)
 {
-    std::cout << "\n🚀 VAMP + OMPL Integration Demo Suite" << std::endl;
-    std::cout << "======================================" << std::endl;
-    std::cout << "This demo showcases the integration of VAMP (Vector-Accelerated Motion Planning)" << std::endl;
-    std::cout << "with OMPL using a clean, extensible architecture." << std::endl;
-    
-    auto demos = getPredefinedDemos();
-    int success_count = 0;
-    
-    for (const auto& demo : demos) {
-        bool success = false;
-        
-        if (demo.robot_name == "panda") {
-            success = runSingleDemo<vamp::robots::Panda>(demo);
-        } else if (demo.robot_name == "ur5") {
-            success = runSingleDemo<vamp::robots::UR5>(demo);
-        } else if (demo.robot_name == "fetch") {
-            success = runSingleDemo<vamp::robots::Fetch>(demo);
-        }
-        
-        if (success) success_count++;
-    }
-    
-    std::cout << "\n🏁 Demo Suite Complete!" << std::endl;
-    std::cout << "Success rate: " << success_count << "/" << demos.size() 
-              << " (" << (100.0 * success_count / demos.size()) << "%)" << std::endl;
+    auto env_factory = createUnifiedEnvironmentFactory(demo_config.environment_name);
+    return executePlanning<Robot>(demo_config, std::move(env_factory), "Single Demo");
 }
 
 } // namespace vamp_ompl

@@ -143,4 +143,282 @@ public:
     }
 };
 
+/**
+ * @brief Configuration structure for custom obstacles
+ */
+struct ObstacleConfig {
+    std::string type;           // "sphere", "cuboid", "capsule"
+    std::string name;           // Optional name for the obstacle
+    std::array<float, 3> position;
+    std::array<float, 3> orientation_euler_xyz = {0.0f, 0.0f, 0.0f}; // For cuboids and capsules
+    float radius = 0.1f;        // For spheres and capsules
+    std::array<float, 3> half_extents = {0.1f, 0.1f, 0.1f}; // For cuboids
+    float length = 0.2f;        // For capsules
+    
+    ObstacleConfig() = default;
+    
+    ObstacleConfig(const std::string& obstacle_type, 
+                   const std::array<float, 3>& pos,
+                   float r = 0.1f)
+        : type(obstacle_type), position(pos), radius(r) {}
+        
+    ObstacleConfig(const std::string& obstacle_type,
+                   const std::array<float, 3>& pos,
+                   const std::array<float, 3>& half_ext)
+        : type(obstacle_type), position(pos), half_extents(half_ext) {}
+};
+
+/**
+ * @brief Creates a custom environment from user-specified obstacles
+ */
+class CustomEnvironmentFactory : public EnvironmentFactory {
+private:
+    std::vector<ObstacleConfig> obstacles_;
+    std::string environment_name_;
+    std::string description_;
+    
+public:
+    /**
+     * @brief Constructor with obstacles list
+     */
+    CustomEnvironmentFactory(const std::vector<ObstacleConfig>& obstacles,
+                           const std::string& name = "Custom Environment",
+                           const std::string& desc = "User-defined custom environment")
+        : obstacles_(obstacles), environment_name_(name), description_(desc)
+    {
+    }
+    
+    /**
+     * @brief Add a sphere obstacle
+     */
+    void addSphere(const std::array<float, 3>& position, float radius, const std::string& name = "") {
+        ObstacleConfig config("sphere", position, radius);
+        config.name = name.empty() ? "sphere_" + std::to_string(obstacles_.size()) : name;
+        obstacles_.push_back(config);
+    }
+    
+    /**
+     * @brief Add a cuboid obstacle
+     */
+    void addCuboid(const std::array<float, 3>& position, 
+                   const std::array<float, 3>& half_extents,
+                   const std::array<float, 3>& orientation_euler_xyz = {0.0f, 0.0f, 0.0f},
+                   const std::string& name = "") {
+        ObstacleConfig config("cuboid", position, half_extents);
+        config.orientation_euler_xyz = orientation_euler_xyz;
+        config.name = name.empty() ? "cuboid_" + std::to_string(obstacles_.size()) : name;
+        obstacles_.push_back(config);
+    }
+    
+    /**
+     * @brief Add a capsule obstacle
+     */
+    void addCapsule(const std::array<float, 3>& position,
+                    const std::array<float, 3>& orientation_euler_xyz,
+                    float radius, float length,
+                    const std::string& name = "") {
+        ObstacleConfig config("capsule", position, radius);
+        config.orientation_euler_xyz = orientation_euler_xyz;
+        config.length = length;
+        config.name = name.empty() ? "capsule_" + std::to_string(obstacles_.size()) : name;
+        obstacles_.push_back(config);
+    }
+    
+    vamp::collision::Environment<float> createEnvironment() override
+    {
+        vamp::collision::Environment<float> environment;
+        
+        for (const auto& obstacle : obstacles_) {
+            if (obstacle.type == "sphere") {
+                environment.spheres.emplace_back(
+                    vamp::collision::factory::sphere::array(obstacle.position, obstacle.radius)
+                );
+                if (!obstacle.name.empty()) {
+                    environment.spheres.back().name = obstacle.name;
+                }
+                
+            } else if (obstacle.type == "cuboid") {
+                environment.cuboids.emplace_back(
+                    vamp::collision::factory::cuboid::array(
+                        obstacle.position, 
+                        obstacle.orientation_euler_xyz, 
+                        obstacle.half_extents
+                    )
+                );
+                if (!obstacle.name.empty()) {
+                    environment.cuboids.back().name = obstacle.name;
+                }
+                
+            } else if (obstacle.type == "capsule") {
+                environment.capsules.emplace_back(
+                    vamp::collision::factory::capsule::center::array(
+                        obstacle.position,
+                        obstacle.orientation_euler_xyz,
+                        obstacle.radius,
+                        obstacle.length
+                    )
+                );
+                if (!obstacle.name.empty()) {
+                    environment.capsules.back().name = obstacle.name;
+                }
+            } else {
+                std::cerr << "Warning: Unknown obstacle type '" << obstacle.type 
+                          << "'. Skipping obstacle." << std::endl;
+            }
+        }
+        
+        environment.sort();
+        return environment;
+    }
+    
+    std::string getEnvironmentName() const override
+    {
+        return environment_name_;
+    }
+    
+    std::string getDescription() const override
+    {
+        std::string desc = description_ + " (" + std::to_string(obstacles_.size()) + " obstacles: ";
+        std::map<std::string, int> type_counts;
+        for (const auto& obstacle : obstacles_) {
+            type_counts[obstacle.type]++;
+        }
+        bool first = true;
+        for (const auto& [type, count] : type_counts) {
+            if (!first) desc += ", ";
+            desc += std::to_string(count) + " " + type + (count > 1 ? "s" : "");
+            first = false;
+        }
+        desc += ")";
+        return desc;
+    }
+    
+    /**
+     * @brief Get the obstacle configurations
+     */
+    const std::vector<ObstacleConfig>& getObstacles() const {
+        return obstacles_;
+    }
+    
+    /**
+     * @brief Clear all obstacles
+     */
+    void clearObstacles() {
+        obstacles_.clear();
+    }
+    
+    /**
+     * @brief Serialize obstacles to string format for visualization
+     */
+    std::string serializeObstacles() const {
+        std::ostringstream oss;
+        bool first = true;
+        
+        for (const auto& obstacle : obstacles_) {
+            if (!first) oss << ";";
+            first = false;
+            
+            bool first_prop = true;
+            
+            // Add type
+            oss << "type=" << obstacle.type;
+            first_prop = false;
+            
+            // Add position
+            if (!first_prop) oss << ",";
+            oss << "position_x=" << obstacle.position[0];
+            oss << ",position_y=" << obstacle.position[1];
+            oss << ",position_z=" << obstacle.position[2];
+            
+            // Add name if available
+            if (!obstacle.name.empty()) {
+                oss << ",name=" << obstacle.name;
+            }
+            
+            // Add type-specific properties
+            if (obstacle.type == "sphere") {
+                oss << ",radius=" << obstacle.radius;
+            } else if (obstacle.type == "cuboid") {
+                oss << ",half_extents_x=" << obstacle.half_extents[0];
+                oss << ",half_extents_y=" << obstacle.half_extents[1];
+                oss << ",half_extents_z=" << obstacle.half_extents[2];
+                oss << ",orientation_x=" << obstacle.orientation_euler_xyz[0];
+                oss << ",orientation_y=" << obstacle.orientation_euler_xyz[1];
+                oss << ",orientation_z=" << obstacle.orientation_euler_xyz[2];
+            } else if (obstacle.type == "capsule") {
+                oss << ",radius=" << obstacle.radius;
+                oss << ",length=" << obstacle.length;
+                oss << ",orientation_x=" << obstacle.orientation_euler_xyz[0];
+                oss << ",orientation_y=" << obstacle.orientation_euler_xyz[1];
+                oss << ",orientation_z=" << obstacle.orientation_euler_xyz[2];
+            }
+        }
+        
+        return oss.str();
+    }
+    
+    /**
+     * @brief Print obstacle configuration for debugging
+     */
+    void printConfiguration() const {
+        std::cout << "\n--- Custom Environment Configuration ---" << std::endl;
+        std::cout << "Name: " << environment_name_ << std::endl;
+        std::cout << "Total obstacles: " << obstacles_.size() << std::endl;
+        
+        for (size_t i = 0; i < obstacles_.size(); ++i) {
+            const auto& obs = obstacles_[i];
+            std::cout << "  [" << i << "] " << obs.type;
+            if (!obs.name.empty()) std::cout << " (" << obs.name << ")";
+            std::cout << ": pos=[" << obs.position[0] << ", " << obs.position[1] << ", " << obs.position[2] << "]";
+            
+            if (obs.type == "sphere") {
+                std::cout << ", radius=" << obs.radius;
+            } else if (obs.type == "cuboid") {
+                std::cout << ", half_extents=[" << obs.half_extents[0] << ", " << obs.half_extents[1] << ", " << obs.half_extents[2] << "]";
+                std::cout << ", orientation=[" << obs.orientation_euler_xyz[0] << ", " << obs.orientation_euler_xyz[1] << ", " << obs.orientation_euler_xyz[2] << "]";
+            } else if (obs.type == "capsule") {
+                std::cout << ", radius=" << obs.radius << ", length=" << obs.length;
+                std::cout << ", orientation=[" << obs.orientation_euler_xyz[0] << ", " << obs.orientation_euler_xyz[1] << ", " << obs.orientation_euler_xyz[2] << "]";
+            }
+            std::cout << std::endl;
+        }
+        std::cout << "----------------------------------------" << std::endl;
+    }
+    
+    /**
+     * @brief Create predefined custom environments for demos
+     */
+    static std::unique_ptr<CustomEnvironmentFactory> createSampleEnvironment(const std::string& sample_name = "mixed") {
+        auto factory = std::make_unique<CustomEnvironmentFactory>(
+            std::vector<ObstacleConfig>{}, 
+            "Custom Sample Environment", 
+            "Sample environment with mixed obstacles"
+        );
+        
+        if (sample_name == "mixed") {
+            // Create a mixed environment with different obstacle types
+            factory->addSphere({0.3f, 0.3f, 0.5f}, 0.1f, "sphere_1");
+            factory->addSphere({-0.3f, -0.3f, 0.7f}, 0.08f, "sphere_2");
+            factory->addCuboid({0.0f, -0.4f, 0.6f}, {0.05f, 0.15f, 0.1f}, {0.0f, 0.0f, 0.785f}, "cuboid_1");
+            factory->addCuboid({-0.2f, 0.2f, 0.4f}, {0.1f, 0.05f, 0.2f}, {0.0f, 0.0f, 0.0f}, "cuboid_2");
+            factory->addCapsule({0.4f, -0.1f, 0.8f}, {1.57f, 0.0f, 0.0f}, 0.06f, 0.25f, "capsule_1");
+            
+        } else if (sample_name == "spheres_only") {
+            // Only spheres for simpler testing
+            factory->addSphere({0.2f, 0.2f, 0.5f}, 0.12f, "sphere_1");
+            factory->addSphere({-0.2f, -0.2f, 0.7f}, 0.1f, "sphere_2");
+            factory->addSphere({0.0f, -0.3f, 0.4f}, 0.08f, "sphere_3");
+            factory->addSphere({0.3f, -0.1f, 0.8f}, 0.09f, "sphere_4");
+            
+        } else if (sample_name == "cuboids_only") {
+            // Only cuboids for testing
+            factory->addCuboid({0.15f, 0.15f, 0.5f}, {0.08f, 0.08f, 0.15f}, {0.0f, 0.0f, 0.0f}, "cuboid_1");
+            factory->addCuboid({-0.15f, -0.15f, 0.7f}, {0.1f, 0.06f, 0.12f}, {0.0f, 0.0f, 0.785f}, "cuboid_2");
+            factory->addCuboid({0.0f, -0.25f, 0.4f}, {0.06f, 0.12f, 0.08f}, {0.0f, 0.0f, 1.57f}, "cuboid_3");
+        }
+        
+        return factory;
+    }
+};
+
 } // namespace vamp_ompl
