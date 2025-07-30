@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <array>
 
 #include <vamp/collision/environment.hh>
 #include <ompl/base/MotionValidator.h>
@@ -112,6 +113,86 @@ struct PlanningResult {
     size_t path_length = 0;                 ///< Number of states in final path
     std::string error_message;              ///< Error message if planning failed
     ob::PathPtr solution_path;              ///< The solution path (if successful)
+    std::string solution_file_path;         ///< Path to written solution file (if write_path enabled)
+};
+
+/**
+ * @brief Configuration structure for obstacles (Single Responsibility)
+ */
+struct ObstacleConfig {
+    std::string type;           // "sphere", "cuboid", "capsule"
+    std::string name;           // Optional name for the obstacle
+    std::array<float, 3> position;
+    std::array<float, 3> orientation_euler_xyz = {0.0f, 0.0f, 0.0f}; // For cuboids and capsules
+    float radius = 0.1f;        // For spheres and capsules
+    std::array<float, 3> half_extents = {0.1f, 0.1f, 0.1f}; // For cuboids
+    float length = 0.2f;        // For capsules
+    
+    ObstacleConfig() = default;
+    
+    ObstacleConfig(const std::string& obstacle_type, 
+                   const std::array<float, 3>& pos,
+                   float r = 0.1f)
+        : type(obstacle_type), position(pos), radius(r) {}
+        
+    ObstacleConfig(const std::string& obstacle_type,
+                   const std::array<float, 3>& pos,
+                   const std::array<float, 3>& half_ext)
+        : type(obstacle_type), position(pos), half_extents(half_ext) {}
+};
+
+/**
+ * @brief Planning configuration with explicit requirements (No Defaults)
+ */
+struct PlanningConfiguration {
+    std::string robot_name;
+    std::string description;
+    bool save_path = false;
+    
+    // Planning configuration - MUST be explicitly set
+    PlanningConfig planning;
+    
+    // Start/goal configurations - MUST be provided (no defaults)
+    std::vector<float> start_config;
+    std::vector<float> goal_config;
+    
+    // Obstacle configurations - MUST be provided (no named environments)
+    std::vector<ObstacleConfig> obstacles;
+    
+    // Validation helper
+    bool isValid() const {
+        return !robot_name.empty() && 
+               !start_config.empty() && 
+               !goal_config.empty() &&
+               !planning.planner_name.empty() &&
+               planning.planning_time > 0.0;
+    }
+    
+    std::string getValidationErrors() const {
+        std::string errors;
+        if (robot_name.empty()) errors += "Robot name not specified. ";
+        if (start_config.empty()) errors += "Start configuration not provided. ";
+        if (goal_config.empty()) errors += "Goal configuration not provided. ";
+        if (planning.planner_name.empty()) errors += "Planner name not specified. ";
+        if (planning.planning_time <= 0.0) errors += "Invalid planning time. ";
+        return errors;
+    }
+};
+
+/**
+ * @brief Planning result that extends PlanningResult (Single Responsibility Principle)
+ */
+struct MotionPlanningResult {
+    PlanningResult planning_result;
+    std::string solution_file_path;
+    std::string robot_name; // Store robot name for visualization
+    
+    // Convenience accessors
+    bool success() const { return planning_result.success; }
+    double planning_time_us() const { return planning_result.planning_time_us; }
+    double final_cost() const { return planning_result.final_cost; }
+    size_t path_length() const { return planning_result.path_length; }
+    const std::string& error_message() const { return planning_result.error_message; }
 };
 
 } // namespace vamp_ompl

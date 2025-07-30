@@ -113,6 +113,14 @@ if (OMPL_BUILD_DEMOS)
             message(WARNING "VAMP vamp_cpp target not found - demo may not build correctly")
         endif()
         
+        # Link against yaml-cpp for configuration parsing
+        if(TARGET yaml-cpp::yaml-cpp)
+            target_link_libraries(demo_Vamp PRIVATE yaml-cpp::yaml-cpp)
+            message(STATUS "VAMP demo linked against yaml-cpp library")
+        else()
+            message(WARNING "yaml-cpp not found - VAMP demo may not build correctly")
+        endif()
+        
         message(STATUS "VAMP demo will be built using VAMP C++ library and OMPL")
     endif()
     
