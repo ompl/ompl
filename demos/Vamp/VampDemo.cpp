@@ -18,10 +18,10 @@ using namespace vamp_ompl;
  */
 
 /**
- * @brief Create the basic programmatic example configuration
+ * @brief Create the basic setup example configuration
  * 
  *  Note: This function demonstrates how to create motion planning
- * configurations programmatically. This approach is useful for research applications
+ * configurations directly in code. This approach is useful for research applications
  * where configurations need to be generated algorithmically or for batch processing.
  * 
  * The configuration showcases a typical pick-and-place scenario with a Panda robot
@@ -29,7 +29,7 @@ using namespace vamp_ompl;
  */
 PlanningConfiguration createBasicExample()
 {
-    std::cout << "🔧 Creating basic programmatic configuration..." << std::endl;
+    std::cout << "🔧 Creating basic setup configuration..." << std::endl;
     
     // Step 1: Create configuration object
     PlanningConfiguration planningConfiguration;
@@ -110,7 +110,7 @@ PlanningConfiguration createBasicExample()
         planningConfiguration.obstacles.push_back(sphereObstacle);
     }
     
-    std::cout << "✓ Created " << planningConfiguration.obstacles.size() << " obstacles programmatically" << std::endl;
+    std::cout << "✓ Created " << planningConfiguration.obstacles.size() << " obstacles directly in code" << std::endl;
     
     return planningConfiguration;
 }
@@ -177,20 +177,20 @@ int main(int argc, char **argv)
             shouldRunVisualization = true; // Always offer visualization for YAML mode
             
         } else {
-            // Programmatic mode - demonstrates code-based configuration
-            std::cout << "Mode: Programmatic Configuration" << std::endl;
-            auto programmaticPlanningConfiguration = createBasicExample();
+            // Basic setup mode - demonstrates code-based configuration
+            std::cout << "Mode: Basic Setup Configuration" << std::endl;
+            auto basicPlanningConfiguration = createBasicExample();
             
             // Validate configuration
-            if (!programmaticPlanningConfiguration.isValid()) {
-                std::cout << "❌ Configuration validation failed: " << programmaticPlanningConfiguration.getValidationErrors() << std::endl;
+            if (!basicPlanningConfiguration.isValid()) {
+                std::cout << "❌ Configuration validation failed: " << basicPlanningConfiguration.getValidationErrors() << std::endl;
                 return 1;
             }
             
             std::cout << "✓ Configuration validation passed" << std::endl;
-            std::cout << "🚀 Starting planning with programmatic configuration..." << std::endl;
-            motionPlanningResult = executeMotionPlanning(programmaticPlanningConfiguration);
-            configurationSource = "programmatic";
+            std::cout << "🚀 Starting planning with basic setup configuration..." << std::endl;
+            motionPlanningResult = executeMotionPlanning(basicPlanningConfiguration);
+            configurationSource = "basic_setup";
         }
         
         // Show results

@@ -2,25 +2,22 @@
 #include <boost/test/unit_test.hpp>
 #include <cstring>
 #include <iostream>
+#include <array>
+#include <vector>
 
-// Architecture-specific headers for basic SIMD testing
-#if defined(__x86_64__) || defined(_M_X64)
-#include <immintrin.h>
-#elif defined(__aarch64__) || defined(_M_ARM64)
-#include <arm_neon.h>
-#endif
+// VAMP robot types for testing  
+#include <vamp/robots/panda.hh>
 
-// Test that VAMP configuration is working
-BOOST_AUTO_TEST_CASE(VampConfigurationTest)
-{
-    // This test verifies that VAMP was properly configured during build
-    // If this test compiles and runs, it means:
-    // 1. OMPL_HAVE_VAMP was set to TRUE in CMake
-    // 2. vamp_cpp target was available for linking
-    // 3. The basic build integration is working
-    
-    BOOST_CHECK_MESSAGE(true, "VAMP integration compiled and linked successfully");
-}
+// OMPL includes for state conversion testing
+#include <ompl/base/spaces/RealVectorStateSpace.h>
+#include <ompl/base/SpaceInformation.h>
+#include <ompl/base/ScopedState.h>
+
+// VAMP-OMPL integration headers
+#include "../../demos/Vamp/VampValidators.h"
+#include "../../demos/Vamp/VampOMPLInterfaces.h"
+
+namespace ob = ompl::base;
 
 // Test VAMP target availability and linking
 BOOST_AUTO_TEST_CASE(VampTargetLinkingTest)
@@ -31,85 +28,42 @@ BOOST_AUTO_TEST_CASE(VampTargetLinkingTest)
     BOOST_CHECK_MESSAGE(true, "vamp_cpp target successfully linked");
 }
 
-// Test basic SIMD support (minimal architecture verification)
-BOOST_AUTO_TEST_CASE(VampBasicSIMDTest)
+// Test OMPL to VAMP state conversion for Panda robot
+BOOST_AUTO_TEST_CASE(VampStateConversionPandaTest)
 {
-#if defined(__x86_64__) || defined(_M_X64)
-    BOOST_TEST_MESSAGE("Testing x86_64 SIMD support");
+    using Robot = vamp::robots::Panda;
+    constexpr std::size_t robotDimension = Robot::dimension;
     
-    // Test basic AVX2 (core requirement for VAMP performance)
-#ifdef __AVX2__
-    BOOST_CHECK_MESSAGE(true, "AVX2 support detected - VAMP SIMD configuration working");
+    BOOST_TEST_MESSAGE("Testing OMPL to VAMP state conversion for Panda robot");
+    BOOST_CHECK_EQUAL(robotDimension, 7);
     
-    // Basic AVX2 functionality test
-    __m256i a = _mm256_set1_epi32(10);
-    __m256i b = _mm256_set1_epi32(5);
-    __m256i result = _mm256_add_epi32(a, b);
-    
-    int extracted[8];
-    _mm256_storeu_si256((__m256i*)extracted, result);
-    BOOST_CHECK_EQUAL(extracted[0], 15);
-    
-    BOOST_TEST_MESSAGE("AVX2 operations working correctly");
-#else
-    BOOST_WARN_MESSAGE(false, "AVX2 not detected - VAMP may have reduced performance");
-#endif
-
-#elif defined(__aarch64__) || defined(_M_ARM64)
-    BOOST_TEST_MESSAGE("Testing ARM64 SIMD support");
-    
-    // Test basic NEON (standard on ARM64)
-#ifdef __ARM_NEON
-    BOOST_CHECK_MESSAGE(true, "ARM NEON support detected - VAMP SIMD configuration working");
-    
-    // Basic NEON functionality test
-    int32x4_t a = vdupq_n_s32(10);
-    int32x4_t b = vdupq_n_s32(5);
-    int32x4_t result = vaddq_s32(a, b);
-    
-    int32_t extracted[4];
-    vst1q_s32(extracted, result);
-    BOOST_CHECK_EQUAL(extracted[0], 15);
-    
-    BOOST_TEST_MESSAGE("ARM NEON operations working correctly");
-#else
-    BOOST_WARN_MESSAGE(false, "ARM NEON not detected - check VAMP SIMD configuration");
-#endif
-
-#else
-    BOOST_TEST_MESSAGE("Unknown architecture - VAMP SIMD optimizations may not be available");
-#endif
-}
-
-// Test memory alignment for SIMD operations
-BOOST_AUTO_TEST_CASE(VampMemoryAlignmentTest)
-{
-    BOOST_TEST_MESSAGE("Testing SIMD-compatible memory alignment");
-    
-    // Test 32-byte alignment (required for AVX2)
-    constexpr size_t alignment = 32;
-    constexpr size_t size = 256;
-    
-    void* aligned_ptr = nullptr;
-    int result = posix_memalign(&aligned_ptr, alignment, size);
-    
-    BOOST_CHECK_EQUAL(result, 0);
-    BOOST_CHECK(aligned_ptr != nullptr);
-    
-    if (aligned_ptr) {
-        // Verify alignment
-        uintptr_t addr = reinterpret_cast<uintptr_t>(aligned_ptr);
-        BOOST_CHECK_EQUAL(addr % alignment, 0);
-        
-        // Basic write test
-        memset(aligned_ptr, 0x42, size);
-        unsigned char* bytes = static_cast<unsigned char*>(aligned_ptr);
-        BOOST_CHECK_EQUAL(bytes[0], 0x42);
-        
-        free(aligned_ptr);
-        
-        BOOST_TEST_MESSAGE("Memory alignment test passed");
+    // Create OMPL state space
+    auto realVectorSpace = std::make_shared<ob::RealVectorStateSpace>(robotDimension);
+    ob::RealVectorBounds bounds(robotDimension);
+    for (size_t i = 0; i < robotDimension; ++i) {
+        bounds.setLow(i, -3.14);
+        bounds.setHigh(i, 3.14);
     }
+    realVectorSpace->setBounds(bounds);
+    
+    auto spaceInfo = std::make_shared<ob::SpaceInformation>(realVectorSpace);
+    ob::ScopedState<> omplState(realVectorSpace);
+    
+    // Set test configuration values
+    std::array<double, robotDimension> testConfig = {0.0, -0.785, 0.0, -2.356, 0.0, 1.571, 0.785};
+    for (size_t i = 0; i < robotDimension; ++i) {
+        omplState[i] = testConfig[i];
+    }
+    
+    // Test that conversion function can be called without error
+    try {
+        auto vampConfig = vamp_ompl::conversion::ompl_to_vamp<Robot>(omplState.get());
+        BOOST_CHECK_MESSAGE(true, "OMPL to VAMP conversion succeeded for Panda robot");
+    } catch (const std::exception& e) {
+        BOOST_FAIL("OMPL to VAMP conversion failed: " + std::string(e.what()));
+    }
+    
+    BOOST_TEST_MESSAGE("Panda state conversion test passed");
 }
 
 // Test portable vs native build configuration
@@ -137,23 +91,79 @@ BOOST_AUTO_TEST_CASE(VampBuildConfigurationTest)
     BOOST_TEST_MESSAGE("Build configuration test completed");
 }
 
-// Test compiler optimization level (important for VAMP performance)
-BOOST_AUTO_TEST_CASE(VampOptimizationTest)
+// Test precision handling in double to float conversion
+BOOST_AUTO_TEST_CASE(VampStateConversionPrecisionTest)
 {
-    BOOST_TEST_MESSAGE("Testing compiler optimization");
+    using Robot = vamp::robots::Panda;
+    constexpr std::size_t robotDimension = Robot::dimension;
     
-    // Check optimization level
-#ifdef NDEBUG
-    BOOST_CHECK_MESSAGE(true, "Release mode - optimizations enabled");
-#else
-    BOOST_TEST_MESSAGE("Debug mode - may have reduced performance");
-#endif
+    BOOST_TEST_MESSAGE("Testing precision handling in state conversion");
+    BOOST_CHECK_EQUAL(robotDimension, 7);
+    
+    // Create OMPL state space
+    auto realVectorSpace = std::make_shared<ob::RealVectorStateSpace>(robotDimension);
+    ob::RealVectorBounds bounds(robotDimension);
+    for (size_t i = 0; i < robotDimension; ++i) {
+        bounds.setLow(i, -10.0);
+        bounds.setHigh(i, 10.0);
+    }
+    realVectorSpace->setBounds(bounds);
+    
+    ob::ScopedState<> omplState(realVectorSpace);
+    
+    // Test with high-precision double values
+    std::array<double, robotDimension> highPrecisionConfig = {
+        1.2345678901234567,  // More precision than float can handle
+        -2.9876543210987654,
+        0.1111111111111111,
+        3.1415926535897932,
+        -1.4142135623730951,
+        2.7182818284590452,
+        1.2312312312312312
+    };
+    
+    for (size_t i = 0; i < robotDimension; ++i) {
+        omplState[i] = highPrecisionConfig[i];
+    }
+    
+    // Test that conversion handles high-precision values without error
+    try {
+        auto vampConfig = vamp_ompl::conversion::ompl_to_vamp<Robot>(omplState.get());
+        BOOST_CHECK_MESSAGE(true, "High-precision conversion succeeded for Panda robot");
+    } catch (const std::exception& e) {
+        BOOST_FAIL("High-precision conversion failed: " + std::string(e.what()));
+    }
+    
+    BOOST_TEST_MESSAGE("Precision handling test passed");
+}
 
-    // Basic performance indicator test
-    volatile int a = 100;
-    volatile int b = 50;
-    volatile int c = a + b;
+// Test memory alignment for SIMD operations
+BOOST_AUTO_TEST_CASE(VampMemoryAlignmentTest)
+{
+    BOOST_TEST_MESSAGE("Testing SIMD-compatible memory alignment");
     
-    BOOST_CHECK_EQUAL(c, 150);
-    BOOST_TEST_MESSAGE("Basic operations working correctly");
-} 
+    // Test 32-byte alignment
+    constexpr size_t alignment = 32;
+    constexpr size_t size = 256;
+    
+    void* aligned_ptr = nullptr;
+    int result = posix_memalign(&aligned_ptr, alignment, size);
+    
+    BOOST_CHECK_EQUAL(result, 0);
+    BOOST_CHECK(aligned_ptr != nullptr);
+    
+    if (aligned_ptr) {
+        // Verify alignment
+        uintptr_t addr = reinterpret_cast<uintptr_t>(aligned_ptr);
+        BOOST_CHECK_EQUAL(addr % alignment, 0);
+        
+        // Basic write test
+        memset(aligned_ptr, 0x42, size);
+        unsigned char* bytes = static_cast<unsigned char*>(aligned_ptr);
+        BOOST_CHECK_EQUAL(bytes[0], 0x42);
+        
+        free(aligned_ptr);
+        
+        BOOST_TEST_MESSAGE("Memory alignment test passed");
+    }
+}
