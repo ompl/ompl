@@ -1061,8 +1061,10 @@ bool ompl::geometric::STRRTstar::sampleGoalTime(ompl::base::State *goal, double 
                                                 double newBatchTimeBoundFactor)
 {
     double ltb, utb;
-    double minTime =
-        si_->getStateSpace()->as<ompl::base::SpaceTimeStateSpace>()->timeToCoverDistance(startMotion_->state, goal);
+    double startTime = si_->getStateSpace()->as<ompl::base::SpaceTimeStateSpace>()->getStateTime(startMotion_->state);
+    double minTimeToGoal = si_->getStateSpace()->as<ompl::base::SpaceTimeStateSpace>()->timeToCoverDistance(startMotion_->state, goal);
+    double minTime = startTime + minTimeToGoal;
+
     if (isTimeBounded_)
     {
         ltb = minTime;
