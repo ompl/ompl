@@ -76,16 +76,18 @@ bool unsafeSet(ompl::control::HyRRT::Motion *motion)
     return false;
 }
 
-void flowODE(const ompl::control::ODESolver::StateType& q, const ompl::control::Control* c, ompl::control::ODESolver::StateType& qdot)
+/** \brief Represents the flow map, or the first-order derivative of the pinball state when in flow regime. 
+ * The only force applied here is of gravity in the negative y direction. */
+void flowODE(const ompl::control::ODESolver::StateType& x_cur, const ompl::control::Control* u, ompl::control::ODESolver::StateType& x_new)
 {
-    (void)c;    // No conrol is applied when a state is in the flow set
+    (void)u;    // No control is applied when a state is in the flow set
 
     // Ensure qdot is the same size as q.  Zero out all values.
-    qdot.resize(q.size(), 0);
+    x_new.resize(x_cur.size(), 0);
  
-    qdot[0] = q[1];            // x-dot
-    qdot[1] = q[2];            // v-dot
-    qdot[2] = 0;    // a-dot
+    x_new[0] = x_cur[1];            // x-dot
+    x_new[1] = x_cur[2];            // v-dot
+    x_new[2] = 0;    // a-dot
 }
 
 /** \brief Simulates the dynamics of the ball when in jump regime, with input from the surface. */
@@ -219,9 +221,9 @@ int main()
     cHyRRT.setFlowStepDuration(0.01);
     cHyRRT.setUnsafeSet(unsafeSet);
 
-    // attempt to solve the planning problem within 200 seconds
+    // attempt to solve the planning problem within 2 seconds
     ompl::time::point t0 = ompl::time::now();
-    ompl::base::PlannerStatus solved = cHyRRT.solve(ompl::base::timedPlannerTerminationCondition(200));
+    ompl::base::PlannerStatus solved = cHyRRT.solve(ompl::base::timedPlannerTerminationCondition(2));
     double planTime = ompl::time::seconds(ompl::time::now() - t0);
 
     if (solved)  // If either approximate or exact solution has beenf ound

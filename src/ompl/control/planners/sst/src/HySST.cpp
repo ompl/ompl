@@ -72,32 +72,22 @@ void ompl::control::HySST::setup()
     witnesses_->setDistanceFunction([this](const Motion *a, const Motion *b)
                                     { return ompl::control::HySST::distanceFunc_(a->state, b->state); });
 
-    if (pdef_)
+    if (pdef_ && pdef_->hasOptimizationObjective())
     {
-        if (pdef_->hasOptimizationObjective())
+        opt_ = pdef_->getOptimizationObjective();
+        if (dynamic_cast<base::MaximizeMinClearanceObjective *>(opt_.get()) ||
+            dynamic_cast<base::MinimaxObjective *>(opt_.get()))
+            OMPL_WARN("%s: Asymptotic near-optimality has only been proven with Lipschitz continuous cost "
+                      "functions w.r.t. state and control. This optimization objective will result in undefined "
+                      "behavior",
+                      getName().c_str());
+        costFunc_ = [this](Motion *motion) -> base::Cost
         {
-            opt_ = pdef_->getOptimizationObjective();
-            if (dynamic_cast<base::MaximizeMinClearanceObjective *>(opt_.get()) ||
-                dynamic_cast<base::MinimaxObjective *>(opt_.get()))
-                OMPL_WARN("%s: Asymptotic near-optimality has only been proven with Lipschitz continuous cost "
-                          "functions w.r.t. state and control. This optimization objective will result in undefined "
-                          "behavior",
-                          getName().c_str());
-            costFunc_ = [this](Motion *motion) -> base::Cost
-            {
-                return opt_->motionCost(motion->parent->state, motion->state);
-            };
-        }
-        else
-        {
-            // if no optimization objective set, assume we want to minimize hybrid time
-            goto HYBRID_TIME;
-        }
+            return opt_->motionCost(motion->parent->state, motion->state);
+        };
     }
     else
-    {
-        HYBRID_TIME:
-
+    {   // if no optimization objective set, assume we want to minimize hybrid time
         OMPL_WARN("%s: No optimization object set. Using hybrid time", getName().c_str());
         costFunc_ = [this](Motion *motion) -> base::Cost
         {

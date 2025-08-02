@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the University of Santa Cruz nor the names of 
+ *   * Neither the name of the University of Santa Cruz nor the names of
  *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -41,8 +41,8 @@
 #include "ompl/control/ODESolver.h"
 #include "ompl/base/objectives/StateCostIntegralObjective.h"
 
-
-struct PinballSetup {
+struct PinballSetup
+{
     double paddleLength = 1;
     double paddleWidth = 0.25;
     std::vector<std::vector<double>> paddleCoords = {{1, -1}, {2.5, -4}, {1.5, -5}, {3, -7}, {1, -8}};
@@ -58,7 +58,7 @@ double distanceFunc(ompl::base::State *state1, ompl::base::State *state2)
 }
 
 /** \brief Individual jump set for a paddle. */
-bool inPaddle(ompl::control::HySST::Motion *motion, std::vector<double> paddleCoord) 
+bool inPaddle(ompl::control::HySST::Motion *motion, std::vector<double> paddleCoord)
 {
     PinballSetup pinballSetup;
 
@@ -84,7 +84,7 @@ bool inPaddle(ompl::control::HySST::Motion *motion, std::vector<double> paddleCo
     return inPaddle;
 }
 
-/** \brief Jump set is true whenever the ball is on or below the surface and has a downwards velocity. */
+/** \brief Jump set is true whenver the ball is colliding with the walls or paddles. */
 bool jumpSet(ompl::control::HySST::Motion *motion)
 {
     PinballSetup pinballSetup;
@@ -105,13 +105,13 @@ bool jumpSet(ompl::control::HySST::Motion *motion)
     return false;
 }
 
-/** \brief Flow set is true whenever the ball is above the surface or has an upwards velocity. */
+/** \brief Flow set is true whenever the ball is in free space. */
 bool flowSet(ompl::control::HySST::Motion *motion)
 {
     return !jumpSet(motion);
 }
 
-/** \brief Unsafe set is true whenever the ball is above 10 units from the ground, to reduce time spent planning. */
+/** \brief Unsafe set is below the walls and to the left or right of the goal section's x range. */
 bool unsafeSet(ompl::control::HySST::Motion *motion)
 {
     PinballSetup pinballSetup;
@@ -119,36 +119,41 @@ bool unsafeSet(ompl::control::HySST::Motion *motion)
     double x1 = motion_state->values[0];
     double x2 = motion_state->values[1];
 
-    if (((x1 >= 0 && x1 < 2) || (x1 > 3 && x1 <= 5)) && x2 <= -10)
+    if (((x1 >= 0 && x1 < 1) || (x1 > 4 && x1 <= 5)) && x2 <= -10)
         return true;
 
     return false;
 }
 
-void flowODE(const ompl::control::ODESolver::StateType &q, const ompl::control::Control *c,
-             ompl::control::ODESolver::StateType &qdot)
+/** \brief Represents the flow map, or the first-order derivative of the pinball state when in flow regime. 
+ * The only force applied here is of gravity in the negative y direction. */
+void flowODE(const ompl::control::ODESolver::StateType &x_cur, const ompl::control::Control *u,
+             ompl::control::ODESolver::StateType &x_new)
 {
-    (void)c;    // No conrol is applied when a state is in the flow set
+    (void)u;    // No control is applied when a state is in the flow set
 
-    // Retrieve the current orientation of the multicopter.
-    const double v_1 = q[2];
-    const double v_2 = q[3];
-    const double a_1 = q[4];
-    const double a_2 = q[5];
+    // Retrieve the current orientation of the pinball.
+    const double v_1 = x_cur[2];
+    const double v_2 = x_cur[3];
+    const double a_1 = x_cur[4];
+    const double a_2 = x_cur[5];
 
     // Ensure qdot is the same size as q.  Zero out all values.
-    qdot.resize(q.size(), 0);
+    x_new.resize(x_cur.size(), 0);
 
-    qdot[0] = v_1;
-    qdot[1] = v_2;
-    qdot[2] = a_1;
-    qdot[3] = a_2;    // Acceleration due to gravity, where down is the positive direction
-    qdot[4] = 0;
-    qdot[5] = 0;
+    x_new[0] = v_1;
+    x_new[1] = v_2;
+    x_new[2] = a_1;
+    x_new[3] = a_2;
+    x_new[4] = 0;    // No change to acceleration
+    x_new[5] = 0;    // No change to acceleration
 }
 
-/** \brief Simulates the dynamics of the ball when in jump regime, with input from the surface. */
-ompl::base::State *discreteSimulator(ompl::base::State *x_cur, const ompl::control::Control *u, ompl::base::State *new_state)
+/** \brief Simulates the dynamics of the ball when in jump regime, with input from the surface of the paddles and walls. As the collisions
+ * are inelastic, there is a coefficient of restitution of 0.8 for the wall and 0.6 for the paddles.
+ * Control input it only applied when pinball is colliding with top or sides of the paddle, in which case the input is in the same direction
+ * as the horizontal component of the ball's post-collision velocity. 
+*/ompl::base::State *discreteSimulator(ompl::base::State *x_cur, const ompl::control::Control *u, ompl::base::State *new_state)
 {
     // Retrieve control values.
     const double *control = u->as<ompl::control::RealVectorControlSpace::ControlType>()->values;
@@ -182,7 +187,7 @@ ompl::base::State *discreteSimulator(ompl::base::State *x_cur, const ompl::contr
         new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[2] = -(v1 * 0.6 + std::copysign(u_x, v1)); // Input is in the same direction as rebound
         new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[3] = v2;
     }
-    
+
     // The position and acceleration doesn't change
     new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[0] = x1;
     new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[1] = x2;
@@ -191,16 +196,16 @@ ompl::base::State *discreteSimulator(ompl::base::State *x_cur, const ompl::contr
     return new_state;
 }
 
-// Define goal region as a ball of radius 0.1 centered at {height, velocity} = {0, 0}
+// Define goal region as [1, 4] x (-inf, -10]
 class EuclideanGoalRegion : public ompl::base::Goal
 {
 public:
     EuclideanGoalRegion(const ompl::base::SpaceInformationPtr &si) : ompl::base::Goal(si) {}
 
     virtual bool isSatisfied(const ompl::base::State *st, double *distance) const
-    {        
+    {
         // perform any operations and return a truth value
-        std::vector<double> goalRegion = {1, 4, -10};    // x-min, x-max, y
+        std::vector<double> goalRegion = {1, 4, -10};  // x-min, x-max, y
         auto *values = st->as<ompl::base::CompoundState>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values;
 
         if (values[0] > goalRegion[1])
@@ -209,7 +214,7 @@ public:
             *distance = hypot(values[1] + 10, values[0] - goalRegion[0]);
         else
             *distance = values[1] + 10;
-        
+
         return values[0] >= goalRegion[0] && values[0] <= goalRegion[1] && values[1] <= goalRegion[2];
     }
 
@@ -236,7 +241,7 @@ public:
     ompl::base::Cost motionCost(const ompl::base::State *s1, const ompl::base::State *s2) const
     {
         return ompl::base::Cost((stateCost(s1).value() + stateCost(s2).value()) * 0.5 * 
-                                    (ompl::base::HybridStateSpace::getStateTime(s2) - ompl::base::HybridStateSpace::getStateTime(s1)));
+            (ompl::base::HybridStateSpace::getStateTime(s2) - ompl::base::HybridStateSpace::getStateTime(s1)));
     }
 };
 
@@ -291,11 +296,11 @@ int main()
     // Construct a space information instance for this state space
     ompl::control::SpaceInformationPtr si(new ompl::control::SpaceInformation(hybridSpacePtr, controlSpacePtr));
     ompl::control::ODESolverPtr odeSolver (new ompl::control::ODEBasicSolver<> (si, &flowODE));
-    
+
     si->setStatePropagator(ompl::control::ODESolver::getStatePropagator(odeSolver));
     si->setPropagationStepSize(0.01);
     si->setup();
-    
+
     // Create a problem instance
     ompl::base::ProblemDefinitionPtr pdef(new ompl::base::ProblemDefinition(si));
 
@@ -305,7 +310,7 @@ int main()
     std::vector<ompl::base::ScopedState<>> startStates;
     std::vector<double> startXs = {0.5, 1, 2, 3.5, 4, 4.5};
 
-    for (std::size_t i = 0; i < startXs.size(); i++) 
+    for (std::size_t i = 0; i < startXs.size(); i++)
     {
         startStates.push_back(ompl::base::ScopedState<>(hybridSpacePtr));
         startStates.back()->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[0] = startXs[i];
@@ -322,7 +327,7 @@ int main()
 
     // Set the goal region
     pdef->setGoal(goal);
-    
+
     // Create velocity optimization objective instance
     ompl::base::OptimizationObjectivePtr velObj(new VelocityObjective(si));
     // pdef->setOptimizationObjective(velObj);
@@ -345,7 +350,7 @@ int main()
     cHySST.setPruningRadius(0.2);
     cHySST.setBatchSize(1); 
 
-    // attempt to solve the planning problem within 200 seconds
+    // attempt to solve the planning problem within 30 seconds
     ompl::time::point t0 = ompl::time::now();
     ompl::base::PlannerStatus solved = cHySST.solve(ompl::base::timedPlannerTerminationCondition(30));
     double planTime = ompl::time::seconds(ompl::time::now() - t0);

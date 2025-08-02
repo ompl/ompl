@@ -366,7 +366,7 @@ bool unsafeSet(ompl::control::HySST::Motion *motion)
                                  motion->state->as<ompl::base::HybridStateSpace::StateType>()
                                      ->as<ompl::base::RealVectorStateSpace::StateType>(0)
                                      ->values[3]};
-    if (x_cur[0] < 0.5 || x_cur[0] > 6 || x_cur[1] < 0 || x_cur[1] > 7) // || Xu(x_cur[0], x_cur[1])
+    if (x_cur[0] < 0.5 || x_cur[0] > 6 || x_cur[1] < 0 || x_cur[1] > 7)
         return true;
     return false;
 }
@@ -522,32 +522,34 @@ bool collisionChecker(ompl::control::HySST::Motion *motion,
     return collision && run;
 }
 
-void flowODE(const ompl::control::ODESolver::StateType &q, const ompl::control::Control *c,
-             ompl::control::ODESolver::StateType &qdot)
+/** \brief Represents the flow map, or the first-order derivative of the multicopter state when in flow regime. 
+ * The first-order derivative of the acceleration is equal to the control input applied. */
+void flowODE(const ompl::control::ODESolver::StateType &x_cur, const ompl::control::Control *u,
+             ompl::control::ODESolver::StateType &x_new)
 {
     // Retrieve control values.
-    const double *u = c->as<ompl::control::RealVectorControlSpace::ControlType>()->values;
-    const double u_1 = u[0];
-    const double u_2 = u[1];
+    const double *input = u->as<ompl::control::RealVectorControlSpace::ControlType>()->values;
+    const double u_1 = input[0];
+    const double u_2 = input[1];
 
     // Retrieve the current orientation of the multicopter.
-    const double v_1 = q[2];
-    const double v_2 = q[3];
-    const double a_1 = q[4];
-    const double a_2 = q[5];
+    const double v_1 = x_cur[2];
+    const double v_2 = x_cur[3];
+    const double a_1 = x_cur[4];
+    const double a_2 = x_cur[5];
 
     // Ensure qdot is the same size as q.  Zero out all values.
-    qdot.resize(q.size(), 0);
+    x_new.resize(x_cur.size(), 0);
 
-    qdot[0] = v_1;
-    qdot[1] = v_2;
-    qdot[2] = a_1;
-    qdot[3] = a_2;
-    qdot[4] = u_1;
-    qdot[5] = u_2;
+    x_new[0] = v_1;
+    x_new[1] = v_2;
+    x_new[2] = a_1;
+    x_new[3] = a_2;
+    x_new[4] = u_1;
+    x_new[5] = u_2;
 }
 
-// Define goal region as a ball of radius 0.2 centered at (5, 3)
+// Define goal region as a ball of radius 0.2 centered at (5, 4)
 class EuclideanGoalRegion : public ompl::base::Goal
 {
 public:
@@ -558,7 +560,7 @@ public:
     virtual bool isSatisfied(const ompl::base::State *st, double *distance) const
     {
         // perform any operations and return a truth value
-        std::vector<double> goal = {5, 3};
+        std::vector<double> goal = {5, 4};
         double distSqr = 0;
         for (int i = 0; i < 2; i++)
         {
@@ -606,9 +608,9 @@ int main()
 
     ompl::base::RealVectorBounds flowBounds(2);
     flowBounds.setLow(0, -0.5);
-    flowBounds.setLow(1, -2);
-    flowBounds.setHigh(0, 2);
-    flowBounds.setHigh(1, 2);
+    flowBounds.setLow(1, -1);
+    flowBounds.setHigh(0, 1);
+    flowBounds.setHigh(1, 1);
     flowControlSpace->setBounds(flowBounds);
 
     ompl::base::RealVectorBounds jumpBounds(2);
@@ -688,7 +690,7 @@ int main()
     cHySST.setDiscreteSimulator(discreteSimulator);
     cHySST.setFlowSet(flowSet);
     cHySST.setJumpSet(jumpSet);
-    cHySST.setTm(1);
+    cHySST.setTm(2);
     cHySST.setFlowStepDuration(0.05);
     cHySST.setUnsafeSet(unsafeSet);
     cHySST.setCollisionChecker(collisionChecker);
@@ -696,8 +698,7 @@ int main()
     cHySST.setPruningRadius(0.1);
     cHySST.setBatchSize(1); 
 
-
-    // attempt to solve the planning problem within 200 seconds
+    // attempt to solve the planning problem within 30 seconds
     ompl::time::point t0 = ompl::time::now();
     ompl::base::PlannerStatus solved = cHySST.solve(ompl::base::timedPlannerTerminationCondition(30));
     double planTime = ompl::time::seconds(ompl::time::now() - t0);
