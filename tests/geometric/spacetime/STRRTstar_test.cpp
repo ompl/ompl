@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(spacetime_planning_negative_time)
 // Test case for zero time difference
 BOOST_AUTO_TEST_CASE(spacetime_planning_zero_time)
 {
-    runSpaceTimePlanner(0.0, 0.001, 0.2, 1, {0.0}, {0.0}, true); // Small positive time difference, same position
+    runSpaceTimePlanner(0.0, 0.01, 0.2, 1, {0.0}, {0.0}, true); // Small positive time difference, same position
 }
 
 // Test case for large time bounds
