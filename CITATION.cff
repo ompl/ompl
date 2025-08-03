@@ -15,16 +15,86 @@ authors:
   orcid: https://orcid.org/0000-0003-0699-8038
 title: "The Open Motion Planning Library"
 url: "https://ompl.kavrakilab.org"
-identifiers:
-- type: doi
-  value: 10.1109/MRA.2012.2205651
-  description: "Primary citation for OMPL"
-- type: doi
-  value: 10.1109/MRA.2015.2448276
-  description: "Reference for OMPL's benchmarking capabilities and Planner Arena"
-- type: doi
-  value: 10.1177/0278364919868530
-  description: "Reference for OMPL's constrained motion planning capabilities"
+references:
+  - type: article
+    authors:
+    - family-names: "Șucan"
+      given-names: "Ioan A."
+    - family-names: "Moll"
+      given-names: "Mark"
+      orcid: "https://orcid.org/0000-0002-0451-2797"
+    - family-names: "Kavraki"
+      given-names: "Lydia E."
+      orcid: https://orcid.org/0000-0003-0699-8038
+    doi: "10.1109/MRA.2012.2205651"
+    journal: "IEEE Robotics & Automation Magazine"
+    month: 12
+    start: 72
+    end: 82
+    title: "The Open Motion Planning Library"
+    issue: 4
+    volume: 19
+    year: 2012
+    scope: "Original publication describing OMPL design"
+  - type: article
+    authors:
+    - family-names: "Moll"
+      given-names: "Mark"
+      orcid: "https://orcid.org/0000-0002-0451-2797"
+    - family-names: "Șucan"
+      given-names: "Ioan A."
+    - family-names: "Kavraki"
+      given-names: "Lydia E."
+      orcid: https://orcid.org/0000-0003-0699-8038
+    doi: 10.1109/MRA.2015.2448276
+    journal: "IEEE Robotics & Automation Magazine"
+    month: 9
+    start: 96
+    end: 102
+    title: "Benchmarking Motion Planning Algorithms: An Extensible Infrastructure for Analysis and Visualization"
+    issue: 3
+    volume: 22
+    year: 2025
+    scope: "Reference for OMPL's benchmarking capabilities and Planner Arena"
+  - type: article
+    authors:
+    - family-names: "Kingston"
+      given-names: "Zachary K."
+      orcid: https://orcid.org/0000-0002-3896-5110
+    - family-names: "Moll"
+      given-names: "Mark"
+      orcid: "https://orcid.org/0000-0002-0451-2797"
+    - family-names: "Kavraki"
+      given-names: "Lydia E."
+      orcid: https://orcid.org/0000-0003-0699-8038
+    doi: "10.1177/0278364919868530"
+    journal: International Journal of Robotics Research
+    month: 9
+    start: 1151
+    end: 1178
+    title: "Exploring Implicit Spaces for Constrained Sampling-Based Planning"
+    volume: 38
+    year: 2019
+    scope: "Reference for OMPL's constrained motion planning capabilities"
+  - type: conference-paper
+    authors:
+    - family-names: "Thomason"
+      given-names: "Wil"
+      orcid: "https://orcid.org/0000-0001-6200-9762"
+    - family-names: "Kingston"
+      given-names: "Zachary K."
+      orcid: https://orcid.org/0000-0002-3896-5110
+    - family-names: "Kavraki"
+      given-names: "Lydia E."
+      orcid: https://orcid.org/0000-0003-0699-8038
+    doi: "10.1109/ICRA57147.2024.10611190"
+    conference:
+      name: "IEEE International Conference on Robotics and Automation (ICRA)"
+    start: 8749
+    end: 8756
+    title: "Motions in Microseconds via Vectorized Sampling-Based Planning"
+    year: 2024
+    scope: "Reference for VAMP"
 preferred-citation:
   type: article
   authors:
