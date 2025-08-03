@@ -103,6 +103,7 @@
         deliberate design choice, so that OMPL is not tied to a particular collision checker or visualization front end.
         The library is designed so it can be easily integrated into
         <a href="integration.html">systems that provide the additional needed components</a>.
+        OMPL has been used to plan motions for a broad range of robotic systems including: (mobile) manipulators, car-like systems, drones, and underwater vehicles.
       </p>
 
       <p>

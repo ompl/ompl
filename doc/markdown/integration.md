@@ -17,6 +17,30 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
+## Flightmare
+
+<div class="row">
+  <div class="col-lg-7 col-md-6 col-sm-5">
+    Flightmare is a flexible quadrotor simulator composed of two main components: a configurable rendering engine built on Unity and a flexible physics engine for dynamics simulation. Those two components are totally decoupled and can run independently from each other. Flightmare comes with several desirable features: (i) a large multi-modal sensor suite, including an interface to extract the 3D point-cloud of the scene; (ii) an API for reinforcement learning which can simulate hundreds of quadrotors in parallel; and (iii) an integration with a virtual-reality headset for interaction with the simulated environment. Flightmare can be used for various applications, including path-planning, reinforcement learning, visual-inertial odometry, deep learning, human-robot interaction, etc. See <a href="https://flightmare.readthedocs.io/en/latest/advanced_steps/motion_planning.html">Flightmare's Motion Planning page</a> for details on how to configure OMPL.
+  </div>
+  <div class="col-lg-5 col-md-6 col-sm-7">
+    <div class="embed-responsive embed-responsive-16by9">
+      \htmlonly<iframe src="https://www.youtube.com/embed/m9Mx1BCNGFU"></iframe>\endhtmlonly
+    </div>
+  </div>
+</div>
+
+## RoboGen / Genesis AI
+
+<div class="row">
+  <div class="col-lg-7 col-md-6 col-sm-5">
+    RoboGen is a self-guided and generative robotic agent that autonomously proposes new tasks, generates corresponding environments, and acquires new robotic skills continuously. RoboGen is powered by Genesis, a multi-material multi-solver generative simulation engine for general-purpose robot learning. Genesis is still under active development and will be released soon. RoboGen combines OMPL with PyBullet for generation and learning of rigid manipulation. See <a href="https://github.com/Genesis-Embodied-AI/RoboGen/tree/main/pybullet_ompl">their code</a> (or the <a href="https://github.com/lyfkyle/pybullet_ompl">upstream repo on which it is based</a>) for an example of how to integrate OMPL with Pybullet.
+  </div>
+  <div class="col-lg-5 col-md-6 col-sm-7">
+    \htmlonly<img src="https://github.com/Genesis-Embodied-AI/RoboGen/blob/main/imgs/teaser.png?raw=true" width="100%">\endhtmlonly
+  </div>
+</div>
+
 ## CoppeliaSim {#integration_copelliasim}
 
 <div class="row">
@@ -38,7 +62,8 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-16by9" width=100%>
-    \htmlonly<video controls muted src="https://sir.upc.edu/projects/kautham_tutorials/videos/hand-arm_look-at_simulation.webm"></video>
+    \htmlonly<video controls muted src="https://sir.upc.edu/projects/kautham_tutorials/videos/hand-arm_look-at_simulation.webm"></video>\endhtmlonly
+    </div>
   </div>
 </div>
 
