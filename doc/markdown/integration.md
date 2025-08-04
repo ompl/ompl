@@ -30,6 +30,19 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
+## PyBullet Industrial Path Planner
+
+<div class="row">
+  <div class="col-lg-7 col-md-6 col-sm-5">
+    <a href="https://pbi-path-planner.readthedocs.io/en/latest/?badge=latest">PyBullet Industrial Path Planner</a> is a modular Python package for sampling-based path planning with industrial robots in <a href="https://pybullet.org/">PyBullet</a> environments. It integrates OMPL and provides tools to define, execute, and validate motion plans under geometric constraints. This repository extends the <a href="https://pybullet-industrial.readthedocs.io/en/latest/how_to_use.html">PyBullet Industrial</a> (PBI) simulation library, which was developed to integrate process modeling into robotic simulations for industrial applications. A key feature is the simulation of additive and subtractive processes performed by multi-axis robots. The PBI Path Planner extension enhances these functionalities by enabling the planning of transitional movements such as tool changes and part handling, which are essential for creating complete, executable process sequences. In several example scenarios, planned paths are evaluated in simulation and parameterized through integrated numerical control (NC) code modules for deployment on physical robots.
+  </div>
+  <div class="col-lg-5 col-md-6 col-sm-7">
+    <div class="embed-responsive embed-responsive-16by9" width=100%>
+    \htmlonly<video controls muted src="https://github.com/WBK-Robotics/pybullet_industrial_path_planner/raw/refs/heads/main/docs/PBI_Path_Planner.mp4"></video>\endhtmlonly
+    </div>
+  </div>
+</div>
+
 ## RoboGen / Genesis AI
 
 <div class="row">
