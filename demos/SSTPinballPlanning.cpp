@@ -84,7 +84,7 @@ bool inPaddle(ompl::control::HySST::Motion *motion, std::vector<double> paddleCo
     return inPaddle;
 }
 
-/** \brief Jump set is true whenver the ball is colliding with the walls or paddles. */
+/** \brief Jump set is true whenever the ball is colliding with the walls or paddles. */
 bool jumpSet(ompl::control::HySST::Motion *motion)
 {
     PinballSetup pinballSetup;
