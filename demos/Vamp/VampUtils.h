@@ -207,7 +207,7 @@ public:
      * @brief Print concise usage information
      */
     static void printUsage(const char* programName) {
-        std::cout << "\n🎯 VAMP-OMPL Demo (SIMD-accelerated motion planning)\n"
+        std::cout << "\n VAMP-OMPL Demo (SIMD-accelerated motion planning)\n"
                   << "Usage: " << programName << " [--visualize | --help | config.yaml]\n"
                   << "  (no args)     - Basic programmatic example\n"
                   << "  --visualize   - Basic example + visualization\n"  
@@ -218,7 +218,7 @@ public:
      * @brief Print configuration summary in compact format
      */
     static void printConfigSummary(const PlanningConfiguration& planningConfiguration) {
-        std::cout << "📋 Config: " << planningConfiguration.robot_name << " + " << planningConfiguration.planning.planner_name 
+        std::cout << " Config: " << planningConfiguration.robot_name << " + " << planningConfiguration.planning.planner_name 
                   << " (" << planningConfiguration.planning.planning_time << "s, " << planningConfiguration.start_config.size() 
                   << " joints, " << planningConfiguration.obstacles.size() << " obstacles)" << std::endl;
     }
@@ -228,13 +228,13 @@ public:
      */
     static void printResults(const MotionPlanningResult& motionPlanningResult) {
         if (motionPlanningResult.success()) {
-            std::cout << "\n✅ Success: " << motionPlanningResult.planning_time_us() << "μs, " 
+            std::cout << "\n Success: " << motionPlanningResult.planning_time_us() << "μs, " 
                       << motionPlanningResult.path_length() << " states, cost=" << motionPlanningResult.final_cost() << std::endl;
             if (!motionPlanningResult.solution_file_path.empty()) {
                 std::cout << "  Solution saved: " << motionPlanningResult.solution_file_path << std::endl;
             }
         } else {
-            std::cout << "\n❌ Planning failed: " << motionPlanningResult.error_message() << std::endl;
+            std::cout << "\n Planning failed: " << motionPlanningResult.error_message() << std::endl;
         }
     }
     
@@ -339,28 +339,17 @@ public:
      */
     static bool runVisualization(const MotionPlanningResult& motionPlanningResult, const std::string& configurationSource) {
         if (!motionPlanningResult.success() || motionPlanningResult.solution_file_path.empty()) {
-            std::cout << "❌ No solution path to visualize" << std::endl;
+            std::cout << " No solution path to visualize" << std::endl;
             return false;
         }
         
-        // Find visualization script in common locations
-        std::vector<std::string> visualizationScriptPaths = {
-            "visualize_solution.py",
-            "demos/Vamp/visualize_solution.py",
-            "../demos/Vamp/visualize_solution.py", 
-            "../../demos/Vamp/visualize_solution.py"
-        };
+        // Find visualization script relative to this source file location
+        // This ensures the script is found regardless of working directory
+        std::filesystem::path visualizationScriptPath = 
+            std::filesystem::path(__FILE__).parent_path() / "visualize_solution.py";
         
-        std::string visualizationScriptPath;
-        for (const auto& candidatePath : visualizationScriptPaths) {
-            if (std::filesystem::exists(candidatePath)) {
-                visualizationScriptPath = candidatePath;
-                break;
-            }
-        }
-        
-        if (visualizationScriptPath.empty()) {
-            std::cout << "❌ Visualization script not found" << std::endl;
+        if (!std::filesystem::exists(visualizationScriptPath)) {
+            std::cout << " Visualization script not found at: " << visualizationScriptPath << std::endl;
             return false;
         }
         
@@ -369,15 +358,16 @@ public:
         
         // Build visualization command
         std::string visualizationCommand;
+        std::string scriptPathStr = visualizationScriptPath.string();
         if (configurationSource.size() >= 5 && configurationSource.substr(configurationSource.size() - 5) == ".yaml") {
             // Use YAML configuration for visualization
-            visualizationCommand = "python3 " + visualizationScriptPath + 
+            visualizationCommand = "python3 " + scriptPathStr + 
                   " --robot " + robotName +
                   " --yaml-config " + configurationSource +
                   " \"" + motionPlanningResult.solution_file_path + "\"";
         } else {
             // Use the default YAML for programmatic example
-            visualizationCommand = "python3 " + visualizationScriptPath + 
+            visualizationCommand = "python3 " + scriptPathStr + 
                   " --robot " + robotName +
                   " --yaml-config panda_demo.yaml" +
                   " \"" + motionPlanningResult.solution_file_path + "\"";
@@ -448,6 +438,16 @@ private:
         planningConfiguration.planning.planning_time = safeConvertYamlValue<double>(plannerNode["planning_time"], constants::DEFAULT_PLANNING_TIME);
         planningConfiguration.planning.simplification_time = safeConvertYamlValue<double>(plannerNode["simplification_time"], constants::DEFAULT_SIMPLIFICATION_TIME);
         planningConfiguration.planning.optimize_path = safeConvertYamlValue<bool>(plannerNode["optimize_path"], false);
+        
+        // Parse planner parameters (optional)
+        if (plannerNode["parameters"]) {
+            const YAML::Node& parametersNode = plannerNode["parameters"];
+            for (auto it = parametersNode.begin(); it != parametersNode.end(); ++it) {
+                std::string paramName = it->first.as<std::string>();
+                std::string paramValue = safeConvertYamlValue<std::string>(it->second);
+                planningConfiguration.planning.planner_parameters[paramName] = paramValue;
+            }
+        }
     }
     
     /**
@@ -458,8 +458,14 @@ private:
         
         parsedObstacle.type = safeConvertYamlValue<std::string>(obstacleNode["type"]);
         parsedObstacle.name = safeConvertYamlValue<std::string>(obstacleNode["name"]);
-        parsedObstacle.radius = safeConvertYamlValue<float>(obstacleNode["radius"], constants::DEFAULT_SPHERE_RADIUS);
-        parsedObstacle.length = safeConvertYamlValue<float>(obstacleNode["length"], constants::DEFAULT_CAPSULE_LENGTH);
+        
+        // Parse type-specific parameters only if they exist
+        if (obstacleNode["radius"]) {
+            parsedObstacle.radius = safeConvertYamlValue<float>(obstacleNode["radius"], constants::DEFAULT_SPHERE_RADIUS);
+        }
+        if (obstacleNode["length"]) {
+            parsedObstacle.length = safeConvertYamlValue<float>(obstacleNode["length"], constants::DEFAULT_CAPSULE_LENGTH);
+        }
         
         // Parse position array
         if (obstacleNode["position"] && obstacleNode["position"].IsSequence()) {
@@ -541,7 +547,7 @@ public:
     static bool loadYamlConfig(const std::string& yamlFilename, PlanningConfiguration& planningConfiguration) {
         try {
             std::string resolvedFilePath = FileLocator::findYamlFile(yamlFilename);
-            std::cout << "📁 Loading: " << resolvedFilePath << std::endl;
+            std::cout << "Loading: " << resolvedFilePath << std::endl;
             
             YAML::Node yamlConfiguration = YAML::LoadFile(resolvedFilePath);
             
@@ -562,16 +568,16 @@ public:
                 throw VampYamlError("Invalid configuration: " + planningConfiguration.getValidationErrors());
             }
             
-            std::cout << "✅ YAML loaded: " << planningConfiguration.robot_name << " + " << planningConfiguration.planning.planner_name 
+            std::cout << " YAML loaded: " << planningConfiguration.robot_name << " + " << planningConfiguration.planning.planner_name 
                       << " (" << planningConfiguration.start_config.size() << " joints, " << planningConfiguration.obstacles.size() << " obstacles)" << std::endl;
             
             return true;
             
         } catch (const YAML::Exception& yamlException) {
-            std::cerr << "❌ YAML parsing failed: " << yamlException.what() << std::endl;
+            std::cerr << " YAML parsing failed: " << yamlException.what() << std::endl;
             return false;
         } catch (const std::exception& generalException) {
-            std::cerr << "❌ YAML loading failed: " << generalException.what() << std::endl;
+            std::cerr << " YAML loading failed: " << generalException.what() << std::endl;
             return false;
         }
     }
@@ -633,14 +639,14 @@ public:
         // Validate robot type
         const auto supportedRobots = constants::getSupportedRobots();
         if (std::find(supportedRobots.begin(), supportedRobots.end(), robotName) == supportedRobots.end()) {
-            std::cout << "❌ Unsupported robot: " << robotName << std::endl;
+            std::cout << " Unsupported robot: " << robotName << std::endl;
             return false;
         }
         
         try {
             std::ofstream yamlFile(outputFilename);
             if (!yamlFile.is_open()) {
-                std::cout << "❌ Could not create file: " << outputFilename << std::endl;
+                std::cout << " Could not create file: " << outputFilename << std::endl;
                 return false;
             }
             
@@ -690,7 +696,7 @@ public:
             return true;
             
         } catch (const std::exception& e) {
-            std::cout << "❌ Error creating YAML config: " << e.what() << std::endl;
+            std::cout << " Error creating YAML config: " << e.what() << std::endl;
             return false;
         }
     }

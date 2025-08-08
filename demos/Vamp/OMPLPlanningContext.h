@@ -150,14 +150,14 @@ public:
         try {
             // Create planner
             auto selectedPlanner = createPlannerByName(planningConfiguration.planner_name);
+            
+            // Set planner parameters
+            for (const auto& [param_name, param_value] : planningConfiguration.planner_parameters) {
+                bool success = selectedPlanner->params().setParam(param_name, param_value);
+            }
+            
             selectedPlanner->setProblemDefinition(m_problemDefinition);
             selectedPlanner->setup();
-            
-            // Set optimization threshold if not optimizing
-            if (!planningConfiguration.optimize_path) {
-                auto optimizationObjective = m_problemDefinition->getOptimizationObjective();
-                optimizationObjective->setCostThreshold(optimizationObjective->infiniteCost());
-            }
             
             // Plan
             auto planningStartTime = std::chrono::steady_clock::now();
@@ -231,8 +231,11 @@ public:
 
 private:
     /**
-     * @brief Factory pattern for planner creation with Registry approach
+     * @brief Extensible Factory pattern for planner creation with Registry approach
      * 
+     * This factory implements the Open/Closed Principle by allowing runtime
+     * registration of new planners without source code modification.
+     * Uses the Registry pattern with lambda-based factory functions.
      */
     class PlannerFactory {
     public:
@@ -266,6 +269,15 @@ private:
         }
         
         /**
+         * @brief Register a new planner type (Open/Closed Principle compliance)
+         * @param planner_name Name identifier for the planner
+         * @param plannerAllocatorFn Factory function to create the planner
+         */
+        void register_planner(const std::string& planner_name, PlannerCreatorFunction plannerAllocatorFn) {
+            m_plannerCreators[planner_name] = std::move(plannerAllocatorFn);
+        }
+        
+        /**
          * @brief Get list of available planners for error messages and user interfaces
          * 
          */
@@ -282,20 +294,24 @@ private:
         std::map<std::string, PlannerCreatorFunction> m_plannerCreators;
         
         /**
-         * @brief Constructor registers all available planners using lambda functions
+         * @brief Constructor registers default OMPL planners using lambda functions
          * 
+         * This constructor only registers the core OMPL planners that are commonly used.
+         * Additional planners can be registered at runtime using the register_planner() 
+         * method without modifying this source code.
          * 
-         * Adding New Planners:
-         * Adding new OMPL planners is now trivial - just add a registry entry:
+         * Extensibility Pattern:
+         * The factory now properly follows the Open/Closed Principle:
+         * - OPEN for extension: New planners can be added via registerPlanner()
+         * - CLOSED for modification: No source code changes needed for new planners
          * 
+         * Example of runtime planner registration:
          * ```cpp
-         * m_plannerCreators["RRT*"] = [](const ob::SpaceInformationPtr& si) {
-         *     return std::make_shared<og::RRTstar>(si);
-         * };
+         * OMPLPlanningContext<Robot>::registerPlanner("RRT*", 
+         *     [](const ob::SpaceInformationPtr& si) {
+         *         return std::make_shared<og::RRTstar>(si);
+         *     });
          * ```
-         * 
-         * This follows the Open/Closed principle - open for extension,
-         * closed for modification of existing code.
          * 
          * Performance Note: Lambda functions are compiled to optimal code
          * with no runtime overhead compared to function pointers.
@@ -312,18 +328,38 @@ private:
                 return std::make_shared<og::PRM>(spaceInformation);
             };
             
-            // Adding new planners is now trivial - just add entries here:
-            // m_plannerCreators["RRT*"] = [](const ob::SpaceInformationPtr& si) {
-            //     return std::make_shared<og::RRTstar>(si);
-            // };
-            // m_plannerCreators["EST"] = [](const ob::SpaceInformationPtr& si) {
-            //     return std::make_shared<og::EST>(si);
-            // };
-            // m_plannerCreators["KPIECE"] = [](const ob::SpaceInformationPtr& si) {
-            //     return std::make_shared<og::KPIECE1>(si);
-            // };
+            // Note: Additional planners can be registered at runtime using:
+            // OMPLPlanningContext<Robot>::registerPlanner(name, factory_function)
+            // This eliminates the need to modify this source code for new planners.
         }
     };
+    
+    /**
+     * @brief Register a new planner type for runtime extensibility (Open/Closed Principle)
+     * 
+     * This method allows adding new OMPL planners without modifying the library source code.
+     * The factory function will be called each time a planner instance is needed.
+     * 
+     * @param planner_name Unique string identifier for the planner
+     * @param plannerAllocatorFn Factory function that creates planner instances
+     * 
+     * Example:
+     * ```cpp
+     * OMPLPlanningContext<Robot>::registerPlanner("RRT*", 
+     *     [](const ob::SpaceInformationPtr& si) {
+     *         auto planner = std::make_shared<og::RRTstar>(si);
+     *         // Optional: Set planner-specific parameters here
+     *         return planner;
+     *     });
+     * ```
+     * 
+     * @note Thread safety: Registration should typically occur during initialization
+     * before concurrent planning operations begin.
+     */
+    static void registerPlanner(const std::string& planner_name, 
+                               std::function<std::shared_ptr<ob::Planner>(const ob::SpaceInformationPtr&)> plannerAllocatorFn) {
+        PlannerFactory::getInstance().register_planner(planner_name, std::move(plannerAllocatorFn));
+    }
     
     /**
      * @brief Create planner

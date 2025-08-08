@@ -4,5 +4,5 @@
 numpy>=1.20.0
 pybullet>=3.2.0
 
-# Optional: For enhanced visualization
+# Optional:
 matplotlib>=3.5.0 

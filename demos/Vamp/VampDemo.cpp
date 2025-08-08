@@ -29,7 +29,7 @@ using namespace vamp_ompl;
  */
 PlanningConfiguration createBasicExample()
 {
-    std::cout << "🔧 Creating basic setup configuration..." << std::endl;
+    std::cout << " Creating basic setup configuration..." << std::endl;
     
     // Step 1: Create configuration object
     PlanningConfiguration planningConfiguration;
@@ -69,6 +69,13 @@ PlanningConfiguration createBasicExample()
     planningConfiguration.planning.planning_time = 2.0;
     planningConfiguration.planning.simplification_time = 1.0;
     planningConfiguration.planning.optimize_path = false;
+    
+    // Step 5.1: Set planner-specific parameters
+    planningConfiguration.planning.planner_parameters = {
+        {"range", "0.3"},        // RRT-Connect range parameter
+        {"goal_bias", "0.05"}    // RRT-Connect goal bias parameter
+    };
+    
     planningConfiguration.save_path = true;
     
     // Step 6: Create explicit environment - Sphere cage with two rings
@@ -152,12 +159,12 @@ int main(int argc, char **argv)
             } else if (commandLineArgument.size() >= 5 && commandLineArgument.substr(commandLineArgument.size() - 5) == ".yaml") {
                 yamlConfigurationFile = commandLineArgument;
             } else {
-                std::cout << "❌ Unknown argument: " << commandLineArgument << std::endl;
+                std::cout << "Unknown argument: " << commandLineArgument << std::endl;
                 VampUtils::printUsage(argv[0]);
                 return 1;
             }
         } else {
-            std::cout << "❌ Too many arguments" << std::endl;
+            std::cout << "Too many arguments" << std::endl;
             VampUtils::printUsage(argv[0]);
             return 1;
         }
@@ -171,7 +178,7 @@ int main(int argc, char **argv)
             auto yamlPlanningConfiguration = loadYamlExample(yamlConfigurationFile);
             VampUtils::printConfigSummary(yamlPlanningConfiguration);
             
-            std::cout << "🚀 Starting planning with YAML configuration..." << std::endl;
+            std::cout << " Starting planning with YAML configuration..." << std::endl;
             motionPlanningResult = executeMotionPlanning(yamlPlanningConfiguration);
             configurationSource = yamlConfigurationFile;
             shouldRunVisualization = true; // Always offer visualization for YAML mode
@@ -183,12 +190,12 @@ int main(int argc, char **argv)
             
             // Validate configuration
             if (!basicPlanningConfiguration.isValid()) {
-                std::cout << "❌ Configuration validation failed: " << basicPlanningConfiguration.getValidationErrors() << std::endl;
+                std::cout << " Configuration validation failed: " << basicPlanningConfiguration.getValidationErrors() << std::endl;
                 return 1;
             }
             
             std::cout << "✓ Configuration validation passed" << std::endl;
-            std::cout << "🚀 Starting planning with basic setup configuration..." << std::endl;
+            std::cout << " Starting planning with basic setup configuration..." << std::endl;
             motionPlanningResult = executeMotionPlanning(basicPlanningConfiguration);
             configurationSource = "basic_setup";
         }
@@ -199,12 +206,12 @@ int main(int argc, char **argv)
         if (motionPlanningResult.success()) {
             // Handle visualization
             if (shouldRunVisualization) {
-                std::cout << "\n🎬 Starting visualization..." << std::endl;
+                std::cout << "\n Starting visualization..." << std::endl;
                 if (!VampUtils::runVisualization(motionPlanningResult, configurationSource)) {
-                    std::cout << "⚠️  Visualization failed (planning still succeeded)" << std::endl;
+                    std::cout << "  Visualization failed (planning still succeeded)" << std::endl;
                 }
             } else {
-                std::cout << "\n💡 To visualize this result, run:" << std::endl;
+                std::cout << "\n To visualize this result, run:" << std::endl;
                 std::cout << "   " << argv[0] << " --visualize" << std::endl;
             }
         } else {
@@ -214,7 +221,7 @@ int main(int argc, char **argv)
         return 0;
         
     } catch (const std::exception& caughtException) {
-        std::cerr << "❌ Fatal error: " << caughtException.what() << std::endl;
+        std::cerr << " Fatal error: " << caughtException.what() << std::endl;
         return 1;
     }
 } 

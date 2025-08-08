@@ -72,7 +72,6 @@ sudo apt-get install ros-`rosversion -d`-ompl</pre>
     <p><strong>Note:</strong> OMPL includes VAMP (Vector-Accelerated Motion Planning) by default, which requires <code>git</code> for submodule initialization.</p>
     <p>Once the dependencies are installed, OMPL can then be compiled like so:</p>
     <ul>
-    <li>Initialize git submodules for VAMP: <pre class="fragment">git submodule update --init --recursive</pre></li>
     <li>Create a build directory and run cmake: <pre class="fragment">cd ompl
 mkdir -p build/Release
 cd build/Release
@@ -100,7 +99,6 @@ cmake ../..</pre></li>
         <p><strong>Note:</strong> OMPL includes VAMP (Vector-Accelerated Motion Planning) by default, which requires <code>git</code> for submodule initialization.</p>
         <p>Once the dependencies are installed, OMPL can then be compiled like so:</p>
         <ul>
-        <li>Initialize git submodules for VAMP: <pre class="fragment">git submodule update --init --recursive</pre></li>
         <li>Create a build directory and run cmake: <pre class="fragment">cd ompl
 mkdir -p build/Release
 cd build/Release
@@ -132,7 +130,6 @@ cmake ../..</pre></li>
     <p>If you want to build OMPL from source on Windows:</p>
     <p><strong>Note:</strong> OMPL includes VAMP (Vector-Accelerated Motion Planning) by default, which requires <code>git</code> for submodule initialization.</p>
     <ul>
-    <li>Initialize git submodules for VAMP: <pre class="fragment">git submodule update --init --recursive</pre></li>
     <li>Follow the standard CMake build process with your preferred compiler (Visual Studio, MinGW, etc.)</li>
     </ul>
   </div>

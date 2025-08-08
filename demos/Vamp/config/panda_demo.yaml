@@ -12,6 +12,45 @@ planner:
   planning_time: 2.0
   simplification_time: 1.0
   optimize_path: false
+  
+  # Planner-specific parameters (optional)
+  # These parameters are passed directly to OMPL planners via setParam()
+  # Each planner has its own set of configurable parameters
+  #
+  # Examples for different planners:
+  #
+  # RRT-Connect parameters:
+  # parameters:
+  #   range: "0.3"                    # Maximum distance between consecutive states
+  #   intermediate_states: "false"    # Whether to add intermediate states (true/false)
+  #
+  # RRT parameters:
+  # parameters:
+  #   range: "0.3"        # Maximum distance between consecutive states
+  #   goal_bias: "0.05"   # Probability of sampling goal state (0.0-1.0)
+  #
+  # BIT* parameters:
+  # parameters:
+  #   rewire_factor: "1.1"           # Rewiring neighborhood factor
+  #   samples_per_batch: "100"       # Number of samples per batch
+  #   use_k_nearest: "false"         # Use k-nearest vs radius-based neighborhoods
+  #   initial_inflation_factor: "1.0" # Initial solution inflation factor
+  #
+  # RRTstar parameters:
+  # parameters:
+  #   range: "0.3"        # Maximum distance between consecutive states
+  #   goal_bias: "0.05"   # Probability of sampling goal state
+  #   rewire_factor: "1.1" # Rewiring neighborhood factor
+  #
+  # PRM parameters:
+  # parameters:
+  #   max_nearest_neighbors: "10"  # Maximum number of nearest neighbors
+  #   connection_filter: "lazy"    # Connection strategy: "lazy" or "collision"
+  #
+  # To use parameters, uncomment and modify the following:
+  parameters:
+    range: "0.3"
+    intermediate_states: "false"
 
 # Explicit Start Configuration (joint angles in radians)
 start_config:
