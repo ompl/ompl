@@ -72,7 +72,7 @@ goal_config:
   - 2.5      # panda_joint6: Wrist pitch
   - 0.785    # panda_joint7: Wrist roll
 
-# Complete Environment Definition: Sphere Cage
+# Complete Environment Definition: Sphere Cage + Pointcloud Support
 # Two rings of spheres creating a challenging navigation scenario
 obstacles:
   # Lower ring of spheres (z = 0.25)
@@ -146,11 +146,16 @@ obstacles:
     name: "sphere_13"
     position: [0.35, -0.35, 0.8]
     radius: 0.15
+  # Pointcloud obstacle example
+  - type: pointcloud
+    name: "obstacle_cloud"
+    pointcloud_file: "test_pointcloud.xyz"
+    point_radius: 0.05  # Increased from 0.01 for better visibility
 
 # Output Configuration
 output:
   write_path: true
-  description: "Panda Sphere Cage Demo - YAML Configuration"
+  description: "Panda Sphere Cage Demo - YAML Configuration with Pointcloud Support"
 
 # Visualization Configuration
 visualization:

@@ -27,8 +27,26 @@ pip install -r demos/Vamp/requirements.txt  # For visualization
 - Multiple OMPL planners (RRT-Connect, RRT*, BiT*)
 - YAML-based scene configuration
 - Interactive 3D visualization with PyBullet
-- Support for multiple robot types(Panda, UR5, Fetch)
+- Support for multiple robot types (Panda, UR5, Fetch)
+- **NEW: Pointcloud obstacle support** (.xyz, .ply, .pcd formats)
+
+## Pointcloud Support
+The demo supports pointcloud obstacles alongside primitive shapes:
+
+```yaml
+obstacles:
+  - type: pointcloud
+    name: "environment_pointcloud"
+    pointcloud_file: "path/to/pointcloud.xyz"  # Supports .xyz, .ply, .pcd
+    point_radius: 0.0025  # Radius for each point in CAPT construction
+```
+
+Supported formats:
+- `.xyz`: Simple ASCII format (x y z per line)
+- `.ply`: Stanford PLY format (ASCII only)
+- `.pcd`: Point Cloud Data format (ASCII only)
 
 ## Notes
 VAMP integration must be enabled at build time with `-DOMPL_HAVE_VAMP=ON`.
-Visualization automatically detects robot type from planning configuration. 
+Visualization automatically detects robot type from planning configuration.
+Pointclouds use VAMP's CAPT (Collision And Proximity Testing) for efficient collision detection. 

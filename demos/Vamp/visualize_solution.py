@@ -20,6 +20,28 @@ import yaml
 import math
 
 
+def find_pointcloud_file(pointcloud_filename: str) -> str:
+    """Find pointcloud file in standard locations using the same strategy as C++"""
+    search_paths = [
+        pointcloud_filename,                               # Direct path
+        f"demos/Vamp/{pointcloud_filename}",              # From project root
+        f"../demos/Vamp/{pointcloud_filename}",           # From build dir
+        f"../../demos/Vamp/{pointcloud_filename}",        # From deeper build dirs
+        f"data/{pointcloud_filename}",                    # Local data dir
+        f"config/{pointcloud_filename}"                   # Local config dir
+    ]
+    
+    for candidate_path in search_paths:
+        if os.path.exists(candidate_path):
+            return candidate_path
+    
+    # If not found, raise an error with search paths
+    error_message = f"Pointcloud file not found: {pointcloud_filename}\nSearched paths:\n"
+    for search_path in search_paths:
+        error_message += f"  - {search_path}\n"
+    raise FileNotFoundError(error_message)
+
+
 class ObstacleConfig:
     def __init__(self):
         self.type: str = ""
@@ -29,6 +51,8 @@ class ObstacleConfig:
         self.radius: float = 0.1
         self.half_extents: List[float] = [0.1, 0.1, 0.1]
         self.length: float = 0.2
+        self.pointcloud_file: str = ""
+        self.point_radius: float = 0.0025
         
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'ObstacleConfig':
@@ -41,9 +65,11 @@ class ObstacleConfig:
         config.radius = data.get('radius', 0.1)
         config.half_extents = data.get('half_extents', [0.1, 0.1, 0.1])
         config.length = data.get('length', 0.2)
+        config.pointcloud_file = data.get('pointcloud_file', '')
+        config.point_radius = data.get('point_radius', 0.0025)
         
         # Validate obstacle type
-        supported_types = ['sphere', 'cuboid', 'capsule']
+        supported_types = ['sphere', 'cuboid', 'capsule', 'pointcloud']
         if config.type and config.type not in supported_types:
             print(f"  Warning: Unknown obstacle type '{config.type}'. Supported: {supported_types}")
         
@@ -150,6 +176,8 @@ class VampVisualizer:
                 return self._create_cuboid_obstacle(obstacle)
             elif obstacle.type == "capsule":
                 return self._create_capsule_obstacle(obstacle)
+            elif obstacle.type == "pointcloud":
+                return self._create_pointcloud_obstacle(obstacle)
             else:
                 print(f"Warning: Unknown obstacle type '{obstacle.type}'. Skipping obstacle.")
                 return None
@@ -237,6 +265,141 @@ class VampVisualizer:
         if self.debug:
             print(f"Created capsule '{obstacle.name}' at {obstacle.position} with radius {obstacle.radius}, length {obstacle.length}")
         return obstacle_id
+        
+    def _create_pointcloud_obstacle(self, obstacle: ObstacleConfig) -> Optional[int]:
+        """Create pointcloud obstacle by loading points and rendering as small spheres"""
+        if not obstacle.pointcloud_file:
+            print(f"Warning: No pointcloud file specified for obstacle '{obstacle.name}'")
+            return None
+            
+        try:
+            points = self._load_pointcloud_file(obstacle.pointcloud_file)
+            if not points:
+                print(f"Warning: No points loaded from '{obstacle.pointcloud_file}'")
+                return None
+                
+            # Create compound visual shape for all points
+            visual_shapes = []
+            for point in points:
+                visual_shapes.append(p.createVisualShape(
+                    p.GEOM_SPHERE,
+                    radius=obstacle.point_radius,
+                    rgbaColor=[0.2, 0.9, 0.2, 0.9],  # Bright green for pointclouds
+                    specularColor=[0.4, 0.4, 0.4]
+                ))
+            
+            # Create collision shape (simplified as a single bounding box for performance)
+            if len(points) > 0:
+                points_array = np.array(points)
+                min_bounds = np.min(points_array, axis=0)
+                max_bounds = np.max(points_array, axis=0)
+                center = (min_bounds + max_bounds) / 2
+                half_extents = (max_bounds - min_bounds) / 2
+                
+                collision_shape = p.createCollisionShape(
+                    p.GEOM_BOX,
+                    halfExtents=half_extents.tolist()
+                )
+                
+                # Create individual sphere bodies for visual representation
+                point_ids = []
+                for i, point in enumerate(points[:min(500, len(points))]):  # Limit for performance
+                    point_id = p.createMultiBody(
+                        baseMass=0,
+                        baseCollisionShapeIndex=-1,  # No collision for individual points
+                        baseVisualShapeIndex=visual_shapes[0],  # Reuse same visual shape
+                        basePosition=point
+                    )
+                    point_ids.append(point_id)
+                
+                # Store point IDs for cleanup
+                self.obstacle_ids.extend(point_ids)
+                
+                if self.debug:
+                    print(f"Created pointcloud '{obstacle.name}' with {len(points)} points (showing {len(point_ids)})")
+                
+                return point_ids[0] if point_ids else None  # Return first point ID as representative
+                
+        except Exception as e:
+            print(f"Error loading pointcloud '{obstacle.pointcloud_file}': {e}")
+            return None
+    
+    def _load_pointcloud_file(self, filename: str) -> List[List[float]]:
+        """Load pointcloud from file (supports .xyz, .ply, .pcd)"""
+        try:
+            # Resolve pointcloud file path using file locator
+            resolved_path = find_pointcloud_file(filename)
+            
+            ext = os.path.splitext(resolved_path)[1].lower()
+            
+            if ext == '.xyz':
+                return self._load_xyz_file(resolved_path)
+            elif ext == '.ply':
+                return self._load_ply_file(resolved_path)
+            elif ext == '.pcd':
+                return self._load_pcd_file(resolved_path)
+            else:
+                print(f"Unsupported pointcloud format: {ext}")
+                return []
+        except FileNotFoundError as e:
+            print(f"Error locating pointcloud file: {e}")
+            return []
+    
+    def _load_xyz_file(self, filename: str) -> List[List[float]]:
+        """Load simple XYZ format (x y z per line)"""
+        points = []
+        with open(filename, 'r') as f:
+            for line in f:
+                parts = line.strip().split()
+                if len(parts) >= 3:
+                    try:
+                        points.append([float(parts[0]), float(parts[1]), float(parts[2])])
+                    except ValueError:
+                        continue
+        return points
+    
+    def _load_ply_file(self, filename: str) -> List[List[float]]:
+        """Load basic PLY format (ASCII only)"""
+        points = []
+        with open(filename, 'r') as f:
+            in_header = True
+            vertex_count = 0
+            
+            for line in f:
+                if in_header:
+                    if line.startswith('element vertex'):
+                        vertex_count = int(line.split()[2])
+                    elif line.strip() == 'end_header':
+                        in_header = False
+                else:
+                    parts = line.strip().split()
+                    if len(parts) >= 3:
+                        try:
+                            points.append([float(parts[0]), float(parts[1]), float(parts[2])])
+                        except ValueError:
+                            continue
+                    if len(points) >= vertex_count:
+                        break
+        return points
+    
+    def _load_pcd_file(self, filename: str) -> List[List[float]]:
+        """Load basic PCD format (ASCII only)"""
+        points = []
+        with open(filename, 'r') as f:
+            in_header = True
+            
+            for line in f:
+                if in_header:
+                    if line.startswith('DATA'):
+                        in_header = False
+                else:
+                    parts = line.strip().split()
+                    if len(parts) >= 3:
+                        try:
+                            points.append([float(parts[0]), float(parts[1]), float(parts[2])])
+                        except ValueError:
+                            continue
+        return points
         
     def create_environment(self, env_name: str):
         """Create environment - DEPRECATED: Use YAML configuration instead"""

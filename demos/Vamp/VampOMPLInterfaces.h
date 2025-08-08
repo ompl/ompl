@@ -127,13 +127,17 @@ struct PlanningResult {
  * @brief Configuration structure for obstacles (Single Responsibility)
  */
 struct ObstacleConfig {
-    std::string type;           // "sphere", "cuboid", "capsule"
+    std::string type;           // "sphere", "cuboid", "capsule", "pointcloud"
     std::string name;           // Optional name for the obstacle
     std::array<float, 3> position;
     std::array<float, 3> orientation_euler_xyz = {0.0f, 0.0f, 0.0f}; // For cuboids and capsules
     float radius = 0.1f;        // For spheres and capsules
     std::array<float, 3> half_extents = {0.1f, 0.1f, 0.1f}; // For cuboids
     float length = 0.2f;        // For capsules
+    
+    // Pointcloud-specific parameters
+    std::string pointcloud_file;  // Path to pointcloud file (.xyz, .ply, .pcd)
+    float point_radius = 0.0025f; // Radius for each point in pointcloud
     
     ObstacleConfig() = default;
     
@@ -146,6 +150,10 @@ struct ObstacleConfig {
                    const std::array<float, 3>& pos,
                    const std::array<float, 3>& half_ext)
         : type(obstacle_type), position(pos), half_extents(half_ext) {}
+        
+    // Pointcloud constructor
+    ObstacleConfig(const std::string& file_path, float pt_radius = 0.0025f)
+        : type("pointcloud"), pointcloud_file(file_path), point_radius(pt_radius) {}
 };
 
 /**

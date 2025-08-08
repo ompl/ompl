@@ -138,7 +138,8 @@ std::unique_ptr<RobotConfig<Robot>> createRobotConfiguration(const std::string& 
 /**
  * @brief Environment factory for obstacle-based environments
  */
-std::unique_ptr<EnvironmentFactory> createEnvironmentFactory(const std::vector<ObstacleConfig>& obstacles);
+std::unique_ptr<EnvironmentFactory> createEnvironmentFactory(const std::vector<ObstacleConfig>& obstacles, 
+                                                           const std::string& robot_name = "");
 
 /**
  * @brief Main motion planning execution function (Dependency Inversion Principle)
@@ -161,10 +162,12 @@ namespace vamp_ompl {
 /**
  * @brief Environment factory implementation (configurable obstacles)
  */
-inline std::unique_ptr<EnvironmentFactory> createEnvironmentFactory(const std::vector<ObstacleConfig>& obstacles)
+inline std::unique_ptr<EnvironmentFactory> createEnvironmentFactory(const std::vector<ObstacleConfig>& obstacles,
+                                                                   const std::string& robot_name)
 {
     auto factory = std::make_unique<ConfigurableEnvironmentFactory>();
     factory->setObstacles(obstacles);
+    factory->setRobotName(robot_name);
     
     if (obstacles.empty()) {
         factory->setMetadata("Empty Environment", "Environment with no obstacles");
@@ -220,7 +223,7 @@ MotionPlanningResult planRobotMotion(const PlanningConfiguration& config)
         auto robot_config = createRobotConfiguration<Robot>(config.robot_name, 
                                                             config.start_config, 
                                                             config.goal_config);
-        auto env_factory = createEnvironmentFactory(config.obstacles);
+        auto env_factory = createEnvironmentFactory(config.obstacles, config.robot_name);
         
         // Create planner
         auto planner = createVampOMPLPlanner(std::move(robot_config), std::move(env_factory));

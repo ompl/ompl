@@ -26,10 +26,19 @@ namespace constants {
     constexpr float DEFAULT_SPHERE_RADIUS = 0.1f;
     constexpr float DEFAULT_CAPSULE_LENGTH = 0.2f;
     constexpr std::array<float, 3> DEFAULT_HALF_EXTENTS = {0.1f, 0.1f, 0.1f};
+    constexpr float DEFAULT_POINT_RADIUS = 0.0025f;  // VAMP default point radius
     
     // Supported robot types
     inline std::vector<std::string> getSupportedRobots() {
         return {"panda", "ur5", "fetch"};
+    }
+    
+    // Robot-specific radii for CAPT construction (from VAMP constants)
+    inline std::pair<float, float> getRobotRadii(const std::string& robot_name) {
+        if (robot_name == "panda") return {0.01f, 1.19f};
+        if (robot_name == "ur5") return {0.01f, 1.2f};
+        if (robot_name == "fetch") return {0.01f, 1.5f};
+        return {0.01f, 0.5f}; // Default values
     }
 }
 
@@ -44,6 +53,191 @@ class VampYamlError : public VampConfigurationError {
 public:
     explicit VampYamlError(const std::string& message) 
         : VampConfigurationError("YAML parsing failed: " + message) {}
+};
+
+/**
+ * @brief Pointcloud loader supporting common formats (.xyz, .ply, .pcd)
+ * 
+ * This utility class provides cross-platform pointcloud loading with minimal dependencies.
+ * Supports the most common formats used in robotics and 3D applications.
+ */
+class PointcloudLoader {
+public:
+    using Point = std::array<float, 3>;
+    
+    /**
+     * @brief Load pointcloud from file (auto-detects format)
+     * @param filename Path to pointcloud file
+     * @return Vector of 3D points
+     */
+    static std::vector<Point> loadPointcloud(const std::string& filename) {
+        std::string extension = std::filesystem::path(filename).extension().string();
+        std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+        
+        if (extension == ".xyz") {
+            return loadXYZ(filename);
+        } else if (extension == ".ply") {
+            return loadPLY(filename);
+        } else if (extension == ".pcd") {
+            return loadPCD(filename);
+        } else {
+            throw VampConfigurationError("Unsupported pointcloud format: " + extension + 
+                ". Supported: .xyz, .ply, .pcd");
+        }
+    }
+
+private:
+    /**
+     * @brief Load simple XYZ format (x y z per line)
+     */
+    static std::vector<Point> loadXYZ(const std::string& filename) {
+        std::vector<Point> points;
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            throw VampConfigurationError("Cannot open pointcloud file: " + filename);
+        }
+        
+        std::string line;
+        while (std::getline(file, line)) {
+            std::istringstream iss(line);
+            Point point;
+            if (iss >> point[0] >> point[1] >> point[2]) {
+                points.push_back(point);
+            }
+        }
+        return points;
+    }
+    
+    /**
+     * @brief Load basic PLY format (ASCII only)
+     */
+    static std::vector<Point> loadPLY(const std::string& filename) {
+        std::vector<Point> points;
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            throw VampConfigurationError("Cannot open PLY file: " + filename);
+        }
+        
+        std::string line;
+        bool in_header = true;
+        size_t vertex_count = 0;
+        
+        while (std::getline(file, line) && in_header) {
+            if (line.find("element vertex") == 0) {
+                std::istringstream iss(line);
+                std::string element, vertex;
+                iss >> element >> vertex >> vertex_count;
+            } else if (line == "end_header") {
+                in_header = false;
+            }
+        }
+        
+        points.reserve(vertex_count);
+        for (size_t i = 0; i < vertex_count && std::getline(file, line); ++i) {
+            std::istringstream iss(line);
+            Point point;
+            if (iss >> point[0] >> point[1] >> point[2]) {
+                points.push_back(point);
+            }
+        }
+        return points;
+    }
+    
+    /**
+     * @brief Load basic PCD format (ASCII only)
+     */
+    static std::vector<Point> loadPCD(const std::string& filename) {
+        std::vector<Point> points;
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            throw VampConfigurationError("Cannot open PCD file: " + filename);
+        }
+        
+        std::string line;
+        bool in_header = true;
+        size_t point_count = 0;
+        
+        while (std::getline(file, line) && in_header) {
+            if (line.find("POINTS") == 0) {
+                std::istringstream iss(line);
+                std::string points_keyword;
+                iss >> points_keyword >> point_count;
+            } else if (line.find("DATA") == 0) {
+                in_header = false;
+            }
+        }
+        
+        points.reserve(point_count);
+        while (std::getline(file, line)) {
+            std::istringstream iss(line);
+            Point point;
+            if (iss >> point[0] >> point[1] >> point[2]) {
+                points.push_back(point);
+            }
+        }
+        return points;
+    }
+};
+
+/**
+ * @brief File utilities for locating configuration and script files
+ * 
+ * This utility class implements the Strategy pattern for file location,
+ * providing flexible search mechanisms across different deployment scenarios.
+ * 
+ * - Encapsulates file system interaction complexity
+ * - Provides consistent error handling across file operations
+ * - Supports multiple deployment scenarios (development, build, install)
+ * - Demonstrates robust error reporting with actionable messages
+ */
+class FileLocator {
+public:
+    /**
+     * @brief Find file in common locations using search strategy pattern
+     * 
+     *  Note: This method demonstrates the Strategy pattern applied
+     * to file location. Different search strategies can be applied based on
+     * deployment context without changing client code.
+     */
+    static std::string findFile(const std::string& targetFilename, const std::vector<std::string>& searchPaths) {
+        for (const auto& candidatePath : searchPaths) {
+            std::ifstream testFileStream(candidatePath);
+            if (testFileStream.is_open()) {
+                return candidatePath;
+            }
+        }
+        
+        std::string errorMessage = "File not found: " + targetFilename + "\nSearched paths:\n";
+        for (const auto& searchPath : searchPaths) errorMessage += "  - " + searchPath + "\n";
+        throw VampConfigurationError(errorMessage);
+    }
+    
+    /**
+     * @brief Find YAML config file in standard locations
+     */
+    static std::string findYamlFile(const std::string& yamlFilename) {
+        return findFile(yamlFilename, {
+            yamlFilename,                                    // Direct path
+            "config/" + yamlFilename,                        // Local config dir
+            "demos/Vamp/config/" + yamlFilename,             // From project root
+            "../demos/Vamp/config/" + yamlFilename,          // From build dir
+            "../../demos/Vamp/config/" + yamlFilename        // From deeper build dirs
+        });
+    }
+    
+    /**
+     * @brief Find pointcloud file in standard locations
+     */
+    static std::string findPointcloudFile(const std::string& pointcloudFilename) {
+        return findFile(pointcloudFilename, {
+            pointcloudFilename,                               // Direct path
+            "demos/Vamp/" + pointcloudFilename,              // From project root
+            "../demos/Vamp/" + pointcloudFilename,           // From build dir
+            "../../demos/Vamp/" + pointcloudFilename,        // From deeper build dirs
+            "data/" + pointcloudFilename,                    // Local data dir
+            "config/" + pointcloudFilename                   // Local config dir
+        });
+    }
 };
 
 /**
@@ -62,6 +256,7 @@ private:
     std::vector<ObstacleConfig> m_obstacleConfigurations;
     std::string m_environmentName;
     std::string m_environmentDescription;
+    std::string m_robotName; // Add robot name for CAPT radii
     
 public:
     /**
@@ -69,8 +264,10 @@ public:
      */
     ConfigurableEnvironmentFactory(const std::vector<ObstacleConfig>& obstacleConfigurations = {},
                                  const std::string& environmentName = "Environment",
-                                 const std::string& environmentDescription = "Explicit obstacle environment")
-        : m_obstacleConfigurations(obstacleConfigurations), m_environmentName(environmentName), m_environmentDescription(environmentDescription)
+                                 const std::string& environmentDescription = "Explicit obstacle environment",
+                                 const std::string& robotName = "")
+        : m_obstacleConfigurations(obstacleConfigurations), m_environmentName(environmentName), 
+          m_environmentDescription(environmentDescription), m_robotName(robotName)
     {
     }
     
@@ -93,6 +290,21 @@ public:
      */
     void clearObstacles() {
         m_obstacleConfigurations.clear();
+    }
+    
+    /**
+     * @brief Set robot name for robot-specific CAPT radii
+     */
+    void setRobotName(const std::string& robotName) {
+        m_robotName = robotName;
+    }
+    
+    /**
+     * @brief Set environment metadata
+     */
+    void setMetadata(const std::string& name, const std::string& description) {
+        m_environmentName = name;
+        m_environmentDescription = description;
     }
     
     /**
@@ -139,6 +351,24 @@ public:
                 if (!obstacleConfig.name.empty()) {
                     vampEnvironment.capsules.back().name = obstacleConfig.name;
                 }
+            } else if (obstacleConfig.type == "pointcloud") {
+                try {
+                    // Resolve pointcloud file path using FileLocator
+                    std::string resolvedPointcloudPath = FileLocator::findPointcloudFile(obstacleConfig.pointcloud_file);
+                    auto points = PointcloudLoader::loadPointcloud(resolvedPointcloudPath);
+                    if (!points.empty()) {
+                        // Use robot-specific radii for CAPT construction
+                        auto robot_radii = constants::getRobotRadii(m_robotName);
+                        float r_min = robot_radii.first;
+                        float r_max = robot_radii.second;
+                        vampEnvironment.pointclouds.emplace_back(points, r_min, r_max, obstacleConfig.point_radius);
+                        std::cout << "Loaded pointcloud: " << points.size() << " points from " 
+                                  << resolvedPointcloudPath << std::endl;
+                    }
+                } catch (const std::exception& e) {
+                    std::cerr << "Error loading pointcloud " << obstacleConfig.pointcloud_file 
+                              << ": " << e.what() << std::endl;
+                }
             } else {
                 std::cerr << "Warning: Unknown obstacle type '" << obstacleConfig.type 
                           << "'. Skipping obstacle." << std::endl;
@@ -180,14 +410,6 @@ public:
      */
     const std::vector<ObstacleConfig>& getObstacles() const {
         return m_obstacleConfigurations;
-    }
-    
-    /**
-     * @brief Set environment name and description
-     */
-    void setMetadata(const std::string& environmentName, const std::string& environmentDescription) {
-        m_environmentName = environmentName;
-        m_environmentDescription = environmentDescription;
     }
 };
 
@@ -273,50 +495,9 @@ public:
     }
 };
 
-/**
- * @brief File utilities for locating configuration and script files
- * 
- * This utility class implements the Strategy pattern for file location,
- * providing flexible search mechanisms across different deployment scenarios.
- * 
- * - Encapsulates file system interaction complexity
- * - Provides consistent error handling across file operations
- * - Supports multiple deployment scenarios (development, build, install)
- * - Demonstrates robust error reporting with actionable messages
- */
-class FileLocator {
-public:
-    /**
-     * @brief Find file in common locations using search strategy pattern
-     * 
-     *  Note: This method demonstrates the Strategy pattern applied
-     * to file location. Different search strategies can be applied based on
-     * deployment context without changing client code.
-     */
-    static std::string findFile(const std::string& targetFilename, const std::vector<std::string>& searchPaths) {
-        for (const auto& candidatePath : searchPaths) {
-            std::ifstream testFileStream(candidatePath);
-            if (testFileStream.is_open()) return candidatePath;
-        }
-        
-        std::string errorMessage = "File not found: " + targetFilename + "\nSearched paths:\n";
-        for (const auto& searchPath : searchPaths) errorMessage += "  - " + searchPath + "\n";
-        throw VampConfigurationError(errorMessage);
-    }
-    
-    /**
-     * @brief Find YAML config file in standard locations
-     */
-    static std::string findYamlFile(const std::string& yamlFilename) {
-        return findFile(yamlFilename, {
-            yamlFilename,                                    // Direct path
-            "config/" + yamlFilename,                        // Local config dir
-            "demos/Vamp/config/" + yamlFilename,             // From project root
-            "../demos/Vamp/config/" + yamlFilename,          // From build dir
-            "../../demos/Vamp/config/" + yamlFilename        // From deeper build dirs
-        });
-    }
-};
+
+
+
 
 /**
  * @brief Visualization launcher for completed planning results
@@ -489,6 +670,14 @@ private:
             for (size_t dimensionIndex = 0; dimensionIndex < std::min(extentsSequence.size(), parsedObstacle.half_extents.size()); ++dimensionIndex) {
                 parsedObstacle.half_extents[dimensionIndex] = safeConvertYamlValue<float>(extentsSequence[dimensionIndex], constants::DEFAULT_HALF_EXTENTS[dimensionIndex]);
             }
+        }
+        
+        // Parse pointcloud-specific parameters
+        if (obstacleNode["pointcloud_file"]) {
+            parsedObstacle.pointcloud_file = safeConvertYamlValue<std::string>(obstacleNode["pointcloud_file"]);
+        }
+        if (obstacleNode["point_radius"]) {
+            parsedObstacle.point_radius = safeConvertYamlValue<float>(obstacleNode["point_radius"], constants::DEFAULT_POINT_RADIUS);
         }
         
         return parsedObstacle;
