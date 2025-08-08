@@ -1,6 +1,6 @@
 # Release Notes {#releaseNotes}
 
-## OMPL 1.8.0 (TBD)
+## OMPL 2.0.0beta (TBD)
 
 - **NEW: VAMP Integration** 🚀
   - Added [VAMP (Vector-Accelerated Motion Planning)](https://github.com/KavrakiLab/vamp) as an optional high-performance backend for collision checking and motion validation
