@@ -166,7 +166,7 @@ public:
      */
     std::string writeOptimizedSolutionPath(const PlanningResult& planningResult, const std::string& plannerName) const
     {
-        auto geometricPath = std::dynamic_pointer_cast<ompl::geometric::PathGeometric>(planningResult.solution_path);
+        auto geometricPath = planningResult.solution_path.as<ompl::geometric::PathGeometric>();
         if (!planningResult.success || !geometricPath) return "";
         
         geometricPath->interpolate(constants::DEFAULT_PATH_WAYPOINTS); // Standard waypoint count
