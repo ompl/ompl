@@ -168,10 +168,10 @@ inline std::unique_ptr<EnvironmentFactory> createEnvironmentFactory(const std::v
     
     if (obstacles.empty()) {
         factory->setMetadata("Empty Environment", "Environment with no obstacles");
-        std::cout << "🏭 Using empty environment (0 obstacles)" << std::endl;
+        std::cout << " Using empty environment (0 obstacles)" << std::endl;
     } else {
         factory->setMetadata("Custom Environment", "Environment with obstacle configuration");
-        std::cout << "🔧 Using obstacle configuration (" 
+        std::cout << " Using obstacle configuration (" 
                   << obstacles.size() << " obstacles)" << std::endl;
     }
     

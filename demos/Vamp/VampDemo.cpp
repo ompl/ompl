@@ -117,7 +117,7 @@ PlanningConfiguration createBasicExample()
         planningConfiguration.obstacles.push_back(sphereObstacle);
     }
     
-    std::cout << "✓ Created " << planningConfiguration.obstacles.size() << " obstacles directly in code" << std::endl;
+    std::cout << "Created " << planningConfiguration.obstacles.size() << " obstacles directly in code" << std::endl;
     
     return planningConfiguration;
 }
@@ -194,7 +194,7 @@ int main(int argc, char **argv)
                 return 1;
             }
             
-            std::cout << "✓ Configuration validation passed" << std::endl;
+            std::cout << " Configuration validation passed" << std::endl;
             std::cout << " Starting planning with basic setup configuration..." << std::endl;
             motionPlanningResult = executeMotionPlanning(basicPlanningConfiguration);
             configurationSource = "basic_setup";

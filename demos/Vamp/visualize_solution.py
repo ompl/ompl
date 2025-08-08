@@ -6,8 +6,6 @@ YAML-driven obstacle visualization.
 
 Usage:
     python3 visualize_solution.py --robot panda --yaml-config panda_demo.yaml path_file.txt
-    python3 visualize_solution.py --robot ur5 --yaml-config ur5_demo.yaml path_file.txt
-    python3 visualize_solution.py --robot fetch --yaml-config fetch_demo.yaml path_file.txt
 """
 
 import argparse
@@ -47,7 +45,7 @@ class ObstacleConfig:
         # Validate obstacle type
         supported_types = ['sphere', 'cuboid', 'capsule']
         if config.type and config.type not in supported_types:
-            print(f"⚠️  Warning: Unknown obstacle type '{config.type}'. Supported: {supported_types}")
+            print(f"  Warning: Unknown obstacle type '{config.type}'. Supported: {supported_types}")
         
         return config
 
@@ -104,7 +102,7 @@ class VampVisualizer:
             if info[2] != p.JOINT_FIXED:  # Not a fixed joint
                 self.joint_indices.append(i)
                 
-        print(f"✓ Loaded {robot_name} robot")
+        print(f" Loaded {robot_name} robot")
         return robot_name
         
     def _find_urdf(self, urdf_rel_path: str) -> str:
@@ -267,7 +265,7 @@ class VampVisualizer:
         if yaml_path is None:
             raise FileNotFoundError(f"Could not find YAML file: {yaml_file}")
             
-        print(f"📁 Loading YAML config: {yaml_path}")
+        print(f" Loading YAML config: {yaml_path}")
         
         obstacles = []
         try:
@@ -280,7 +278,7 @@ class VampVisualizer:
                     obstacle = ObstacleConfig.from_dict(obstacle_data)
                     obstacles.append(obstacle)
                     
-                print(f"✓ Loaded {len(obstacles)} obstacles from YAML")
+                print(f" Loaded {len(obstacles)} obstacles from YAML")
             else:
                 print("No obstacles found in YAML, will use environment name if provided")
                 
@@ -318,7 +316,7 @@ class VampVisualizer:
         # Create start/goal markers
         self._create_markers(waypoints[0], waypoints[-1])
         
-        print(f"🎬 Animating {waypoints.shape[0]} waypoints over {duration:.1f}s")
+        print(f" Animating {waypoints.shape[0]} waypoints over {duration:.1f}s")
         
         dt = 1.0 / 60.0  # 60 FPS
         steps_per_waypoint = max(1, int(duration / (len(waypoints) * dt)))
@@ -351,15 +349,15 @@ class VampVisualizer:
         
         try:
             if loop:
-                print("🔄 Looping animation (Ctrl+C to stop)")
+                print(" Looping animation (Ctrl+C to stop)")
                 while True:
                     self._clear_trajectory()
                     run_animation()
             else:
                 run_animation()
-                print(f"✨ Animation complete!")
+                print(f" Animation complete!")
         except KeyboardInterrupt:
-            print("\n⏹️ Animation stopped")
+            print("\nAnimation stopped")
             
     def _create_markers(self, start_config: np.ndarray, goal_config: np.ndarray):
         """Create start and goal markers"""
@@ -385,7 +383,7 @@ class VampVisualizer:
         )
         
         self.set_joint_configuration(start_config)
-        print(f"✓ Start: {start_pos}, Goal: {goal_pos}")
+        print(f"Start: {start_pos}, Goal: {goal_pos}")
         
     def _clear_trajectory(self):
         """Clear trajectory lines"""
@@ -467,10 +465,10 @@ def interactive_mode() -> Optional[str]:
     """Interactive file selection"""
     files = find_solution_files()
     if not files:
-        print("❌ No solution path files found!")
+        print(" No solution path files found!")
         return None
         
-    print(f"\n📁 Found {len(files)} solution files:")
+    print(f"\n Found {len(files)} solution files:")
     for i, f in enumerate(files):
         print(f"  {i+1}. {os.path.basename(f)}")
         
@@ -478,7 +476,7 @@ def interactive_mode() -> Optional[str]:
         choice = int(input(f"\nChoose file (1-{len(files)}): ")) - 1
         return files[choice]
     except (ValueError, IndexError):
-        print("❌ Invalid choice")
+        print(" Invalid choice")
         return None
 
 
@@ -502,7 +500,7 @@ def main():
     
     # Interactive mode
     if args.interactive:
-        print("🎯 VAMP-OMPL Solution Path Visualizer")
+        print(" VAMP-OMPL Solution Path Visualizer")
         args.path_file = interactive_mode()
         if not args.path_file:
             return
@@ -513,17 +511,17 @@ def main():
         
     try:
         # Read path file
-        print(f"📖 Reading: {args.path_file}")
+        print(f" Reading: {args.path_file}")
         waypoints, detected_robot, detected_env = read_path_file(args.path_file)
-        print(f"✓ Loaded {len(waypoints)} waypoints, {waypoints.shape[1]} joints")
+        print(f" Loaded {len(waypoints)} waypoints, {waypoints.shape[1]} joints")
         
         # Use specified robot (required) or detected from path
         robot_name = args.robot or detected_robot
         if not robot_name:
-            print("❌ Robot type must be specified with --robot option")
+            print(" Robot type must be specified with --robot option")
             return
             
-        print(f"🤖 Robot: {robot_name}")
+        print(f" Robot: {robot_name}")
         
         # Initialize visualizer
         visualizer = VampVisualizer(gui=not args.no_gui, debug=True)
@@ -534,23 +532,23 @@ def main():
         # Validate joint count matches expected for robot
         expected_joints = {"panda": 7, "ur5": 6, "fetch": 8}  # Common joint counts
         if robot_name in expected_joints and waypoints.shape[1] != expected_joints[robot_name]:
-            print(f"⚠️  Warning: Path has {waypoints.shape[1]} joints, but {robot_name} typically has {expected_joints[robot_name]} joints")
+            print(f"  Warning: Path has {waypoints.shape[1]} joints, but {robot_name} typically has {expected_joints[robot_name]} joints")
         
         # Load environment from YAML (required)
-        print(f"📁 Loading environment from YAML: {args.yaml_config}")
+        print(f" Loading environment from YAML: {args.yaml_config}")
         obstacle_configs = visualizer.load_yaml_config(args.yaml_config)
         visualizer.create_environment_from_obstacles(obstacle_configs)
         
         # Start animation
         visualizer.set_joint_configuration(waypoints[0])
-        print(f"\n🎬 Press Enter to start animation...")
+        print(f"\n Press Enter to start animation...")
         input()
         
         visualizer.animate_path(waypoints, args.duration, 
                               args.loop, not args.no_trajectory)
         
         if not args.loop:
-            print("\n✨ Animation complete! Close window or press Ctrl+C to exit...")
+            print("\n Animation complete! Close window or press Ctrl+C to exit...")
             try:
                 while True:
                     time.sleep(0.1)
@@ -558,7 +556,7 @@ def main():
                 pass
         
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
     finally:
         if 'visualizer' in locals():
             visualizer.cleanup()

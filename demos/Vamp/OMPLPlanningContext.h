@@ -301,7 +301,7 @@ private:
          * method without modifying this source code.
          * 
          * Extensibility Pattern:
-         * The factory now properly follows the Open/Closed Principle:
+         * The factory follows the Open/Closed Principle:
          * - OPEN for extension: New planners can be added via registerPlanner()
          * - CLOSED for modification: No source code changes needed for new planners
          * 

@@ -40,7 +40,7 @@ namespace vamp_ompl {
  * - Extensible to new robot types and environments without code modification
  * 
  * Performance Characteristics:
- * - Vectorized collision detection: 8x SIMD speedup over scalar implementations
+ * - Vectorized collision detection: SIMD speedup over scalar implementations
  * - Zero-copy configuration conversion: Direct memory mapping between systems
  * - Lazy initialization: Environment creation deferred until actually needed
  * - Efficient path writing: Leverages OMPL's optimized serialization
@@ -117,7 +117,7 @@ public:
         m_planningContext.setProblem(defaultStartConfiguration, defaultGoalConfiguration);
         
         m_isInitialized = true;
-        std::cout << "✓ Initialization complete" << std::endl;
+        std::cout << "Initialization complete" << std::endl;
     }
     
     /**
@@ -194,7 +194,7 @@ public:
         // Use OMPL's built-in path writing functionality
         geometricPath->printAsMatrix(outputFile);
         
-        std::cout << "✓ Path written: " << outputFilename << " (" << geometricPath->getStateCount() 
+        std::cout << " Path written: " << outputFilename << " (" << geometricPath->getStateCount() 
                   << " waypoints, cost=" << planningResult.final_cost << ")" << std::endl;
         return outputFilename;
     }
