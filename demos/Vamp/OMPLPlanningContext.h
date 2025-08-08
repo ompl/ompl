@@ -112,7 +112,7 @@ public:
             throw VampConfigurationError("State space not set up. Call setupStateSpace first.");
         }
         
-        auto configurationSpace = m_spaceInformation->getStateSpace();
+        auto const& configurationSpace = m_spaceInformation->getStateSpace();
         ob::ScopedState<> startStateOmpl(configurationSpace), goalStateOmpl(configurationSpace);
         
         // Convert arrays to OMPL states directly
