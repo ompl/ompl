@@ -163,7 +163,9 @@ def getPathLengthObjWithCostToGo(si):
 
 # Keep these in alphabetical order and all lower case
 def allocatePlanner(si, plannerType):
-    if plannerType.lower() == "bfmtstar":
+    if plannerType.lower() == "aorrtc":
+        return og.AORRTC(si)
+    elif plannerType.lower() == "bfmtstar":
         return og.BFMT(si)
     elif plannerType.lower() == "bitstar":
         return og.BITstar(si)
@@ -270,7 +272,7 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--runtime', type=float, default=1.0, help=\
         '(Optional) Specify the runtime in seconds. Defaults to 1 and must be greater than 0.')
     parser.add_argument('-p', '--planner', default='RRTstar', \
-        choices=['BFMTstar', 'BITstar', 'FMTstar', 'InformedRRTstar', 'PRMstar', 'RRTstar', \
+        choices=['AORRTC', 'BFMTstar', 'BITstar', 'FMTstar', 'InformedRRTstar', 'PRMstar', 'RRTstar', \
         'SORRTstar'], \
         help='(Optional) Specify the optimal planner to use, defaults to RRTstar if not given.')
     parser.add_argument('-o', '--objective', default='PathLength', \
