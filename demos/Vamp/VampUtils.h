@@ -498,6 +498,30 @@ public:
 class VisualizationLauncher {
 public:
     /**
+     * @brief Resolve YAML config file path with search logic
+     */
+    static std::filesystem::path resolveYamlConfigPath(const std::string& yamlFileName) {
+        // Search paths for YAML config files (same logic as Python script)
+        std::vector<std::filesystem::path> searchPaths = {
+            yamlFileName,                                               // Direct path
+            std::filesystem::path("config") / yamlFileName,             // config/ directory
+            std::filesystem::path("demos/Vamp/config") / yamlFileName,  // From project root
+            std::filesystem::path("../demos/Vamp/config") / yamlFileName,      // From build dir
+            std::filesystem::path("../../demos/Vamp/config") / yamlFileName    // From deeper dirs
+        };
+        
+        // Try each path
+        for (const auto& path : searchPaths) {
+            if (std::filesystem::exists(path)) {
+                return std::filesystem::absolute(path);  // Return absolute path
+            }
+        }
+        
+        // Return original if not found (will be handled by caller)
+        return yamlFileName;
+    }
+
+    /**
      * @brief Run visualization for a completed planning result
      * @param planningResult Planning result containing solution path
      * @param configurationSource Configuration source (YAML filename or "programmatic")
@@ -515,7 +539,7 @@ public:
         // Find visualization script relative to this source file location
         // This ensures the script is found regardless of working directory
         std::filesystem::path visualizationScriptPath = 
-            std::filesystem::path(__FILE__).parent_path() / "visualize_solution.py";
+            std::filesystem::path(__FILE__).parent_path() / "visualization" / "visualize_solution.py";
         
         if (!std::filesystem::exists(visualizationScriptPath)) {
             std::cout << " Visualization script not found at: " << visualizationScriptPath << std::endl;
@@ -534,7 +558,14 @@ public:
         
         // Add optional YAML config if explicitly provided
         if (configurationSource.size() >= 5 && configurationSource.substr(configurationSource.size() - 5) == ".yaml") {
-            visualizationCommand += " --yaml-config " + configurationSource;
+            // Resolve the full path to the YAML config file
+            std::filesystem::path yamlConfigPath = resolveYamlConfigPath(configurationSource);
+            if (std::filesystem::exists(yamlConfigPath)) {
+                visualizationCommand += " --yaml-config \"" + yamlConfigPath.string() + "\"";
+            } else {
+                std::cout << "Warning: YAML config file not found: " << configurationSource << std::endl;
+                std::cout << "Continuing without environment configuration..." << std::endl;
+            }
         }
         
         std::cout << "🎬 Running visualization..." << std::endl;

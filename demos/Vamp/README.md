@@ -15,16 +15,15 @@
 ./demo_CustomRobot                                    # Custom robot demo
 ./demo_CustomRobot --list                             # List all registered robots  
 ./demo_CustomRobot --robot planar_arm_2dof            # Specific custom robot
-./demo_CustomRobot --robot articulated_arm_3dof --visualize  # 3D robot with visualization
 ./demo_Vamp demos/Vamp/config/planar_arm_2dof_demo.yaml     # YAML mode with custom robot
 ```
 
-**Visualization (Now URDF-Configurable)**
+**Visualization (URDF-Configurable)**
 ```bash
 # Automatic visualization with embedded URDF configuration
 python3 visualize_solution.py solution_path_file.txt
 
-# Manual override (for legacy compatibility)
+# Manual override
 python3 visualize_solution.py solution_path_file.txt --robot panda --yaml-config config.yaml
 ```
 
