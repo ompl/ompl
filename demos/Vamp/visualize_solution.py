@@ -20,6 +20,44 @@ import yaml
 import math
 
 
+def parse_visualization_config(solution_file_path: str) -> Dict[str, Any]:
+    """Parse visualization configuration from solution file header"""
+    viz_config = {}
+    
+    try:
+        with open(solution_file_path, 'r') as file:
+            for line in file:
+                if not line.startswith('#'):
+                    break  # End of header
+                    
+                # Parse visualization config lines
+                if '# robot_name:' in line:
+                    viz_config['robot_name'] = line.split(':', 1)[1].strip()
+                elif '# urdf_path:' in line:
+                    viz_config['urdf_path'] = line.split(':', 1)[1].strip()
+                elif '# expected_joints:' in line:
+                    viz_config['expected_joints'] = int(line.split(':', 1)[1].strip())
+                elif '# base_position:' in line:
+                    # Parse array format: [x, y, z]
+                    pos_str = line.split(':', 1)[1].strip()
+                    if pos_str.startswith('[') and pos_str.endswith(']'):
+                        pos_values = pos_str[1:-1].split(',')
+                        viz_config['base_position'] = [float(v.strip()) for v in pos_values]
+                elif '# base_orientation:' in line:
+                    # Parse array format: [rx, ry, rz]
+                    orient_str = line.split(':', 1)[1].strip()
+                    if orient_str.startswith('[') and orient_str.endswith(']'):
+                        orient_values = orient_str[1:-1].split(',')
+                        viz_config['base_orientation'] = [float(v.strip()) for v in orient_values]
+                elif '# use_fixed_base:' in line:
+                    viz_config['use_fixed_base'] = line.split(':', 1)[1].strip().lower() == 'true'
+                    
+    except Exception as e:
+        print(f"Warning: Could not parse visualization config from {solution_file_path}: {e}")
+    
+    return viz_config
+
+
 def find_pointcloud_file(pointcloud_filename: str) -> str:
     """Find pointcloud file in standard locations using the same strategy as C++"""
     search_paths = [
@@ -105,20 +143,40 @@ class VampVisualizer:
         if self.debug:
             print("✓ PyBullet initialized")
             
-    def load_robot(self, robot_name: str) -> str:
-        """Load robot from URDF"""
-        robot_paths = {
-            'panda': 'panda/panda_spherized.urdf',
-            'ur5': 'ur5/ur5_spherized.urdf', 
-            'fetch': 'fetch/fetch_spherized.urdf'
-        }
+    def load_robot(self, robot_name: str, urdf_path: str = "", base_position: List[float] = None, 
+                   base_orientation: List[float] = None, use_fixed_base: bool = True, 
+                   expected_joints: int = -1) -> str:
+        """Load robot from URDF (now fully configurable)"""
         
-        if robot_name not in robot_paths:
-            raise ValueError(f"Unknown robot: {robot_name}. Available: {list(robot_paths.keys())}. "
-                           f"Make sure the C++ demo is passing the correct robot name.")
-            
-        urdf_path = self._find_urdf(robot_paths[robot_name])
-        self.robot_id = p.loadURDF(urdf_path, [0, 0, 0], useFixedBase=True)
+        # If no URDF path provided, try to use defaults for built-in robots
+        if not urdf_path:
+            default_robot_paths = {
+                'panda': 'panda/panda_spherized.urdf',
+                'ur5': 'ur5/ur5_spherized.urdf', 
+                'fetch': 'fetch/fetch_spherized.urdf'
+            }
+            if robot_name in default_robot_paths:
+                urdf_path = default_robot_paths[robot_name]
+                print(f"ℹ️  Using default URDF path for {robot_name}: {urdf_path}")
+            else:
+                raise ValueError(f"Unknown robot: {robot_name}. No URDF path provided and no default available.\n"
+                               f"Built-in robots: {list(default_robot_paths.keys())}.\n"
+                               f"For custom robots, provide urdf_path in visualization configuration.")
+        
+        # Resolve URDF path
+        resolved_urdf_path = self._find_urdf(urdf_path)
+        
+        # Set default base position and orientation if not provided
+        if base_position is None:
+            base_position = [0.0, 0.0, 0.0]
+        if base_orientation is None:
+            base_orientation = [0.0, 0.0, 0.0]  # Euler angles
+        
+        # Convert Euler angles to quaternion for PyBullet
+        base_orientation_quat = p.getQuaternionFromEuler(base_orientation)
+        
+        # Load robot
+        self.robot_id = p.loadURDF(resolved_urdf_path, base_position, base_orientation_quat, useFixedBase=use_fixed_base)
         self.robot_name = robot_name
         
         # Get moveable joint indices
@@ -127,30 +185,53 @@ class VampVisualizer:
             info = p.getJointInfo(self.robot_id, i)
             if info[2] != p.JOINT_FIXED:  # Not a fixed joint
                 self.joint_indices.append(i)
-                
-        print(f" Loaded {robot_name} robot")
+        
+        # Validate joint count if expected_joints specified
+        if expected_joints > 0 and len(self.joint_indices) != expected_joints:
+            print(f"⚠️  Warning: Expected {expected_joints} joints but found {len(self.joint_indices)} moveable joints")
+            print(f"   Joint indices: {self.joint_indices}")
+        
+        print(f"✓ Loaded {robot_name} robot from {resolved_urdf_path}")
+        print(f"  Moveable joints: {len(self.joint_indices)} (indices: {self.joint_indices})")
         return robot_name
         
-    def _find_urdf(self, urdf_rel_path: str) -> str:
-        """Find URDF file in common locations"""
-        search_dirs = [
-            "external/vamp/resources",
-            "../external/vamp/resources", 
-            "../../external/vamp/resources",
-            "../../../external/vamp/resources"
-        ]
+    def _find_urdf(self, urdf_path: str) -> str:
+        """Find URDF file in common locations (handles both relative and full paths)"""
         
-        for search_dir in search_dirs:
-            full_path = os.path.join(search_dir, urdf_rel_path)
+        # First, try the path as-is (for absolute or relative paths from cwd)
+        if os.path.exists(urdf_path):
+            if self.debug:
+                print(f"Found URDF at: {urdf_path}")
+            return urdf_path
+        
+        # If the path already starts with external/vamp/resources, it's likely a full relative path
+        if urdf_path.startswith("external/vamp/resources"):
+            search_paths = [
+                urdf_path,                           # Direct path
+                "../" + urdf_path,                   # From build dir
+                "../../" + urdf_path,                # From deeper build dirs
+                "../../../" + urdf_path              # From even deeper build dirs
+            ]
+        else:
+            # Treat as relative path within VAMP resources
+            search_dirs = [
+                "external/vamp/resources",
+                "../external/vamp/resources", 
+                "../../external/vamp/resources",
+                "../../../external/vamp/resources"
+            ]
+            search_paths = [os.path.join(search_dir, urdf_path) for search_dir in search_dirs]
+        
+        # Try all search paths
+        for full_path in search_paths:
             if os.path.exists(full_path):
                 if self.debug:
                     print(f"Found URDF at: {full_path}")
                 return full_path
                 
         # Provide detailed error message with searched paths
-        error_msg = f"Could not find URDF: {urdf_rel_path}\nSearched paths:\n"
-        for search_dir in search_dirs:
-            full_path = os.path.join(search_dir, urdf_rel_path)
+        error_msg = f"Could not find URDF: {urdf_path}\nSearched paths:\n"
+        for full_path in search_paths:
             error_msg += f"  - {full_path} {'✓' if os.path.exists(full_path) else '✗'}\n"
         error_msg += f"Make sure VAMP is properly installed and the external/vamp/resources directory exists."
         raise FileNotFoundError(error_msg)
@@ -565,8 +646,8 @@ class VampVisualizer:
             pass
 
 
-def read_path_file(filepath: str) -> Tuple[np.ndarray, str, str]:
-    """Read solution path file and extract waypoints, robot, environment"""
+def read_path_file(filepath: str) -> Tuple[np.ndarray, str, str, Dict[str, Any]]:
+    """Read solution path file and extract waypoints, robot, environment, and visualization config"""
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Path file not found: {filepath}")
         
@@ -574,24 +655,35 @@ def read_path_file(filepath: str) -> Tuple[np.ndarray, str, str]:
     robot_name = None
     env_name = None
     
-    # Parse filename for robot/environment info
-    filename = os.path.basename(filepath)
-    if filename.startswith("solution_path_"):
-        parts = filename[14:-4].lower()  # Remove prefix and .txt
-        
-        # Simple robot detection
-        for robot in ["panda", "ur5", "fetch"]: # Assuming these are the only robots in path files
-            if robot in parts:
-                robot_name = robot
-                break
-                
-        # Simple environment detection
-        if "sphere" in parts:
-            env_name = "sphere_cage"
-        elif "table" in parts:
-            env_name = "table_scene"
-        else:
-            env_name = "empty"
+    # Parse visualization configuration from file header
+    viz_config = parse_visualization_config(filepath)
+    
+    # Use robot name from visualization config if available
+    if 'robot_name' in viz_config:
+        robot_name = viz_config['robot_name']
+        print(f"ℹ️  Robot name from visualization config: {robot_name}")
+    
+    # Fallback: Parse filename for robot/environment info (legacy support)
+    if not robot_name:
+        filename = os.path.basename(filepath)
+        if filename.startswith("solution_path_"):
+            parts = filename[14:-4].lower()  # Remove prefix and .txt
+            
+            # Legacy robot detection - now includes any robot name
+            for robot in ["panda", "ur5", "fetch", "planar_arm_2dof", "articulated_arm_3dof"]:
+                if robot in parts:
+                    robot_name = robot
+                    break
+                    
+            # Simple environment detection
+            if "sphere" in parts:
+                env_name = "sphere_cage"
+            elif "table" in parts:
+                env_name = "table_scene"
+            elif "custom" in parts:
+                env_name = "custom_environment"
+            else:
+                env_name = "empty"
     
     # Read waypoints
     with open(filepath, 'r') as f:
@@ -607,7 +699,7 @@ def read_path_file(filepath: str) -> Tuple[np.ndarray, str, str]:
     if not waypoints:
         raise ValueError(f"No valid waypoints found in {filepath}")
         
-    return np.array(waypoints), robot_name or "panda", env_name or "empty"
+    return np.array(waypoints), robot_name or "unknown_robot", env_name or "empty", viz_config
 
 
 def find_solution_files() -> List[str]:
@@ -651,8 +743,8 @@ def main():
     )
     
     parser.add_argument("path_file", nargs='?', help="Solution path file")
-    parser.add_argument("--robot", choices=["panda", "ur5", "fetch"], required=True, help="Robot type (required)")
-    parser.add_argument("--yaml-config", required=True, help="YAML configuration file (required - no named environments)")
+    parser.add_argument("--robot", help="Robot type (optional - auto-detected from path file if not specified)")
+    parser.add_argument("--yaml-config", help="YAML configuration file (optional - uses embedded config if available)")
     parser.add_argument("--duration", type=float, default=10.0, help="Animation duration (seconds)")
     parser.add_argument("--loop", action="store_true", help="Loop animation")
     parser.add_argument("--no-trajectory", action="store_true", help="Don't draw trajectory")
@@ -673,34 +765,42 @@ def main():
         return
         
     try:
-        # Read path file
+        # Read path file with visualization configuration
         print(f" Reading: {args.path_file}")
-        waypoints, detected_robot, detected_env = read_path_file(args.path_file)
+        waypoints, detected_robot, detected_env, viz_config = read_path_file(args.path_file)
         print(f" Loaded {len(waypoints)} waypoints, {waypoints.shape[1]} joints")
         
-        # Use specified robot (required) or detected from path
+        # Use specified robot or detected from path
         robot_name = args.robot or detected_robot
         if not robot_name:
-            print(" Robot type must be specified with --robot option")
+            print("❌ Robot type could not be determined. Specify with --robot option or ensure path file contains robot info.")
             return
             
-        print(f" Robot: {robot_name}")
-        
+        print(f"🤖 Robot: {robot_name}")
+        if viz_config:
+            print(f"📁 Using embedded visualization configuration")
+            
         # Initialize visualizer
         visualizer = VampVisualizer(gui=not args.no_gui, debug=True)
         
-        # Load robot
-        visualizer.load_robot(robot_name)
+        # Load robot with visualization configuration
+        visualizer.load_robot(
+            robot_name, 
+            urdf_path=viz_config.get('urdf_path', ''),
+            base_position=viz_config.get('base_position', None),
+            base_orientation=viz_config.get('base_orientation', None),
+            use_fixed_base=viz_config.get('use_fixed_base', True),
+            expected_joints=viz_config.get('expected_joints', -1)
+        )
         
-        # Validate joint count matches expected for robot
-        expected_joints = {"panda": 7, "ur5": 6, "fetch": 8}  # Common joint counts
-        if robot_name in expected_joints and waypoints.shape[1] != expected_joints[robot_name]:
-            print(f"  Warning: Path has {waypoints.shape[1]} joints, but {robot_name} typically has {expected_joints[robot_name]} joints")
-        
-        # Load environment from YAML (required)
-        print(f" Loading environment from YAML: {args.yaml_config}")
-        obstacle_configs = visualizer.load_yaml_config(args.yaml_config)
-        visualizer.create_environment_from_obstacles(obstacle_configs)
+        # Load environment from YAML if provided, otherwise skip
+        if args.yaml_config:
+            print(f"🌍 Loading environment from YAML: {args.yaml_config}")
+            obstacle_configs = visualizer.load_yaml_config(args.yaml_config)
+            visualizer.create_environment_from_obstacles(obstacle_configs)
+        else:
+            print("ℹ️  No YAML config provided - creating empty environment")
+            visualizer.create_environment_from_obstacles([])
         
         # Start animation
         visualizer.set_joint_configuration(waypoints[0])

@@ -10,12 +10,35 @@
 ./demo_Vamp config.yaml        # YAML configuration mode
 ```
 
-Options:
+**Custom Robot Support**
+```bash
+./demo_CustomRobot                                    # Custom robot demo
+./demo_CustomRobot --list                             # List all registered robots  
+./demo_CustomRobot --robot planar_arm_2dof            # Specific custom robot
+./demo_CustomRobot --robot articulated_arm_3dof --visualize  # 3D robot with visualization
+./demo_Vamp demos/Vamp/config/planar_arm_2dof_demo.yaml     # YAML mode with custom robot
+```
+
+**Visualization (Now URDF-Configurable)**
+```bash
+# Automatic visualization with embedded URDF configuration
+python3 visualize_solution.py solution_path_file.txt
+
+# Manual override (for legacy compatibility)
+python3 visualize_solution.py solution_path_file.txt --robot panda --yaml-config config.yaml
+```
+
+## Options
 - `--visualize`: Enable 3D visualization
 - `--help`: Show usage information
 - `config.yaml`: Use YAML configuration file
+- `--list`: List all registered robots (including custom ones)
+- `--robot <name>`: Select specific robot
+- `--info <name>`: Show robot information
 
-## Example
+## Examples
+
+### Built-in Robots
 Plan Panda 7-DOF arm through sphere obstacles:
 ```bash
 ./demo_Vamp demos/Vamp/config/panda_demo.yaml
@@ -28,7 +51,64 @@ pip install -r demos/Vamp/requirements.txt  # For visualization
 - YAML-based scene configuration
 - Interactive 3D visualization with PyBullet
 - Support for multiple robot types (Panda, UR5, Fetch)
-- **NEW: Pointcloud obstacle support** (.xyz, .ply, .pcd formats)
+- Custom robot registration
+- Pointcloud obstacle support** (.xyz, .ply, .pcd formats)
+
+## Custom Robot Development
+
+### Registering New Robots
+
+The registry system allows you to add custom robots without modifying core code:
+
+1. **Define your robot** following the VAMP robot interface:
+```cpp
+namespace vamp::robots {
+    struct MyCustomRobot {
+        static constexpr auto name = "my_robot";
+        static constexpr auto dimension = 6;  // 6-DOF
+        static constexpr auto n_spheres = 10; // Collision spheres
+        static constexpr auto resolution = 32;
+        
+        // Joint limits
+        static constexpr std::array<float, dimension> s_a = {/*...*/};
+        static constexpr std::array<float, dimension> s_m = {/*...*/};
+        
+        // Required methods
+        template<std::size_t rake>
+        inline static auto fkcc(const Environment<FloatVector<rake>>& env,
+                               const ConfigurationBlock<rake>& q) -> bool {
+            // Implement vectorized forward kinematics + collision checking
+        }
+        
+        // ... other required methods
+    };
+}
+```
+
+2. **Register your robot**:
+```cpp
+#include "VampRobotRegistry.h"
+REGISTER_VAMP_ROBOT(vamp::robots::MyCustomRobot, "my_robot");
+```
+
+3. **Use in YAML configuration**:
+```yaml
+robot:
+  name: "my_robot"
+  description: "My Custom Robot"
+
+start_config: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+goal_config: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+# ... rest of configuration
+```
+
+### Example Custom Robots
+
+The demo includes two example custom robots:
+
+- **planar_arm_2dof**: Simple 2-DOF planar manipulator for learning
+
+See `CustomRobotExample.h` for complete implementation details.
 
 ## Pointcloud Support
 The demo supports pointcloud obstacles alongside primitive shapes:
@@ -49,4 +129,5 @@ Supported formats:
 ## Notes
 VAMP integration must be enabled at build time with `-DOMPL_HAVE_VAMP=ON`.
 Visualization automatically detects robot type from planning configuration.
-Pointclouds use VAMP's CAPT (Collision And Proximity Testing) for efficient collision detection. 
+Pointclouds use VAMP's CAPT (Collision And Proximity Testing) for efficient collision detection.
+Custom robots require implementation of vectorized forward kinematics for optimal performance. 

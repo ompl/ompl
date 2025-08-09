@@ -105,23 +105,28 @@ if (OMPL_BUILD_DEMOS)
         # Build VAMP demo directly using VAMP C++ library and OMPL
         add_ompl_demo(demo_Vamp Vamp/VampDemo.cpp)
         
-        # Link against VAMP C++ library
+        # Build Custom Robot demo
+        add_ompl_demo(demo_VampCustomRobot Vamp/CustomRobotDemo.cpp)
+        
+        # Link against VAMP C++ library for both demos
         if(TARGET vamp_cpp)
             target_link_libraries(demo_Vamp PRIVATE vamp_cpp)
-            message(STATUS "VAMP demo linked against vamp_cpp library")
+            target_link_libraries(demo_VampCustomRobot PRIVATE vamp_cpp)
+            message(STATUS "VAMP demos linked against vamp_cpp library")
         else()
-            message(WARNING "VAMP vamp_cpp target not found - demo may not build correctly")
+            message(WARNING "VAMP vamp_cpp target not found - demos may not build correctly")
         endif()
         
         # Link against yaml-cpp for configuration parsing
         if(TARGET yaml-cpp::yaml-cpp)
             target_link_libraries(demo_Vamp PRIVATE yaml-cpp::yaml-cpp)
-            message(STATUS "VAMP demo linked against yaml-cpp library")
+            target_link_libraries(demo_VampCustomRobot PRIVATE yaml-cpp::yaml-cpp)
+            message(STATUS "VAMP demos linked against yaml-cpp library")
         else()
-            message(WARNING "yaml-cpp not found - VAMP demo may not build correctly")
+            message(WARNING "yaml-cpp not found - VAMP demos may not build correctly")
         endif()
         
-        message(STATUS "VAMP demo will be built using VAMP C++ library and OMPL")
+        message(STATUS "VAMP demos (demo_Vamp and demo_VampCustomRobot) will be built using VAMP C++ library and OMPL")
     endif()
     
 endif(OMPL_BUILD_DEMOS)

@@ -28,18 +28,7 @@ namespace constants {
     constexpr std::array<float, 3> DEFAULT_HALF_EXTENTS = {0.1f, 0.1f, 0.1f};
     constexpr float DEFAULT_POINT_RADIUS = 0.0025f;  // VAMP default point radius
     
-    // Supported robot types
-    inline std::vector<std::string> getSupportedRobots() {
-        return {"panda", "ur5", "fetch"};
-    }
-    
-    // Robot-specific radii for CAPT construction (from VAMP constants)
-    inline std::pair<float, float> getRobotRadii(const std::string& robot_name) {
-        if (robot_name == "panda") return {0.01f, 1.19f};
-        if (robot_name == "ur5") return {0.01f, 1.2f};
-        if (robot_name == "fetch") return {0.01f, 1.5f};
-        return {0.01f, 0.5f}; // Default values
-    }
+    // Use RobotRegistry::getInstance().getRegisteredRobots() or dynamic robot support
 }
 
 // ==== ERROR HANDLING ====
@@ -241,7 +230,7 @@ public:
 };
 
 /**
- * @brief Single configurable environment factory (SOLID principles)
+ * @brief Single configurable environment factory
  * 
  * This factory creates VAMP environments from explicit obstacle configurations.
  * No hardcoded or named environments are supported - all obstacles must be explicitly defined.
@@ -272,7 +261,7 @@ public:
     }
     
     /**
-     * @brief Set obstacles for this environment (explicit configuration required)
+     * @brief Set obstacles for this environment
      */
     void setObstacles(const std::vector<ObstacleConfig>& obstacleConfigurations) {
         m_obstacleConfigurations = obstacleConfigurations;
@@ -357,10 +346,9 @@ public:
                     std::string resolvedPointcloudPath = FileLocator::findPointcloudFile(obstacleConfig.pointcloud_file);
                     auto points = PointcloudLoader::loadPointcloud(resolvedPointcloudPath);
                     if (!points.empty()) {
-                        // Use robot-specific radii for CAPT construction
-                        auto robot_radii = constants::getRobotRadii(m_robotName);
-                        float r_min = robot_radii.first;
-                        float r_max = robot_radii.second;
+                        // Use default radii for CAPT construction (can be overridden by point_radius)
+                        float r_min = 0.01f;  // Default minimum radius
+                        float r_max = 1.0f;   // Default maximum radius
                         vampEnvironment.pointclouds.emplace_back(points, r_min, r_max, obstacleConfig.point_radius);
                         std::cout << "Loaded pointcloud: " << points.size() << " points from " 
                                   << resolvedPointcloudPath << std::endl;
@@ -540,18 +528,13 @@ public:
         // Build visualization command
         std::string visualizationCommand;
         std::string scriptPathStr = visualizationScriptPath.string();
+        
+        // NEW: Use embedded visualization configuration (no need for separate robot/YAML args)
+        visualizationCommand = "python3 " + scriptPathStr + " \"" + motionPlanningResult.solution_file_path + "\"";
+        
+        // Add optional YAML config if explicitly provided
         if (configurationSource.size() >= 5 && configurationSource.substr(configurationSource.size() - 5) == ".yaml") {
-            // Use YAML configuration for visualization
-            visualizationCommand = "python3 " + scriptPathStr + 
-                  " --robot " + robotName +
-                  " --yaml-config " + configurationSource +
-                  " \"" + motionPlanningResult.solution_file_path + "\"";
-        } else {
-            // Use the default YAML for programmatic example
-            visualizationCommand = "python3 " + scriptPathStr + 
-                  " --robot " + robotName +
-                  " --yaml-config panda_demo.yaml" +
-                  " \"" + motionPlanningResult.solution_file_path + "\"";
+            visualizationCommand += " --yaml-config " + configurationSource;
         }
         
         std::cout << "🎬 Running visualization..." << std::endl;
@@ -594,19 +577,7 @@ private:
         planningConfiguration.robot_name = safeConvertYamlValue<std::string>(robotNode["name"]);
         planningConfiguration.description = safeConvertYamlValue<std::string>(robotNode["description"]);
         
-        // Validate robot type
-        if (!planningConfiguration.robot_name.empty()) {
-            const auto supportedRobots = constants::getSupportedRobots();
-            if (std::find(supportedRobots.begin(), supportedRobots.end(), planningConfiguration.robot_name) == supportedRobots.end()) {
-                std::string robotList;
-                for (size_t i = 0; i < supportedRobots.size(); ++i) {
-                    robotList += supportedRobots[i];
-                    if (i < supportedRobots.size() - 1) robotList += ", ";
-                }
-                throw VampYamlError("Unsupported robot '" + planningConfiguration.robot_name + 
-                                  "' in YAML. Supported robots: " + robotList);
-            }
-        }
+        // Note: Robot validation is performed at runtime by the registry system
     }
     
     /**
@@ -713,6 +684,48 @@ private:
     }
     
     /**
+     * @brief Parse visualization section
+     */
+    static void parseVisualizationSection(const YAML::Node& visualizationNode, PlanningConfiguration& planningConfiguration) {
+        if (!visualizationNode) return;
+        
+        // Parse URDF path
+        if (visualizationNode["urdf_path"]) {
+            planningConfiguration.visualization.urdf_path = safeConvertYamlValue<std::string>(visualizationNode["urdf_path"]);
+        }
+        
+        // Parse expected joints
+        if (visualizationNode["expected_joints"]) {
+            planningConfiguration.visualization.expected_joints = safeConvertYamlValue<int>(visualizationNode["expected_joints"], -1);
+        }
+        
+        // Parse base position
+        if (visualizationNode["base_position"] && visualizationNode["base_position"].IsSequence()) {
+            auto positionSequence = visualizationNode["base_position"];
+            for (size_t i = 0; i < std::min(positionSequence.size(), planningConfiguration.visualization.base_position.size()); ++i) {
+                planningConfiguration.visualization.base_position[i] = safeConvertYamlValue<float>(positionSequence[i], 0.0f);
+            }
+        }
+        
+        // Parse base orientation
+        if (visualizationNode["base_orientation"] && visualizationNode["base_orientation"].IsSequence()) {
+            auto orientationSequence = visualizationNode["base_orientation"];
+            for (size_t i = 0; i < std::min(orientationSequence.size(), planningConfiguration.visualization.base_orientation.size()); ++i) {
+                planningConfiguration.visualization.base_orientation[i] = safeConvertYamlValue<float>(orientationSequence[i], 0.0f);
+            }
+        }
+        
+        // Parse other parameters
+        if (visualizationNode["use_fixed_base"]) {
+            planningConfiguration.visualization.use_fixed_base = safeConvertYamlValue<bool>(visualizationNode["use_fixed_base"], true);
+        }
+        
+        if (visualizationNode["description"]) {
+            planningConfiguration.visualization.description = safeConvertYamlValue<std::string>(visualizationNode["description"]);
+        }
+    }
+    
+    /**
      * @brief Parse configuration arrays (start_config, goal_config)
      */
     static std::vector<float> parseConfigurationArray(const YAML::Node& configurationArrayNode) {
@@ -751,6 +764,7 @@ public:
             // Parse obstacles and output
             parseObstaclesSection(yamlConfiguration["obstacles"], planningConfiguration);
             parseOutputSection(yamlConfiguration["output"], planningConfiguration);
+            parseVisualizationSection(yamlConfiguration["visualization"], planningConfiguration);
             
             // Validate configuration
             if (!planningConfiguration.isValid()) {

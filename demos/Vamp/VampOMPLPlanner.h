@@ -164,7 +164,8 @@ public:
      * File Format: The output format is compatible with standard robotics
      * visualization tools and can be easily imported into Python/MATLAB for analysis.
      */
-    std::string writeOptimizedSolutionPath(const PlanningResult& planningResult, const std::string& plannerName) const
+    std::string writeOptimizedSolutionPath(const PlanningResult& planningResult, const std::string& plannerName, 
+                                         const PlanningConfiguration::VisualizationConfig& visualizationConfig = {}) const
     {
         auto geometricPath = std::dynamic_pointer_cast<ompl::geometric::PathGeometric>(planningResult.solution_path);
         if (!planningResult.success || !geometricPath) return "";
@@ -190,6 +191,21 @@ public:
         outputFile << "# " << m_robotConfiguration->getRobotName() << " + " << m_environmentFactory->getEnvironmentName() 
              << " + " << plannerName << " (dim=" << robotDimension << ", waypoints=" 
              << geometricPath->getStateCount() << ", cost=" << planningResult.final_cost << ")\n";
+        
+        // Write visualization configuration if provided
+        if (!visualizationConfig.urdf_path.empty()) {
+            outputFile << "# VISUALIZATION CONFIG:\n";
+            outputFile << "# robot_name: " << m_robotConfiguration->getRobotName() << "\n";
+            outputFile << "# urdf_path: " << visualizationConfig.urdf_path << "\n";
+            if (visualizationConfig.expected_joints > 0) {
+                outputFile << "# expected_joints: " << visualizationConfig.expected_joints << "\n";
+            }
+            outputFile << "# base_position: [" << visualizationConfig.base_position[0] << ", " 
+                      << visualizationConfig.base_position[1] << ", " << visualizationConfig.base_position[2] << "]\n";
+            outputFile << "# base_orientation: [" << visualizationConfig.base_orientation[0] << ", " 
+                      << visualizationConfig.base_orientation[1] << ", " << visualizationConfig.base_orientation[2] << "]\n";
+            outputFile << "# use_fixed_base: " << (visualizationConfig.use_fixed_base ? "true" : "false") << "\n";
+        }
         
         // Use OMPL's built-in path writing functionality
         geometricPath->printAsMatrix(outputFile);

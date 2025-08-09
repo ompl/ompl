@@ -6,6 +6,8 @@
 #include <utility>
 #include <array>
 #include <map>
+#include <stdexcept>
+#include <algorithm>
 
 #include <vamp/collision/environment.hh>
 #include <ompl/base/MotionValidator.h>
@@ -17,6 +19,9 @@
 namespace vamp_ompl {
 
 namespace ob = ompl::base;
+
+// Forward declaration
+class VampConfigurationError;
 
 /**
  * @brief Interface for robot configuration that provides robot-specific parameters
@@ -174,6 +179,16 @@ struct PlanningConfiguration {
     // Obstacle configurations - MUST be provided (no named environments)
     std::vector<ObstacleConfig> obstacles;
     
+    // NEW: Visualization configuration
+    struct VisualizationConfig {
+        std::string urdf_path;              // Path to robot URDF for visualization
+        int expected_joints = -1;           // Expected number of joints (-1 = auto-detect)
+        std::array<float, 3> base_position = {0.0f, 0.0f, 0.0f};  // Robot base position
+        std::array<float, 3> base_orientation = {0.0f, 0.0f, 0.0f}; // Robot base orientation (euler)
+        bool use_fixed_base = true;         // Whether robot base is fixed
+        std::string description;            // Visualization description
+    } visualization;
+    
     // Validation helper
     bool isValid() const {
         return !robot_name.empty() && 
@@ -208,6 +223,91 @@ struct MotionPlanningResult {
     double final_cost() const { return planning_result.final_cost; }
     size_t path_length() const { return planning_result.path_length; }
     const std::string& error_message() const { return planning_result.error_message; }
+};
+
+/**
+ * @brief Extract joint limits from VAMP robot definitions
+ */
+template<typename Robot>
+std::vector<std::pair<double, double>> getJointLimitsFromVamp() {
+    std::vector<std::pair<double, double>> limits;
+    
+    // VAMP stores limits in s_a (lower) and s_m (range) arrays
+    for (size_t i = 0; i < Robot::dimension; ++i) {
+        double lower = Robot::s_a[i];
+        double upper = Robot::s_a[i] + Robot::s_m[i];
+        limits.emplace_back(lower, upper);
+    }
+    
+    return limits;
+}
+
+/**
+ * @brief Robot configuration implementation
+ */
+template<typename Robot>
+class RobotConfiguration : public RobotConfig<Robot> {
+private:
+    std::vector<float> start_config_;
+    std::vector<float> goal_config_;
+    std::string robot_name_;
+    
+public:
+    RobotConfiguration(const std::string& robot_name, 
+                       const std::vector<float>& start,
+                       const std::vector<float>& goal)
+        : robot_name_(robot_name), start_config_(start), goal_config_(goal)
+    {
+        // Validate dimensions
+        if (start_config_.size() != Robot::dimension) {
+            throw std::runtime_error("Start configuration dimension (" + 
+                std::to_string(start_config_.size()) + ") does not match robot dimension (" + 
+                std::to_string(Robot::dimension) + ") for " + robot_name);
+        }
+        
+        if (goal_config_.size() != Robot::dimension) {
+            throw std::runtime_error("Goal configuration dimension (" + 
+                std::to_string(goal_config_.size()) + ") does not match robot dimension (" + 
+                std::to_string(Robot::dimension) + ") for " + robot_name);
+        }
+        
+        // Validate joint limits
+        auto limits = getJointLimitsFromVamp<Robot>();
+        auto check_limits = [&](const std::vector<float>& config, const std::string& config_type) {
+            for (size_t i = 0; i < Robot::dimension; ++i) {
+                if (config[i] < limits[i].first || config[i] > limits[i].second) {
+                    throw std::runtime_error(config_type + " joint " + std::to_string(i) + 
+                        " (" + std::to_string(config[i]) + ") outside limits [" + 
+                        std::to_string(limits[i].first) + "," + std::to_string(limits[i].second) + "]");
+                }
+            }
+        };
+        check_limits(start_config_, "Start");
+        check_limits(goal_config_, "Goal");
+    }
+    
+    std::vector<std::pair<double, double>> getJointLimits() const override {
+        return getJointLimitsFromVamp<Robot>();
+    }
+    
+    std::array<float, Robot::dimension> getStartConfigurationArray() const override {
+        return vectorToArray(start_config_);
+    }
+    
+    std::array<float, Robot::dimension> getGoalConfigurationArray() const override {
+        return vectorToArray(goal_config_);
+    }
+    
+    std::string getRobotName() const override {
+        return robot_name_;
+    }
+
+private:
+    std::array<float, Robot::dimension> vectorToArray(const std::vector<float>& vec) const {
+        std::array<float, Robot::dimension> result;
+        std::copy(vec.begin(), vec.end(), result.begin());
+        return result;
+    }
 };
 
 } // namespace vamp_ompl

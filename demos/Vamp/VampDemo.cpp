@@ -73,7 +73,7 @@ PlanningConfiguration createBasicExample()
     // Step 5.1: Set planner-specific parameters
     planningConfiguration.planning.planner_parameters = {
         {"range", "0.3"},        // RRT-Connect range parameter
-        {"goal_bias", "0.05"}    // RRT-Connect goal bias parameter
+        {"intermediate_states", "false"}    // RRT-Connect goal bias parameter
     };
     
     planningConfiguration.save_path = true;

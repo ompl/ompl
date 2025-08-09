@@ -1,0 +1,66 @@
+# Planar Arm 2DOF Demo Configuration
+# This demonstrates a custom robot with YAML configuration
+
+# Robot Configuration
+robot:
+  name: "planar_arm_2dof"
+  description: "2DOF Planar Manipulator"
+
+# Planning Configuration  
+planner:
+  name: "RRT-Connect"
+  planning_time: 2.0
+  simplification_time: 1.0
+  optimize_path: false
+
+# Start configuration: arm pointing to the right
+start_config:
+  - 0.0      # shoulder: 0° (pointing right)
+  - 0.0      # elbow: 0° (straight)
+
+# Goal configuration: arm folded up
+goal_config:
+  - 1.5708   # shoulder: 90° (pointing up)
+  - -1.5708  # elbow: -90° (folded)
+
+# Environment Definition: Simple obstacle course
+obstacles:
+  # Obstacle 1: Block the direct path
+  - type: sphere
+    name: "blocking_sphere"
+    position: [0.2, 0.0, 0.0]
+    radius: 0.08
+
+  # Obstacle 2: Create narrow passage - left wall
+  - type: cuboid
+    name: "wall_left"
+    position: [0.15, 0.2, 0.0]
+    half_extents: [0.05, 0.1, 0.1]
+
+  # Obstacle 3: Create narrow passage - right wall
+  - type: cuboid
+    name: "wall_right"
+    position: [0.15, -0.2, 0.0]
+    half_extents: [0.05, 0.1, 0.1]
+
+# Output Configuration
+output:
+  write_path: true
+  description: "Planar Arm 2DOF Demo - Custom Robot Configuration"
+
+# Visualization Configuration
+visualization:
+  enabled: true
+  auto_start: false
+  urdf_path: "path/to/custom/robot/planar_arm_2dof.urdf"  # Custom robot URDF
+  expected_joints: 2
+  base_position: [0.0, 0.0, 0.0]
+  base_orientation: [0.0, 0.0, 0.0]
+  use_fixed_base: true
+  description: "Planar arm 2DOF custom robot visualization"
+  animation:
+    duration: 6.0
+    loop: false
+    draw_trajectory: true
+  display:
+    gui: true 

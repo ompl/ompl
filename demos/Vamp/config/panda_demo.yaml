@@ -147,10 +147,10 @@ obstacles:
     position: [0.35, -0.35, 0.8]
     radius: 0.15
   # Pointcloud obstacle example
-  - type: pointcloud
-    name: "obstacle_cloud"
-    pointcloud_file: "test_pointcloud.xyz"
-    point_radius: 0.05  # Increased from 0.01 for better visibility
+  # - type: pointcloud
+  #   name: "obstacle_cloud"
+  #   pointcloud_file: "test_pointcloud.xyz"
+  #   point_radius: 0.05 
 
 # Output Configuration
 output:
@@ -161,6 +161,12 @@ output:
 visualization:
   enabled: true
   auto_start: false
+  urdf_path: "external/vamp/resources/panda/panda_spherized.urdf"
+  expected_joints: 7
+  base_position: [0.0, 0.0, 0.0]
+  base_orientation: [0.0, 0.0, 0.0]
+  use_fixed_base: true
+  description: "Panda robot visualization"
   animation:
     duration: 8.0
     loop: false

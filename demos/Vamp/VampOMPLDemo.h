@@ -1,9 +1,10 @@
 /**
  * @file VampOMPLDemo.h
- * @brief VAMP-OMPL integration interface for vectorized motion planning
+ * @brief Clean VAMP-OMPL integration interface for vectorized motion planning
  * 
- * This file provides a clean demonstration of VAMP-OMPL integration,
- * showcasing vectorized motion planning with SIMD acceleration.
+ * This file provides a streamlined demonstration of VAMP-OMPL integration,
+ * showcasing vectorized motion planning with SIMD acceleration through the
+ * unified robot registry system.
  */
 #pragma once
 
@@ -12,6 +13,7 @@
 #include "OMPLPlanningContext.h"
 #include "VampOMPLPlanner.h"
 #include "VampUtils.h"
+#include "VampRobotRegistry.h"
 
 #include <memory>
 #include <string>
@@ -19,99 +21,12 @@
 #include <algorithm>
 #include <sstream>
 
-// VAMP robot includes
+// VAMP robot includes (for backward compatibility)
 #include <vamp/robots/panda.hh>
 #include <vamp/robots/ur5.hh>
 #include <vamp/robots/fetch.hh>
 
 namespace vamp_ompl {
-
-
-
-/**
- * @brief Extract joint limits from VAMP robot definitions
- */
-template<typename Robot>
-std::vector<std::pair<double, double>> getJointLimitsFromVamp() {
-    std::vector<std::pair<double, double>> limits;
-    
-    // VAMP stores limits in s_a (lower) and s_m (range) arrays
-    for (size_t i = 0; i < Robot::dimension; ++i) {
-        double lower = Robot::s_a[i];
-        double upper = Robot::s_a[i] + Robot::s_m[i];
-        limits.emplace_back(lower, upper);
-    }
-    
-    return limits;
-}
-
-/**
- * @brief Robot configuration
- */
-template<typename Robot>
-class RobotConfiguration : public RobotConfig<Robot> {
-private:
-    std::vector<float> start_config_;
-    std::vector<float> goal_config_;
-    std::string robot_name_;
-    
-public:
-    RobotConfiguration(const std::string& robot_name, 
-                       const std::vector<float>& start,
-                       const std::vector<float>& goal)
-        : robot_name_(robot_name), start_config_(start), goal_config_(goal)
-    {
-        // Validate dimensions
-        if (start_config_.size() != Robot::dimension) {
-            throw VampConfigurationError("Start configuration dimension (" + 
-                std::to_string(start_config_.size()) + ") does not match robot dimension (" + 
-                std::to_string(Robot::dimension) + ") for " + robot_name);
-        }
-        
-        if (goal_config_.size() != Robot::dimension) {
-            throw VampConfigurationError("Goal configuration dimension (" + 
-                std::to_string(goal_config_.size()) + ") does not match robot dimension (" + 
-                std::to_string(Robot::dimension) + ") for " + robot_name);
-        }
-        
-        // Validate joint limits
-        auto limits = getJointLimitsFromVamp<Robot>();
-        auto check_limits = [&](const std::vector<float>& config, const std::string& config_type) {
-            for (size_t i = 0; i < Robot::dimension; ++i) {
-                if (config[i] < limits[i].first || config[i] > limits[i].second) {
-                    throw VampConfigurationError(config_type + " joint " + std::to_string(i) + 
-                        " (" + std::to_string(config[i]) + ") outside limits [" + 
-                        std::to_string(limits[i].first) + "," + std::to_string(limits[i].second) + "]");
-                }
-            }
-        };
-        check_limits(start_config_, "Start");
-        check_limits(goal_config_, "Goal");
-    }
-    
-    std::vector<std::pair<double, double>> getJointLimits() const override {
-        return getJointLimitsFromVamp<Robot>();
-    }
-    
-    std::array<float, Robot::dimension> getStartConfigurationArray() const override {
-        return vectorToArray(start_config_);
-    }
-    
-    std::array<float, Robot::dimension> getGoalConfigurationArray() const override {
-        return vectorToArray(goal_config_);
-    }
-    
-    std::string getRobotName() const override {
-        return robot_name_;
-    }
-
-private:
-    std::array<float, Robot::dimension> vectorToArray(const std::vector<float>& vec) const {
-        std::array<float, Robot::dimension> result;
-        std::copy(vec.begin(), vec.end(), result.begin());
-        return result;
-    }
-};
 
 /**
  * @brief Robot name mapping for type safety and conciseness
@@ -122,28 +37,13 @@ template<> constexpr const char* getRobotName<vamp::robots::UR5>() { return "ur5
 template<> constexpr const char* getRobotName<vamp::robots::Fetch>() { return "fetch"; }
 
 /**
- * @brief Unified robot factory
- */
-template<typename Robot>
-std::unique_ptr<RobotConfig<Robot>> createRobotConfiguration(const std::string& robot_name,
-                                                             const std::vector<float>& start,
-                                                             const std::vector<float>& goal) {
-    constexpr const char* expected_name = getRobotName<Robot>();
-    if (robot_name != expected_name) {
-        throw VampConfigurationError("Robot name must be '" + std::string(expected_name) + "' for " + std::string(expected_name) + " robot");
-    }
-    return std::make_unique<RobotConfiguration<Robot>>(expected_name, start, goal);
-}
-
-/**
  * @brief Environment factory for obstacle-based environments
  */
 std::unique_ptr<EnvironmentFactory> createEnvironmentFactory(const std::vector<ObstacleConfig>& obstacles, 
                                                            const std::string& robot_name = "");
 
 /**
- * @brief Main motion planning execution function (Dependency Inversion Principle)
- * Depends on abstractions (PlanningConfiguration) not concrete implementations
+ * @brief Unified motion planning execution function
  */
 MotionPlanningResult executeMotionPlanning(const PlanningConfiguration& config);
 
@@ -152,10 +52,17 @@ MotionPlanningResult executeMotionPlanning(const PlanningConfiguration& config);
  */
 bool loadYamlConfiguration(const std::string& yaml_file, PlanningConfiguration& config);
 
+/**
+ * @brief Write visualization configuration to solution file
+ */
+void writeVisualizationConfig(const std::string& solution_file_path, 
+                            const std::string& robot_name,
+                            const PlanningConfiguration::VisualizationConfig& viz_config);
+
 } // namespace vamp_ompl
 
 /**
- * @brief Implementation of core functions (Single Responsibility Principle)
+ * @brief Implementation of core functions
  */
 namespace vamp_ompl {
 
@@ -182,61 +89,46 @@ inline std::unique_ptr<EnvironmentFactory> createEnvironmentFactory(const std::v
 }
 
 /**
- * @brief Robot type dispatcher (Template Pattern for compile time dispatch)
+ * @brief Unified motion planning execution (uses registry for all robots)
  */
-template<typename Func>
-auto dispatchByRobotType(const std::string& robot_name, Func&& func) -> decltype(func.template operator()<vamp::robots::Panda>())
-{
-    if (robot_name == "panda") {
-        return func.template operator()<vamp::robots::Panda>();
-    } else if (robot_name == "ur5") {
-        return func.template operator()<vamp::robots::UR5>();
-    } else if (robot_name == "fetch") {
-        return func.template operator()<vamp::robots::Fetch>();
-    } else {
-        const auto supportedRobots = constants::getSupportedRobots();
-        std::string robotList;
-        for (size_t i = 0; i < supportedRobots.size(); ++i) {
-            robotList += supportedRobots[i];
-            if (i < supportedRobots.size() - 1) robotList += ", ";
-        }
-        throw VampConfigurationError("Unsupported robot: " + robot_name + 
-                                   ". Available: " + robotList);
-    }
-}
-
-/**
- * @brief Core robot motion planning execution
- */
-template<typename Robot>
-MotionPlanningResult planRobotMotion(const PlanningConfiguration& config)
+inline MotionPlanningResult executeMotionPlanning(const PlanningConfiguration& config)
 {
     MotionPlanningResult result;
     
     try {
+        auto& registry = RobotRegistry::getInstance();
+        
         // Validate configuration
         if (!config.isValid()) {
             throw VampConfigurationError("Invalid configuration: " + config.getValidationErrors());
         }
         
-        // Create robot configuration and environment
-        auto robot_config = createRobotConfiguration<Robot>(config.robot_name, 
-                                                            config.start_config, 
-                                                            config.goal_config);
+        // Create robot configuration using registry
+        auto robot_config = registry.createRobotConfig(
+            config.robot_name, config.start_config, config.goal_config);
+        
+        // Create environment factory
         auto env_factory = createEnvironmentFactory(config.obstacles, config.robot_name);
         
-        // Create planner
-        auto planner = createVampOMPLPlanner(std::move(robot_config), std::move(env_factory));
+        // Create planner using registry
+        auto planner = registry.createPlanner(
+            config.robot_name, std::move(robot_config), std::move(env_factory));
         
-        // Initialize planner
-        planner->initialize();
+        // Initialize planner using registry
+        registry.initializePlanner(config.robot_name, planner);
         
         // Configure path writing
         PlanningConfig planning_config = config.planning;
         planning_config.write_path = config.save_path;
         
-        // Execute planning
-        result.planning_result = planner->plan(planning_config);
+        // Execute planning using registry
+        result.planning_result = registry.executePlanning(
+            config.robot_name, planner, planning_config);
+        
+        // Write visualization configuration to path file if path was written
+        if (config.save_path && result.planning_result.success && !result.planning_result.solution_file_path.empty()) {
+            writeVisualizationConfig(result.planning_result.solution_file_path, config.robot_name, config.visualization);
+        }
         
         // Set robot name for visualization
         result.robot_name = config.robot_name;
@@ -255,22 +147,53 @@ MotionPlanningResult planRobotMotion(const PlanningConfiguration& config)
 }
 
 /**
- * @brief Main motion planning function implementation (Dependency Inversion Principle)
+ * @brief Write visualization configuration to solution file
  */
-inline MotionPlanningResult executeMotionPlanning(const PlanningConfiguration& config)
-{
-    return dispatchByRobotType(config.robot_name, [&config]<typename Robot>() {
-        return planRobotMotion<Robot>(config);
-    });
+inline void writeVisualizationConfig(const std::string& solution_file_path, 
+                                   const std::string& robot_name,
+                                   const PlanningConfiguration::VisualizationConfig& viz_config) {
+    if (viz_config.urdf_path.empty()) return;  // Nothing to write
+    
+    // Read existing file content
+    std::ifstream infile(solution_file_path);
+    if (!infile.is_open()) return;
+    
+    std::string content((std::istreambuf_iterator<char>(infile)), std::istreambuf_iterator<char>());
+    infile.close();
+    
+    // Prepare visualization configuration header
+    std::ostringstream viz_header;
+    viz_header << "# VISUALIZATION CONFIG:\n";
+    viz_header << "# robot_name: " << robot_name << "\n";
+    viz_header << "# urdf_path: " << viz_config.urdf_path << "\n";
+    if (viz_config.expected_joints > 0) {
+        viz_header << "# expected_joints: " << viz_config.expected_joints << "\n";
+    }
+    viz_header << "# base_position: [" << viz_config.base_position[0] << ", " 
+              << viz_config.base_position[1] << ", " << viz_config.base_position[2] << "]\n";
+    viz_header << "# base_orientation: [" << viz_config.base_orientation[0] << ", " 
+              << viz_config.base_orientation[1] << ", " << viz_config.base_orientation[2] << "]\n";
+    viz_header << "# use_fixed_base: " << (viz_config.use_fixed_base ? "true" : "false") << "\n";
+    
+    // Find position after the first comment line to insert visualization config
+    size_t first_newline = content.find('\n');
+    if (first_newline != std::string::npos) {
+        content.insert(first_newline + 1, viz_header.str());
+        
+        // Write back to file
+        std::ofstream outfile(solution_file_path);
+        if (outfile.is_open()) {
+            outfile << content;
+            std::cout << " Visualization config written to: " << solution_file_path << std::endl;
+        }
+    }
 }
 
-
 /**
- * @brief YAML configuration loader
+ * @brief YAML configuration loader implementation
  */
-inline bool loadYamlConfiguration(const std::string& yaml_file, PlanningConfiguration& config)
-{
-    return VampUtils::loadYamlConfig(yaml_file, config);
+inline bool loadYamlConfiguration(const std::string& yaml_file, PlanningConfiguration& config) {
+    return YamlConfigLoader::loadYamlConfig(yaml_file, config);
 }
 
 } // namespace vamp_ompl
