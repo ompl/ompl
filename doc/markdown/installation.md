@@ -134,9 +134,12 @@ target_link_libraries(main PRIVATE ompl::ompl)
   <div class="tab-pane fade" id="pythonwheels" role="tabpanel" aria-labelledby="python-wheels-tab">
 
   <h2>Python Wheels</h2>
-  There are pre-built binary wheels for ompl Python versions 3.10&ensp;3.13. They are available for 64-bit versions of Linux (x84_64 and ARM), MacOS 13 (Intel) and MacOS 15 (ARM).
-  
-  Simply type: `pip3 install ompl`
+  There are pre-built binary wheels for Python versions 3.10, 3.11, and 3.12. Download the right zip file for you OS and architecture:
+
+  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-ubuntu-latest-x86_64.zip"> Ubuntu 24.04 x86_64 </a> </li>
+  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-ubuntu-24.04-arm-aarch64.zip"> Ubuntu 24.04 aarch64 </a> </li>
+  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-macos-15-arm64.zip"> MacOS 15 </a> </li>
+  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-macos-13-x86_64.zip"> MacOS 13 </a> </li>
   </div>
 </div>
 \endhtmlonly

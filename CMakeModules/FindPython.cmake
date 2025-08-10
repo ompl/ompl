@@ -224,7 +224,7 @@ endmacro(find_boost_numpy)
 
 # macro that is similar to install, but corrects the python interpreter
 macro(install_python)
-    if (PYTHON_EXEC)
+    if (PYTHON_FOUND)
         cmake_parse_arguments(install_python "" "DESTINATION;COMPONENT;RENAME" "PROGRAMS" "${ARGN}")
         foreach(script ${install_python_PROGRAMS})
             file(READ ${script} _contents)
