@@ -38,7 +38,7 @@ class EnvironmentBuilder:
         
         total_obstacles = len(self.obstacle_ids) + len(self.pointcloud_ids)
         if self.debug:
-            print(f"✓ Created {total_obstacles} obstacles ({len(self.obstacle_ids)} primitives, {len(self.pointcloud_ids)} pointcloud spheres)")
+            print(f" Created {total_obstacles} obstacles ({len(self.obstacle_ids)} primitives, {len(self.pointcloud_ids)} pointcloud spheres)")
         
         return total_obstacles
     
@@ -99,7 +99,7 @@ class EnvironmentBuilder:
         )
         
         if self.debug:
-            print(f"  Created cuboid '{obstacle.name}' at {obstacle.position}")
+            print(f" Created cuboid '{obstacle.name}' at {obstacle.position}")
         
         return obstacle_id
     
@@ -129,7 +129,7 @@ class EnvironmentBuilder:
         )
         
         if self.debug:
-            print(f"  Created capsule '{obstacle.name}' at {obstacle.position}")
+            print(f" Created capsule '{obstacle.name}' at {obstacle.position}")
         
         return obstacle_id
     
@@ -258,4 +258,4 @@ class EnvironmentBuilder:
         self.pointcloud_ids = []
         
         if self.debug:
-            print("✓ Environment cleaned up") 
+            print(" Environment cleaned up") 

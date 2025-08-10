@@ -171,7 +171,7 @@ class ConfigParser:
 
 
 def find_pointcloud_file(pointcloud_filename: str) -> str:
-    """Find pointcloud file in standard locations using same strategy as C++"""
+    """Find pointcloud file in standard locations """
     search_paths = [
         pointcloud_filename,                               # Direct path
         f"demos/Vamp/{pointcloud_filename}",              # From project root

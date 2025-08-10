@@ -20,9 +20,6 @@ namespace vamp_ompl {
 
 namespace ob = ompl::base;
 
-// Forward declaration
-class VampConfigurationError;
-
 /**
  * @brief Interface for robot configuration that provides robot-specific parameters
  * 
@@ -33,7 +30,7 @@ template<typename Robot>
 class RobotConfig {
 public:
     using Configuration = typename Robot::Configuration;
-    static constexpr size_t dimension = Robot::dimension;
+    static constexpr size_t dimension_ = Robot::dimension;
     
     virtual ~RobotConfig() = default;
     
@@ -41,25 +38,31 @@ public:
      * @brief Get joint limits for the robot
      * @return Vector of (min, max) pairs for each joint
      */
-    virtual std::vector<std::pair<double, double>> getJointLimits() const = 0;
+    virtual auto get_joint_limits() const -> std::vector<std::pair<double, double>> = 0;
     
     /**
      * @brief Get a default start configuration for demonstrations
      * @return Start configuration as array of floats
      */
-    virtual std::array<float, dimension> getStartConfigurationArray() const = 0;
+    virtual auto get_start_configuration_array() const -> std::array<float, dimension_> = 0;
     
     /**
      * @brief Get a default goal configuration for demonstrations  
      * @return Goal configuration as array of floats
      */
-    virtual std::array<float, dimension> getGoalConfigurationArray() const = 0;
+    virtual auto get_goal_configuration_array() const -> std::array<float, dimension_> = 0;
     
     /**
      * @brief Get robot name for display purposes
      * @return Human-readable robot name
      */
-    virtual std::string getRobotName() const = 0;
+    virtual auto get_robot_name() const -> std::string = 0;
+    
+    // Legacy method names for backward compatibility
+    std::vector<std::pair<double, double>> getJointLimits() const { return get_joint_limits(); }
+    std::array<float, dimension_> getStartConfigurationArray() const { return get_start_configuration_array(); }
+    std::array<float, dimension_> getGoalConfigurationArray() const { return get_goal_configuration_array(); }
+    std::string getRobotName() const { return get_robot_name(); }
 };
 
 /**
@@ -76,19 +79,24 @@ public:
      * @brief Create a collision environment
      * @return VAMP collision environment
      */
-    virtual vamp::collision::Environment<float> createEnvironment() = 0;
+    virtual auto create_environment() -> vamp::collision::Environment<float> = 0;
     
     /**
      * @brief Get environment name for display purposes
      * @return Human-readable environment name  
      */
-    virtual std::string getEnvironmentName() const = 0;
+    virtual auto get_environment_name() const -> std::string = 0;
     
     /**
      * @brief Get environment description
      * @return Description of what this environment contains
      */
-    virtual std::string getDescription() const = 0;
+    virtual auto get_description() const -> std::string = 0;
+    
+    // Legacy method names for backward compatibility
+    vamp::collision::Environment<float> createEnvironment() { return create_environment(); }
+    std::string getEnvironmentName() const { return get_environment_name(); }
+    std::string getDescription() const { return get_description(); }
 };
 
 /**
@@ -103,14 +111,28 @@ struct PlanningConfig {
     std::map<std::string, std::string> planner_parameters; ///< Planner-specific parameters (key-value pairs)
     
     PlanningConfig() = default;
-    PlanningConfig(double plan_time, double simp_time, bool optimize, const std::string& planner, bool write_path_to_file = false)
-        : planning_time(plan_time), simplification_time(simp_time), 
-          optimize_path(optimize), planner_name(planner), write_path(write_path_to_file) {}
     
-    PlanningConfig(double plan_time, double simp_time, bool optimize, const std::string& planner, 
-                   bool write_path_to_file, const std::map<std::string, std::string>& params)
-        : planning_time(plan_time), simplification_time(simp_time), 
-          optimize_path(optimize), planner_name(planner), write_path(write_path_to_file), planner_parameters(params) {}
+    // Constructor with essential parameters
+    PlanningConfig(double plan_time, double simp_time, bool optimize, 
+                  const std::string& planner, bool write_path_to_file = false)
+        : planning_time(plan_time)
+        , simplification_time(simp_time)
+        , optimize_path(optimize)
+        , planner_name(planner)
+        , write_path(write_path_to_file) {
+    }
+    
+    // Constructor with all parameters including planner-specific options
+    PlanningConfig(double plan_time, double simp_time, bool optimize, 
+                  const std::string& planner, bool write_path_to_file, 
+                  const std::map<std::string, std::string>& params)
+        : planning_time(plan_time)
+        , simplification_time(simp_time)
+        , optimize_path(optimize)
+        , planner_name(planner)
+        , write_path(write_path_to_file)
+        , planner_parameters(params) {
+    }
 };
 
 /**
@@ -129,7 +151,7 @@ struct PlanningResult {
 };
 
 /**
- * @brief Configuration structure for obstacles (Single Responsibility)
+ * @brief Configuration structure for obstacles
  */
 struct ObstacleConfig {
     std::string type;           // "sphere", "cuboid", "capsule", "pointcloud"
@@ -162,7 +184,7 @@ struct ObstacleConfig {
 };
 
 /**
- * @brief Planning configuration with explicit requirements (No Defaults)
+ * @brief Planning configuration with explicit requirements
  */
 struct PlanningConfiguration {
     std::string robot_name;
@@ -172,14 +194,14 @@ struct PlanningConfiguration {
     // Planning configuration - MUST be explicitly set
     PlanningConfig planning;
     
-    // Start/goal configurations - MUST be provided (no defaults)
+    // Start/goal configurations - MUST be provided
     std::vector<float> start_config;
     std::vector<float> goal_config;
     
-    // Obstacle configurations - MUST be provided (no named environments)
+    // Obstacle configurations - MUST be provided
     std::vector<ObstacleConfig> obstacles;
     
-    // NEW: Visualization configuration
+    // Visualization configuration
     struct VisualizationConfig {
         std::string urdf_path;              // Path to robot URDF for visualization
         int expected_joints = -1;           // Expected number of joints (-1 = auto-detect)
@@ -210,7 +232,7 @@ struct PlanningConfiguration {
 };
 
 /**
- * @brief Planning result that extends PlanningResult (Single Responsibility Principle)
+ * @brief Planning result that extends PlanningResult
  */
 struct MotionPlanningResult {
     PlanningResult planning_result;
@@ -229,8 +251,9 @@ struct MotionPlanningResult {
  * @brief Extract joint limits from VAMP robot definitions
  */
 template<typename Robot>
-std::vector<std::pair<double, double>> getJointLimitsFromVamp() {
+auto get_joint_limits_from_vamp() -> std::vector<std::pair<double, double>> {
     std::vector<std::pair<double, double>> limits;
+    limits.reserve(Robot::dimension);
     
     // VAMP stores limits in s_a (lower) and s_m (range) arrays
     for (size_t i = 0; i < Robot::dimension; ++i) {
@@ -240,6 +263,12 @@ std::vector<std::pair<double, double>> getJointLimitsFromVamp() {
     }
     
     return limits;
+}
+
+// Legacy function name for backward compatibility
+template<typename Robot>
+std::vector<std::pair<double, double>> getJointLimitsFromVamp() {
+    return get_joint_limits_from_vamp<Robot>();
 }
 
 /**
@@ -252,61 +281,88 @@ private:
     std::vector<float> goal_config_;
     std::string robot_name_;
     
-public:
-    RobotConfiguration(const std::string& robot_name, 
-                       const std::vector<float>& start,
-                       const std::vector<float>& goal)
-        : robot_name_(robot_name), start_config_(start), goal_config_(goal)
-    {
-        // Validate dimensions
+    /**
+     * @brief Validate configuration dimensions against robot requirements
+     */
+    void validate_dimensions() const {
         if (start_config_.size() != Robot::dimension) {
-            throw std::runtime_error("Start configuration dimension (" + 
-                std::to_string(start_config_.size()) + ") does not match robot dimension (" + 
-                std::to_string(Robot::dimension) + ") for " + robot_name);
+            throw std::invalid_argument(
+                "Start configuration dimension (" + std::to_string(start_config_.size()) + 
+                ") does not match robot dimension (" + std::to_string(Robot::dimension) + 
+                ") for " + robot_name_);
         }
         
         if (goal_config_.size() != Robot::dimension) {
-            throw std::runtime_error("Goal configuration dimension (" + 
-                std::to_string(goal_config_.size()) + ") does not match robot dimension (" + 
-                std::to_string(Robot::dimension) + ") for " + robot_name);
+            throw std::invalid_argument(
+                "Goal configuration dimension (" + std::to_string(goal_config_.size()) + 
+                ") does not match robot dimension (" + std::to_string(Robot::dimension) + 
+                ") for " + robot_name_);
         }
+    }
+    
+    /**
+     * @brief Validate configuration values against joint limits
+     */
+    void validate_joint_limits() const {
+        auto limits = get_joint_limits_from_vamp<Robot>();
         
-        // Validate joint limits
-        auto limits = getJointLimitsFromVamp<Robot>();
-        auto check_limits = [&](const std::vector<float>& config, const std::string& config_type) {
+        auto check_config_limits = [&](const std::vector<float>& config, 
+                                      const std::string& config_type) {
             for (size_t i = 0; i < Robot::dimension; ++i) {
                 if (config[i] < limits[i].first || config[i] > limits[i].second) {
-                    throw std::runtime_error(config_type + " joint " + std::to_string(i) + 
+                    throw std::out_of_range(
+                        config_type + " joint " + std::to_string(i) + 
                         " (" + std::to_string(config[i]) + ") outside limits [" + 
-                        std::to_string(limits[i].first) + "," + std::to_string(limits[i].second) + "]");
+                        std::to_string(limits[i].first) + "," + 
+                        std::to_string(limits[i].second) + "] for robot " + robot_name_);
                 }
             }
         };
-        check_limits(start_config_, "Start");
-        check_limits(goal_config_, "Goal");
+        
+        check_config_limits(start_config_, "Start");
+        check_config_limits(goal_config_, "Goal");
     }
     
-    std::vector<std::pair<double, double>> getJointLimits() const override {
-        return getJointLimitsFromVamp<Robot>();
-    }
-    
-    std::array<float, Robot::dimension> getStartConfigurationArray() const override {
-        return vectorToArray(start_config_);
-    }
-    
-    std::array<float, Robot::dimension> getGoalConfigurationArray() const override {
-        return vectorToArray(goal_config_);
-    }
-    
-    std::string getRobotName() const override {
-        return robot_name_;
-    }
-
-private:
-    std::array<float, Robot::dimension> vectorToArray(const std::vector<float>& vec) const {
+    /**
+     * @brief Convert vector to array safely
+     */
+    auto vector_to_array(const std::vector<float>& vec) const -> std::array<float, Robot::dimension> {
         std::array<float, Robot::dimension> result;
         std::copy(vec.begin(), vec.end(), result.begin());
         return result;
+    }
+    
+public:
+    RobotConfiguration(const std::string& robot_name, 
+                      std::vector<float> start, 
+                      std::vector<float> goal)
+        : start_config_(std::move(start))
+        , goal_config_(std::move(goal))
+        , robot_name_(robot_name) {
+        
+        // Note: We can't use VampUtils here due to circular dependencies.
+        // VampUtils includes this header, so we keep validation logic here
+        // but this could be refactored in the future with better header organization.
+        
+        validate_dimensions();
+        validate_joint_limits();
+    }
+    
+    // Modern interface methods
+    auto get_joint_limits() const -> std::vector<std::pair<double, double>> override {
+        return get_joint_limits_from_vamp<Robot>();
+    }
+    
+    auto get_start_configuration_array() const -> std::array<float, Robot::dimension> override {
+        return vector_to_array(start_config_);
+    }
+    
+    auto get_goal_configuration_array() const -> std::array<float, Robot::dimension> override {
+        return vector_to_array(goal_config_);
+    }
+    
+    auto get_robot_name() const -> std::string override {
+        return robot_name_;
     }
 };
 

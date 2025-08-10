@@ -109,7 +109,7 @@ class VampVisualizer:
 
 
 def main():
-    """Simplified main function with modular components"""
+    """ main function with modular components"""
     parser = argparse.ArgumentParser(
         description="VAMP-OMPL Solution Visualizer - Modular & Interactive",
         formatter_class=argparse.RawDescriptionHelpFormatter,

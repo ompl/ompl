@@ -47,87 +47,102 @@ template<typename Robot>
 class OMPLPlanningContext {
 public:
     using RobotConfiguration = typename Robot::Configuration;
-    static constexpr std::size_t robotDimension = Robot::dimension;
-    static constexpr std::size_t simdLaneWidth = vamp::FloatVectorWidth;
-    using VectorizedEnvironment = vamp::collision::Environment<vamp::FloatVector<simdLaneWidth>>;
+    static constexpr std::size_t robot_dimension_ = Robot::dimension;
+    static constexpr std::size_t simd_lane_width_ = vamp::FloatVectorWidth;
+    using VectorizedEnvironment = vamp::collision::Environment<vamp::FloatVector<simd_lane_width_>>;
 
 private:
-    std::shared_ptr<ob::SpaceInformation> m_spaceInformation;
-    std::shared_ptr<ob::ProblemDefinition> m_problemDefinition;
+    std::shared_ptr<ob::SpaceInformation> space_information_;
+    std::shared_ptr<ob::ProblemDefinition> problem_definition_;
     
 public:
     /**
      * @brief Setup the OMPL state space using robot configuration
-     * @param robotConfiguration Robot configuration providing joint limits
-     * @param vectorizedEnvironment VAMP environment for validators
+     * @param robot_configuration Robot configuration providing joint limits
+     * @param vectorized_environment VAMP environment for validators
      * 
      * Note: This method demonstrates how to bridge different libraries'
      * configuration systems. Robot limits from VAMP are translated to OMPL's
      * bounds system, maintaining type safety and validation throughout.
      */
-    void setupStateSpace(const RobotConfig<Robot> &robotConfiguration, const VectorizedEnvironment &vectorizedEnvironment)
-    {
+    void setup_state_space(const RobotConfig<Robot>& robot_configuration, 
+                          const VectorizedEnvironment& vectorized_environment) {
         // Create state space
-        auto realVectorSpace = std::make_shared<ob::RealVectorStateSpace>(robotDimension);
+        auto real_vector_space = std::make_shared<ob::RealVectorStateSpace>(robot_dimension_);
         
         // Set joint limits
-        ob::RealVectorBounds jointBounds(robotDimension);
-        auto robotJointLimits = robotConfiguration.getJointLimits();
+        ob::RealVectorBounds joint_bounds(robot_dimension_);
+        auto robot_joint_limits = robot_configuration.get_joint_limits();
         
-        if (robotJointLimits.size() != robotDimension) {
-            throw VampConfigurationError("Joint limits size (" + std::to_string(robotJointLimits.size()) + 
-                                       ") does not match robot dimension (" + std::to_string(robotDimension) + ")");
+        if (robot_joint_limits.size() != robot_dimension_) {
+            throw VampConfigurationError(
+                "Joint limits size (" + std::to_string(robot_joint_limits.size()) + 
+                ") does not match robot dimension (" + std::to_string(robot_dimension_) + ")");
         }
         
-        for (size_t jointIndex = 0; jointIndex < robotDimension; ++jointIndex) {
-            jointBounds.setLow(jointIndex, robotJointLimits[jointIndex].first);
-            jointBounds.setHigh(jointIndex, robotJointLimits[jointIndex].second);
+        for (size_t joint_index = 0; joint_index < robot_dimension_; ++joint_index) {
+            joint_bounds.setLow(joint_index, robot_joint_limits[joint_index].first);
+            joint_bounds.setHigh(joint_index, robot_joint_limits[joint_index].second);
         }
         
-        realVectorSpace->setBounds(jointBounds);
+        real_vector_space->setBounds(joint_bounds);
         
         // Create space information
-        m_spaceInformation = std::make_shared<ob::SpaceInformation>(realVectorSpace);
+        space_information_ = std::make_shared<ob::SpaceInformation>(real_vector_space);
         
         // Set VAMP validators
-        m_spaceInformation->setStateValidityChecker(std::make_shared<VampStateValidator<Robot>>(m_spaceInformation, vectorizedEnvironment));
-        m_spaceInformation->setMotionValidator(std::make_shared<VampMotionValidator<Robot>>(m_spaceInformation, vectorizedEnvironment));
+        space_information_->setStateValidityChecker(
+            std::make_shared<VampStateValidator<Robot>>(space_information_, vectorized_environment));
+        space_information_->setMotionValidator(
+            std::make_shared<VampMotionValidator<Robot>>(space_information_, vectorized_environment));
         
-        m_spaceInformation->setup();
+        space_information_->setup();
+    }
+    
+    // Legacy method name for backward compatibility
+    void setupStateSpace(const RobotConfig<Robot>& robot_configuration, 
+                        const VectorizedEnvironment& vectorized_environment) {
+        setup_state_space(robot_configuration, vectorized_environment);
     }
     
     /**
      * @brief Set up the planning problem with start and goal configurations
-     * @param startConfiguration Start configuration as array
-     * @param goalConfiguration Goal configuration as array
+     * @param start_configuration Start configuration as array
+     * @param goal_configuration Goal configuration as array
      * 
      * Note: This method shows how to convert between different
      * configuration representations while maintaining numerical precision.
      * The conversion from arrays to OMPL states is explicit and type-safe.
      */
-    void setProblem(const std::array<float, robotDimension> &startConfiguration, 
-                   const std::array<float, robotDimension> &goalConfiguration)
-    {
-        if (!m_spaceInformation) {
-            throw VampConfigurationError("State space not set up. Call setupStateSpace first.");
+    void set_problem(const std::array<float, robot_dimension_>& start_configuration, 
+                    const std::array<float, robot_dimension_>& goal_configuration) {
+        if (!space_information_) {
+            throw VampConfigurationError("State space not set up. Call setup_state_space first.");
         }
         
-        auto const& configurationSpace = m_spaceInformation->getStateSpace();
-        ob::ScopedState<> startStateOmpl(configurationSpace), goalStateOmpl(configurationSpace);
+        const auto& configuration_space = space_information_->getStateSpace();
+        ob::ScopedState<> start_state_ompl(configuration_space);
+        ob::ScopedState<> goal_state_ompl(configuration_space);
         
         // Convert arrays to OMPL states directly
-        for (size_t jointIndex = 0; jointIndex < robotDimension; ++jointIndex) {
-            startStateOmpl[jointIndex] = static_cast<double>(startConfiguration[jointIndex]);
-            goalStateOmpl[jointIndex] = static_cast<double>(goalConfiguration[jointIndex]);
+        for (size_t joint_index = 0; joint_index < robot_dimension_; ++joint_index) {
+            start_state_ompl[joint_index] = static_cast<double>(start_configuration[joint_index]);
+            goal_state_ompl[joint_index] = static_cast<double>(goal_configuration[joint_index]);
         }
         
         // Create problem definition
-        m_problemDefinition = std::make_shared<ob::ProblemDefinition>(m_spaceInformation);
-        m_problemDefinition->setStartAndGoalStates(startStateOmpl, goalStateOmpl);
+        problem_definition_ = std::make_shared<ob::ProblemDefinition>(space_information_);
+        problem_definition_->setStartAndGoalStates(start_state_ompl, goal_state_ompl);
         
         // Set optimization objective
-        auto pathLengthObjective = std::make_shared<ob::PathLengthOptimizationObjective>(m_spaceInformation);
-        m_problemDefinition->setOptimizationObjective(pathLengthObjective);
+        auto path_length_objective = std::make_shared<ob::PathLengthOptimizationObjective>(space_information_);
+        problem_definition_->setOptimizationObjective(path_length_objective);
+    }
+    
+    // Legacy method name for backward compatibility
+    void setProblem(const std::array<float, robot_dimension_>& start_configuration, 
+                   const std::array<float, robot_dimension_>& goal_configuration) {
+        set_problem(start_configuration, goal_configuration);
     }
     
     /**
@@ -139,94 +154,104 @@ public:
      * it defines a standard planning workflow that works with any OMPL planner.
      * The high-resolution timing provides detailed performance metrics for analysis.
      */
-    PlanningResult plan(const PlanningConfig &planningConfiguration)
-    {
-        if (!m_problemDefinition) {
-            throw VampConfigurationError("Problem not defined. Call setProblem first.");
+    auto plan(const PlanningConfig& planning_configuration) -> PlanningResult {
+        if (!problem_definition_) {
+            throw VampConfigurationError("Problem not defined. Call set_problem first.");
         }
         
-        PlanningResult planningResult;
+        PlanningResult planning_result;
         
         try {
             // Create planner
-            auto selectedPlanner = createPlannerByName(planningConfiguration.planner_name);
+            auto selected_planner = create_planner_by_name(planning_configuration.planner_name);
             
             // Set planner parameters
-            for (const auto& [param_name, param_value] : planningConfiguration.planner_parameters) {
-                bool success = selectedPlanner->params().setParam(param_name, param_value);
+            for (const auto& [param_name, param_value] : planning_configuration.planner_parameters) {
+                bool success = selected_planner->params().setParam(param_name, param_value);
+                (void)success; // Suppress unused variable warning
             }
             
-            selectedPlanner->setProblemDefinition(m_problemDefinition);
-            selectedPlanner->setup();
+            selected_planner->setProblemDefinition(problem_definition_);
+            selected_planner->setup();
             
-            // Plan
-            auto planningStartTime = std::chrono::steady_clock::now();
-            ob::PlannerStatus planningStatus = selectedPlanner->solve(planningConfiguration.planning_time);
-            auto planningEndTime = std::chrono::steady_clock::now();
+            // Plan with timing
+            auto planning_start_time = std::chrono::steady_clock::now();
+            ob::PlannerStatus planning_status = selected_planner->solve(planning_configuration.planning_time);
+            auto planning_end_time = std::chrono::steady_clock::now();
             
-            planningResult.planning_time_us = std::chrono::duration_cast<std::chrono::microseconds>(
-                planningEndTime - planningStartTime).count();
+            planning_result.planning_time_us = std::chrono::duration_cast<std::chrono::microseconds>(
+                planning_end_time - planning_start_time).count();
             
             // Check if solution was found
-            if (planningStatus == ob::PlannerStatus::EXACT_SOLUTION) {
-                planningResult.success = true;
-                planningResult.solution_path = m_problemDefinition->getSolutionPath();
+            if (planning_status == ob::PlannerStatus::EXACT_SOLUTION) {
+                planning_result.success = true;
+                planning_result.solution_path = problem_definition_->getSolutionPath();
                 
                 // Get initial cost
-                og::PathGeometric &geometricPath = static_cast<og::PathGeometric &>(*planningResult.solution_path);
-                auto optimizationObjective = m_problemDefinition->getOptimizationObjective();
-                planningResult.initial_cost = geometricPath.cost(optimizationObjective).value();
-                planningResult.path_length = geometricPath.getStateCount();
+                auto& geometric_path = static_cast<og::PathGeometric&>(*planning_result.solution_path);
+                auto optimization_objective = problem_definition_->getOptimizationObjective();
+                planning_result.initial_cost = geometric_path.cost(optimization_objective).value();
+                planning_result.path_length = geometric_path.getStateCount();
                 
                 // Simplify path if requested
-                if (planningConfiguration.simplification_time > 0.0) {
-                    auto simplificationStartTime = std::chrono::steady_clock::now();
+                if (planning_configuration.simplification_time > 0.0) {
+                    auto simplification_start_time = std::chrono::steady_clock::now();
                     
-                    og::PathSimplifier pathSimplifier(m_spaceInformation, m_problemDefinition->getGoal(), optimizationObjective);
-                    bool pathWasSimplified = pathSimplifier.simplify(geometricPath, planningConfiguration.simplification_time);
+                    og::PathSimplifier path_simplifier(space_information_, 
+                                                     problem_definition_->getGoal(), 
+                                                     optimization_objective);
+                    bool path_was_simplified = path_simplifier.simplify(geometric_path, 
+                                                                       planning_configuration.simplification_time);
                     
-                    auto simplificationEndTime = std::chrono::steady_clock::now();
-                    planningResult.simplification_time_us = std::chrono::duration_cast<std::chrono::microseconds>(
-                        simplificationEndTime - simplificationStartTime).count();
+                    auto simplification_end_time = std::chrono::steady_clock::now();
+                    planning_result.simplification_time_us = std::chrono::duration_cast<std::chrono::microseconds>(
+                        simplification_end_time - simplification_start_time).count();
                     
-                    if (pathWasSimplified) {
-                        planningResult.final_cost = geometricPath.cost(optimizationObjective).value();
-                        planningResult.path_length = geometricPath.getStateCount();
+                    if (path_was_simplified) {
+                        planning_result.final_cost = geometric_path.cost(optimization_objective).value();
+                        planning_result.path_length = geometric_path.getStateCount();
                     } else {
-                        planningResult.final_cost = planningResult.initial_cost;
+                        planning_result.final_cost = planning_result.initial_cost;
                     }
                 } else {
-                    planningResult.final_cost = planningResult.initial_cost;
+                    planning_result.final_cost = planning_result.initial_cost;
                 }
             } else {
-                planningResult.success = false;
-                planningResult.error_message = "No solution found within time limit";
+                planning_result.success = false;
+                planning_result.error_message = "No solution found within time limit";
             }
             
-        } catch (const std::exception &exception) {
-            planningResult.success = false;
-            planningResult.error_message = std::string("Planning failed: ") + exception.what();
+        } catch (const std::exception& exception) {
+            planning_result.success = false;
+            planning_result.error_message = std::string("Planning failed: ") + exception.what();
         }
         
-        return planningResult;
+        return planning_result;
     }
     
     /**
      * @brief Get the space information
      * @return Shared pointer to space information
      */
-    std::shared_ptr<ob::SpaceInformation> getSpaceInformation() const
-    {
-        return m_spaceInformation;
+    auto get_space_information() const -> std::shared_ptr<ob::SpaceInformation> {
+        return space_information_;
     }
     
     /**
      * @brief Get the problem definition
      * @return Shared pointer to problem definition
      */
-    std::shared_ptr<ob::ProblemDefinition> getProblemDefinition() const
-    {
-        return m_problemDefinition;
+    auto get_problem_definition() const -> std::shared_ptr<ob::ProblemDefinition> {
+        return problem_definition_;
+    }
+    
+    // Legacy method names for backward compatibility
+    std::shared_ptr<ob::SpaceInformation> getSpaceInformation() const {
+        return get_space_information();
+    }
+    
+    std::shared_ptr<ob::ProblemDefinition> getProblemDefinition() const {
+        return get_problem_definition();
     }
 
 private:
@@ -362,14 +387,19 @@ private:
     }
     
     /**
-     * @brief Create planner
+     * @brief Create planner by name
      * 
-     *  Note: This method demonstrates the Facade pattern applied to
+     * Note: This method demonstrates the Facade pattern applied to
      * factory access. It hides the complexity of factory singleton access and
      * provides a clean, simple interface for planner creation.
      */
-    std::shared_ptr<ob::Planner> createPlannerByName(const std::string &plannerName) {
-        return PlannerFactory::getInstance().createPlanner(plannerName, m_spaceInformation);
+    auto create_planner_by_name(const std::string& planner_name) -> std::shared_ptr<ob::Planner> {
+        return PlannerFactory::getInstance().createPlanner(planner_name, space_information_);
+    }
+    
+    // Legacy method name for backward compatibility  
+    std::shared_ptr<ob::Planner> createPlannerByName(const std::string& planner_name) {
+        return create_planner_by_name(planner_name);
     }
     
 

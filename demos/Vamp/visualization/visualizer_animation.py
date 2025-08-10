@@ -180,7 +180,7 @@ class TrajectoryAnimator:
         """Clean up animation resources"""
         self._clear_trajectory()
         if self.debug:
-            print("✓ Animation cleaned up")
+            print(" Animation cleaned up")
 
 
 class InteractiveControls:

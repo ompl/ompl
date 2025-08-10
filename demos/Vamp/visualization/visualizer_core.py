@@ -49,7 +49,7 @@ class PyBulletCore:
         )
         
         if self.debug:
-            print("✓ PyBullet initialized with mouse interaction enabled")
+            print(" PyBullet initialized with mouse interaction enabled")
     
     def load_robot(self, robot_name: str, urdf_path: str = "", 
                    base_position: List[float] = None, 
@@ -91,10 +91,10 @@ class PyBulletCore:
         
         # Validate joint count
         if expected_joints > 0 and len(self.joint_indices) != expected_joints:
-            print(f"⚠️  Warning: Expected {expected_joints} joints but found {len(self.joint_indices)} moveable joints")
+            print(f"  Warning: Expected {expected_joints} joints but found {len(self.joint_indices)} moveable joints")
         
         if self.debug:
-            print(f"✓ Loaded {robot_name} robot from {resolved_urdf_path}")
+            print(f" Loaded {robot_name} robot from {resolved_urdf_path}")
             print(f"  Moveable joints: {len(self.joint_indices)} (indices: {self.joint_indices})")
         
         return True

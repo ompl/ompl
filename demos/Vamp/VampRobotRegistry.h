@@ -4,11 +4,16 @@
 #include "VampValidators.h"
 #include "OMPLPlanningContext.h"
 #include "VampOMPLPlanner.h"
+
+// Benchmarking functionality will be available when benchmarking headers are included
 #include <functional>
 #include <unordered_map>
 #include <memory>
 #include <any>
 #include <mutex>
+#include <vector>
+#include <string>
+#include <map>
 
 // VAMP robot includes for built-in robots
 #include <vamp/robots/panda.hh>
@@ -46,8 +51,8 @@ public:
      */
     virtual std::any createRobotConfig(
         const std::string& robot_name,
-        const std::vector<float>& start_config,
-        const std::vector<float>& goal_config) const = 0;
+        std::vector<float> start_config,
+        std::vector<float> goal_config) const = 0;
     
     /**
      * @brief Create VAMP-OMPL planner
@@ -82,6 +87,26 @@ public:
      * @brief Get joint limits for the robot
      */
     virtual std::vector<std::pair<double, double>> getJointLimits() const = 0;
+    
+    // ========== BENCHMARKING INTERFACE ==========
+    
+    /**
+     * @brief Create benchmark manager (following same patterns as createPlanner)
+     */
+    virtual std::any createBenchmarkManager(
+        const std::vector<float>& start_config,
+        const std::vector<float>& goal_config,
+        std::unique_ptr<EnvironmentFactory> env_factory) const = 0;
+    
+    /**
+     * @brief Execute benchmark (following same patterns as executePlanning)
+     */
+    virtual std::map<std::string, std::string> executeBenchmark(
+        std::any& benchmark_manager,
+        const std::string& experiment_name,
+        const std::vector<std::string>& planner_names,
+        unsigned int runs,
+        double timeout) const = 0;
 };
 
 /**
@@ -158,11 +183,11 @@ class TypedRobotHandler : public RobotHandler {
 public:
     std::any createRobotConfig(
         const std::string& robot_name,
-        const std::vector<float>& start_config,
-        const std::vector<float>& goal_config) const override {
+        std::vector<float> start_config,
+        std::vector<float> goal_config) const override {
         
         return std::make_shared<RobotConfiguration<Robot>>(
-            robot_name, start_config, goal_config);
+            robot_name, std::move(start_config), std::move(goal_config));
     }
     
     std::any createPlanner(
@@ -217,6 +242,28 @@ public:
             limits.emplace_back(lower, upper);
         }
         return limits;
+    }
+    
+        std::any createBenchmarkManager(
+        const std::vector<float>& /* start_config */,
+        const std::vector<float>& /* goal_config */,
+        std::unique_ptr<EnvironmentFactory> /* env_factory */) const override {
+
+        // This will be implemented when benchmarking headers are included
+        // For now, throw an error to indicate benchmarking headers are needed
+        throw VampConfigurationError("Benchmarking functionality requires including benchmarking/VampBenchmarking.h");
+    }
+
+    std::map<std::string, std::string> executeBenchmark(
+        std::any& /* benchmark_manager */,
+        const std::string& /* experiment_name */,
+        const std::vector<std::string>& /* planner_names */,
+        unsigned int /* runs */,
+        double /* timeout */) const override {
+
+        // This will be implemented when benchmarking headers are included
+        // For now, throw an error to indicate benchmarking headers are needed
+        throw VampConfigurationError("Benchmarking functionality requires including benchmarking/VampBenchmarking.h");
     }
 };
 
@@ -281,8 +328,8 @@ public:
      */
     std::any createRobotConfig(
         const std::string& robot_name,
-        const std::vector<float>& start_config,
-        const std::vector<float>& goal_config) const {
+        std::vector<float> start_config,
+        std::vector<float> goal_config) const {
         
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = handlers_.find(robot_name);
@@ -298,7 +345,7 @@ public:
             throw VampConfigurationError("Invalid goal configuration size for robot: " + robot_name);
         }
         
-        return it->second->createRobotConfig(robot_name, start_config, goal_config);
+        return it->second->createRobotConfig(robot_name, std::move(start_config), std::move(goal_config));
     }
     
     /**
@@ -359,6 +406,82 @@ public:
         }
         
         return it->second->getJointLimits();
+    }
+    
+    // ========== BENCHMARKING EXTENSIONS ==========
+    // Following the same patterns as above, but for benchmarking
+    
+    /**
+     * @brief Create benchmark manager for specified robot (type-erased)
+     * @param robot_name Robot identifier  
+     * @param start_config Start configuration
+     * @param goal_config Goal configuration
+     * @param env_factory Environment factory
+     * @return Type-erased benchmark manager
+     * @throws VampConfigurationError if robot not found
+     * 
+     * This method extends the registry pattern to support benchmarking
+     * while maintaining the same design principles and error handling.
+     */
+    std::any createBenchmarkManager(const std::string& robot_name,
+                                   const std::vector<float>& start_config,
+                                   const std::vector<float>& goal_config,
+                                   std::unique_ptr<EnvironmentFactory> env_factory) const {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto it = handlers_.find(robot_name);
+        if (it == handlers_.end()) {
+            throw VampConfigurationError("Robot not registered: " + robot_name);
+        }
+        
+        return it->second->createBenchmarkManager(start_config, goal_config, std::move(env_factory));
+    }
+    
+    /**
+     * @brief Execute benchmark with type erasure (following existing patterns)
+     * @param robot_name Robot identifier
+     * @param benchmark_manager Type-erased benchmark manager  
+     * @param experiment_name Name for the experiment
+     * @param planner_names List of planners to benchmark
+     * @param runs Number of runs per planner
+     * @param timeout Time limit per run
+     * @return Benchmark results as string map for type erasure
+     * @throws VampConfigurationError if robot not found
+     */
+    std::map<std::string, std::string> executeBenchmark(
+        const std::string& robot_name,
+        std::any& benchmark_manager,
+        const std::string& experiment_name = "VAMP Benchmark",
+        const std::vector<std::string>& planner_names = {"RRT-Connect", "BIT*"},
+        unsigned int runs = 50,
+        double timeout = 5.0) const {
+        
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto it = handlers_.find(robot_name);
+        if (it == handlers_.end()) {
+            throw VampConfigurationError("Robot not registered: " + robot_name);
+        }
+        
+        return it->second->executeBenchmark(
+            benchmark_manager, experiment_name, planner_names, runs, timeout);
+    }
+    
+    /**
+     * @brief Check if benchmarking is available for robot
+     * @param robot_name Robot identifier
+     * @return true if benchmarking supported, false otherwise
+     */
+    bool isBenchmarkingAvailable(const std::string& robot_name) const {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto it = handlers_.find(robot_name);
+        return it != handlers_.end(); // All registered robots support benchmarking
+    }
+    
+    /**
+     * @brief Get list of robots supporting benchmarking
+     * @return Vector of robot names with benchmarking support
+     */
+    std::vector<std::string> getBenchmarkingEnabledRobots() const {
+        return getRegisteredRobots(); // All robots support benchmarking
     }
 
 private:

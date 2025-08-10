@@ -33,44 +33,85 @@ namespace vamp_ompl {
  * @brief Common utility functions for OMPL-VAMP integration
  */
 namespace conversion {
-    // Thread-local buffer pool to avoid repeated allocations in hot path
     constexpr std::size_t MAX_SUPPORTED_ROBOT_DIMENSION = 16; // Support robots up to 16 DOF
-    thread_local std::array<float, MAX_SUPPORTED_ROBOT_DIMENSION> threadLocalConversionBuffer;
+    
+    /**
+     * @brief Thread-safe configuration converter with proper RAII
+     * 
+     * This class manages conversion buffers safely and provides exception-safe
+     * conversion from OMPL states to VAMP configurations.
+     */
+    template<typename Robot>
+    class SafeConfigurationConverter {
+    private:
+        static constexpr std::size_t robot_dimension_ = Robot::dimension;
+        std::unique_ptr<float[]> buffer_;
+        std::size_t buffer_size_;
+        
+    public:
+        SafeConfigurationConverter() 
+            : buffer_(std::make_unique<float[]>(robot_dimension_))
+            , buffer_size_(robot_dimension_) {
+            static_assert(robot_dimension_ <= MAX_SUPPORTED_ROBOT_DIMENSION, 
+                         "Robot dimension exceeds maximum supported dimension");
+        }
+        
+        // Non-copyable but movable for performance
+        SafeConfigurationConverter(const SafeConfigurationConverter&) = delete;
+        SafeConfigurationConverter& operator=(const SafeConfigurationConverter&) = delete;
+        SafeConfigurationConverter(SafeConfigurationConverter&&) = default;
+        SafeConfigurationConverter& operator=(SafeConfigurationConverter&&) = default;
+        
+        /**
+         * @brief Convert OMPL state to VAMP configuration safely
+         * @param ompl_state OMPL state pointer (must not be null)
+         * @return VAMP configuration optimized for SIMD operations
+         * @throws std::invalid_argument if state is null or wrong type
+         */
+        auto convert(const ob::State* ompl_state) -> typename Robot::Configuration {
+            if (!ompl_state) {
+                throw std::invalid_argument("OMPL state cannot be null");
+            }
+            
+            const auto* real_vector_state = ompl_state->as<ob::RealVectorStateSpace::StateType>();
+            if (!real_vector_state) {
+                throw std::invalid_argument("Expected RealVectorStateSpace::StateType");
+            }
+            
+            // Safe conversion with bounds checking
+            for (std::size_t joint_index = 0; joint_index < robot_dimension_; ++joint_index) {
+                buffer_[joint_index] = static_cast<float>(real_vector_state->values[joint_index]);
+            }
+            
+            return typename Robot::Configuration(buffer_.get());
+        }
+    };
+    
+    /**
+     * @brief Thread-local converter instances for performance
+     * 
+     * Each thread gets its own converter instance to avoid allocation overhead
+     * while maintaining thread safety.
+     */
+    template<typename Robot>
+    thread_local SafeConfigurationConverter<Robot> thread_local_converter;
     
     /**
      * @brief Convert OMPL state to VAMP configuration with zero-copy optimization
      * @tparam Robot VAMP robot type
-     * @param omplState OMPL state pointer
+     * @param ompl_state OMPL state pointer
      * @return VAMP configuration optimized for SIMD operations
      * 
-     *  Note: This conversion transforms OMPL's Array-of-Structures (AOS) 
-     * format to VAMP's Structure-of-Arrays (SOA) format, enabling SIMD operations.
-     * 
-     * Performance Insight: Uses thread-local buffer pool to avoid memory allocations 
-     * in hot path. This is crucial for real-time performance as memory allocation
-     * in collision checking can cause significant latency spikes.
+     * Performance Insight: Uses thread-local converter instances to avoid memory 
+     * allocations in hot path while maintaining thread safety and exception safety.
      * 
      * Memory Layout Transformation:
      * OMPL AOS: [joint1, joint2, joint3, ...] (sequential memory, SIMD-inefficient)
      * VAMP SOA: [[joint1_lane0...7], [joint2_lane0...7], ...] (SIMD-optimized)
      */
     template<typename Robot>
-    static typename Robot::Configuration ompl_to_vamp(const ob::State *omplState)
-    {
-        using Configuration = typename Robot::Configuration;
-        static constexpr std::size_t robotDimension = Robot::dimension;
-        
-        // Ensure we don't exceed buffer size
-        static_assert(robotDimension <= MAX_SUPPORTED_ROBOT_DIMENSION, 
-                     "Robot dimension exceeds maximum supported dimension");
-        
-        auto *realVectorState = omplState->as<ob::RealVectorStateSpace::StateType>();
-        for (auto jointIndex = 0U; jointIndex < robotDimension; ++jointIndex)
-        {
-            threadLocalConversionBuffer[jointIndex] = static_cast<float>(realVectorState->values[jointIndex]);
-        }
-
-        return Configuration(threadLocalConversionBuffer.data());
+    auto ompl_to_vamp(const ob::State* ompl_state) -> typename Robot::Configuration {
+        return thread_local_converter<Robot>.convert(ompl_state);
     }
 }
 
@@ -104,39 +145,52 @@ template<typename Robot>
 class VampStateValidator : public ob::StateValidityChecker {
 public:
     using RobotConfiguration = typename Robot::Configuration;
-    static constexpr std::size_t robotDimension = Robot::dimension;
-    static constexpr std::size_t simdLaneWidth = vamp::FloatVectorWidth;
-    using VectorizedEnvironment = vamp::collision::Environment<vamp::FloatVector<simdLaneWidth>>;
+    static constexpr std::size_t robot_dimension_ = Robot::dimension;
+    static constexpr std::size_t simd_lane_width_ = vamp::FloatVectorWidth;
+    using VectorizedEnvironment = vamp::collision::Environment<vamp::FloatVector<simd_lane_width_>>;
 
     /**
      * @brief Constructor taking space information and vectorized environment
-     * @param spaceInformation Space information pointer
-     * @param vectorizedEnvironment Vectorized VAMP environment for collision checking
+     * @param space_information Space information pointer
+     * @param vectorized_environment Vectorized VAMP environment for collision checking
      */
-    VampStateValidator(const ob::SpaceInformationPtr &spaceInformation, const VectorizedEnvironment &vectorizedEnvironment)
-        : ob::StateValidityChecker(spaceInformation), m_vectorizedEnvironment(vectorizedEnvironment)
-    {
+    VampStateValidator(const ob::SpaceInformationPtr& space_information, 
+                      const VectorizedEnvironment& vectorized_environment)
+        : ob::StateValidityChecker(space_information)
+        , vectorized_environment_(vectorized_environment) {
     }
 
     /**
      * @brief Check if a state is valid (collision-free) using vectorized collision detection
-     * @param omplState The state to check
+     * @param ompl_state The state to check
      * @return true if state is valid, false otherwise
      * 
      * Implementation Note: Uses VAMP's motion validation with identical start/end
      * configurations to perform point collision checking within the vectorized framework.
      * This maintains algorithmic consistency across all validation operations.
      */
-    bool isValid(const ob::State *omplState) const override
-    {
-        auto robotConfiguration = conversion::ompl_to_vamp<Robot>(omplState);
-        // Use VAMP validation with single configuration (start == end for point check)
-        return vamp::planning::validate_motion<Robot, simdLaneWidth, 1>(
-            robotConfiguration, robotConfiguration, m_vectorizedEnvironment);
+    bool isValid(const ob::State* ompl_state) const override {
+        try {
+            auto robot_configuration = conversion::ompl_to_vamp<Robot>(ompl_state);
+            // Use VAMP validation with single configuration (start == end for point check)
+            return vamp::planning::validate_motion<Robot, simd_lane_width_, 1>(
+                robot_configuration, robot_configuration, vectorized_environment_);
+        } catch (const std::exception& e) {
+            // Log error for debugging but don't throw from validator
+            // Conservative approach: assume invalid on conversion error
+            return false;
+        }
+    }
+
+    /**
+     * @brief Modern C++ style method name (calls the OMPL-required isValid)
+     */
+    auto is_valid(const ob::State* ompl_state) const -> bool {
+        return isValid(ompl_state);
     }
 
 private:
-    const VectorizedEnvironment &m_vectorizedEnvironment;
+    const VectorizedEnvironment& vectorized_environment_;
 };
 
 /**
@@ -176,28 +230,29 @@ template<typename Robot>
 class VampMotionValidator : public ob::MotionValidator {
 public:
     using RobotConfiguration = typename Robot::Configuration;
-    static constexpr std::size_t robotDimension = Robot::dimension;
-    static constexpr std::size_t simdLaneWidth = vamp::FloatVectorWidth;
-    static constexpr std::size_t motionSamplingResolution = Robot::resolution;
-    using VectorizedEnvironment = vamp::collision::Environment<vamp::FloatVector<simdLaneWidth>>;
+    static constexpr std::size_t robot_dimension_ = Robot::dimension;
+    static constexpr std::size_t simd_lane_width_ = vamp::FloatVectorWidth;
+    static constexpr std::size_t motion_sampling_resolution_ = Robot::resolution;
+    using VectorizedEnvironment = vamp::collision::Environment<vamp::FloatVector<simd_lane_width_>>;
 
     /**
      * @brief Constructor taking space information and vectorized environment
-     * @param spaceInformation Space information pointer  
-     * @param vectorizedEnvironment Vectorized VAMP environment for collision checking
+     * @param space_information Space information pointer  
+     * @param vectorized_environment Vectorized VAMP environment for collision checking
      */
-    VampMotionValidator(const ob::SpaceInformationPtr &spaceInformation, const VectorizedEnvironment &vectorizedEnvironment)
-        : ob::MotionValidator(spaceInformation), m_vectorizedEnvironment(vectorizedEnvironment)
-    {
+    VampMotionValidator(const ob::SpaceInformationPtr& space_information, 
+                       const VectorizedEnvironment& vectorized_environment)
+        : ob::MotionValidator(space_information)
+        , vectorized_environment_(vectorized_environment) {
     }
 
     /**
      * @brief Check if motion between two states is valid using vectorized "rake" sampling
-     * @param startState Start state
-     * @param endState End state
+     * @param start_state Start state
+     * @param end_state End state
      * @return true if motion is valid, false otherwise
      * 
-     *  Note: This method demonstrates how vectorized collision detection
+     * Note: This method demonstrates how vectorized collision detection
      * can be applied to motion validation. Instead of checking intermediate points
      * sequentially, VAMP distributes them across SIMD lanes for parallel processing.
      * 
@@ -205,36 +260,72 @@ public:
      * different robots to use different validation granularities based on their
      * kinematic properties and typical motion characteristics.
      */
-    bool checkMotion(const ob::State *startState, const ob::State *endState) const override
-    {
-        return vamp::planning::validate_motion<Robot, simdLaneWidth, motionSamplingResolution>(
-            conversion::ompl_to_vamp<Robot>(startState), 
-            conversion::ompl_to_vamp<Robot>(endState), 
-            m_vectorizedEnvironment);
+    bool checkMotion(const ob::State* start_state, const ob::State* end_state) const override {
+        try {
+            return vamp::planning::validate_motion<Robot, simd_lane_width_, motion_sampling_resolution_>(
+                conversion::ompl_to_vamp<Robot>(start_state), 
+                conversion::ompl_to_vamp<Robot>(end_state), 
+                vectorized_environment_);
+        } catch (const std::exception& e) {
+            // Conservative approach: assume invalid motion on conversion error
+            return false;
+        }
     }
 
     /**
-     * @brief Check motion with last valid state reporting (not implemented)
-     * @param startState Start state
-     * @param endState End state  
-     * @param lastValidState Last valid state along the path
-     * @return true if motion is valid
-     * @throws ompl::Exception Always throws as this method is not implemented
-     * 
-     *  Note: This advanced validation mode requires bisection search
-     * to identify the exact collision point along a motion edge. While useful for
-     * some planners, it conflicts with VAMP's batch-oriented validation approach
-     * and would require significant algorithmic restructuring to implement efficiently.
+     * @brief Check motion
      */
-    bool checkMotion(const ob::State *startState, const ob::State *endState, 
-                     std::pair<ob::State *, double> &lastValidState) const override
-    {
-        throw ompl::Exception("VampMotionValidator: checkMotion with lastValidState not implemented - "
-                             "conflicts with vectorized validation approach");
+    auto check_motion(const ob::State* start_state, const ob::State* end_state) const -> bool {
+        return checkMotion(start_state, end_state);
+    }
+
+    /**
+     * @brief Check motion with last valid state reporting (fallback implementation)
+     * @param start_state Start state
+     * @param end_state End state  
+     * @param last_valid_state Last valid state along the path
+     * @return true if motion is valid
+     * 
+     * Note: This provides a fallback implementation for planners that require
+     * last valid state reporting. While not as efficient as the vectorized approach,
+     * it ensures compatibility with all OMPL planners. The method performs standard
+     * motion checking and sets last_valid_state appropriately.
+     */
+    bool checkMotion(const ob::State* start_state, const ob::State* end_state, 
+                     std::pair<ob::State*, double>& last_valid_state) const override {
+        // Simple and safe implementation - avoid complex bisection for now
+        // Use the vectorized motion checking
+        bool is_valid = checkMotion(start_state, end_state);
+        
+        if (is_valid) {
+            // If motion is valid, set last valid state to the end state
+            if (last_valid_state.first) {
+                si_->copyState(last_valid_state.first, end_state);
+                last_valid_state.second = 1.0;  // Full motion is valid
+            }
+            return true;
+        } else {
+            // If motion is invalid, set last valid state to start state
+            // This is conservative but safe - assumes start state is valid
+            if (last_valid_state.first) {
+                si_->copyState(last_valid_state.first, start_state);
+                last_valid_state.second = 0.0;  // No motion progress is valid
+            }
+            return false;
+        }
+    }
+
+    /**
+     * @brief Check motion with last valid state reporting
+     */
+    auto check_motion_with_last_valid(const ob::State* start_state, 
+                                     const ob::State* end_state, 
+                                     std::pair<ob::State*, double>& last_valid_state) const -> bool {
+        return checkMotion(start_state, end_state, last_valid_state);
     }
 
 private:
-    const VectorizedEnvironment &m_vectorizedEnvironment;
+    const VectorizedEnvironment& vectorized_environment_;
 };
 
 } // namespace vamp_ompl

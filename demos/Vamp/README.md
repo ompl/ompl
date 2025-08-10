@@ -103,7 +103,7 @@ goal_config: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 
 ### Example Custom Robots
 
-The demo includes two example custom robots:
+The demo includes a example custom robot:
 
 - **planar_arm_2dof**: Simple 2-DOF planar manipulator for learning
 
@@ -126,7 +126,6 @@ Supported formats:
 - `.pcd`: Point Cloud Data format (ASCII only)
 
 ## Notes
-VAMP integration must be enabled at build time with `-DOMPL_HAVE_VAMP=ON`.
 Visualization automatically detects robot type from planning configuration.
-Pointclouds use VAMP's CAPT (Collision And Proximity Testing) for efficient collision detection.
+Pointclouds use VAMP's CAPT (Collision Affording Point tree) Data Structure
 Custom robots require implementation of vectorized forward kinematics for optimal performance. 

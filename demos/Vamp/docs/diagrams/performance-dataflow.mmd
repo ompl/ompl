@@ -1,0 +1,92 @@
+---
+title: "VAMP Performance Architecture - SIMD Vectorization & Data Flow"
+---
+flowchart TD
+    %% User Interface Layer
+    subgraph "User Application Layer"
+        A[User Application] --> B[YAML Configuration]
+        A --> C[Programmatic Configuration]
+        B --> D[YamlConfigLoader]
+        C --> E[Direct API calls]
+    end
+    
+    %% Planning Layer  
+    subgraph "Planning Coordination Layer"
+        D --> F[VampOMPLPlanner]
+        E --> F
+        F --> G[OMPLPlanningContext]
+        F --> H[RobotRegistry]
+        F --> I[EnvironmentFactory]
+    end
+    
+    %% OMPL Integration Layer
+    subgraph "OMPL Adapter Layer"
+        G --> J[OMPL SpaceInformation]
+        G --> K[OMPL ProblemDefinition]
+        G --> L[OMPL Planner Factory]
+        J --> M[VampStateValidator]
+        J --> N[VampMotionValidator]
+        L --> O[OMPL Planners]
+    end
+    
+    %% Performance Core (SIMD Layer)
+    subgraph "VAMP Performance Core"
+        M --> P[SIMD Configuration Conversion]
+        N --> P
+        P --> Q[Vectorized Environment]
+        Q --> R[SIMD Collision Detection]
+        R --> S[8x Parallel Processing]
+    end
+    
+    %% Robot-specific Layer
+    subgraph "Robot Implementations"
+        H --> T[Built-in Robots]
+        H --> U[Custom Robots]
+        T --> V[Panda 7-DOF]
+        T --> W[UR5 6-DOF]
+        T --> X[Fetch 8-DOF]
+        U --> Y[User-defined Robot]
+    end
+    
+    %% Memory Layout Transformation
+    subgraph "Memory Layout Optimization"
+        P --> Z[Thread-local Buffer Pool]
+        Z --> AA[AOS to SOA Conversion]
+        AA --> BB[SIMD-aligned Memory]
+        BB --> S
+    end
+    
+    %% Collision Detection Detail
+    subgraph "Vectorized Collision Detection"
+        S --> CC[Sphere-Environment Check]
+        S --> DD[Cuboid-Environment Check] 
+        S --> EE[Capsule-Environment Check]
+        S --> FF[Pointcloud CAPT Check]
+        CC --> GG[8 Configurations Parallel]
+        DD --> GG
+        EE --> GG
+        FF --> GG
+    end
+    
+    %% Motion Validation Detail
+    subgraph "Rake Motion Validation"
+        N --> HH[Temporal Sampling Distribution]
+        HH --> II[t = 0.1, 0.2, ..., 0.8]
+        II --> JJ[8 Sample Points Parallel]
+        JJ --> GG
+    end
+    
+    %% Output Processing
+    subgraph "Result Processing"
+        GG --> KK[Collision Results]
+        KK --> LL[OMPL Path Generation]
+        LL --> MM[Path Simplification]
+        MM --> NN[Solution Export]
+        NN --> OO[Visualization Pipeline]
+    end
+    
+    %% Performance Annotations
+    P -.->|"Zero-copy conversion"| AA
+    S -.->|"8x speedup via SIMD"| GG
+    HH -.->|"Cache-efficient sampling"| JJ
+    Q -.->|"Structure-of-Arrays layout"| R

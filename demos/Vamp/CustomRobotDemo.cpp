@@ -10,7 +10,6 @@
  * 
  * Usage:
  *   ./demo_CustomRobot                           # Basic custom robot demo
- *   ./demo_CustomRobot --robot planar_arm_2dof   # Specific robot
  *   ./demo_CustomRobot --visualize               # With visualization
  */
 
@@ -162,8 +161,6 @@ void printUsage(const char* program_name)
     std::cout << std::endl;
     std::cout << "Examples:" << std::endl;
     std::cout << "  " << program_name << " --list" << std::endl;
-    std::cout << "  " << program_name << " --robot planar_arm_2dof --visualize" << std::endl;
-    std::cout << "  " << program_name << " --robot articulated_arm_3dof" << std::endl;
     std::cout << "  " << program_name << " --info panda" << std::endl;
 }
 
@@ -287,7 +284,7 @@ int main(int argc, char* argv[])
             
             // Visualization
             if (should_visualize) {
-                std::cout << "\n🎬 Starting visualization..." << std::endl;
+                std::cout << "\n Starting visualization..." << std::endl;
                 if (!VampUtils::runVisualization(result, selected_robot + "_custom_demo")) {
                     std::cout << "  Visualization failed (planning still succeeded)" << std::endl;
                 }

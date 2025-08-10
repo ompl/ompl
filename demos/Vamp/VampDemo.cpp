@@ -66,14 +66,14 @@ PlanningConfiguration createBasicExample()
     
     // Step 5: Configure planner
     planningConfiguration.planning.planner_name = "RRT-Connect";
-    planningConfiguration.planning.planning_time = 2.0;
-    planningConfiguration.planning.simplification_time = 1.0;
+    planningConfiguration.planning.planning_time = vamp_ompl::constants::DEFAULT_PLANNING_TIME;
+    planningConfiguration.planning.simplification_time = vamp_ompl::constants::DEFAULT_SIMPLIFICATION_TIME;
     planningConfiguration.planning.optimize_path = false;
     
-    // Step 5.1: Set planner-specific parameters
+    // Step 5.1: Set planner-specific parameters using constants
     planningConfiguration.planning.planner_parameters = {
-        {"range", "0.3"},        // RRT-Connect range parameter
-        {"intermediate_states", "false"}    // RRT-Connect goal bias parameter
+        {"range", std::to_string(vamp_ompl::constants::DEFAULT_RRT_RANGE)},
+        {"intermediate_states", vamp_ompl::constants::DEFAULT_INTERMEDIATE_STATES ? "true" : "false"}
     };
     
     planningConfiguration.save_path = true;
@@ -103,7 +103,7 @@ PlanningConfiguration createBasicExample()
         sphereObstacle.type = "sphere";
         sphereObstacle.name = "sphere_lower_" + std::to_string(obstacleIndex);
         sphereObstacle.position = lowerRingObstaclePositions[obstacleIndex];
-        sphereObstacle.radius = 0.15f;
+        sphereObstacle.radius = vamp_ompl::constants::DEFAULT_SPHERE_RADIUS;
         planningConfiguration.obstacles.push_back(sphereObstacle);
     }
     
@@ -113,7 +113,7 @@ PlanningConfiguration createBasicExample()
         sphereObstacle.type = "sphere";
         sphereObstacle.name = "sphere_upper_" + std::to_string(obstacleIndex);
         sphereObstacle.position = upperRingObstaclePositions[obstacleIndex];
-        sphereObstacle.radius = 0.15f;
+        sphereObstacle.radius = vamp_ompl::constants::DEFAULT_SPHERE_RADIUS;
         planningConfiguration.obstacles.push_back(sphereObstacle);
     }
     
@@ -128,6 +128,8 @@ PlanningConfiguration createBasicExample()
  */
 PlanningConfiguration loadYamlExample(const std::string& yamlConfigurationFile)
 {
+    std::cout << "Loading YAML configuration from: " << yamlConfigurationFile << std::endl;
+    
     PlanningConfiguration yamlPlanningConfiguration;
     if (!VampUtils::loadYamlConfig(yamlConfigurationFile, yamlPlanningConfiguration)) {
         throw VampYamlError("Failed to load YAML configuration: " + yamlConfigurationFile);

@@ -1,0 +1,246 @@
+---
+title: "VAMP Motion Planning Package - Architecture Overview"
+---
+classDiagram
+    %% OMPL Layer (Blue - Standard interfaces)
+    class OMPLStateValidityChecker {
+        <<interface>>
+        +isValid(state) bool
+    }
+    
+    class OMPLMotionValidator {
+        <<interface>>
+        +checkMotion(start, end) bool
+    }
+    
+    class OMPLPlanner {
+        <<interface>>
+        +solve(time) PlannerStatus
+        +setProblemDefinition(problem)
+    }
+    
+    class OMPLSpaceInformation {
+        +setStateValidityChecker()
+        +setMotionValidator()
+        +setup()
+    }
+    
+    class OMPLProblemDefinition {
+        +setStartAndGoalStates()
+        +setOptimizationObjective()
+        +getSolutionPath()
+    }
+    
+    %% VAMP Core Components (Green - Performance layer)
+    class VampStateValidator {
+        <<SIMD-accelerated>>
+        -vectorizedEnvironment VectorizedEnvironment
+        +isValid(state) bool
+        -ompl_to_vamp()
+        -validate_motion()
+    }
+    
+    class VampMotionValidator {
+        <<SIMD-accelerated>>
+        -vectorizedEnvironment VectorizedEnvironment
+        +checkMotion(start, end) bool
+        -rake_sampling_distribution()
+        -validate_motion_with_resolution()
+    }
+    
+    class VampOMPLPlanner {
+        <<Facade Pattern>>
+        -robotConfiguration RobotConfig
+        -environmentFactory EnvironmentFactory
+        -planningContext OMPLPlanningContext
+        -vectorizedEnvironment VectorizedEnvironment
+        +initialize()
+        +plan(config) PlanningResult
+        +writeOptimizedSolutionPath()
+        +printConfiguration()
+    }
+    
+    class OMPLPlanningContext {
+        <<Adapter Pattern>>
+        -spaceInformation SpaceInformation
+        -problemDefinition ProblemDefinition
+        +setupStateSpace(robotConfig, environment)
+        +setProblem(start, goal)
+        +plan(config) PlanningResult
+        -createPlannerByName(name)
+    }
+    
+    class VectorizedEnvironment {
+        <<SIMD Environment>>
+        +spheres vector
+        +cuboids vector
+        +capsules vector
+        +pointclouds vector
+        +sort()
+    }
+    
+    %% Robot Registry & Factory System
+    class RobotRegistry {
+        <<Singleton>>
+        -handlers map
+        -metadata map
+        +getInstance() RobotRegistry
+        +registerRobot(name)
+        +createRobotConfig(name, start, goal)
+        +createPlanner(name, config, factory)
+        +isRobotRegistered(name) bool
+        +getRegisteredRobots() vector
+    }
+    
+    class RobotHandler {
+        <<Interface>>
+        +createRobotConfig() any
+        +createPlanner() any
+        +initializePlanner()
+        +executePlanning() PlanningResult
+        +getMetadata() RobotMetadata
+        +validateConfigurationSize() bool
+    }
+    
+    class TypedRobotHandler {
+        +createRobotConfig() shared_ptr
+        +createPlanner() shared_ptr
+        +initializePlanner(planner)
+        +executePlanning(planner, config)
+        +getMetadata() RobotMetadata
+    }
+    
+    class PlannerFactory {
+        <<Registry Pattern>>
+        -plannerCreators map
+        +getInstance() PlannerFactory
+        +createPlanner(name, spaceInfo) Planner
+        +registerPlanner(name, factory)
+        +getAvailablePlannerNames() string
+    }
+    
+    %% Configuration System
+    class RobotConfig {
+        <<Abstract Interface>>
+        +getJointLimits() vector
+        +getStartConfigurationArray() array
+        +getGoalConfigurationArray() array
+        +getRobotName() string
+    }
+    
+    class RobotConfiguration {
+        -startConfig vector
+        -goalConfig vector
+        -robotName string
+        +validateConfigurationSize()
+        +vectorToArray(vec) array
+    }
+    
+    class EnvironmentFactory {
+        <<Abstract Interface>>
+        +createEnvironment() Environment
+        +getEnvironmentName() string
+        +getDescription() string
+    }
+    
+    class ConfigurableEnvironmentFactory {
+        -obstacleConfigurations vector
+        -environmentName string
+        +setObstacles(obstacles)
+        +addObstacle(obstacle)
+        +createEnvironment() Environment
+    }
+    
+    %% Built-in Robot Types
+    class VAMPPanda {
+        <<Built-in Robot>>
+        +dimension 7
+        +n_spheres 10
+        +resolution 64
+        +fkcc() bool
+        +scale_configuration()
+    }
+    
+    class VAMPUR5 {
+        <<Built-in Robot>>
+        +dimension 6
+        +n_spheres 8
+        +resolution 32
+        +fkcc() bool
+        +scale_configuration()
+    }
+    
+    class VAMPFetch {
+        <<Built-in Robot>>
+        +dimension 8
+        +n_spheres 12
+        +resolution 48
+        +fkcc() bool
+        +scale_configuration()
+    }
+    
+    %% User Extension Points (Orange)
+    class CustomRobot {
+        <<User Extension>>
+        +dimension N
+        +n_spheres M
+        +resolution R
+        +fkcc() bool
+        +scale_configuration()
+        +note "Implement VAMP robot interface"
+    }
+    
+    class CustomPlanner {
+        <<User Extension>>
+        +solve(time) PlannerStatus
+        +note "Implement OMPL planner interface"
+    }
+    
+    class CustomEnvironment {
+        <<User Extension>>
+        +createEnvironment() Environment
+        +note "Custom obstacle types"
+    }
+    
+    %% Core Relationships - OMPL Integration
+    OMPLStateValidityChecker <|-- VampStateValidator
+    OMPLMotionValidator <|-- VampMotionValidator
+    
+    VampOMPLPlanner --> OMPLPlanningContext : uses
+    VampOMPLPlanner --> RobotConfig : configures
+    VampOMPLPlanner --> EnvironmentFactory : creates_environment
+    VampOMPLPlanner --> VectorizedEnvironment : optimizes
+    
+    OMPLPlanningContext --> OMPLSpaceInformation : manages
+    OMPLPlanningContext --> OMPLProblemDefinition : manages
+    OMPLPlanningContext --> VampStateValidator : creates
+    OMPLPlanningContext --> VampMotionValidator : creates
+    OMPLPlanningContext --> PlannerFactory : uses
+    
+    PlannerFactory --> OMPLPlanner : creates
+    
+    %% Robot Registry Relationships
+    RobotRegistry --> RobotHandler : manages
+    RobotHandler <|-- TypedRobotHandler
+    TypedRobotHandler --> VampOMPLPlanner : creates
+    TypedRobotHandler --> RobotConfiguration : creates
+    
+    RobotConfig <|-- RobotConfiguration
+    
+    %% Environment System
+    EnvironmentFactory <|-- ConfigurableEnvironmentFactory
+    ConfigurableEnvironmentFactory --> VectorizedEnvironment : creates
+    ConfigurableEnvironmentFactory --> ObstacleConfig : uses
+    
+    VampStateValidator --> VectorizedEnvironment : validates_against
+    VampMotionValidator --> VectorizedEnvironment : validates_against
+    
+    %% Built-in vs Custom Robots
+    VAMPPanda ..> RobotRegistry : auto_registered
+    VAMPUR5 ..> RobotRegistry : auto_registered
+    VAMPFetch ..> RobotRegistry : auto_registered
+    CustomRobot ..> RobotRegistry : user_registers
+    
+    %% Extension Points
+    CustomPlanner ..> PlannerFactory : user_registers
+    CustomEnvironment ..> EnvironmentFactory : user_implements

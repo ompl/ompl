@@ -21,7 +21,7 @@
 #include <algorithm>
 #include <sstream>
 
-// VAMP robot includes (for backward compatibility)
+// VAMP robot includes
 #include <vamp/robots/panda.hh>
 #include <vamp/robots/ur5.hh>
 #include <vamp/robots/fetch.hh>
@@ -29,28 +29,9 @@
 namespace vamp_ompl {
 
 /**
- * @brief Robot name mapping for type safety and conciseness
- */
-template<typename Robot> constexpr const char* getRobotName();
-template<> constexpr const char* getRobotName<vamp::robots::Panda>() { return "panda"; }
-template<> constexpr const char* getRobotName<vamp::robots::UR5>() { return "ur5"; }
-template<> constexpr const char* getRobotName<vamp::robots::Fetch>() { return "fetch"; }
-
-/**
- * @brief Environment factory for obstacle-based environments
- */
-std::unique_ptr<EnvironmentFactory> createEnvironmentFactory(const std::vector<ObstacleConfig>& obstacles, 
-                                                           const std::string& robot_name = "");
-
-/**
  * @brief Unified motion planning execution function
  */
 MotionPlanningResult executeMotionPlanning(const PlanningConfiguration& config);
-
-/**
- * @brief YAML loader for planning configuration
- */
-bool loadYamlConfiguration(const std::string& yaml_file, PlanningConfiguration& config);
 
 /**
  * @brief Write visualization configuration to solution file
@@ -66,27 +47,7 @@ void writeVisualizationConfig(const std::string& solution_file_path,
  */
 namespace vamp_ompl {
 
-/**
- * @brief Environment factory implementation (configurable obstacles)
- */
-inline std::unique_ptr<EnvironmentFactory> createEnvironmentFactory(const std::vector<ObstacleConfig>& obstacles,
-                                                                   const std::string& robot_name)
-{
-    auto factory = std::make_unique<ConfigurableEnvironmentFactory>();
-    factory->setObstacles(obstacles);
-    factory->setRobotName(robot_name);
-    
-    if (obstacles.empty()) {
-        factory->setMetadata("Empty Environment", "Environment with no obstacles");
-        std::cout << " Using empty environment (0 obstacles)" << std::endl;
-    } else {
-        factory->setMetadata("Custom Environment", "Environment with obstacle configuration");
-        std::cout << " Using obstacle configuration (" 
-                  << obstacles.size() << " obstacles)" << std::endl;
-    }
-    
-    return factory;
-}
+
 
 /**
  * @brief Unified motion planning execution (uses registry for all robots)
@@ -107,8 +68,8 @@ inline MotionPlanningResult executeMotionPlanning(const PlanningConfiguration& c
         auto robot_config = registry.createRobotConfig(
             config.robot_name, config.start_config, config.goal_config);
         
-        // Create environment factory
-        auto env_factory = createEnvironmentFactory(config.obstacles, config.robot_name);
+        // Create environment factory using VampUtils
+        auto env_factory = VampUtils::createEnvironmentFactory(config.obstacles, config.robot_name);
         
         // Create planner using registry
         auto planner = registry.createPlanner(
@@ -189,11 +150,6 @@ inline void writeVisualizationConfig(const std::string& solution_file_path,
     }
 }
 
-/**
- * @brief YAML configuration loader implementation
- */
-inline bool loadYamlConfiguration(const std::string& yaml_file, PlanningConfiguration& config) {
-    return YamlConfigLoader::loadYamlConfig(yaml_file, config);
-}
+
 
 } // namespace vamp_ompl

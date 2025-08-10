@@ -22,11 +22,15 @@ namespace vamp_ompl {
 namespace constants {
     constexpr size_t DEFAULT_PATH_WAYPOINTS = 100;
     constexpr double DEFAULT_PLANNING_TIME = 2.0;
-    constexpr double DEFAULT_SIMPLIFICATION_TIME = 0.5;
-    constexpr float DEFAULT_SPHERE_RADIUS = 0.1f;
+    constexpr double DEFAULT_SIMPLIFICATION_TIME = 1.0;  // Updated to match demo usage
+    constexpr float DEFAULT_SPHERE_RADIUS = 0.15f;       // Updated to match demo usage
     constexpr float DEFAULT_CAPSULE_LENGTH = 0.2f;
     constexpr std::array<float, 3> DEFAULT_HALF_EXTENTS = {0.1f, 0.1f, 0.1f};
     constexpr float DEFAULT_POINT_RADIUS = 0.0025f;  // VAMP default point radius
+    
+    // RRT-Connect specific defaults
+    constexpr double DEFAULT_RRT_RANGE = 0.3;
+    constexpr bool DEFAULT_INTERMEDIATE_STATES = false;
     
     // Use RobotRegistry::getInstance().getRegisteredRobots() or dynamic robot support
 }
@@ -299,11 +303,11 @@ public:
     /**
      * @brief Create VAMP environment from explicit obstacle configurations
      * 
-     *  Note: This method demonstrates the Factory Method pattern -
+     * Note: This method demonstrates the Factory Method pattern -
      * it creates complex objects (VAMP environments) from simple configuration data.
      * The obstacle creation is type-safe and extensible to new obstacle types.
      */
-    vamp::collision::Environment<float> createEnvironment() override
+    auto create_environment() -> vamp::collision::Environment<float> override
     {
         vamp::collision::Environment<float> vampEnvironment;
         
@@ -367,12 +371,12 @@ public:
         return vampEnvironment;
     }
     
-    std::string getEnvironmentName() const override
+    auto get_environment_name() const -> std::string override
     {
         return m_environmentName;
     }
     
-    std::string getDescription() const override
+    auto get_description() const -> std::string override
     {
         if (m_obstacleConfigurations.empty()) {
             return m_environmentDescription + " (empty environment)";
@@ -553,7 +557,7 @@ public:
         std::string visualizationCommand;
         std::string scriptPathStr = visualizationScriptPath.string();
         
-        // NEW: Use embedded visualization configuration (no need for separate robot/YAML args)
+        // Use embedded visualization configuration (no need for separate robot/YAML args)
         visualizationCommand = "python3 " + scriptPathStr + " \"" + motionPlanningResult.solution_file_path + "\"";
         
         // Add optional YAML config if explicitly provided
@@ -568,7 +572,7 @@ public:
             }
         }
         
-        std::cout << "🎬 Running visualization..." << std::endl;
+        std::cout << " Running visualization..." << std::endl;
         std::cout << "Command: " << visualizationCommand << std::endl;
         return std::system(visualizationCommand.c_str()) == 0;
     }
@@ -831,6 +835,82 @@ public:
  */
 class VampUtils {
 public:
+    // ========== ENVIRONMENT FACTORY ==========
+    
+    /**
+     * @brief Create environment factory with obstacles
+     * @param obstacles Vector of obstacle configurations
+     * @param robot_name Robot name for metadata
+     * @return Unique pointer to configured environment factory
+     */
+    static std::unique_ptr<EnvironmentFactory> createEnvironmentFactory(
+        const std::vector<ObstacleConfig>& obstacles,
+        const std::string& robot_name = "") {
+        
+        auto factory = std::make_unique<ConfigurableEnvironmentFactory>();
+        factory->setObstacles(obstacles);
+        factory->setRobotName(robot_name);
+        
+        if (obstacles.empty()) {
+            factory->setMetadata("Empty Environment", "Environment with no obstacles");
+            std::cout << " Using empty environment (0 obstacles)" << std::endl;
+        } else {
+            factory->setMetadata("Custom Environment", "Environment with obstacle configuration");
+            std::cout << " Using obstacle configuration (" 
+                      << obstacles.size() << " obstacles)" << std::endl;
+        }
+        
+        return factory;
+    }
+
+    // ========== VALIDATION UTILITIES ==========
+    
+    /**
+     * @brief Validate configuration dimensions against robot requirements
+     * @param config Configuration vector to validate
+     * @param expected_dimension Expected robot dimension
+     * @param config_type Configuration type (e.g., "start", "goal") for error messages
+     * @param robot_name Robot name for error messages
+     * @throws VampConfigurationError if validation fails
+     */
+    static void validateConfigurationDimension(
+        const std::vector<float>& config,
+        std::size_t expected_dimension,
+        const std::string& config_type,
+        const std::string& robot_name) {
+        
+        if (config.size() != expected_dimension) {
+            throw VampConfigurationError(config_type + " configuration dimension (" + 
+                std::to_string(config.size()) + ") does not match robot dimension (" + 
+                std::to_string(expected_dimension) + ") for " + robot_name);
+        }
+    }
+    
+    /**
+     * @brief Validate configuration values against joint limits
+     * @param config Configuration vector to validate
+     * @param limits Joint limits as pairs of (min, max)
+     * @param config_type Configuration type for error messages
+     * @param robot_name Robot name for error messages
+     * @throws VampConfigurationError if any joint is outside limits
+     */
+    static void validateConfigurationLimits(
+        const std::vector<float>& config,
+        const std::vector<std::pair<double, double>>& limits,
+        const std::string& config_type,
+        const std::string& robot_name) {
+        
+        for (size_t i = 0; i < config.size(); ++i) {
+            if (config[i] < limits[i].first || config[i] > limits[i].second) {
+                throw VampConfigurationError(config_type + " joint " + std::to_string(i) + 
+                    " (" + std::to_string(config[i]) + ") outside limits [" + 
+                    std::to_string(limits[i].first) + "," + std::to_string(limits[i].second) + 
+                    "] for robot " + robot_name);
+            }
+        }
+    }
+
+    // ========== DELEGATE METHODS ==========
     // Delegate to specialized classes for better organization
     static void printUsage(const char* programName) {
         OutputFormatter::printUsage(programName);

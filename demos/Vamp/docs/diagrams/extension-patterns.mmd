@@ -1,0 +1,91 @@
+---
+title: "VAMP Extension Points & Design Patterns"
+---
+graph TB
+    %% Extension Point Categories
+    subgraph "Robot Extension Pattern"
+        A[Define Custom Robot struct] --> B[Implement VAMP Interface]
+        B --> C[vectorized fkcc method]
+        B --> D[scale_configuration methods]
+        B --> E[dimension & n_spheres constants]
+        C --> F[REGISTER_VAMP_ROBOT macro]
+        D --> F
+        E --> F
+        F --> G[Automatic Registry Integration]
+    end
+    
+    subgraph "Planner Extension Pattern"
+        H[Inherit from OMPL Planner] --> I[Implement solve method]
+        H --> J[Override planner parameters]
+        I --> K[PlannerFactory registration]
+        J --> K
+        K --> L[Runtime planner selection]
+    end
+    
+    subgraph "Environment Extension Pattern"
+        M[Inherit from EnvironmentFactory] --> N[Implement createEnvironment]
+        M --> O[Define custom obstacle types]
+        N --> P[VAMP Environment creation]
+        O --> P
+        P --> Q[Vectorized collision detection]
+    end
+    
+    %% Design Pattern Applications
+    subgraph "Core Design Patterns"
+        R[Facade Pattern<br/>VampOMPLPlanner] --> S[Hides integration complexity]
+        T[Adapter Pattern<br/>OMPLPlanningContext] --> U[Bridges OMPL and VAMP APIs]
+        V[Factory Pattern<br/>PlannerFactory] --> W[Runtime planner creation]
+        X[Registry Pattern<br/>RobotRegistry] --> Y[Type-erased robot management]
+        Z[Template Method<br/>Planning workflow] --> AA[Standardized algorithm structure]
+        BB[Strategy Pattern<br/>FileLocator] --> CC[Flexible file location strategies]
+    end
+    
+    %% Type Safety & Performance
+    subgraph "Type Safety Mechanisms"
+        DD[Template-based robot types] --> EE[Compile-time validation]
+        FF[std::any type erasure] --> GG[Runtime polymorphism]
+        HH[SFINAE constraints] --> II[Interface compliance checking]
+        EE --> JJ[Zero-cost abstractions]
+        GG --> JJ
+        II --> JJ
+    end
+    
+    %% SIMD Architecture Detail
+    subgraph "SIMD Performance Design"
+        KK[Structure-of-Arrays layout] --> LL[Cache-efficient memory access]
+        MM[Thread-local buffer pools] --> NN[Allocation-free hot path]
+        OO[Rake sampling distribution] --> PP[Parallel motion validation]
+        QQ[Vectorized forward kinematics] --> RR[8x collision checking speedup]
+        LL --> SS[Optimal SIMD utilization]
+        NN --> SS
+        PP --> SS
+        RR --> SS
+    end
+    
+    %% Integration Points
+    G --> Y
+    L --> W
+    Q --> SS
+    S --> T
+    U --> Z
+    
+    %% Extension Examples
+    subgraph "Real Extension Examples"
+        TT[PlanarArm2DOF Custom Robot]
+        UU[RRT* Custom Planner]
+        VV[Pointcloud Environment]
+        WW[YAML Configuration System]
+    end
+    
+    %% API Consistency
+    subgraph "Consistent API Design"
+        XX[Uniform error handling] --> YY[VampConfigurationError hierarchy]
+        ZZ[Resource management] --> AAA[RAII throughout]
+        BBB[Configuration validation] --> CCC[Early error detection]
+        DDD[Comprehensive logging] --> EEE[Debug-friendly output]
+    end
+    
+    %% Performance Critical Paths
+    TT -.->|"Example implementation"| G
+    UU -.->|"Example implementation"| L
+    VV -.->|"Example implementation"| Q

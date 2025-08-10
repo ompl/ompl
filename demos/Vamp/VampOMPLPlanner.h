@@ -55,37 +55,37 @@ template<typename Robot>
 class VampOMPLPlanner {
 public:
     using RobotConfiguration = typename Robot::Configuration;
-    static constexpr std::size_t robotDimension = Robot::dimension;
-    static constexpr std::size_t simdLaneWidth = vamp::FloatVectorWidth;
-    using VectorizedEnvironment = vamp::collision::Environment<vamp::FloatVector<simdLaneWidth>>;
+    static constexpr std::size_t robot_dimension_ = Robot::dimension;
+    static constexpr std::size_t simd_lane_width_ = vamp::FloatVectorWidth;
+    using VectorizedEnvironment = vamp::collision::Environment<vamp::FloatVector<simd_lane_width_>>;
 
 private:
-    std::unique_ptr<RobotConfig<Robot>> m_robotConfiguration;
-    std::unique_ptr<EnvironmentFactory> m_environmentFactory;
-    OMPLPlanningContext<Robot> m_planningContext;
-    VectorizedEnvironment m_vectorizedEnvironment;
-    bool m_isInitialized;
+    std::unique_ptr<RobotConfig<Robot>> robot_configuration_;
+    std::unique_ptr<EnvironmentFactory> environment_factory_;
+    OMPLPlanningContext<Robot> planning_context_;
+    VectorizedEnvironment vectorized_environment_;
+    bool is_initialized_;
 
 public:
     /**
      * @brief Constructor taking robot and environment configuration (Dependency Injection)
-     * @param robotConfiguration Robot configuration providing limits and poses
-     * @param environmentFactory Factory for creating collision environments
+     * @param robot_configuration Robot configuration providing limits and poses
+     * @param environment_factory Factory for creating collision environments
      * 
-     *  Note: This constructor demonstrates dependency injection - rather than
+     * Note: This constructor demonstrates dependency injection - rather than
      * creating its dependencies internally, the planner accepts them as parameters.
      * This design promotes testability, flexibility, and separation of concerns.
      */
-    VampOMPLPlanner(std::unique_ptr<RobotConfig<Robot>> robotConfiguration,
-                    std::unique_ptr<EnvironmentFactory> environmentFactory)
-        : m_robotConfiguration(std::move(robotConfiguration)), 
-          m_environmentFactory(std::move(environmentFactory)),
-          m_isInitialized(false)
-    {
-        if (!m_robotConfiguration) {
+    VampOMPLPlanner(std::unique_ptr<RobotConfig<Robot>> robot_configuration,
+                    std::unique_ptr<EnvironmentFactory> environment_factory)
+        : robot_configuration_(std::move(robot_configuration))
+        , environment_factory_(std::move(environment_factory))
+        , is_initialized_(false) {
+        
+        if (!robot_configuration_) {
             throw VampConfigurationError("Robot configuration cannot be null");
         }
-        if (!m_environmentFactory) {
+        if (!environment_factory_) {
             throw VampConfigurationError("Environment factory cannot be null");
         }
     }
@@ -94,7 +94,7 @@ public:
      * @brief Initialize the planner (create environment, setup OMPL)
      * This must be called before planning
      * 
-     *  Note: This two-phase initialization pattern (constructor + initialize)
+     * Note: This two-phase initialization pattern (constructor + initialize)
      * is common in complex systems where initialization can fail or is expensive.
      * It allows error handling and provides clear separation between object creation
      * and system setup.
@@ -102,60 +102,60 @@ public:
      * Performance Note: Environment vectorization happens here, converting scalar
      * collision geometry to SIMD-optimized format for speedup.
      */
-    void initialize()
-    {   
+    void initialize() {   
         // Create collision environment
-        auto scalarEnvironment = m_environmentFactory->createEnvironment();
-        m_vectorizedEnvironment = VectorizedEnvironment(scalarEnvironment);
+        auto scalar_environment = environment_factory_->create_environment();
+        vectorized_environment_ = VectorizedEnvironment(scalar_environment);
         
         // Setup OMPL state space and validators
-        m_planningContext.setupStateSpace(*m_robotConfiguration, m_vectorizedEnvironment);
+        planning_context_.setup_state_space(*robot_configuration_, vectorized_environment_);
         
         // Setup default problem (start and goal from robot config)
-        auto defaultStartConfiguration = m_robotConfiguration->getStartConfigurationArray();
-        auto defaultGoalConfiguration = m_robotConfiguration->getGoalConfigurationArray();
-        m_planningContext.setProblem(defaultStartConfiguration, defaultGoalConfiguration);
+        auto default_start_configuration = robot_configuration_->get_start_configuration_array();
+        auto default_goal_configuration = robot_configuration_->get_goal_configuration_array();
+        planning_context_.set_problem(default_start_configuration, default_goal_configuration);
         
-        m_isInitialized = true;
+        is_initialized_ = true;
         std::cout << "Initialization complete" << std::endl;
     }
     
     /**
      * @brief Unified planning function - works with robot's default or custom start/goal
-     * @param planningConfiguration Planning configuration (time limits, planner type, etc.)
-     * @param customStartConfiguration Optional custom start configuration (if empty, uses robot's default)
-     * @param customGoalConfiguration Optional custom goal configuration (if empty, uses robot's default)
+     * @param planning_configuration Planning configuration (time limits, planner type, etc.)
+     * @param custom_start_configuration Optional custom start configuration (if empty, uses robot's default)
+     * @param custom_goal_configuration Optional custom goal configuration (if empty, uses robot's default)
      * @return Planning results with comprehensive timing and path information
      * 
-     *  Note: This method demonstrates the Template Method pattern - it
+     * Note: This method demonstrates the Template Method pattern - it
      * defines a standard algorithm structure (validate → configure → plan → process)
      * while allowing customization through parameters.
      * 
      * Performance Note: Configuration validation happens at planning time rather than
      * construction time, allowing for dynamic reconfiguration without object recreation.
      */
-    PlanningResult plan(const PlanningConfig &planningConfiguration = PlanningConfig(),
-                       const std::array<float, robotDimension> &customStartConfiguration = {},
-                       const std::array<float, robotDimension> &customGoalConfiguration = {})
-    {
-        if (!m_isInitialized) {
+    auto plan(const PlanningConfig& planning_configuration = PlanningConfig(),
+             const std::array<float, robot_dimension_>& custom_start_configuration = {},
+             const std::array<float, robot_dimension_>& custom_goal_configuration = {}) -> PlanningResult {
+        
+        if (!is_initialized_) {
             throw VampConfigurationError("Planner not initialized. Call initialize() first.");
         }
         
         // Use custom start/goal if provided, otherwise use robot's defaults
-        bool useCustomConfigurations = (customStartConfiguration != std::array<float, robotDimension>{});
-        if (useCustomConfigurations) {
-            m_planningContext.setProblem(customStartConfiguration, customGoalConfiguration);
+        bool use_custom_configurations = (custom_start_configuration != std::array<float, robot_dimension_>{});
+        if (use_custom_configurations) {
+            planning_context_.set_problem(custom_start_configuration, custom_goal_configuration);
         }
         
-        auto planningResult = m_planningContext.plan(planningConfiguration);
+        auto planning_result = planning_context_.plan(planning_configuration);
         
         // Write solution path using OMPL's built-in functionality if requested
-        if (planningConfiguration.write_path && planningResult.success && planningResult.solution_path) {
-            planningResult.solution_file_path = writeOptimizedSolutionPath(planningResult, planningConfiguration.planner_name);
+        if (planning_configuration.write_path && planning_result.success && planning_result.solution_path) {
+            planning_result.solution_file_path = write_optimized_solution_path(
+                planning_result, planning_configuration.planner_name);
         }
         
-        return planningResult;
+        return planning_result;
     }
 
     /**
@@ -164,119 +164,148 @@ public:
      * File Format: The output format is compatible with standard robotics
      * visualization tools and can be easily imported into Python/MATLAB for analysis.
      */
-    std::string writeOptimizedSolutionPath(const PlanningResult& planningResult, const std::string& plannerName, 
-                                         const PlanningConfiguration::VisualizationConfig& visualizationConfig = {}) const
+    auto write_optimized_solution_path(const PlanningResult& planning_result, 
+                                      const std::string& planner_name, 
+                                      const PlanningConfiguration::VisualizationConfig& visualization_config = {}) const -> std::string
     {
-        auto geometricPath = std::dynamic_pointer_cast<ompl::geometric::PathGeometric>(planningResult.solution_path);
-        if (!planningResult.success || !geometricPath) return "";
+        auto geometric_path = std::dynamic_pointer_cast<ompl::geometric::PathGeometric>(planning_result.solution_path);
+        if (!planning_result.success || !geometric_path) return "";
         
-        geometricPath->interpolate(constants::DEFAULT_PATH_WAYPOINTS); // Standard waypoint count
+        geometric_path->interpolate(constants::DEFAULT_PATH_WAYPOINTS); // Standard waypoint count
         
         // Find output directory and create filename
-        auto findOutputDirectory = [](const std::vector<std::string>& candidatePaths) {
-            for (const auto& pathCandidate : candidatePaths) {
-                if (std::filesystem::exists(pathCandidate)) return pathCandidate;
+        auto find_output_directory = [](const std::vector<std::string>& candidate_paths) {
+            for (const auto& path_candidate : candidate_paths) {
+                if (std::filesystem::exists(path_candidate)) return path_candidate;
             }
             return std::string("./");
         };
         
-        std::string outputFilename = findOutputDirectory({"demos/Vamp/", "../demos/Vamp/", "../../demos/Vamp/"}) + 
-                              "solution_path_" + m_robotConfiguration->getRobotName() + "_" + 
-                              m_environmentFactory->getEnvironmentName() + "_" + plannerName + ".txt";
+        std::string output_filename = find_output_directory({"demos/Vamp/", "../demos/Vamp/", "../../demos/Vamp/"}) + 
+                              "solution_path_" + robot_configuration_->get_robot_name() + "_" + 
+                              environment_factory_->get_environment_name() + "_" + planner_name + ".txt";
         
-        std::ofstream outputFile(outputFilename);
-        if (!outputFile) return "";
+        std::ofstream output_file(output_filename);
+        if (!output_file) return "";
         
         // Write header using compact format
-        outputFile << "# " << m_robotConfiguration->getRobotName() << " + " << m_environmentFactory->getEnvironmentName() 
-             << " + " << plannerName << " (dim=" << robotDimension << ", waypoints=" 
-             << geometricPath->getStateCount() << ", cost=" << planningResult.final_cost << ")\n";
+        output_file << "# " << robot_configuration_->get_robot_name() << " + " << environment_factory_->get_environment_name() 
+             << " + " << planner_name << " (dim=" << robot_dimension_ << ", waypoints=" 
+             << geometric_path->getStateCount() << ", cost=" << planning_result.final_cost << ")\n";
         
         // Write visualization configuration if provided
-        if (!visualizationConfig.urdf_path.empty()) {
-            outputFile << "# VISUALIZATION CONFIG:\n";
-            outputFile << "# robot_name: " << m_robotConfiguration->getRobotName() << "\n";
-            outputFile << "# urdf_path: " << visualizationConfig.urdf_path << "\n";
-            if (visualizationConfig.expected_joints > 0) {
-                outputFile << "# expected_joints: " << visualizationConfig.expected_joints << "\n";
+        if (!visualization_config.urdf_path.empty()) {
+            output_file << "# VISUALIZATION CONFIG:\n";
+            output_file << "# robot_name: " << robot_configuration_->get_robot_name() << "\n";
+            output_file << "# urdf_path: " << visualization_config.urdf_path << "\n";
+            if (visualization_config.expected_joints > 0) {
+                output_file << "# expected_joints: " << visualization_config.expected_joints << "\n";
             }
-            outputFile << "# base_position: [" << visualizationConfig.base_position[0] << ", " 
-                      << visualizationConfig.base_position[1] << ", " << visualizationConfig.base_position[2] << "]\n";
-            outputFile << "# base_orientation: [" << visualizationConfig.base_orientation[0] << ", " 
-                      << visualizationConfig.base_orientation[1] << ", " << visualizationConfig.base_orientation[2] << "]\n";
-            outputFile << "# use_fixed_base: " << (visualizationConfig.use_fixed_base ? "true" : "false") << "\n";
+            output_file << "# base_position: [" << visualization_config.base_position[0] << ", " 
+                      << visualization_config.base_position[1] << ", " << visualization_config.base_position[2] << "]\n";
+            output_file << "# base_orientation: [" << visualization_config.base_orientation[0] << ", " 
+                      << visualization_config.base_orientation[1] << ", " << visualization_config.base_orientation[2] << "]\n";
+            output_file << "# use_fixed_base: " << (visualization_config.use_fixed_base ? "true" : "false") << "\n";
         }
         
         // Use OMPL's built-in path writing functionality
-        geometricPath->printAsMatrix(outputFile);
+        geometric_path->printAsMatrix(output_file);
         
-        std::cout << " Path written: " << outputFilename << " (" << geometricPath->getStateCount() 
-                  << " waypoints, cost=" << planningResult.final_cost << ")" << std::endl;
-        return outputFilename;
+        std::cout << " Path written: " << output_filename << " (" << geometric_path->getStateCount() 
+                  << " waypoints, cost=" << planning_result.final_cost << ")" << std::endl;
+        return output_filename;
     }
     
     /**
      * @brief Get robot configuration
      * @return Reference to robot configuration
      */
-    const RobotConfig<Robot>& getRobotConfiguration() const
-    {
-        return *m_robotConfiguration;
+    auto get_robot_configuration() const -> const RobotConfig<Robot>& {
+        return *robot_configuration_;
     }
     
     /**
      * @brief Get environment factory
      * @return Reference to environment factory
      */
-    const EnvironmentFactory& getEnvironmentFactory() const
-    {
-        return *m_environmentFactory;
+    auto get_environment_factory() const -> const EnvironmentFactory& {
+        return *environment_factory_;
     }
     
     /**
      * @brief Get OMPL planning context
      * @return Reference to OMPL planning context
      */
-    const OMPLPlanningContext<Robot>& getPlanningContext() const
-    {
-        return m_planningContext;
+    auto get_planning_context() const -> const OMPLPlanningContext<Robot>& {
+        return planning_context_;
     }
     
     /**
      * @brief Check if planner is initialized
      * @return true if initialized, false otherwise
      */
-    bool isInitialized() const
-    {
-        return m_isInitialized;
+    auto is_initialized() const -> bool {
+        return is_initialized_;
+    }
+    
+    /**
+     * @brief Get the OMPL space information for advanced use cases
+     * @return Shared pointer to the configured space information
+     * 
+     * Note: This method provides controlled access to the underlying OMPL setup
+     * for scenarios like benchmarking that need direct access to the space information.
+     * This follows the principle of exposing minimal necessary interface rather than
+     * duplicating setup logic.
+     */
+    auto get_space_information() const -> std::shared_ptr<ompl::base::SpaceInformation> {
+        if (!is_initialized_) {
+            throw VampConfigurationError("Planner not initialized. Call initialize() first.");
+        }
+        return planning_context_.get_space_information();
     }
     
     /**
      * @brief Print configuration summary (delegated to VampUtils)
-     * 
      */
-    void printConfiguration() const {
-        VampUtils::printPlannerConfiguration<Robot>(*m_robotConfiguration, *m_environmentFactory, m_isInitialized);
+    void print_configuration() const {
+        VampUtils::printPlannerConfiguration<Robot>(*robot_configuration_, *environment_factory_, is_initialized_);
     }
+    
+    // Legacy method names for backward compatibility
+    const RobotConfig<Robot>& getRobotConfiguration() const { return get_robot_configuration(); }
+    const EnvironmentFactory& getEnvironmentFactory() const { return get_environment_factory(); }
+    const OMPLPlanningContext<Robot>& getPlanningContext() const { return get_planning_context(); }
+    bool isInitialized() const { return is_initialized(); }
+    std::shared_ptr<ompl::base::SpaceInformation> getSpaceInformation() const { return get_space_information(); }
+    void printConfiguration() const { print_configuration(); }
 };
 
 /**
  * @brief Convenience function to create a VAMP-OMPL planner (Factory Function)
- * @param robotConfiguration Robot configuration
- * @param environmentFactory Environment factory
+ * @param robot_configuration Robot configuration
+ * @param environment_factory Environment factory
  * @return Unique pointer to configured planner
  * 
- *  Note: This factory function encapsulates object creation logic,
+ * Note: This factory function encapsulates object creation logic,
  * making client code cleaner and providing a stable interface even if the
  * constructor signature changes in the future.
  */
 template<typename Robot>
-std::unique_ptr<VampOMPLPlanner<Robot>> createVampOMPLPlanner(
-    std::unique_ptr<RobotConfig<Robot>> robotConfiguration,
-    std::unique_ptr<EnvironmentFactory> environmentFactory)
-{
+auto create_vamp_ompl_planner(std::unique_ptr<RobotConfig<Robot>> robot_configuration,
+                             std::unique_ptr<EnvironmentFactory> environment_factory) 
+    -> std::unique_ptr<VampOMPLPlanner<Robot>> {
+    
     return std::make_unique<VampOMPLPlanner<Robot>>(
-        std::move(robotConfiguration), std::move(environmentFactory));
+        std::move(robot_configuration), std::move(environment_factory));
+}
+
+// Legacy function name for backward compatibility
+template<typename Robot>
+std::unique_ptr<VampOMPLPlanner<Robot>> createVampOMPLPlanner(
+    std::unique_ptr<RobotConfig<Robot>> robot_configuration,
+    std::unique_ptr<EnvironmentFactory> environment_factory) {
+    
+    return create_vamp_ompl_planner<Robot>(std::move(robot_configuration), std::move(environment_factory));
 }
 
 } // namespace vamp_ompl
