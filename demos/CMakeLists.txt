@@ -103,20 +103,18 @@ if (OMPL_BUILD_DEMOS)
     # Add VAMP demo only if VAMP is available and properly configured
     if (OMPL_HAVE_VAMP)
         # Build VAMP demo directly using VAMP C++ library and OMPL
-        add_ompl_demo(demo_Vamp Vamp/VampDemo.cpp)
+        add_ompl_demo(demo_Vamp Vamp/demos/VampDemo.cpp)
         
-        # Build Custom Robot demo
-        add_ompl_demo(demo_VampCustomRobot Vamp/CustomRobotDemo.cpp)
-        
-        # Build VAMP Benchmarking demo
-        add_ompl_demo(demo_VampBenchmark 
-            Vamp/benchmarking/VampBenchmarkDemo.cpp)
+        # Add include directories for VAMP headers
+        target_include_directories(demo_Vamp PRIVATE 
+            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/core
+            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/utilities
+            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/benchmarking
+            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/examples)
         
         # Link against VAMP C++ library for all demos
         if(TARGET vamp_cpp)
             target_link_libraries(demo_Vamp PRIVATE vamp_cpp)
-            target_link_libraries(demo_VampCustomRobot PRIVATE vamp_cpp)
-            target_link_libraries(demo_VampBenchmark PRIVATE vamp_cpp)
             message(STATUS "VAMP demos linked against vamp_cpp library")
         else()
             message(WARNING "VAMP vamp_cpp target not found - demos may not build correctly")
@@ -125,29 +123,36 @@ if (OMPL_BUILD_DEMOS)
         # Link against yaml-cpp for configuration parsing
         if(TARGET yaml-cpp::yaml-cpp)
             target_link_libraries(demo_Vamp PRIVATE yaml-cpp::yaml-cpp)
-            target_link_libraries(demo_VampCustomRobot PRIVATE yaml-cpp::yaml-cpp)
-            target_link_libraries(demo_VampBenchmark PRIVATE yaml-cpp::yaml-cpp)
             message(STATUS "VAMP demos linked against yaml-cpp library")
         else()
             message(WARNING "yaml-cpp not found - VAMP demos may not build correctly")
         endif()
+
+        # Copy configuration files to build directory for testing
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/config/panda_demo.yaml
+            ${CMAKE_CURRENT_BINARY_DIR}/panda_demo.yaml
+            COPYONLY)
         
-        # Add benchmarking headers to include path
-        target_include_directories(demo_VampBenchmark PRIVATE 
-            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp
-            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/benchmarking)
-            
+        # Copy custom robot configuration files to build directory for testing
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/config/planar_arm_2dof_demo.yaml
+            ${CMAKE_CURRENT_BINARY_DIR}/planar_arm_2dof_demo.yaml
+            COPYONLY)
+        
+        # Copy custom robot URDF file to build directory for visualization
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/config/planar_arm_2dof.urdf
+            ${CMAKE_CURRENT_BINARY_DIR}/planar_arm_2dof.urdf
+            COPYONLY)
+
         # Copy benchmark configuration files to build directory for testing
         configure_file(
             ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/config/panda_benchmark.yaml
             ${CMAKE_CURRENT_BINARY_DIR}/panda_benchmark.yaml
             COPYONLY)
-        configure_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/config/multi_robot_benchmark.yaml
-            ${CMAKE_CURRENT_BINARY_DIR}/multi_robot_benchmark.yaml
-            COPYONLY)
         
-        message(STATUS "VAMP demos (demo_Vamp, demo_VampCustomRobot, demo_VampBenchmark) will be built using VAMP C++ library and OMPL")
+        message(STATUS "VAMP demo (demo_Vamp) will be built using VAMP C++ library and OMPL")
     endif()
     
 endif(OMPL_BUILD_DEMOS)

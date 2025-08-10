@@ -9,39 +9,27 @@ robot:
 # Planning Configuration  
 planner:
   name: "RRT-Connect"
-  planning_time: 2.0
+  planning_time: 5.0  # Increased planning time
   simplification_time: 1.0
   optimize_path: false
 
-# Start configuration: arm pointing to the right
+# Start configuration: arm pointing up and to the right
 start_config:
-  - 0.0      # shoulder: 0° (pointing right)
-  - 0.0      # elbow: 0° (straight)
+  - 0.7854   # shoulder: 45°
+  - 0.0      # elbow: 0°
 
-# Goal configuration: arm folded up
+# Goal configuration: arm pointing down and to the left
 goal_config:
-  - 1.5708   # shoulder: 90° (pointing up)
-  - -1.5708  # elbow: -90° (folded)
+  - -0.7854  # shoulder: -45°
+  - 0.0      # elbow: 0°
 
 # Environment Definition: Simple obstacle course
 obstacles:
-  # Obstacle 1: Block the direct path
+  # Obstacle 1: Small sphere far from the robot's workspace
   - type: sphere
-    name: "blocking_sphere"
-    position: [0.2, 0.0, 0.0]
-    radius: 0.08
-
-  # Obstacle 2: Create narrow passage - left wall
-  - type: cuboid
-    name: "wall_left"
-    position: [0.15, 0.2, 0.0]
-    half_extents: [0.05, 0.1, 0.1]
-
-  # Obstacle 3: Create narrow passage - right wall
-  - type: cuboid
-    name: "wall_right"
-    position: [0.15, -0.2, 0.0]
-    half_extents: [0.05, 0.1, 0.1]
+    name: "far_obstacle"
+    position: [0.8, 0.0, 0.0]  # Far away from robot
+    radius: 0.05
 
 # Output Configuration
 output:
@@ -52,7 +40,7 @@ output:
 visualization:
   enabled: true
   auto_start: false
-  urdf_path: "path/to/custom/robot/planar_arm_2dof.urdf"  # Custom robot URDF
+  urdf_path: "planar_arm_2dof.urdf"  # Custom robot URDF
   expected_joints: 2
   base_position: [0.0, 0.0, 0.0]
   base_orientation: [0.0, 0.0, 0.0]

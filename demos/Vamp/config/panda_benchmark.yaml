@@ -1,0 +1,59 @@
+# VAMP Benchmark Configuration for Panda 7-DOF Robot
+# This file demonstrates OMPL-compliant benchmarking with multiple planners
+
+robot:
+  name: "panda"
+  description: "Franka Emika Panda 7-DOF manipulator"
+
+# Start and goal configurations (joint angles in radians)
+start_config: [0.0, -0.785, 0.0, -2.356, 0.0, 1.571, 0.785]
+goal_config: [2.35, 1.0, 0.0, -0.8, 0.0, 2.5, 0.785]
+
+# Environment obstacles
+obstacles:
+  - type: "sphere"
+    name: "obstacle_1" 
+    position: [0.5, 0.0, 0.5]
+    radius: 0.15
+
+  - type: "sphere"
+    name: "obstacle_2"
+    position: [-0.3, 0.4, 0.3] 
+    radius: 0.12
+
+  - type: "sphere"
+    name: "obstacle_3"
+    position: [0.2, -0.5, 0.7]
+    radius: 0.1
+
+# Planner configuration
+planner:
+  name: "RRT-Connect"  # Default planner
+  planning_time: 5.0
+  simplification_time: 1.0
+
+# Benchmark configuration 
+benchmark:
+  experiment_name: "VAMP Panda 7-DOF Planner Comparison"
+  runs: 50                    # Number of runs per planner
+  timeout: 5.0               # Planning timeout per run (seconds)
+  memory_limit: 4096.0       # Memory limit in MB
+  simplify_paths: true       # Enable path simplification
+  display_progress: true     # Show progress during benchmarking
+  auto_generate_filename: true
+
+  # Planners to compare
+  planners:
+    - name: "RRT-Connect"
+    - name: "BIT*" 
+    - name: "PRM"
+    - name: "RRT*"
+
+# Output configuration
+output:
+  write_path: true
+  
+# Notes:
+# 1. This generates OMPL-standard .log files compatible with ompl_benchmark_statistics.py
+# 2. Run: ompl_benchmark_statistics.py <logfile> -d benchmark.db to create database
+# 3. Upload benchmark.db to http://plannerarena.org for visualization

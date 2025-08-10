@@ -1,24 +1,49 @@
 # OMPL-VAMP Integration Demo
 
 ## Prerequisites
-- Python 3.7+ with numpy, pybullet for visualization
+- pybullet for visualization
 
-## Usage
+## Demo Usage
+
+### **Basic Usage**
 ```bash
-./demo_Vamp                    # Basic programmatic example
-./demo_Vamp --visualize        # Basic example + visualization  
-./demo_Vamp config.yaml        # YAML configuration mode
+# Single planning run (default mode)
+./demo_Vamp                              # Programmatic example
+./demo_Vamp panda_demo.yaml              # YAML configuration
+
+# Benchmarking mode  
+./demo_Vamp panda_benchmark.yaml --benchmark  # Multi-run benchmark with OMPL output
+./demo_Vamp --robot panda                    # Quick benchmark for Panda robot
+./demo_Vamp --robot ur5                      # Quick benchmark for UR5 robot
+./demo_Vamp --robot fetch                    # Quick benchmark for Fetch robot
+
+# Visualization mode
+./demo_Vamp panda_demo.yaml --visualize  # Single run + 3D visualization
+
+# Utility options
+./demo_Vamp --list-robots                # Show available robots
+./demo_Vamp --help                       # Full usage information
 ```
 
-**Custom Robot Support**
+### **Advanced Benchmarking**
 ```bash
-./demo_CustomRobot                                    # Custom robot demo
-./demo_CustomRobot --list                             # List all registered robots  
-./demo_CustomRobot --robot planar_arm_2dof            # Specific custom robot
-./demo_Vamp demos/Vamp/config/planar_arm_2dof_demo.yaml     # YAML mode with custom robot
+# Custom benchmark parameters
+./demo_Vamp config.yaml --benchmark --runs 50 --timeout 10.0 --experiment "Custom Test"
+
+# Quick robot testing for all supported robots
+./demo_Vamp --robot panda                    # 10 runs, 3 second timeout
+./demo_Vamp --robot ur5                      # 10 runs, 3 second timeout  
+./demo_Vamp --robot fetch                    # 10 runs, 3 second timeout
 ```
 
-**Visualization (URDF-Configurable)**
+### **Custom Robot Support**
+```bash
+./demo_Vamp --planar-arm                      # 2DOF planar arm demo
+./demo_Vamp --planar-arm --visualize          # With visualization
+./demo_Vamp --robot planar_arm_2dof --benchmark  # Benchmark custom robot
+```
+
+### **Visualization**
 ```bash
 # Automatic visualization with embedded URDF configuration
 python3 visualize_solution.py solution_path_file.txt
@@ -27,13 +52,16 @@ python3 visualize_solution.py solution_path_file.txt
 python3 visualize_solution.py solution_path_file.txt --robot panda --yaml-config config.yaml
 ```
 
-## Options
-- `--visualize`: Enable 3D visualization
-- `--help`: Show usage information
-- `config.yaml`: Use YAML configuration file
-- `--list`: List all registered robots (including custom ones)
-- `--robot <name>`: Select specific robot
-- `--info <name>`: Show robot information
+##  Demo Options
+- `--benchmark`: Enable benchmarking mode (generates OMPL-compliant .log files)
+- `--visualize`: Enable 3D visualization output
+- `--robot <name>`: Run quick benchmark for specific robot (panda, ur5, fetch)
+- `--runs <N>`: Number of benchmark runs (default: 25)
+- `--timeout <seconds>`: Planning timeout per run (default: 5.0)
+- `--experiment <name>`: Custom experiment name for benchmarks
+- `--robot <name>`: Select specific robot for quick tests or benchmarking
+- `--list-robots`: List all registered robots
+- `--help`: Show complete usage information
 
 ## Examples
 
@@ -51,7 +79,8 @@ pip install -r demos/Vamp/requirements.txt  # For visualization
 - Interactive 3D visualization with PyBullet
 - Support for multiple robot types (Panda, UR5, Fetch)
 - Custom robot registration
-- Pointcloud obstacle support** (.xyz, .ply, .pcd formats)
+- Pointcloud obstacle support (.xyz, .ply, .pcd formats)
+- **OMPL-compliant benchmarking** with Planner Arena integration
 
 ## Custom Robot Development
 
@@ -108,6 +137,79 @@ The demo includes a example custom robot:
 - **planar_arm_2dof**: Simple 2-DOF planar manipulator for learning
 
 See `CustomRobotExample.h` for complete implementation details.
+
+### Custom Robot Benchmarking
+
+Custom robots automatically support benchmarking through the registry system:
+
+```bash
+# Benchmark custom robots
+./demo_Vamp --robot planar_arm_2dof --benchmark
+./demo_Vamp --robot panda --benchmark
+./demo_Vamp --robot ur5 --benchmark
+
+# List robots with benchmarking support
+./demo_Vamp --list-robots
+```
+
+All registered robots (built-in and custom) automatically get benchmarking capabilities through the `VampRobotRegistry` integration.
+
+## Benchmarking System
+
+VAMP includes **comprehensive benchmarking** built into the main demo, generating standard OMPL log files compatible with `ompl_benchmark_statistics.py` and Planner Arena. The benchmarking system is now fully integrated with the `VampRobotRegistry`, enabling benchmarking for all registered robots.
+
+### Registry-Based Benchmarking
+All robots registered in the `VampRobotRegistry` automatically support benchmarking:
+
+```bash
+# Quick benchmarking for any registered robot
+./demo_Vamp --robot panda                    # Panda 7-DOF robot
+./demo_Vamp --robot ur5                      # UR5 6-DOF robot  
+./demo_Vamp --robot fetch                    # Fetch 8-DOF robot
+
+# Full benchmarking from YAML configuration
+./demo_Vamp panda_demo.yaml --benchmark      # Full benchmark from YAML
+./demo_Vamp config.yaml --benchmark --runs 100  # Custom run count
+```
+
+### Robot Registry Integration
+The benchmarking system leverages the `VampRobotRegistry` for:
+- **Automatic robot detection** - All registered robots support benchmarking
+- **Type-safe operations** - Proper robot-specific configurations
+- **Extensible design** - New robots automatically get benchmarking support
+- **Consistent interface** - Same API for all robots
+
+### Complete Workflow: Benchmark → Database → Visualization
+```bash
+# 1. Run benchmark (generates OMPL-compliant .log file)
+./demo_Vamp panda_benchmark.yaml --benchmark
+
+# 2. Generate SQLite database  
+python3 scripts/ompl_benchmark_statistics.py vamp_benchmark_panda_*.log -d benchmark.db
+
+# 3. Visualize results at http://plannerarena.org
+# Simply upload benchmark.db for interactive analysis
+```
+
+### YAML Benchmark Configuration
+```yaml
+benchmark:
+  experiment_name: "Panda 7-DOF Comparison"
+  runs: 50
+  timeout: 5.0
+  planners:
+    - name: "RRT-Connect"
+    - name: "BIT*"
+    - name: "PRM"
+```
+
+**Key Benefits:**
+-  **Single unified interface** - one demo for planning, benchmarking, and visualization
+-  **Standard OMPL log format** - fully compatible with existing OMPL tools
+-  **Planner Arena integration** - upload results for web visualization  
+-  **Database generation** - use standard `ompl_benchmark_statistics.py`
+-  **SIMD performance** - leverages VAMP's vectorized collision detection
+-  **Progressive enhancement** - start with single runs, scale to benchmarks
 
 ## Pointcloud Support
 The demo supports pointcloud obstacles alongside primitive shapes:

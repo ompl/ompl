@@ -1,6 +1,6 @@
 /**
  * @file VampOMPLDemo.h
- * @brief Clean VAMP-OMPL integration interface for vectorized motion planning
+ * @brief VAMP-OMPL integration interface for vectorized motion planning
  * 
  * This file provides a streamlined demonstration of VAMP-OMPL integration,
  * showcasing vectorized motion planning with SIMD acceleration through the

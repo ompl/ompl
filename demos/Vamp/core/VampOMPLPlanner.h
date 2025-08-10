@@ -270,14 +270,7 @@ public:
     void print_configuration() const {
         VampUtils::printPlannerConfiguration<Robot>(*robot_configuration_, *environment_factory_, is_initialized_);
     }
-    
-    // Legacy method names for backward compatibility
-    const RobotConfig<Robot>& getRobotConfiguration() const { return get_robot_configuration(); }
-    const EnvironmentFactory& getEnvironmentFactory() const { return get_environment_factory(); }
-    const OMPLPlanningContext<Robot>& getPlanningContext() const { return get_planning_context(); }
-    bool isInitialized() const { return is_initialized(); }
-    std::shared_ptr<ompl::base::SpaceInformation> getSpaceInformation() const { return get_space_information(); }
-    void printConfiguration() const { print_configuration(); }
+
 };
 
 /**
@@ -297,15 +290,6 @@ auto create_vamp_ompl_planner(std::unique_ptr<RobotConfig<Robot>> robot_configur
     
     return std::make_unique<VampOMPLPlanner<Robot>>(
         std::move(robot_configuration), std::move(environment_factory));
-}
-
-// Legacy function name for backward compatibility
-template<typename Robot>
-std::unique_ptr<VampOMPLPlanner<Robot>> createVampOMPLPlanner(
-    std::unique_ptr<RobotConfig<Robot>> robot_configuration,
-    std::unique_ptr<EnvironmentFactory> environment_factory) {
-    
-    return create_vamp_ompl_planner<Robot>(std::move(robot_configuration), std::move(environment_factory));
 }
 
 } // namespace vamp_ompl

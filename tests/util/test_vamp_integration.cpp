@@ -14,8 +14,8 @@
 #include <ompl/base/ScopedState.h>
 
 // VAMP-OMPL integration headers
-#include "../../demos/Vamp/VampValidators.h"
-#include "../../demos/Vamp/VampOMPLInterfaces.h"
+#include "../../demos/Vamp/core/VampValidators.h"
+#include "../../demos/Vamp/core/VampOMPLInterfaces.h"
 
 namespace ob = ompl::base;
 

@@ -4,8 +4,8 @@
 #include "VampValidators.h"
 #include "OMPLPlanningContext.h"
 #include "VampOMPLPlanner.h"
+#include "VampBenchmarkManager.h"
 
-// Benchmarking functionality will be available when benchmarking headers are included
 #include <functional>
 #include <unordered_map>
 #include <memory>
@@ -14,6 +14,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <filesystem>
 
 // VAMP robot includes for built-in robots
 #include <vamp/robots/panda.hh>
@@ -125,49 +126,6 @@ RobotMetadata getRobotMetadata() {
     };
 }
 
-// Specializations for built-in robots
-template<>
-inline RobotMetadata getRobotMetadata<vamp::robots::Panda>() {
-    return RobotMetadata{
-        .name = "panda",
-        .description = "Franka Emika Panda 7-DOF manipulator",
-        .dimension = 7,
-        .n_spheres = vamp::robots::Panda::n_spheres,
-        .radii_range = {0.01f, 1.19f},
-        .joint_names = {"panda_joint1", "panda_joint2", "panda_joint3", 
-                       "panda_joint4", "panda_joint5", "panda_joint6", "panda_joint7"},
-        .end_effector_frame = "panda_hand"
-    };
-}
-
-template<>
-inline RobotMetadata getRobotMetadata<vamp::robots::UR5>() {
-    return RobotMetadata{
-        .name = "ur5",
-        .description = "Universal Robots UR5 6-DOF manipulator",
-        .dimension = 6,
-        .n_spheres = vamp::robots::UR5::n_spheres,
-        .radii_range = {0.01f, 1.2f},
-        .joint_names = {"shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint",
-                       "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"},
-        .end_effector_frame = "tool0"
-    };
-}
-
-template<>
-inline RobotMetadata getRobotMetadata<vamp::robots::Fetch>() {
-    return RobotMetadata{
-        .name = "fetch",
-        .description = "Fetch Mobile Manipulator 8-DOF arm",
-        .dimension = 8,
-        .n_spheres = vamp::robots::Fetch::n_spheres,
-        .radii_range = {0.01f, 1.5f},
-        .joint_names = {"shoulder_pan_joint", "shoulder_lift_joint", "upperarm_roll_joint", "elbow_flex_joint",
-                       "forearm_roll_joint", "wrist_flex_joint", "wrist_roll_joint", "gripper_axis"},
-        .end_effector_frame = "gripper_link"
-    };
-}
-
 // Note: Custom robot specializations should be defined in their respective 
 // headers after including this registry header, not here.
 
@@ -198,13 +156,13 @@ public:
         auto config_shared = std::any_cast<std::shared_ptr<RobotConfiguration<Robot>>>(robot_config);
         
         // Create a new RobotConfiguration for the planner (copy the configuration data)
-        auto start_array = config_shared->getStartConfigurationArray();
-        auto goal_array = config_shared->getGoalConfigurationArray();
+        auto start_array = config_shared->get_start_configuration_array();
+        auto goal_array = config_shared->get_goal_configuration_array();
         std::vector<float> start_vec(start_array.begin(), start_array.end());
         std::vector<float> goal_vec(goal_array.begin(), goal_array.end());
         
         auto config_unique = std::make_unique<RobotConfiguration<Robot>>(
-            config_shared->getRobotName(),
+            config_shared->get_robot_name(),
             start_vec,
             goal_vec
         );
@@ -244,26 +202,70 @@ public:
         return limits;
     }
     
-        std::any createBenchmarkManager(
-        const std::vector<float>& /* start_config */,
-        const std::vector<float>& /* goal_config */,
-        std::unique_ptr<EnvironmentFactory> /* env_factory */) const override {
+    std::any createBenchmarkManager(
+    const std::vector<float>& start_config,
+    const std::vector<float>& goal_config,
+    std::unique_ptr<EnvironmentFactory> env_factory) const override {
 
-        // This will be implemented when benchmarking headers are included
-        // For now, throw an error to indicate benchmarking headers are needed
-        throw VampConfigurationError("Benchmarking functionality requires including benchmarking/VampBenchmarking.h");
+    // Validate configuration sizes
+    if (!validateConfigurationSize(start_config)) {
+        throw VampConfigurationError("Invalid start configuration size for robot");
+    }
+    if (!validateConfigurationSize(goal_config)) {
+        throw VampConfigurationError("Invalid goal configuration size for robot");
+    }
+
+    // Create robot configuration (RobotConfiguration inherits from RobotConfig)
+    auto robot_config = std::make_unique<RobotConfiguration<Robot>>(
+        getMetadata().name, start_config, goal_config);
+
+    // Create and return benchmark manager
+    return std::make_shared<benchmarking::VampBenchmarkManager<Robot>>(
+        std::move(robot_config), std::move(env_factory));
     }
 
     std::map<std::string, std::string> executeBenchmark(
-        std::any& /* benchmark_manager */,
-        const std::string& /* experiment_name */,
-        const std::vector<std::string>& /* planner_names */,
-        unsigned int /* runs */,
-        double /* timeout */) const override {
+        std::any& benchmark_manager,
+        const std::string& experiment_name,
+        const std::vector<std::string>& planner_names,
+        unsigned int runs,
+        double timeout) const override {
 
-        // This will be implemented when benchmarking headers are included
-        // For now, throw an error to indicate benchmarking headers are needed
-        throw VampConfigurationError("Benchmarking functionality requires including benchmarking/VampBenchmarking.h");
+        // Extract the typed benchmark manager from std::any
+        auto typed_manager = std::any_cast<std::shared_ptr<benchmarking::VampBenchmarkManager<Robot>>>(benchmark_manager);
+
+        // Initialize if not already initialized
+        if (!typed_manager->is_initialized()) {
+            typed_manager->initialize();
+        }
+
+        // Create benchmark configuration
+        benchmarking::BenchmarkConfiguration config;
+        config.experiment_name = experiment_name;
+        config.planner_names = planner_names;
+        config.runs = runs;
+        config.timeout = timeout;
+        config.memory_limit = 4096.0;
+        config.simplify_paths = true;
+        config.display_progress = true;
+        config.auto_generate_filename = true;
+
+        // Execute benchmark and get log file path
+        std::string log_file_path = typed_manager->executeBenchmark(config);
+
+        // Return results as map for type erasure
+        std::map<std::string, std::string> results;
+        results["log_file"] = log_file_path;
+        results["experiment_name"] = experiment_name;
+        results["robot_name"] = getMetadata().name;
+        results["status"] = "completed";
+        
+        // Check if file exists and add file size
+        if (std::filesystem::exists(log_file_path)) {
+            results["file_size"] = std::to_string(std::filesystem::file_size(log_file_path));
+        }
+
+        return results;
     }
 };
 

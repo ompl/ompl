@@ -57,12 +57,7 @@ public:
      * @return Human-readable robot name
      */
     virtual auto get_robot_name() const -> std::string = 0;
-    
-    // Legacy method names for backward compatibility
-    std::vector<std::pair<double, double>> getJointLimits() const { return get_joint_limits(); }
-    std::array<float, dimension_> getStartConfigurationArray() const { return get_start_configuration_array(); }
-    std::array<float, dimension_> getGoalConfigurationArray() const { return get_goal_configuration_array(); }
-    std::string getRobotName() const { return get_robot_name(); }
+
 };
 
 /**
@@ -92,11 +87,6 @@ public:
      * @return Description of what this environment contains
      */
     virtual auto get_description() const -> std::string = 0;
-    
-    // Legacy method names for backward compatibility
-    vamp::collision::Environment<float> createEnvironment() { return create_environment(); }
-    std::string getEnvironmentName() const { return get_environment_name(); }
-    std::string getDescription() const { return get_description(); }
 };
 
 /**
@@ -263,12 +253,6 @@ auto get_joint_limits_from_vamp() -> std::vector<std::pair<double, double>> {
     }
     
     return limits;
-}
-
-// Legacy function name for backward compatibility
-template<typename Robot>
-std::vector<std::pair<double, double>> getJointLimitsFromVamp() {
-    return get_joint_limits_from_vamp<Robot>();
 }
 
 /**

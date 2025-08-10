@@ -92,9 +92,12 @@ namespace conversion {
      * 
      * Each thread gets its own converter instance to avoid allocation overhead
      * while maintaining thread safety.
+     * 
+     * Note: inline keyword prevents multiple definition errors when header
+     * is included in multiple translation units.
      */
     template<typename Robot>
-    thread_local SafeConfigurationConverter<Robot> thread_local_converter;
+    inline thread_local SafeConfigurationConverter<Robot> thread_local_converter;
     
     /**
      * @brief Convert OMPL state to VAMP configuration with zero-copy optimization
@@ -183,7 +186,7 @@ public:
     }
 
     /**
-     * @brief Modern C++ style method name (calls the OMPL-required isValid)
+     * @brief OMPL-required C++ method name
      */
     auto is_valid(const ob::State* ompl_state) const -> bool {
         return isValid(ompl_state);

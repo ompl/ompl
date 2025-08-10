@@ -19,7 +19,7 @@ from visualizer_animation import TrajectoryAnimator, InteractiveControls
 
 
 class VampVisualizer:
-    """Main VAMP visualization coordinator - simplified and efficient"""
+    """Main VAMP visualization coordinator """
     
     def __init__(self, gui: bool = True, debug: bool = False):
         self.core = PyBulletCore(gui=gui, debug=debug)
@@ -39,7 +39,7 @@ class VampVisualizer:
             
             print(f" Loaded {len(waypoints)} waypoints for {robot_name}")
             if viz_config.urdf_path:
-                print("🔧 Using embedded visualization configuration")
+                print(" Using embedded visualization configuration")
             
             # Load robot
             self.core.load_robot(

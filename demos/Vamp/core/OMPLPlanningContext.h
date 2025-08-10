@@ -99,12 +99,6 @@ public:
         space_information_->setup();
     }
     
-    // Legacy method name for backward compatibility
-    void setupStateSpace(const RobotConfig<Robot>& robot_configuration, 
-                        const VectorizedEnvironment& vectorized_environment) {
-        setup_state_space(robot_configuration, vectorized_environment);
-    }
-    
     /**
      * @brief Set up the planning problem with start and goal configurations
      * @param start_configuration Start configuration as array
@@ -139,12 +133,6 @@ public:
         problem_definition_->setOptimizationObjective(path_length_objective);
     }
     
-    // Legacy method name for backward compatibility
-    void setProblem(const std::array<float, robot_dimension_>& start_configuration, 
-                   const std::array<float, robot_dimension_>& goal_configuration) {
-        set_problem(start_configuration, goal_configuration);
-    }
-    
     /**
      * @brief Plan using the specified configuration
      * @param planningConfiguration Planning configuration
@@ -152,7 +140,6 @@ public:
      * 
      * Note: This method demonstrates the Template Method pattern -
      * it defines a standard planning workflow that works with any OMPL planner.
-     * The high-resolution timing provides detailed performance metrics for analysis.
      */
     auto plan(const PlanningConfig& planning_configuration) -> PlanningResult {
         if (!problem_definition_) {
@@ -244,15 +231,6 @@ public:
     auto get_problem_definition() const -> std::shared_ptr<ob::ProblemDefinition> {
         return problem_definition_;
     }
-    
-    // Legacy method names for backward compatibility
-    std::shared_ptr<ob::SpaceInformation> getSpaceInformation() const {
-        return get_space_information();
-    }
-    
-    std::shared_ptr<ob::ProblemDefinition> getProblemDefinition() const {
-        return get_problem_definition();
-    }
 
 private:
     /**
@@ -285,8 +263,8 @@ private:
          */
         std::shared_ptr<ob::Planner> createPlanner(const std::string& plannerName, 
                                                    const ob::SpaceInformationPtr& spaceInformation) {
-            auto factoryIterator = m_plannerCreators.find(plannerName);
-            if (factoryIterator == m_plannerCreators.end()) {
+            auto factoryIterator = planner_creators_.find(plannerName);
+            if (factoryIterator == planner_creators_.end()) {
                 throw VampConfigurationError("Unknown planner: '" + plannerName + "'. Available: " + 
                                           getAvailablePlannerNames());
             }
@@ -299,7 +277,7 @@ private:
          * @param plannerAllocatorFn Factory function to create the planner
          */
         void register_planner(const std::string& planner_name, PlannerCreatorFunction plannerAllocatorFn) {
-            m_plannerCreators[planner_name] = std::move(plannerAllocatorFn);
+            planner_creators_[planner_name] = std::move(plannerAllocatorFn);
         }
         
         /**
@@ -308,7 +286,7 @@ private:
          */
         std::string getAvailablePlannerNames() const {
             std::string plannerNamesList;
-            for (const auto& plannerEntry : m_plannerCreators) {
+            for (const auto& plannerEntry : planner_creators_) {
                 if (!plannerNamesList.empty()) plannerNamesList += ", ";
                 plannerNamesList += plannerEntry.first;
             }
@@ -316,7 +294,7 @@ private:
         }
         
     private:
-        std::map<std::string, PlannerCreatorFunction> m_plannerCreators;
+        std::map<std::string, PlannerCreatorFunction> planner_creators_;
         
         /**
          * @brief Constructor registers default OMPL planners using lambda functions
@@ -343,13 +321,13 @@ private:
          */
         PlannerFactory() {
             // Register standard OMPL planners with descriptive names
-            m_plannerCreators["BIT*"] = [](const ob::SpaceInformationPtr& spaceInformation) {
+            planner_creators_["BIT*"] = [](const ob::SpaceInformationPtr& spaceInformation) {
                 return std::make_shared<og::BITstar>(spaceInformation);
             };
-            m_plannerCreators["RRT-Connect"] = [](const ob::SpaceInformationPtr& spaceInformation) {
+            planner_creators_["RRT-Connect"] = [](const ob::SpaceInformationPtr& spaceInformation) {
                 return std::make_shared<og::RRTConnect>(spaceInformation);
             };
-            m_plannerCreators["PRM"] = [](const ob::SpaceInformationPtr& spaceInformation) {
+            planner_creators_["PRM"] = [](const ob::SpaceInformationPtr& spaceInformation) {
                 return std::make_shared<og::PRM>(spaceInformation);
             };
             
@@ -396,12 +374,6 @@ private:
     auto create_planner_by_name(const std::string& planner_name) -> std::shared_ptr<ob::Planner> {
         return PlannerFactory::getInstance().createPlanner(planner_name, space_information_);
     }
-    
-    // Legacy method name for backward compatibility  
-    std::shared_ptr<ob::Planner> createPlannerByName(const std::string& planner_name) {
-        return create_planner_by_name(planner_name);
-    }
-    
 
 };
 
