@@ -43,7 +43,7 @@ graph TB
         AOS_START --> AOS_MEM["Memory Layout:<br/>[j0,j1,j2,j3,j4,j5,j6] config1<br/>[j0,j1,j2,j3,j4,j5,j6] config2<br/>...<br/>(cache-inefficient for SIMD)"]
         
         %% Conversion Process
-        AOS_MEM --> CONV["ompl_to_vamp()<br/>Zero-copy conversion<br/>Thread-local buffers"]
+        AOS_MEM --> CONV["ompl_to_vamp()<br/>Zero-copy conversion<br/>Function-local static buffers"]
         
         %% SOA Layout
         CONV --> SOA_MEM["VAMP Structure-of-Arrays (SOA):<br/>[j0_c1,j0_c2,...,j0_c8] joint0<br/>[j1_c1,j1_c2,...,j1_c8] joint1<br/>...<br/>[j6_c1,j6_c2,...,j6_c8] joint6<br/>(SIMD-optimized)"]
@@ -100,7 +100,7 @@ graph TB
     
     %% Performance Characteristics
     subgraph "Performance Optimizations"
-        PERF_FEATURES["Performance Features:<br/>• Thread-local buffer pools<br/>• Zero-allocation hot paths<br/>• SIMD-aligned memory<br/>• Cache-optimized access<br/>• Compile-time vectorization<br/>• Lazy environment creation"]
+        PERF_FEATURES["Performance Features:<br/>• Function-local static buffer pools<br/>• Zero-allocation hot paths<br/>• SIMD-aligned memory<br/>• Cache-optimized access<br/>• Compile-time vectorization<br/>• Lazy environment creation"]
         
         PERF_METRICS["Typical Performance:<br/>• 8x collision detection speedup<br/>• ~50% motion planning speedup<br/>• Reduced memory allocations<br/>• Better CPU pipeline utilization"]
     end

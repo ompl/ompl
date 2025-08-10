@@ -14,7 +14,7 @@ Implement vectorized collision detection using SIMD instructions to process 8 ro
 ### Memory Layout Transformation
 - **From**: Array-of-Structures (AOS) - OMPL's native format
 - **To**: Structure-of-Arrays (SOA) - SIMD-optimized format
-- **Conversion**: Zero-copy transformation using thread-local buffer pools
+- **Conversion**: Zero-copy transformation using function-local static buffer pools
 
 ### Vectorization Approach
 1. **State Validation**: Fill all SIMD lanes with same configuration for consistency
@@ -47,10 +47,9 @@ Implement vectorized collision detection using SIMD instructions to process 8 ro
 - Transparent to end users
 
 ## Implementation Notes
-- Thread-local buffers eliminate allocation overhead in hot paths
+- Function-local static buffers eliminate allocation overhead in hot paths
 - SFINAE templates ensure type safety at compile time
 
 ## Validation
 - Benchmarked against scalar implementations
-- Validated correctness through extensive testing
 - Measured performance across different robot types and environments

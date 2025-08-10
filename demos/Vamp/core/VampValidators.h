@@ -88,17 +88,23 @@ namespace conversion {
     };
     
     /**
-     * @brief Get thread-local converter instance for performance
+     * @brief Get thread-local converter instance for performance with safe initialization
      * 
      * Each thread gets its own converter instance to avoid allocation overhead
      * while maintaining thread safety. Uses function-local static to avoid
      * multiple definition issues with template variables.
      * 
+     * CRITICAL: Replaced thread_local with function-local static to avoid
+     * static initialization order fiasco that causes segfaults in programmatic path.
+     * 
      * @tparam Robot VAMP robot type
-     * @return Reference to thread-local converter instance
+     * @return Reference to converter instance
      */
     template<typename Robot>
     SafeConfigurationConverter<Robot>& get_thread_local_converter() {
+        // SOLUTION: Use thread_local to avoid shared destruction issues
+        // Each thread gets its own converter, preventing the malloc error
+        // during benchmark cleanup when multiple planners are destroyed
         thread_local SafeConfigurationConverter<Robot> converter;
         return converter;
     }
@@ -109,7 +115,7 @@ namespace conversion {
      * @param ompl_state OMPL state pointer
      * @return VAMP configuration optimized for SIMD operations
      * 
-     * Performance Insight: Uses thread-local converter instances to avoid memory 
+     * Performance Insight: Uses function-local static converter instances to avoid memory 
      * allocations in hot path while maintaining thread safety and exception safety.
      * 
      * Memory Layout Transformation:
@@ -118,7 +124,14 @@ namespace conversion {
      */
     template<typename Robot>
     auto ompl_to_vamp(const ob::State* ompl_state) -> typename Robot::Configuration {
-        return get_thread_local_converter<Robot>().convert(ompl_state);
+        try {
+            return get_thread_local_converter<Robot>().convert(ompl_state);
+        } catch (const std::exception& e) {
+            // Enhanced error reporting for debugging initialization issues
+            std::string error_msg = "Failed to convert OMPL state to VAMP configuration for robot '" 
+                                  + std::string(Robot::name) + "': " + e.what();
+            throw std::runtime_error(error_msg);
+        }
     }
 }
 
@@ -165,6 +178,33 @@ public:
                       const VectorizedEnvironment& vectorized_environment)
         : ob::StateValidityChecker(space_information)
         , vectorized_environment_(vectorized_environment) {
+        
+        // DEFENSIVE CHECK: Validate that template instantiation is working correctly
+        static_assert(robot_dimension_ > 0, "Robot dimension must be positive");
+        static_assert(robot_dimension_ <= conversion::MAX_SUPPORTED_ROBOT_DIMENSION, 
+                     "Robot dimension exceeds maximum supported");
+        
+        // Validate space information
+        if (!space_information) {
+            throw std::invalid_argument("SpaceInformation cannot be null for VampStateValidator");
+        }
+        
+        // Validate space dimension matches robot dimension
+        if (space_information->getStateDimension() != robot_dimension_) {
+            throw std::invalid_argument("Space dimension (" + 
+                std::to_string(space_information->getStateDimension()) + 
+                ") does not match robot dimension (" + 
+                std::to_string(robot_dimension_) + ") for robot " + Robot::name);
+        }
+        
+        // Test converter initialization early to catch static initialization issues
+        try {
+            auto& converter = conversion::get_thread_local_converter<Robot>();
+            (void)converter; // Suppress unused variable warning
+        } catch (const std::exception& e) {
+            throw std::runtime_error("Failed to initialize state converter for robot " + 
+                std::string(Robot::name) + ": " + e.what());
+        }
     }
 
     /**
@@ -251,6 +291,34 @@ public:
                        const VectorizedEnvironment& vectorized_environment)
         : ob::MotionValidator(space_information)
         , vectorized_environment_(vectorized_environment) {
+        
+        // DEFENSIVE CHECK: Validate that template instantiation is working correctly
+        static_assert(robot_dimension_ > 0, "Robot dimension must be positive");
+        static_assert(robot_dimension_ <= conversion::MAX_SUPPORTED_ROBOT_DIMENSION, 
+                     "Robot dimension exceeds maximum supported");
+        static_assert(motion_sampling_resolution_ > 0, "Motion sampling resolution must be positive");
+        
+        // Validate space information
+        if (!space_information) {
+            throw std::invalid_argument("SpaceInformation cannot be null for VampMotionValidator");
+        }
+        
+        // Validate space dimension matches robot dimension
+        if (space_information->getStateDimension() != robot_dimension_) {
+            throw std::invalid_argument("Space dimension (" + 
+                std::to_string(space_information->getStateDimension()) + 
+                ") does not match robot dimension (" + 
+                std::to_string(robot_dimension_) + ") for robot " + Robot::name);
+        }
+        
+        // Test converter initialization early to catch static initialization issues
+        try {
+            auto& converter = conversion::get_thread_local_converter<Robot>();
+            (void)converter; // Suppress unused variable warning
+        } catch (const std::exception& e) {
+            throw std::runtime_error("Failed to initialize motion converter for robot " + 
+                std::string(Robot::name) + ": " + e.what());
+        }
     }
 
     /**

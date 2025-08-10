@@ -1,5 +1,8 @@
-# VAMP Benchmark Configuration for Panda 7-DOF Robot
-# This file demonstrates OMPL-compliant benchmarking with multiple planners
+# VAMP COMPREHENSIVE PLANNER BENCHMARK CONFIGURATION
+# ==================================================
+# Complete benchmark configuration for all 41 supported OMPL planners
+# Each planner includes its full parameter set with default values
+# Based on comprehensive OMPL source code verification
 
 robot:
   name: "panda"
@@ -15,45 +18,403 @@ obstacles:
     name: "obstacle_1" 
     position: [0.5, 0.0, 0.5]
     radius: 0.15
-
   - type: "sphere"
     name: "obstacle_2"
     position: [-0.3, 0.4, 0.3] 
     radius: 0.12
-
   - type: "sphere"
     name: "obstacle_3"
     position: [0.2, -0.5, 0.7]
     radius: 0.1
 
-# Planner configuration
+# Default planner configuration
 planner:
-  name: "RRT-Connect"  # Default planner
-  planning_time: 5.0
+  name: "RRT-Connect"  # Default planner for quick testing
+  planning_time: 1.0
   simplification_time: 1.0
 
-# Benchmark configuration 
+# COMPREHENSIVE BENCHMARK CONFIGURATION
+# ====================================
 benchmark:
-  experiment_name: "VAMP Panda 7-DOF Planner Comparison"
-  runs: 50                    # Number of runs per planner
-  timeout: 5.0               # Planning timeout per run (seconds)
-  memory_limit: 4096.0       # Memory limit in MB
-  simplify_paths: true       # Enable path simplification
-  display_progress: true     # Show progress during benchmarking
+  experiment_name: "VAMP Complete OMPL Planner Comparison - All 41 Planners"
+  runs: 1                    # Number of runs per planner
+  timeout: 5.0                # Planning timeout per run (seconds)
+  memory_limit: 10000         # Memory limit in MB
+  simplify_paths: true        # Enable path simplification
+  display_progress: true      # Show progress during benchmarking
   auto_generate_filename: true
 
-  # Planners to compare
+  # ALL 41 AVAILABLE PLANNERS WITH COMPLETE PARAMETER SETS
+  # =======================================================
   planners:
+    # ========================================
+    # RRT FAMILY (13 planners) - Tree-based sampling planners
+    # ========================================
+    
+    - name: "RRT"
+      parameters:
+        range: "0.3"                    # Maximum step size for tree extension
+        goal_bias: "0.05"               # Probability of selecting goal state  
+        intermediate_states: "1"        # Compute intermediate states during motion
+
     - name: "RRT-Connect"
-    - name: "BIT*" 
+      parameters:
+        range: "0.3"                    # Maximum step size for tree extension
+
+    - name: "RRT*"  # Asymptotically optimal
+      parameters:
+        range: "0.3"                         # Maximum step size for tree extension
+        goal_bias: "0.05"                    # Probability of selecting goal state
+        rewire_factor: "1.1"                 # Multiplicative factor for rewiring radius
+        use_k_nearest: "1"                  # Use k-nearest instead of radius
+        delay_collision_checking: "1"        # Delay collision checking for better performance
+        tree_pruning: "0"                   # Enable tree pruning
+        prune_threshold: "0.05"              # Threshold for pruning
+        pruned_measure: "0"                  # Use pruned measure
+        informed_sampling: "1"               # Use informed sampling
+        sample_rejection: "0"                # Use sample rejection
+        new_state_rejection: "0"             # Use new state rejection
+        use_admissible_heuristic: "0"        # Use admissible heuristic
+        ordered_sampling: "0"                # Use ordered sampling
+        ordering_batch_size: "100"           # Batch size for ordering
+        focus_search: "1"                    # Focus search using heuristic
+        number_sampling_attempts: "100"      # Number of sampling attempts
+
+    - name: "RRTXstatic"  # Advanced RRT* variant
+      parameters:
+        range: "0.3"                         # Maximum step size
+        goal_bias: "0.05"                    # Goal bias
+        rewire_factor: "1.1"                 # Rewiring factor
+        use_k_nearest: "1"                  # Use k-nearest instead of radius
+        update_children: "1"                 # Force cost propagation to children
+        rejection_variant: "0"               # Rejection sampling variant (0-3)
+        rejection_variant_alpha: "0.0"       # Rejection sampling alpha
+        informed_sampling: "1"               # Use informed sampling
+        sample_rejection: "1"                # Use sample rejection
+        number_sampling_attempts: "100"      # Number of sampling attempts
+
+    - name: "RRTsharp"  # RRTXstatic with epsilon=0
+      parameters:
+        range: "0.3"                         # Maximum step size
+        goal_bias: "0.05"                    # Goal bias
+        rewire_factor: "1.1"                 # Rewiring factor
+        use_k_nearest: "1"                  # Use k-nearest instead of radius
+        update_children: "1"                 # Force cost propagation to children
+        rejection_variant: "0"               # Rejection sampling variant (0-3)
+        rejection_variant_alpha: "0.0"       # Rejection sampling alpha
+        informed_sampling: "1"               # Use informed sampling
+        sample_rejection: "1"                # Use sample rejection
+        number_sampling_attempts: "100"      # Number of sampling attempts
+
+    - name: "SORRTstar"  # Sorted Optimal RRT*
+      parameters:
+        range: "0.3"                         # Maximum step size
+        goal_bias: "0.05"                    # Goal bias
+        rewire_factor: "1.1"                 # Rewiring factor
+        use_k_nearest: "1"                  # Use k-nearest instead of radius
+        delay_collision_checking: "0"        # Delay collision checking
+        tree_pruning: "0"                   # Enable tree pruning
+        prune_threshold: "0.05"              # Pruning threshold
+        pruned_measure: "0"                  # Use pruned measure
+        informed_sampling: "1"               # Use informed sampling
+        sample_rejection: "1"                # Use sample rejection
+        new_state_rejection: "0"             # Use new state rejection
+        use_admissible_heuristic: "0"        # Use admissible heuristic
+        ordering_batch_size: "100"           # Batch size for ordering
+        focus_search: "0"                    # Focus search
+        number_sampling_attempts: "100"      # Number of sampling attempts
+
+    - name: "TRRT"  # Transition-based RRT with temperature
+      parameters:
+        range: "0.3"                    # Maximum step size for tree extension
+        goal_bias: "0.05"               # Probability of selecting goal state
+        temp_change_factor: "0.1"       # Temperature change factor
+        init_temperature: "100"         # Initial temperature
+        frontier_threshold: "0.0"       # Frontier threshold
+        frontier_node_ratio: "0.1"      # Frontier node ratio
+        cost_threshold: "1e300"         # Cost threshold for transition test
+
+    - name: "BiTRRT"  # Bidirectional TRRT
+      parameters:
+        range: "0.3"                    # Maximum step size for tree extension
+
+    - name: "LBTRRT"  # Lower Bound Tree RRT
+      parameters:
+        range: "0.3"                    # Maximum step size for tree extension
+
+    - name: "LazyRRT"  # Lazy collision checking RRT
+      parameters:
+        range: "0.3"                    # Maximum step size
+        goal_bias: "0.05"               # Goal bias
+
+    - name: "InformedRRTstar"  # Optimal with informed sampling
+      parameters:
+        range: "0.3"                         # Maximum step size for tree extension
+        goal_bias: "0.05"                    # Probability of selecting goal state
+        rewire_factor: "1.1"                 # Multiplicative factor for rewiring radius
+        use_k_nearest: "1"                  # Use k-nearest instead of radius
+        delay_collision_checking: "1"        # Delay collision checking for better performance
+        prune_threshold: "0.05"              # Threshold for pruning
+        number_sampling_attempts: "100"      # Number of sampling attempts
+
+    - name: "pRRT"  # Parallel RRT
+      parameters:
+        range: "0.3"                    # Maximum step size
+        goal_bias: "0.05"               # Goal bias
+        thread_count: "2"               # Number of threads
+
+    - name: "LazyLBTRRT"  # Lazy Lower Bound Tree RRT
+      parameters:
+        range: "0.3"                    # Maximum step size
+        goal_bias: "0.05"               # Goal bias
+        epsilon: "0.1"                  # Approximation factor
+
+    # ========================================
+    # PRM FAMILY (6 planners) - Roadmap-based planners
+    # ========================================
+    
     - name: "PRM"
-    - name: "RRT*"
+      parameters:
+        max_nearest_neighbors: "10"     # Maximum nearest neighbors
+
+    - name: "PRMstar"  # Asymptotically optimal PRM
+      parameters: {}  # Uses automatic optimal connection radius
+
+    - name: "LazyPRM"
+      parameters:
+        range: "0.3"                    # Connection range
+        max_nearest_neighbors: "10"     # Maximum nearest neighbors
+
+    - name: "LazyPRMstar"  # Asymptotically optimal lazy PRM
+      parameters: {}  # Uses automatic optimal connection radius
+
+    - name: "SPARS"  # Sparse Roadmap Spanner
+      parameters:
+        stretch_factor: "3.0"           # Stretch factor for spanner
+        sparse_delta_fraction: "0.25"   # Sparse delta fraction
+        dense_delta_fraction: "0.001"   # Dense delta fraction
+        max_failures: "1000"            # Maximum failures
+
+    - name: "SPARStwo"  # Improved SPARS
+      parameters:
+        stretch_factor: "3.0"           # Stretch factor for spanner
+        sparse_delta_fraction: "0.25"   # Sparse delta fraction
+        dense_delta_fraction: "0.001"   # Dense delta fraction
+        max_failures: "1000"            # Maximum failures
+
+    # ========================================
+    # INFORMED TREES FAMILY (5 planners) - Optimal sampling planners
+    # ========================================
+    
+    - name: "BIT*"  # Batch Informed Trees
+      parameters:
+        rewire_factor: "1.1"                              # Multiplicative factor for rewiring radius
+        samples_per_batch: "100"                          # Number of samples per batch
+        use_k_nearest: "0"                               # Use k-nearest instead of radius
+        use_graph_pruning: "1"                           # Enable graph pruning
+        prune_threshold_as_fractional_cost_change: "0.05" # Prune threshold as fractional cost change
+        delay_rewiring_to_first_solution: "0"             # Delay rewiring until first solution
+        use_just_in_time_sampling: "0"                   # Use just-in-time sampling
+        drop_unconnected_samples_on_prune: "0"            # Drop unconnected samples on prune
+        stop_on_each_solution_improvement: "0"             # Stop on each solution improvement
+        use_strict_queue_ordering: "1"                   # Use strict queue ordering
+        find_approximate_solutions: "0"                   # Find approximate solutions
+
+    - name: "ABITstar"  # Advanced BIT*
+      parameters:
+        rewire_factor: "1.1"                              # Multiplicative factor for rewiring radius
+        samples_per_batch: "100"                          # Number of samples per batch
+        use_k_nearest: "0"                               # Use k-nearest instead of radius
+        use_graph_pruning: "1"                           # Enable graph pruning
+        prune_threshold_as_fractional_cost_change: "0.05" # Prune threshold as fractional cost change
+        delay_rewiring_to_first_solution: "0"             # Delay rewiring until first solution
+        use_just_in_time_sampling: "0"                   # Use just-in-time sampling
+        drop_unconnected_samples_on_prune: "0"            # Drop unconnected samples on prune
+        stop_on_each_solution_improvement: "0"             # Stop on each solution improvement
+        use_strict_queue_ordering: "1"                   # Use strict queue ordering
+        find_approximate_solutions: "0"                   # Find approximate solutions
+
+    - name: "AIT*"  # Adaptively Informed Trees
+      parameters:
+        use_k_nearest: "1"              # Use k-nearest instead of radius
+        rewire_factor: "1.1"            # Rewiring factor
+        samples_per_batch: "100"        # Samples per batch
+        use_graph_pruning: "1"          # Enable graph pruning
+        find_approximate_solutions: "1" # Find approximate solutions
+        set_max_num_goals: "1"          # Maximum number of goals
+
+    - name: "EIT*"  # Effort Informed Trees
+      parameters:
+        use_k_nearest: "1"              # Use k-nearest instead of radius
+        rewire_factor: "1.1"            # Rewiring factor
+        batch_size: "100"               # Batch size
+        use_graph_pruning: "1"          # Enable graph pruning
+        find_approximate_solutions: "1" # Find approximate solutions
+        set_max_num_goals: "1"          # Maximum number of goals
+
+    - name: "EIRMstar"  # Effort Informed Roadmaps
+      parameters:
+        use_k_nearest: "1"              # Use k-nearest instead of radius
+        rewire_factor: "1.1"            # Rewiring factor
+        batch_size: "100"               # Batch size
+        use_graph_pruning: "1"          # Enable graph pruning
+        find_approximate_solutions: "1" # Find approximate solutions
+        set_max_num_goals: "1"          # Maximum number of goals
+        set_start_goal_pruning: "1"     # Start/goal pruning threshold
+
+    # ========================================
+    # KPIECE FAMILY (3 planners) - Projection-based decomposition
+    # ========================================
+    
+    - name: "KPIECE"
+      parameters:
+        range: "0.3"                           # Maximum step size for tree extension
+        goal_bias: "0.05"                      # Probability of selecting goal state
+        border_fraction: "0.9"                 # Fraction of time focused on border
+        failed_expansion_score_factor: "0.5"   # Factor for failed expansion score
+        min_valid_path_fraction: "0.2"         # Minimum valid path fraction
+
+    - name: "BKPIECE"  # Bidirectional KPIECE
+      parameters:
+        range: "0.3"                           # Maximum step size for tree extension
+        border_fraction: "0.9"                 # Fraction of time focused on border
+        failed_expansion_score_factor: "0.5"   # Factor for failed expansion score
+        min_valid_path_fraction: "0.2"         # Minimum valid path fraction
+
+    - name: "LBKPIECE"  # Lazy bidirectional KPIECE
+      parameters:
+        range: "0.3"                    # Maximum step size for tree extension
+        border_fraction: "0.9"          # Fraction of time focused on border
+        min_valid_path_fraction: "0.2"  # Minimum valid path fraction
+
+    # ========================================
+    # EST FAMILY (3 planners) - Expansive Space Trees
+    # ========================================
+    
+    - name: "EST"
+      parameters:
+        range: "0.3"                    # Maximum step size for tree extension
+        goal_bias: "0.05"               # Probability of selecting goal state
+
+    - name: "BiEST"  # Bidirectional EST
+      parameters:
+        range: "0.3"                    # Maximum step size for tree extension
+
+    - name: "ProjEST"  # Projection-based EST
+      parameters:
+        range: "0.3"                    # Maximum step size for tree extension
+        goal_bias: "0.05"               # Probability of selecting goal state
+
+    # ========================================
+    # SBL FAMILY (2 planners) - Single-query Bidirectional Lazy
+    # ========================================
+    
+    - name: "SBL"
+      parameters:
+        range: "0.3"                    # Maximum step size for tree extension
+
+    - name: "pSBL"  # Parallel SBL
+      parameters:
+        range: "0.3"                    # Maximum step size for tree extension
+
+    # ========================================
+    # FMT FAMILY (2 planners) - Fast Marching Tree (optimal)
+    # ========================================
+    
+    - name: "FMT"  # Asymptotically optimal
+      parameters:
+        num_samples: "1000"             # Number of samples
+        radius_multiplier: "1.1"        # Radius multiplier
+        use_k_nearest: "1"              # Use k-nearest instead of radius
+        cache_cc: "1"                   # Cache collision checks
+        heuristics: "0"                 # Use heuristics
+        extended_fmt: "1"               # Use extended FMT
+
+    - name: "BFMT"  # Bidirectional FMT
+      parameters:
+        num_samples: "1000"             # Number of samples
+        radius_multiplier: "1.1"        # Radius multiplier
+        nearest_k: "1"                  # Use k-nearest connections
+        cache_cc: "1"                   # Cache collision checks
+        heuristics: "0"                 # Use heuristics
+        extended_fmt: "1"               # Use extended FMT
+
+    # ========================================
+    # RLRT FAMILY (2 planners) - Range-Limited Random Trees
+    # ========================================
+    
+    - name: "RLRT"  # Range-Limited Random Tree
+      parameters:
+        goal_bias: "0.05"               # Goal bias
+        range: "0.3"                    # Maximum step size
+        keep_last_valid: "0"            # Keep last valid state
+
+    - name: "BiRLRT"  # Bidirectional RLRT
+      parameters:
+        range: "0.3"                    # Maximum step size
+        max_dist_near: "0.1"            # Maximum distance for near states
+        keep_last_valid: "0"            # Keep last valid state
+
+    # ========================================
+    # META-PLANNERS (2 planners) - Multi-threaded planners
+    # ========================================
+    
+    # - name: "CForest"  # Concurrent Forest of planners
+    #   parameters:
+    #     focus_search: "1"               # Enable focused search
+    #     num_threads: "0"                # Number of threads (0 = auto-detect)
+
+    # - name: "AnytimePathShortening"  # Anytime path improvement
+    #   parameters:
+    #     shortcut: "1"                   # Enable shortcutting
+    #     hybridize: "1"                  # Enable hybridization
+    #     max_hybrid_paths: "24"          # Max hybridization paths
+    #     num_planners: "0"               # Number of planners (0 = auto-detect)
+    #     planners: ""                    # Planner list (empty = default)
+
+    # ========================================
+    # INDIVIDUAL PLANNERS (3 planners) - Specialized algorithms
+    # ========================================
+    
+    - name: "SST"  # Stable Sparse RRT
+      parameters:
+        range: "0.3"                    # Maximum step size
+        goal_bias: "0.05"               # Probability of sampling goal state
+        selection_radius: "0.2"         # Radius for selecting nodes to extend
+        pruning_radius: "0.1"           # Radius for pruning dominated nodes
+
+    - name: "STRIDE"  # Search Tree with Resolution Independent Density Estimation
+      parameters:
+        range: "0.3"                    # Maximum step size
+        goal_bias: "0.05"               # Goal bias
+        use_projected_distance: "0"     # Use projected distance
+        degree: "16"                    # GNAT degree
+        max_degree: "18"                # GNAT max degree
+        min_degree: "12"                # GNAT min degree
+        max_pts_per_leaf: "6"           # Max points per leaf
+        estimated_dimension: "0.0"      # Estimated dimension
+        min_valid_path_fraction: "0.05" # Min valid path fraction
+
+    - name: "PDST"  # Path-Directed Subdivision Tree
+      parameters:
+        goal_bias: "0.05"               # Goal bias
+
+    # ========================================
+    # ADVANCED MANIPULATION PLANNERS (2 planners) - High-dimensional & Task-space
+    # NOTE: Temporarily disabled - requires proper implementation
+    # ========================================
+    
+    - name: "XXL"  # eXtended eXtended Lattice - High-dimensional manipulation
+      parameters:
+        rand_walk_rate: "0.05"          # Random walk rate for exploration (0.0-1.0)
+        
+    - name: "TSRRT"  # Task-Space RRT - End-effector control
+      parameters:
+        range: "0.1"                    # Maximum distance between consecutive states
+        goal_bias: "0.05"               # Probability of selecting goal state
 
 # Output configuration
 output:
   write_path: true
-  
-# Notes:
-# 1. This generates OMPL-standard .log files compatible with ompl_benchmark_statistics.py
-# 2. Run: ompl_benchmark_statistics.py <logfile> -d benchmark.db to create database
-# 3. Upload benchmark.db to http://plannerarena.org for visualization
+  path_file: "benchmark_results"
+  database_file: "benchmark_database.db"

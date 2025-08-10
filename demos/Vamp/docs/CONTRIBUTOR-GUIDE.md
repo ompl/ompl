@@ -1,7 +1,15 @@
 # VAMP Contributor Guide
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 ## Overview
 This guide helps new contributors understand the VAMP architecture, design principles, and extension patterns. VAMP integrates high-performance SIMD collision detection with OMPL's motion planning algorithms while maintaining clean architectural separation.
+
+## License and Contributions
+
+By contributing to this project, you agree that your contributions will be licensed under the [Apache License 2.0](../LICENSE). All source files should include the appropriate Apache 2.0 license header.
+
+This VAMP-OMPL integration package was developed by Sahruday Patti at Rice University. The underlying VAMP system was developed by Wil Thomason, Zachary Kingston, and Lydia E. Kavraki, as described in their paper "Motions in Microseconds via Vectorized Sampling-Based Planning" (arXiv:2309.14545).
 
 ## Architecture Principles
 
@@ -10,7 +18,7 @@ This guide helps new contributors understand the VAMP architecture, design princ
 #### 1. Performance Through Vectorization
 - **SIMD-first design**: All collision detection optimized for parallel processing
 - **Memory layout optimization**: Structure-of-Arrays (SOA) for cache efficiency  
-- **Zero-allocation hot paths**: Thread-local buffers eliminate memory allocations
+- **Zero-allocation hot paths**: Function-local static buffers eliminate memory allocations
 - **Compile-time optimization**: Template specialization for robot-specific code
 
 #### 2. Clean Separation of Concerns
@@ -288,8 +296,8 @@ static constexpr std::size_t bufferSize = Robot::dimension * simdWidth;
 // Prefer stack allocation for small objects
 std::array<float, dimension> buffer;  // vs std::vector<float>
 
-// Use thread_local for per-thread resources
-thread_local std::array<float, maxDimension> conversionBuffer;
+// Use function-local static for per-instantiation resources
+static std::array<float, maxDimension> conversionBuffer;
 ```
 
 ## Performance Optimization Guidelines
@@ -301,7 +309,7 @@ thread_local std::array<float, maxDimension> conversionBuffer;
 - **Instruction selection**: Use appropriate SIMD intrinsics when needed
 
 ### Memory Optimization
-- **Buffer reuse**: Use thread-local buffers to avoid allocations
+- **Buffer reuse**: Use function-local static buffers to avoid allocations
 - **Memory layout**: Prefer SOA over AOS for vectorized operations
 - **Cache optimization**: Consider data locality in algorithm design
 - **Lazy initialization**: Defer expensive operations until needed

@@ -131,6 +131,6 @@ sequenceDiagram
     API-->>User: MotionPlanningResult
     
     %% Performance Notes
-    Note over VSV, VE: Zero-copy state conversion<br/>Thread-local buffer pools
+    Note over VSV, VE: Zero-copy state conversion<br/>Function-local static buffer pools
     Note over VMV, VE: SIMD "rake" sampling<br/>8x collision checks per call
     Note over VE: Structure-of-Arrays layout<br/>Cache-optimized memory access

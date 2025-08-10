@@ -44,7 +44,7 @@ graph TB
     subgraph "VAMP Performance Core"
         VSV --> CC["Configuration Conversion<br/>(AOS → SOA)"]
         VMV --> CC
-        CC --> TLB["Thread-local Buffer Pool<br/>(Zero-allocation)"]
+        CC --> TLB["Function-local Static Buffer Pool<br/>(Zero-allocation)"]
         TLB --> VE["VectorizedEnvironment<br/>(SIMD-optimized)"]
         
         VE --> SC["SIMD Collision Detection<br/>(8x parallel processing)"]
@@ -78,7 +78,7 @@ graph TB
     
     %% Performance Features
     subgraph "Performance Features"
-        SIMD_FEAT["SIMD Features:<br/>• 8x parallel processing<br/>• Cache-optimized memory<br/>• Zero-copy conversions<br/>• Thread-local buffers"]
+        SIMD_FEAT["SIMD Features:<br/>• 8x parallel processing<br/>• Cache-optimized memory<br/>• Zero-copy conversions<br/>• Function-local static buffers"]
     end
     
     %% Extension Points

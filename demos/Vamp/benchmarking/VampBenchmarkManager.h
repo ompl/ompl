@@ -3,13 +3,9 @@
 #include "VampOMPLPlanner.h"
 #include "VampUtils.h"
 #include "VampRobotRegistry.h"
+#include "VampPlannerRegistry.h"
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/geometric/SimpleSetup.h>
-#include <ompl/geometric/planners/informedtrees/BITstar.h>
-#include <ompl/geometric/planners/rrt/RRTConnect.h>
-#include <ompl/geometric/planners/rrt/RRTstar.h>
-#include <ompl/geometric/planners/rrt/RRT.h>
-#include <ompl/geometric/planners/prm/PRM.h>
 #include <memory>
 #include <vector>
 #include <string>
@@ -209,7 +205,7 @@ public:
 
 private:
     /**
-     * @brief Add planners to OMPL benchmark
+     * @brief Add planners to OMPL benchmark using comprehensive planner registry
      */
     void addPlannersToOMPLBenchmark(ompl::tools::Benchmark& benchmark,
                                    const BenchmarkConfiguration& config,
@@ -217,25 +213,11 @@ private:
         
         for (const auto& plannerName : config.planner_names) {
             try {
-                std::shared_ptr<ompl::base::Planner> planner;
+                // Use the unified planner registry with enhanced optimization
+                std::shared_ptr<ompl::base::Planner> planner = 
+                    vamp_ompl::createPlannerByName(plannerName, spaceInfo);
                 
-                // Create planners
-                if (plannerName == "RRT-Connect") {
-                    planner = std::make_shared<ompl::geometric::RRTConnect>(spaceInfo);
-                } else if (plannerName == "PRM") {
-                    planner = std::make_shared<ompl::geometric::PRM>(spaceInfo);
-                } else if (plannerName == "BIT*") {
-                    planner = std::make_shared<ompl::geometric::BITstar>(spaceInfo);
-                } else if (plannerName == "RRT*") {
-                    planner = std::make_shared<ompl::geometric::RRTstar>(spaceInfo);
-                } else if (plannerName == "RRT") {
-                    planner = std::make_shared<ompl::geometric::RRT>(spaceInfo);
-                } else {
-                    std::cerr << "Warning: Unknown planner " << plannerName << ", skipping" << std::endl;
-                    continue;
-                }
-                
-                // Apply parameters if specified
+                // Apply additional parameters if specified (these override optimized defaults)
                 if (config.planner_parameters.count(plannerName)) {
                     const auto& params = config.planner_parameters.at(plannerName);
                     for (const auto& [param_name, param_value] : params) {
@@ -244,8 +226,11 @@ private:
                 }
                 
                 benchmark.addPlanner(planner);
-                std::cout << "Added planner: " << plannerName << std::endl;
+                std::cout << "Added optimized planner: " << plannerName << std::endl;
                 
+            } catch (const vamp_ompl::VampConfigurationError& e) {
+                std::cerr << "Warning: " << e.what() << std::endl;
+                std::cerr << "Available planners: " << vamp_ompl::getAllPlannerNames().size() << " planners" << std::endl;
             } catch (const std::exception& e) {
                 std::cerr << "Warning: Failed to add planner " << plannerName 
                          << ": " << e.what() << std::endl;
@@ -304,6 +289,9 @@ inline bool loadBenchmarkConfiguration(const std::string& yaml_file,
             }
             if (benchmark["timeout"]) {
                 config.timeout = benchmark["timeout"].as<double>();
+            }
+            if (benchmark["memory_limit"]) {
+                config.memory_limit = benchmark["memory_limit"].as<double>();
             }
             if (benchmark["planners"] && benchmark["planners"].IsSequence()) {
                 config.planner_names.clear();

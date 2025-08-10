@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
                 return 0;
             } else if (arg1 == "--robot" && argc == 3) {
                 return run_quick_robot_benchmark(argv[2]) ? 0 : 1;
-            } else if (arg1 == "--planar-arm") {
+            } else if (arg1 == "--planar-arm" || arg1 == "planar_arm" || arg1 == "planar-arm") {
                 // Run planar arm example
                 bool benchmark_mode = false;
                 bool visualize_mode = false;
@@ -109,9 +109,20 @@ int main(int argc, char* argv[]) {
                     return run_single_planning_example(planning_config, visualize_mode, arg1) ? 0 : 1;
                 }
             } else {
-                std::cerr << " Unknown argument or invalid usage." << std::endl;
-                print_usage(argv[0]);
-                return 1;
+                // Check if the argument might be a robot name for quick benchmark
+                auto& registry = RobotRegistry::getInstance();
+                if (registry.isRobotRegistered(arg1) && registry.isBenchmarkingAvailable(arg1)) {
+                    std::cout << " Detected robot name '" << arg1 << "', running quick benchmark..." << std::endl;
+                    return run_quick_robot_benchmark(arg1) ? 0 : 1;
+                } else {
+                    std::cerr << " Unknown argument or invalid usage: '" << arg1 << "'" << std::endl;
+                    if (registry.isRobotRegistered(arg1)) {
+                        std::cerr << " Note: Robot '" << arg1 << "' is registered but does not support benchmarking." << std::endl;
+                    }
+                    std::cerr << " Use --list-robots to see available robots." << std::endl;
+                    print_usage(argv[0]);
+                    return 1;
+                }
             }
         } else {
             std::cerr << " Too many arguments" << std::endl;
@@ -311,7 +322,8 @@ void print_usage(const char* program_name) {
     std::cout << "  <config.yaml> --visualize - Run single planning with visualization\n";
     std::cout << "  <config.yaml> --benchmark - Run benchmark from YAML config\n";
     std::cout << "  --robot <robot_name>      - Run quick benchmark for specific robot\n";
-    std::cout << "  --planar-arm              - Run 2DOF planar arm planning example\n";
+    std::cout << "  <robot_name>              - Run quick benchmark for robot (shorthand)\n";
+    std::cout << "  --planar-arm | planar_arm - Run 2DOF planar arm planning example\n";
     std::cout << "  --list-robots             - Show available robots\n";
     std::cout << "  --help                    - Show this help message\n\n";
     std::cout << "Examples:\n";
@@ -319,11 +331,13 @@ void print_usage(const char* program_name) {
     std::cout << "  " << program_name << " panda_demo.yaml          # YAML planning\n";
     std::cout << "  " << program_name << " panda_demo.yaml --benchmark  # Full benchmark\n";
     std::cout << "  " << program_name << " --robot panda            # Quick benchmark\n";
-    std::cout << "  " << program_name << " --robot ur5              # Quick benchmark for UR5\n";
-    std::cout << "  " << program_name << " --robot fetch            # Quick benchmark for Fetch\n";
+    std::cout << "  " << program_name << " panda                    # Quick benchmark (shorthand)\n";
+    std::cout << "  " << program_name << " ur5                      # Quick benchmark for UR5\n";
+    std::cout << "  " << program_name << " fetch                    # Quick benchmark for Fetch\n";
     std::cout << "  " << program_name << " --planar-arm             # 2DOF planar arm demo\n";
-    std::cout << "  " << program_name << " --planar-arm --visualize # With visualization\n";
-    std::cout << "  " << program_name << " --planar-arm --benchmark # Benchmark planar arm\n\n";
+    std::cout << "  " << program_name << " planar_arm               # 2DOF planar arm demo (shorthand)\n";
+    std::cout << "  " << program_name << " planar_arm --visualize   # With visualization\n";
+    std::cout << "  " << program_name << " planar_arm --benchmark   # Benchmark planar arm\n\n";
 }
 
 void list_registered_robots() {
@@ -346,6 +360,10 @@ PlanningConfiguration create_basic_example() {
     config.robot_name = "panda";
     config.planning.planner_name = "RRT-Connect";
     config.planning.planning_time = 5.0;
+    
+    // Add planner-specific parameters to match YAML configuration
+    config.planning.planner_parameters["range"] = "0.3";
+    config.planning.planner_parameters["intermediate_states"] = "false";
     
     // Joint configurations (7-DOF Panda)
     config.start_config = {0.0, -0.785, 0.0, -2.356, 0.0, 1.571, 0.785};
@@ -413,6 +431,10 @@ PlanningConfiguration create_planar_arm_example() {
     config.planning.planning_time = 5.0;  // Increased planning time
     config.planning.simplification_time = 1.0;
     config.planning.optimize_path = false;
+    
+    // Add planner-specific parameters to match YAML configuration
+    config.planning.planner_parameters["range"] = "0.3";
+    config.planning.planner_parameters["intermediate_states"] = "false";
     
     // Environment: Simple obstacle course
     std::cout << "Creating obstacle course for planar arm..." << std::endl;

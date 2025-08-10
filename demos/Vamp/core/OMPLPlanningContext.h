@@ -3,12 +3,10 @@
 #include "VampOMPLInterfaces.h"
 #include "VampValidators.h"
 #include "VampUtils.h"
+#include "VampPlannerRegistry.h"
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/geometric/PathSimplifier.h>
-#include <ompl/geometric/planners/informedtrees/BITstar.h>
-#include <ompl/geometric/planners/rrt/RRTConnect.h>
-#include <ompl/geometric/planners/prm/PRM.h>
 #include <chrono>
 #include <iostream>
 #include <functional>
@@ -68,6 +66,21 @@ public:
         
         real_vector_space->setBounds(joint_bounds);
         
+        // HYBRID APPROACH: Register default projection for OMPL internal use (e.g., AnytimePathShortening)
+        // while still providing individual instances for manually created planners
+        try {
+            auto default_projection = VampPlannerRegistry::createOptimalManipulatorProjection(
+                real_vector_space, robot_dimension_);
+            if (default_projection) {
+                real_vector_space->registerDefaultProjection(default_projection);
+                std::cout << "Registered default projection for OMPL internal use - " << robot_dimension_ 
+                         << "-DOF manipulator (state space instance)" << std::endl;
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Warning: Failed to register default projection: " << e.what() << std::endl;
+            std::cerr << "Some OMPL internal planners may not work optimally." << std::endl;
+        }
+        
         // Create space information
         space_information_ = std::make_shared<ob::SpaceInformation>(real_vector_space);
         
@@ -76,6 +89,9 @@ public:
             std::make_shared<VampStateValidator<Robot>>(space_information_, vectorized_environment));
         space_information_->setMotionValidator(
             std::make_shared<VampMotionValidator<Robot>>(space_information_, vectorized_environment));
+        
+        // CRITICAL: Set collision checking resolution for performance
+        space_information_->setStateValidityCheckingResolution(0.01);
         
         space_information_->setup();
     }
@@ -116,7 +132,7 @@ public:
     
     /**
      * @brief Plan using the specified configuration
-     * @param planningConfiguration Planning configuration
+     * @param planning_configuration Planning configuration
      * @return Planning results with timing and path information
      * 
      * Note: This method demonstrates the Template Method pattern -
@@ -130,13 +146,25 @@ public:
         PlanningResult planning_result;
         
         try {
-            // Create planner
+            // Create planner using factory (which respects user registrations)
             auto selected_planner = create_planner_by_name(planning_configuration.planner_name);
             
-            // Set planner parameters
-            for (const auto& [param_name, param_value] : planning_configuration.planner_parameters) {
-                bool success = selected_planner->params().setParam(param_name, param_value);
-                (void)success; // Suppress unused variable warning
+            // Apply user parameters using parameter manager
+            if (!planning_configuration.planner_parameters.empty()) {
+                auto param_config = VampParameterManager::getInstance().createParameterConfig(
+                    planning_configuration.planner_name, 
+                    planning_configuration.planner_parameters
+                );
+                
+                auto param_result = VampParameterManager::getInstance().applyParameters(selected_planner.get(), param_config);
+                
+                // Log parameter application results
+                if (!param_result.warnings.empty()) {
+                    std::cout << "Parameter warnings for " << planning_configuration.planner_name << ":" << std::endl;
+                    for (const auto& warning : param_result.warnings) {
+                        std::cout << "  ⚠️  " << warning << std::endl;
+                    }
+                }
             }
             
             selected_planner->setProblemDefinition(problem_definition_);
@@ -235,30 +263,41 @@ private:
         }
         
         /**
-         * @brief Create planner by name using registry lookup
+         * @brief Create planner by name respecting user registrations and built-in optimizations
          * @param plannerName Planner name as string identifier
          * @param spaceInformation Space information for planner initialization
          * @return Created planner instance
-         * @throws VampConfigurationError for unknown planners (explicit error handling)
+         * @throws VampConfigurationError for unknown planners
          * 
+         * This method properly handles the precedence:
+         * 1. User-registered planners (highest priority)
+         * 2. Built-in OMPL planners with optimizations
          */
         std::shared_ptr<ob::Planner> createPlanner(const std::string& plannerName, 
                                                    const ob::SpaceInformationPtr& spaceInformation) {
-            auto factoryIterator = planner_creators_.find(plannerName);
-            if (factoryIterator == planner_creators_.end()) {
-                throw VampConfigurationError("Unknown planner: '" + plannerName + "'. Available: " + 
-                                          getAvailablePlannerNames());
+            // Check if user has registered a custom planner with this name
+            if (user_planners_.find(plannerName) != user_planners_.end()) {
+                // Use user-registered planner (highest priority)
+                return user_planners_[plannerName](spaceInformation);
             }
-            return factoryIterator->second(spaceInformation);
+            
+            // Fall back to unified registry for built-in planners with optimizations
+            return vamp_ompl::createPlannerByName(plannerName, spaceInformation);
         }
         
         /**
          * @brief Register a new planner type (Open/Closed Principle compliance)
          * @param planner_name Name identifier for the planner
          * @param plannerAllocatorFn Factory function to create the planner
+         * 
+         * User-registered planners take precedence over built-in planners with the same name.
          */
         void register_planner(const std::string& planner_name, PlannerCreatorFunction plannerAllocatorFn) {
-            planner_creators_[planner_name] = std::move(plannerAllocatorFn);
+            // Store user registrations locally for precedence handling
+            user_planners_[planner_name] = plannerAllocatorFn;
+            
+            // Also register with VampPlannerRegistry for completeness
+            vamp_ompl::registerCustomPlanner(planner_name, plannerAllocatorFn);
         }
         
         /**
@@ -266,55 +305,22 @@ private:
          * 
          */
         std::string getAvailablePlannerNames() const {
-            std::string plannerNamesList;
-            for (const auto& plannerEntry : planner_creators_) {
-                if (!plannerNamesList.empty()) plannerNamesList += ", ";
-                plannerNamesList += plannerEntry.first;
-            }
-            return plannerNamesList;
+            return vamp_ompl::VampPlannerRegistry::getInstance().getAvailablePlannerNames();
         }
         
     private:
-        std::map<std::string, PlannerCreatorFunction> planner_creators_;
+        // User-registered planners (takes precedence over built-in planners)
+        std::map<std::string, PlannerCreatorFunction> user_planners_;
         
         /**
-         * @brief Constructor registers default OMPL planners using lambda functions
+         * @brief Constructor - planners are registered automatically
          * 
-         * This constructor only registers the core OMPL planners that are commonly used.
-         * Additional planners can be registered at runtime using the register_planner() 
-         * method without modifying this source code.
-         * 
-         * Extensibility Pattern:
-         * The factory follows the Open/Closed Principle:
-         * - OPEN for extension: New planners can be added via registerPlanner()
-         * - CLOSED for modification: No source code changes needed for new planners
-         * 
-         * Example of runtime planner registration:
-         * ```cpp
-         * OMPLPlanningContext<Robot>::registerPlanner("RRT*", 
-         *     [](const ob::SpaceInformationPtr& si) {
-         *         return std::make_shared<og::RRTstar>(si);
-         *     });
-         * ```
-         * 
-         * Performance Note: Lambda functions are compiled to optimal code
-         * with no runtime overhead compared to function pointers.
+         * All OMPL geometric planners are now registered automatically through
+         * the unified VampPlannerRegistry with intelligent parameter optimization.
          */
         PlannerFactory() {
-            // Register standard OMPL planners with descriptive names
-            planner_creators_["BIT*"] = [](const ob::SpaceInformationPtr& spaceInformation) {
-                return std::make_shared<og::BITstar>(spaceInformation);
-            };
-            planner_creators_["RRT-Connect"] = [](const ob::SpaceInformationPtr& spaceInformation) {
-                return std::make_shared<og::RRTConnect>(spaceInformation);
-            };
-            planner_creators_["PRM"] = [](const ob::SpaceInformationPtr& spaceInformation) {
-                return std::make_shared<og::PRM>(spaceInformation);
-            };
-            
-            // Note: Additional planners can be registered at runtime using:
-            // OMPLPlanningContext<Robot>::registerPlanner(name, factory_function)
-            // This eliminates the need to modify this source code for new planners.
+            // All planners are now registered through the unified VampPlannerRegistry
+            // with automatic parameter optimization and projection handling
         }
     };
     
