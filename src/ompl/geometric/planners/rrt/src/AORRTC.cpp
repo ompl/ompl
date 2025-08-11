@@ -141,8 +141,14 @@ ompl::base::PlannerStatus ompl::geometric::AORRTC::solve(const base::PlannerTerm
             {
                 const base::PathPtr path = aox_planner->getFoundPath();
 
-                // OMPL_INFORM("%s: AOX search found a solution with cost %.5f. Simplifying...", getName().c_str(),
-                //             path->length());
+                if (path->length() < bestCost_.value())
+                {
+                    bestPath_ = path;
+                    bestCost_ = ompl::base::Cost(path->length());
+
+                    pdef_->addSolutionPath(bestPath_, false, 0.0, getName());
+                }
+
                 simplifySolution(path, ptc);
                 OMPL_INFORM("%s: AOX search simplified to cost %.5f", getName().c_str(), path->length());
 
@@ -175,14 +181,14 @@ ompl::base::PlannerStatus ompl::geometric::AORRTC::solve(const base::PlannerTerm
                 initCost_ = pdef_->getSolutionPath()->length();
                 bestPath_ = pdef_->getSolutionPath();
 
-                // OMPL_INFORM("%s: Initial search found a solution with cost %.5f. Simplifying...", getName().c_str(),
-                //             pdef_->getSolutionPath()->length());
+                bestCost_ = ompl::base::Cost(bestPath_->length());
+                pdef_->addSolutionPath(bestPath_, false, 0.0, getName());
+
                 simplifySolution(bestPath_, ptc);
                 OMPL_INFORM("%s: Initial search simplified to cost %.5f", getName().c_str(),
                             pdef_->getSolutionPath()->length());
 
                 bestCost_ = ompl::base::Cost(bestPath_->length());
-
                 pdef_->addSolutionPath(bestPath_, false, 0.0, getName());
             }
         }
