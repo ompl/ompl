@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <string>
 #include <filesystem>
+#include <algorithm>
 
 namespace vamp_ompl {
 
@@ -181,9 +182,16 @@ public:
             return std::string("./");
         };
         
+        // Clean names for filename (replace spaces with underscores)
+        auto clean_name = [](const std::string& name) {
+            std::string cleaned = name;
+            std::replace(cleaned.begin(), cleaned.end(), ' ', '_');
+            return cleaned;
+        };
+        
         std::string output_filename = find_output_directory({"demos/Vamp/", "../demos/Vamp/", "../../demos/Vamp/"}) + 
-                              "solution_path_" + robot_configuration_->get_robot_name() + "_" + 
-                              environment_factory_->get_environment_name() + "_" + planner_name + ".txt";
+                              "solution_path_" + clean_name(robot_configuration_->get_robot_name()) + "_" + 
+                              clean_name(environment_factory_->get_environment_name()) + "_" + clean_name(planner_name) + ".txt";
         
         std::ofstream output_file(output_filename);
         if (!output_file) return "";

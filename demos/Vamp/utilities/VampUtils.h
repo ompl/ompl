@@ -517,7 +517,7 @@ public:
 
     // ========== VISUALIZATION ==========
     
-    static bool runVisualization(const MotionPlanningResult& motion_planning_result, const std::string& /* configuration_source */) {
+    static bool runVisualization(const MotionPlanningResult& motion_planning_result, const std::string& /* configuration_source */, const std::string& yaml_file = "") {
         if (!motion_planning_result.success()) {
             std::cout << "Cannot visualize: planning failed" << std::endl;
             return false;
@@ -545,6 +545,16 @@ public:
         script_file.close();
         
         std::string command = "python3 " + script_path + " " + motion_planning_result.solution_file_path;
+        if (!yaml_file.empty()) {
+            // Resolve YAML file path to ensure it can be found by the visualization script
+            std::string resolved_yaml_path = findYamlFile(yaml_file);
+            if (!resolved_yaml_path.empty()) {
+                command += " --yaml-config " + resolved_yaml_path;
+            } else {
+                // Fallback: try relative path from demos/Vamp
+                command += " --yaml-config " + yaml_file;
+            }
+        }
         std::cout << "Launching visualization: " << command << std::endl;
         
         int result = std::system(command.c_str());

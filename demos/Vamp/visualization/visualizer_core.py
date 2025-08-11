@@ -130,8 +130,11 @@ class PyBulletCore:
                 "../../../" + urdf_path
             ]
         else:
-            # Relative path within VAMP resources
+            # Relative path within VAMP resources and config directories
             search_dirs = [
+                "config",  # Local config directory
+                "../demos/Vamp/config",  # From build directory
+                "../../demos/Vamp/config",  # Deeper nesting
                 "external/vamp/resources",
                 "../external/vamp/resources",
                 "../../external/vamp/resources", 

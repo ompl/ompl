@@ -14,7 +14,7 @@ using namespace vamp_ompl;
 using namespace vamp_ompl::benchmarking;
 
 // Forward declarations for helper functions
-bool run_single_planning_example(const PlanningConfiguration& config, bool visualize);
+bool run_single_planning_example(const PlanningConfiguration& config, bool visualize, const std::string& yaml_file = "");
 std::string run_benchmark_example(const BenchmarkConfiguration& config);
 bool run_quick_robot_benchmark(const std::string& robot_name);
 void print_usage(const char* program_name);
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
                         std::cerr << " Invalid planning configuration: " << planning_config.getValidationErrors() << std::endl;
                         return 1;
                     }
-                    return run_single_planning_example(planning_config, visualize_mode) ? 0 : 1;
+                    return run_single_planning_example(planning_config, visualize_mode, arg1) ? 0 : 1;
                 }
             } else {
                 std::cerr << " Unknown argument or invalid usage." << std::endl;
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
 }
 
 // Helper function implementations
-bool run_single_planning_example(const PlanningConfiguration& config, bool visualize) {
+bool run_single_planning_example(const PlanningConfiguration& config, bool visualize, const std::string& yaml_file) {
     std::cout << "\n Running single planning example for robot: " << config.robot_name << std::endl;
     
     try {
@@ -152,9 +152,13 @@ bool run_single_planning_example(const PlanningConfiguration& config, bool visua
                 
                 if (visualize) {
                     std::cout << "\n Starting visualization..." << std::endl;
-                    if (!VampUtils::runVisualization(motion_planning_result, config.robot_name + "_demo")) {
+                    if (!VampUtils::runVisualization(motion_planning_result, config.robot_name + "_demo", yaml_file)) {
                         std::cout << "  Visualization failed (planning still succeeded)" << std::endl;
-                        std::cout << " To visualize manually: python3 visualize_solution.py " << motion_planning_result.solution_file_path << std::endl;
+                        std::cout << " To visualize manually: python3 visualize_solution.py " << motion_planning_result.solution_file_path;
+                        if (!yaml_file.empty()) {
+                            std::cout << " --yaml-config " << yaml_file;
+                        }
+                        std::cout << std::endl;
                     }
                 }
             }
@@ -183,6 +187,26 @@ std::string run_benchmark_example(const BenchmarkConfiguration& config) {
             auto envFactory = VampUtils::createEnvironmentFactory(config.base_config.obstacles, config.base_config.robot_name);
 
             auto benchmarkManager = createBenchmarkManager<vamp::robots::Panda>(
+                std::move(robotConfig), std::move(envFactory));
+
+            benchmarkManager->initialize();
+            std::string logFilePath = benchmarkManager->executeBenchmark(config);
+            
+            std::cout << " Benchmark completed!" << std::endl;
+            std::cout << " OMPL log file: " << logFilePath << std::endl;
+            std::cout << "\n Generate database: ompl_benchmark_statistics.py " << logFilePath << " -d benchmark.db" << std::endl;
+            std::cout << " Visualize at: http://plannerarena.org (upload benchmark.db)" << std::endl;
+            
+            return logFilePath;
+        } else if (config.base_config.robot_name == "planar_arm_2dof") {
+            auto robotConfig = std::make_unique<RobotConfiguration<vamp::robots::PlanarArm2DOF>>(
+                config.base_config.robot_name,
+                config.base_config.start_config,
+                config.base_config.goal_config);
+
+            auto envFactory = VampUtils::createEnvironmentFactory(config.base_config.obstacles, config.base_config.robot_name);
+
+            auto benchmarkManager = createBenchmarkManager<vamp::robots::PlanarArm2DOF>(
                 std::move(robotConfig), std::move(envFactory));
 
             benchmarkManager->initialize();
@@ -236,6 +260,9 @@ bool run_quick_robot_benchmark(const std::string& robot_name) {
         } else if (robot_name == "fetch") {
             start_config = {0.0, -1.57, 0.0, -1.57, 0.0, 0.0, 0.0, 0.0};
             goal_config = {0.3, -0.785, 0.0, -1.57, 0.0, 0.0, 0.0, 0.0};
+        } else if (robot_name == "planar_arm_2dof") {
+            start_config = {0.7854, 0.0};    // 45° shoulder, 0° elbow 
+            goal_config = {-0.7854, 0.0};   // -45° shoulder, 0° elbow
         } else {
             // Generic configuration for unknown robots
             start_config.resize(metadata.dimension, 0.0f);
