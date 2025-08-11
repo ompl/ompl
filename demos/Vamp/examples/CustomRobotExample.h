@@ -23,7 +23,7 @@
 namespace vamp::robots {
 
 /**
- * @brief Example 2-DOF Planar Robot (like a simple robotic arm)
+ * @brief Example 2-DOF Planar Robot
  * 
  * This robot demonstrates the minimal interface required for VAMP integration.
  * It's a 2-DOF planar manipulator with simple kinematics for educational purposes.
@@ -217,7 +217,7 @@ static RobotRegistrar<vamp::robots::PlanarArm2DOF> planar_arm_registrar("planar_
 
 } // namespace vamp_ompl
 
-// Alternative registration approach using macros (cleaner for users)
+// Alternative registration approach using macros
 // Users can use this in their own code:
 // REGISTER_VAMP_ROBOT(MyCustomRobot, "my_robot_name");
 //

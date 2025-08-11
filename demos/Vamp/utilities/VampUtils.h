@@ -396,7 +396,7 @@ namespace YamlUtils {
  * @brief Main VampUtils class providing unified utilities for VAMP-OMPL integration
  * 
  * This class serves as the main interface for all VAMP utility functions, providing
- * a clean, consistent API for file operations, configuration validation, output
+ * a consistent API for file operations, configuration validation, output
  * formatting, and environment creation.
  */
 class VampUtils {

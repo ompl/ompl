@@ -49,8 +49,6 @@ Implement vectorized collision detection using SIMD instructions to process 8 ro
 ## Implementation Notes
 - Thread-local buffers eliminate allocation overhead in hot paths
 - SFINAE templates ensure type safety at compile time
-- Fallback to scalar operations for unsupported robot dimensions
-- Performance degrades gracefully when SIMD unavailable
 
 ## Validation
 - Benchmarked against scalar implementations

@@ -75,11 +75,6 @@ struct BenchmarkConfiguration {
  * @brief benchmark manager following VampOMPLPlanner patterns
  * 
  * This class extends the VampOMPLPlanner pattern to add benchmarking capabilities
- * while maintaining the same design principles:
- * - Facade Pattern: Simplified interface to complex benchmarking
- * - Dependency Injection: Clear separation of configuration
- * - Two-Phase Initialization: Constructor + initialize()
- * - RAII: Automatic resource management
  */
 template<typename Robot>
 class VampBenchmarkManager {
@@ -333,7 +328,7 @@ inline bool loadBenchmarkConfiguration(const std::string& yaml_file,
 /**
  * @brief Helper function to create benchmark manager for a specific robot type
  * 
- * This function provides a convenient way to create a typed benchmark manager
+ * This function provides a way to create a typed benchmark manager
  * without going through the registry pattern.
  */
 template<typename Robot>
@@ -350,4 +345,3 @@ std::shared_ptr<VampBenchmarkManager<Robot>> createBenchmarkManager(
 
 // 
 // Note: Benchmarking functionality is accessed through VampBenchmarkManager directly.
-// This approach provides clean OMPL integration with proper log format generation.

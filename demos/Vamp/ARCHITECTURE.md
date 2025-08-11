@@ -1,10 +1,10 @@
 # VA-OMPL Motion Planning Package - Architecture Documentation
 
-This document provides comprehensive architectural documentation for the VAMPOMPL (Vectorized Accelerated Motion Planning) package, which integrates high-performance SIMD collision detection with OMPL's motion planning algorithms.
+This document provides architectural documentation for the VAMPOMPL (Vectorized Accelerated Motion Planning) package, which integrates high-performance SIMD collision detection with OMPL's motion planning algorithms.
 
-> ** Architecture Diagrams**: Four comprehensive visual diagrams are available in [`docs/diagrams/`](docs/diagrams/)
+> ** Architecture Diagrams**: comprehensive visual diagrams are available in [`docs/diagrams/`](docs/diagrams/)
 
-> ** Complete Documentation**: Detailed documentation including ADRs, API reference, and contributor guides available in [`docs/`](docs/)
+> ** Documentation**: Detailed documentation including ADRs, API reference, and contributor guides available in [`docs/`](docs/)
 
 ## Table of Contents
 
@@ -244,7 +244,6 @@ The VAMP package includes comprehensive documentation for different audiences:
 #### **Analysis & Summary**
 - [`Architecture Analysis Summary`](docs/ARCHITECTURE-ANALYSIS-SUMMARY.md) - analysis
 - Strengths, performance characteristics, and future considerations
-- Publication-ready architectural assessment
 
 ### Documentation Generation
 

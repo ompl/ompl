@@ -15,40 +15,11 @@
 namespace vamp_ompl {
 
 /**
- * @brief Main VAMP-OMPL integration planner implementing the Facade pattern
+ * @brief Main VAMP-OMPL integration planner
  * 
  * This class acts as a unified interface that coordinates between the VAMP collision
  * detection system and OMPL's motion planning algorithms. It implements the Facade
  * design pattern to hide the complexity of integrating these two systems.
- * 
- *  Design Patterns:
- * 1. Facade Pattern: Provides a simplified interface to complex subsystem integration
- * 2. Template Method: Standardizes the planning workflow while allowing customization
- * 3. RAII (Resource Acquisition Is Initialization): Automatic resource management
- * 4. Dependency Injection: Accepts configured dependencies rather than creating them
- * 
- * Key Responsibilities:
- * - Configuration management: Maintains robot and environment configurations
- * - Lifecycle management: Handles initialization, planning, and cleanup phases
- * - Performance optimization: Leverages VAMP's vectorized collision detection
- * - Result processing: Handles path writing, timing, and result formatting
- * 
- * Integration Architecture Benefits:
- * - Single point of integration between VAMP and OMPL subsystems
- * - Type-safe template-based robot support with compile-time validation
- * - Minimal coupling between motion planning and collision detection
- * - Consistent error handling and comprehensive reporting
- * - Extensible to new robot types and environments without code modification
- * 
- * Performance Characteristics:
- * - Vectorized collision detection: SIMD speedup over scalar implementations
- * - Zero-copy configuration conversion: Direct memory mapping between systems
- * - Lazy initialization: Environment creation deferred until actually needed
- * - Efficient path writing: Leverages OMPL's optimized serialization
- * 
- * The class follows the single responsibility principle and delegates
- * specific tasks to specialized components, making it easy to understand
- * and maintain.
  * 
  * @tparam Robot VAMP robot type (e.g., vamp::robots::Panda)
  */
@@ -273,7 +244,7 @@ public:
     }
     
     /**
-     * @brief Print configuration summary (delegated to VampUtils)
+     * @brief Print configuration summary
      */
     void print_configuration() const {
         VampUtils::printPlannerConfiguration<Robot>(*robot_configuration_, *environment_factory_, is_initialized_);

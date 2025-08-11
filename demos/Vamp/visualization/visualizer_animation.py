@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Animation and trajectory rendering for VAMP-OMPL visualization
-Handles smooth robot motion and trajectory line visualization with efficient rendering
+Handles robot motion and trajectory line visualization with efficient rendering
 """
 
 import time
@@ -140,7 +140,7 @@ class TrajectoryAnimator:
         interpolated = config1 + factor * (config2 - config1)
         
         # Handle angle wrapping for revolute joints (if needed)
-        # This is a simplified version - more sophisticated angle interpolation
+        # more sophisticated angle interpolation
         # could be implemented for better results with large angle differences
         
         return interpolated

@@ -41,7 +41,7 @@ struct RobotMetadata {
 
 /**
  * @brief Base class for robot operations
- * This interface provides a clean abstraction for robot operations
+ * This interface provides abstraction for robot operations
  */
 class RobotHandler {
 public:
@@ -100,7 +100,7 @@ public:
         std::unique_ptr<EnvironmentFactory> env_factory) const = 0;
     
     /**
-     * @brief Execute benchmark (following same patterns as executePlanning)
+     * @brief Execute benchmark
      */
     virtual std::map<std::string, std::string> executeBenchmark(
         std::any& benchmark_manager,
@@ -132,7 +132,7 @@ RobotMetadata getRobotMetadata() {
 /**
  * @brief Template robot handler for specific robot types
  * 
- * This class provides a cleaner implementation using 
+ * This class provides aimplementation using 
  * std::any Type safety is maintained through the
  * template system and std::any_cast. Uses shared_ptr for copyable semantics.
  */
@@ -155,7 +155,7 @@ public:
         // Extract the typed robot config from std::any
         auto config_shared = std::any_cast<std::shared_ptr<RobotConfiguration<Robot>>>(robot_config);
         
-        // Create a new RobotConfiguration for the planner (copy the configuration data)
+        // Create a new RobotConfiguration for the planner
         auto start_array = config_shared->get_start_configuration_array();
         auto goal_array = config_shared->get_goal_configuration_array();
         std::vector<float> start_vec(start_array.begin(), start_array.end());

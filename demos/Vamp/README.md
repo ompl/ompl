@@ -74,7 +74,7 @@ pip install -r demos/Vamp/requirements.txt  # For visualization
 
 ## Features
 - SIMD-accelerated collision checking via VAMP
-- Multiple OMPL planners (RRT-Connect, RRT*, BiT*)
+- OMPL planners
 - YAML-based scene configuration
 - Interactive 3D visualization with PyBullet
 - Support for multiple robot types (Panda, UR5, Fetch)
@@ -228,6 +228,6 @@ Supported formats:
 - `.pcd`: Point Cloud Data format (ASCII only)
 
 ## Notes
-Visualization automatically detects robot type from planning configuration.
-Pointclouds use VAMP's CAPT (Collision Affording Point tree) Data Structure
-Custom robots require implementation of vectorized forward kinematics for optimal performance. 
+- Visualization automatically detects robot type from planning configuration.
+- Pointclouds use VAMP's CAPT (Collision Affording Point tree) Data Structure
+- Custom robots require implementation of vectorized forward kinematics for optimal performance. 

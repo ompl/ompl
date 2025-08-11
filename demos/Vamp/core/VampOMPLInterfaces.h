@@ -324,7 +324,8 @@ public:
         , goal_config_(std::move(goal))
         , robot_name_(robot_name) {
         
-        // Note: We can't use VampUtils here due to circular dependencies.
+        // TODO:
+        // We can't use VampUtils here due to circular dependencies.
         // VampUtils includes this header, so we keep validation logic here
         // but this could be refactored in the future with better header organization.
         

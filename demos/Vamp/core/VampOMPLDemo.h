@@ -2,7 +2,7 @@
  * @file VampOMPLDemo.h
  * @brief VAMP-OMPL integration interface for vectorized motion planning
  * 
- * This file provides a streamlined demonstration of VAMP-OMPL integration,
+ * This file provides a demonstration of VAMP-OMPL integration,
  * showcasing vectorized motion planning with SIMD acceleration through the
  * unified robot registry system.
  */
@@ -29,7 +29,7 @@
 namespace vamp_ompl {
 
 /**
- * @brief Unified motion planning execution function
+ * @brief  motion planning execution function
  */
 MotionPlanningResult executeMotionPlanning(const PlanningConfiguration& config);
 
@@ -50,7 +50,7 @@ namespace vamp_ompl {
 
 
 /**
- * @brief Unified motion planning execution (uses registry for all robots)
+ * @brief  motion planning execution (uses registry for all robots)
  */
 inline MotionPlanningResult executeMotionPlanning(const PlanningConfiguration& config)
 {

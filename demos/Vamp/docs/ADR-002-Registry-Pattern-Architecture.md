@@ -104,12 +104,6 @@ auto planner = registry.createPlanner(robot_name, config, env_factory);
 - Metadata system for robot capabilities discovery
 - Version compatibility checking for robot definitions
 
-## Validation
-- Unit tests for all registration scenarios
-- Type safety verified through compilation tests
-- Performance benchmarks comparing to direct template instantiation
-- Memory leak detection for registry lifecycle
-
 ## References
 - "Modern C++ Design" by Alexandrescu (type erasure patterns)
 - "Effective C++" by Meyers (template programming best practices)

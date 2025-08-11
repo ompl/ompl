@@ -11,7 +11,7 @@ from typing import List, Optional
 
 
 class PyBulletCore:
-    """Core PyBullet functionality with clean interface"""
+    """Core PyBullet functionality """
     
     def __init__(self, gui: bool = True, debug: bool = False):
         self.gui = gui
@@ -40,7 +40,7 @@ class PyBulletCore:
         # Load ground plane
         p.loadURDF("plane.urdf")
         
-        # Set nice camera view
+        # Set camera view
         p.resetDebugVisualizerCamera(
             cameraDistance=2.0,
             cameraYaw=45,

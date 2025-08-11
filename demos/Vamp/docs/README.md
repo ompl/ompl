@@ -167,7 +167,7 @@ For a complete system overview, see our [architecture diagrams](docs/diagrams/).
 1. Validate syntax using Mermaid Live Editor
 2. Check for unsupported features in target renderer
 3. Simplify diagram to isolate problematic elements
-4. Consult Mermaid documentation for feature support
+4. See Mermaid documentation for feature support
 
 ## References
 

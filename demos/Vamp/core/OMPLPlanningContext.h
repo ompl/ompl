@@ -23,25 +23,6 @@ namespace og = ompl::geometric;
  * 
  * This class encapsulates all OMPL-specific functionality and serves as an adapter
  * between the generic VAMP-OMPL interface and OMPL's internal structures.
- * 
- * Design Patterns:
- * - Adapter Pattern: Adapts OMPL's interface to our unified planning interface
- * - Factory Pattern: Creates planners dynamically based on string identifiers
- * - Template Method: Standardizes the planning workflow
- * - Composition: Composes OMPL components rather than inheriting from them
- * 
- * Key Responsibilities:
- * - Setting up OMPL state spaces and bounds from robot configurations
- * - Creating and configuring planners using the Factory pattern
- * - Managing problem definitions and optimization objectives
- * - Running planning and simplification with comprehensive timing
- * - Providing clean separation between VAMP and OMPL concerns
- * 
- * Performance Considerations:
- * - Lazy planner creation: Planners created only when needed
- * - Reusable state spaces: Avoid recreation for multiple planning queries
- * - Efficient timing: High-resolution timing for performance analysis
- * - Memory management: Proper RAII for OMPL objects
  */
 template<typename Robot>
 class OMPLPlanningContext {
@@ -367,8 +348,7 @@ private:
     /**
      * @brief Create planner by name
      * 
-     * Note: This method demonstrates the Facade pattern applied to
-     * factory access. It hides the complexity of factory singleton access and
+     * Note: This method hides the complexity of factory singleton access and
      * provides a clean, simple interface for planner creation.
      */
     auto create_planner_by_name(const std::string& planner_name) -> std::shared_ptr<ob::Planner> {
