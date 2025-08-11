@@ -124,6 +124,11 @@ double SphereStateSpace::distance(const State *state1, const State *state2) cons
     return 2 * radius_ * asin(d);
 }
 
+double SphereStateSpace::getMaximumExtent() const
+{
+    return pi * radius_;
+}
+
 double SphereStateSpace::getMeasure() const
 {
     return 4 * pi * radius_ * radius_;

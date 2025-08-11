@@ -57,6 +57,9 @@ if (OMPL_BUILD_TESTS)
     # Test constrained planning
     add_ompl_test(test_constraint_sphere geometric/constraint/test_sphere.cpp)
 
+    # Test space-time planning
+    add_ompl_test(test_spacetime_STRRTstar geometric/spacetime/STRRTstar_test.cpp)
+
     # Test planning with controls on a 2D map
     add_ompl_test(test_2dmap_control control/2dmap/2dmap.cpp)
     add_ompl_test(test_planner_data_control control/planner_data.cpp)
