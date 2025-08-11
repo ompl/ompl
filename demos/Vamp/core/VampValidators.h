@@ -88,16 +88,20 @@ namespace conversion {
     };
     
     /**
-     * @brief Thread-local converter instances for performance
+     * @brief Get thread-local converter instance for performance
      * 
      * Each thread gets its own converter instance to avoid allocation overhead
-     * while maintaining thread safety.
+     * while maintaining thread safety. Uses function-local static to avoid
+     * multiple definition issues with template variables.
      * 
-     * Note: inline keyword prevents multiple definition errors when header
-     * is included in multiple translation units.
+     * @tparam Robot VAMP robot type
+     * @return Reference to thread-local converter instance
      */
     template<typename Robot>
-    inline thread_local SafeConfigurationConverter<Robot> thread_local_converter;
+    SafeConfigurationConverter<Robot>& get_thread_local_converter() {
+        thread_local SafeConfigurationConverter<Robot> converter;
+        return converter;
+    }
     
     /**
      * @brief Convert OMPL state to VAMP configuration with zero-copy optimization
@@ -114,7 +118,7 @@ namespace conversion {
      */
     template<typename Robot>
     auto ompl_to_vamp(const ob::State* ompl_state) -> typename Robot::Configuration {
-        return thread_local_converter<Robot>.convert(ompl_state);
+        return get_thread_local_converter<Robot>().convert(ompl_state);
     }
 }
 
