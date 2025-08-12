@@ -187,6 +187,18 @@ class TRRTTest(TestPlanner):
         planner = og.TRRT(si)
         planner.setRange(10.0)
         return planner
+    
+class TRRTstarTest(TestPlanner):
+    def newplanner(self, si):
+        planner = og.TRRTstar(si)
+        planner.setRange(10.0)
+        return planner
+    
+class ATRRTTest(TestPlanner):
+    def newplanner(self, si):
+        planner = og.ATRRT(si)
+        planner.setRange(10.0)
+        return planner
 
 class RRTConnectTest(TestPlanner):
     def newplanner(self, si):
@@ -326,6 +338,20 @@ class PlanTest(unittest.TestCase):
         (success, avgruntime, avglength) = self.runPlanTest(planner)
         self.assertTrue(success >= 99.0)
         self.assertTrue(avgruntime < 0.3)
+        self.assertTrue(avglength < 100.0)
+    
+    def testGeometric_TRRTstar(self):
+        planner = TRRTstarTest()
+        (success, avgruntime, avglength) = self.runPlanTest(planner)
+        self.assertTrue(success >= 99.0)
+        self.assertTrue(avgruntime < 1)
+        self.assertTrue(avglength < 100.0)
+
+    def testGeometric_ATRRT(self):
+        planner = ATRRTTest()
+        (success, avgruntime, avglength) = self.runPlanTest(planner)
+        self.assertTrue(success >= 99.0)
+        self.assertTrue(avgruntime < 1)
         self.assertTrue(avglength < 100.0)
 
     def testGeometric_RRTConnect(self):
