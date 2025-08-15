@@ -158,7 +158,6 @@
   <div class="col-lg-4 col-md-12">
     <h2>Other Resources</h2>
     <ul>
-      <li><a href="education.html">OMPL for education.</a></li>
       <li><a href="gallery.html">Gallery of example uses of OMPL.</a></li>
       <li>If you use <a href="https://www.ros.org">ROS</a>, the recommended way to use OMPL is through <a
           href="https://moveit.ai">MoveIt</a>.</li>
