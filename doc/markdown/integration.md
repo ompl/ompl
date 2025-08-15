@@ -1,14 +1,20 @@
 # Integration of OMPL in Other Systems {#integration}
 
+<!-- make TOC wider so that every entry fits on one line -->
+\htmlonly<script type="application/javascript">$("div.toc").css("width", "250px")</script>\endhtmlonly
+
 [TOC]
 
 OMPL provides a high level of abstraction to make it easier to integrate it into larger robot software systems. By design, the core OMPL library does not include any code for representing geometry and kinematics. However, to solve motion planning problems, we _do_ need to pick a particular representation for robots and the environment. Below we have listed a number of projects that have done this in very different ways.
+
+<!-- force TOC above MoveIt section -->
+<div class="row"><div class="col-sm-12"></div></div>
 
 ## MoveIt {#integration_moveit2}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
-    [MoveIt2](https://moveit.ai) provides motion planning functionality in [ROS](https://www.ros.org). Robots are described by [URDF files](https://wiki.ros.org/urdf), which describe the robot's geometry, kinematics, and additional robot information. MoveIt2 can load such files, create appropriate state spaces for user-defined joint groups (e.g., “left arm,” “right leg,” “upper body,” “whole body,” etc.), and call OMPL planners to find feasible paths. There is support for inverse kinematics, which makes is possible to, e.g, include end-effector constraints. The paths produced by OMPL are translated by MoveIt2 into dynamically feasible trajectories. The MoveIt2 setup wizard will automatically discover self-collisions in a pre-processing phase. The environment can either be provided in the form of collection of geometric objects (triangles, spheres, cylinders, etc.), a point cloud (obtained from a RGBD sensor), or a combination of both. The adjacent video is a montage of MoveIt2's capabilities in 2017.
+    [MoveIt2](https://moveit.ai) provides motion planning functionality in [ROS](https://www.ros.org). Robots are described by [URDF files](https://wiki.ros.org/urdf), which describe the robot's geometry, kinematics, and additional robot information. MoveIt2 can load such files, create appropriate state spaces for user-defined joint groups (e.g., “left arm,” “right leg,” “upper body,” “whole body,” etc.), and call OMPL planners to find feasible paths. There is support for inverse kinematics, which makes is possible to, e.g, include end-effector constraints. The paths produced by OMPL are translated by MoveIt2 into dynamically feasible trajectories. The MoveIt2 setup wizard will automatically discover self-collisions in a pre-processing phase. The environment can either be provided in the form of collection of geometric objects (triangles, spheres, cylinders, etc.), a point cloud (obtained from a RGBD sensor), or a combination of both. The adjacent video is a montage of MoveIt2's capabilities in 2020.
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-16by9">
@@ -17,11 +23,11 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-## Flightmare
+## Flightmare {#integration_flightmare}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
-    Flightmare is a flexible quadrotor simulator composed of two main components: a configurable rendering engine built on Unity and a flexible physics engine for dynamics simulation. Those two components are totally decoupled and can run independently from each other. Flightmare comes with several desirable features: (i) a large multi-modal sensor suite, including an interface to extract the 3D point-cloud of the scene; (ii) an API for reinforcement learning which can simulate hundreds of quadrotors in parallel; and (iii) an integration with a virtual-reality headset for interaction with the simulated environment. Flightmare can be used for various applications, including path-planning, reinforcement learning, visual-inertial odometry, deep learning, human-robot interaction, etc. See <a href="https://flightmare.readthedocs.io/en/latest/advanced_steps/motion_planning.html">Flightmare's Motion Planning page</a> for details on how to configure OMPL.
+    [Flightmare](uzh-rpg.github.io/flightmare/) is a flexible quadrotor simulator composed of two main components: a configurable rendering engine built on Unity and a flexible physics engine for dynamics simulation. Those two components are totally decoupled and can run independently from each other. Flightmare comes with several desirable features: (i) a large multi-modal sensor suite, including an interface to extract the 3D point-cloud of the scene; (ii) an API for reinforcement learning which can simulate hundreds of quadrotors in parallel; and (iii) an integration with a virtual-reality headset for interaction with the simulated environment. Flightmare can be used for various applications, including path-planning, reinforcement learning, visual-inertial odometry, deep learning, human-robot interaction, etc. See <a href="https://flightmare.readthedocs.io/en/latest/advanced_steps/motion_planning.html">Flightmare's Motion Planning page</a> for details on how to configure OMPL.
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-16by9">
@@ -30,7 +36,7 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-## PyBullet Industrial Path Planner
+## PyBullet Industrial Path Planner {#integration_pbi}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
@@ -43,14 +49,14 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-## RoboGen / Genesis AI
+## RoboGen / Genesis AI {#integration_robogen}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
-    RoboGen is a self-guided and generative robotic agent that autonomously proposes new tasks, generates corresponding environments, and acquires new robotic skills continuously. RoboGen is powered by Genesis, a multi-material multi-solver generative simulation engine for general-purpose robot learning. Genesis is still under active development and will be released soon. RoboGen combines OMPL with PyBullet for generation and learning of rigid manipulation. See <a href="https://github.com/Genesis-Embodied-AI/RoboGen/tree/main/pybullet_ompl">their code</a> (or the <a href="https://github.com/lyfkyle/pybullet_ompl">upstream repo on which it is based</a>) for an example of how to integrate OMPL with Pybullet.
+    [RoboGen](https://robogen-ai.github.io) is a self-guided and generative robotic agent that autonomously proposes new tasks, generates corresponding environments, and acquires new robotic skills continuously. RoboGen is powered by Genesis, a multi-material multi-solver generative simulation engine for general-purpose robot learning. Genesis is still under active development and will be released soon. RoboGen combines OMPL with PyBullet for generation and learning of rigid manipulation. See <a href="https://github.com/Genesis-Embodied-AI/RoboGen/tree/main/pybullet_ompl">their code</a> (or the <a href="https://github.com/lyfkyle/pybullet_ompl">upstream repo on which it is based</a>) for an example of how to integrate OMPL with Pybullet.
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
-    \htmlonly<img src="https://github.com/Genesis-Embodied-AI/RoboGen/blob/main/imgs/teaser.png?raw=true" width="100%">\endhtmlonly
+    \htmlonly<img src="images/robogen.png" width="100%">\endhtmlonly
   </div>
 </div>
 
@@ -64,6 +70,17 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
     <div class="embed-responsive embed-responsive-16by9">
       \htmlonly<iframe src="https://www.youtube.com/embed/JAs2yciPjvM"></iframe>\endhtmlonly
     </div>
+  </div>
+</div>
+
+## The NTNU Fish Otter Project
+
+<div class="row">
+  <div class="col-lg-7 col-md-6 col-sm-5">
+    [The NTNU Fish Otter Project](https://otter.itk.ntnu.no/) has combined OMPL's planners with a geospatial database that contains information from standardized electronic navigational charts (ENC). A [paper in Ocean Engineering](https://www.sciencedirect.com/science/article/pii/S0029801825020293) describes the approach and includes simulations for challenging scenarios. The implemented system provides collision-free paths for maritime navigation, includes a graphical user interface, and is incorporated to a system for autonomous surface vehicles. Simulations show that the implementation supports multiple planning algorithms in generating valid paths in four representative large-scale maritime environments: a cluttered archipelago, a river inlet, a peninsula, and a fjord transit. Their code can be downloaded via the [supplementary material link](https://ars.els-cdn.com/content/image/1-s2.0-S0029801825020293-mmc3.zip) in the paper linked above.
+  </div>
+  <div class="col-lg-5 col-md-6 col-sm-7">
+    <img src="images/NTNU-FishOtter.jpg" width="100%">
   </div>
 </div>
 
