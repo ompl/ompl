@@ -44,6 +44,11 @@ class CMakeBuild(build_ext):
         # Can be set with Conda-Build, for example.
         cmake_generator = os.environ.get("CMAKE_GENERATOR", "")
 
+        # For Windows, we need to ensure the binary is placed in the ompl subdirectory
+        # to match the Python package structure
+        if sys.platform.startswith("win"):
+            extdir = extdir / "ompl"
+
         # - Hint the desired Python target for CMake to find, per [1].
         # - Set CMAKE_LIBRARY_OUTPUT_DIRECTORY to a location expected by the
         #   wheel builder so that libraries are included in the output artifact.
