@@ -47,7 +47,7 @@ set_package_properties(Boost PROPERTIES
     URL "https://www.boost.org"
     PURPOSE "Used throughout OMPL for data serialization, graphs, etc.")
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost 1.68 REQUIRED COMPONENTS serialization filesystem system program_options)
+find_package(Boost 1.68 REQUIRED COMPONENTS serialization filesystem program_options)
 
 # on macOS we need to check whether to use libc++ or libstdc++ with clang++
 if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")

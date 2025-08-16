@@ -20,7 +20,6 @@ install_common_dependencies()
         libboost-filesystem-dev \
         libboost-program-options-dev \
         libboost-serialization-dev \
-        libboost-system-dev \
         libboost-test-dev \
         libeigen3-dev \
         libexpat1 \

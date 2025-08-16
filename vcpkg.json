@@ -7,7 +7,6 @@
         "boost-odeint",
         "boost-program-options",
         "boost-serialization",
-        "boost-system",
         "boost-test",
         "eigen3",
         "flann"
