@@ -20,7 +20,10 @@ else()
 endif()
 
 target_link_libraries(_ompl PRIVATE ompl::ompl)
-target_compile_options(_ompl PRIVATE -Wno-unused-parameter)
+# Only use -Wno-unused-parameter for non-MSVC compilers since MSVC doesn't recognize this flag
+if (NOT MSVC)
+    target_compile_options(_ompl PRIVATE -Wno-unused-parameter)
+endif()
 
 file(COPY ompl DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
