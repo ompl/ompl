@@ -5,7 +5,6 @@ macro(add_ompl_test test_name)
     Boost::program_options
     Boost::serialization
     Boost::filesystem
-    Boost::system
     Boost::unit_test_framework)
   add_test(NAME ${test_name} COMMAND $<TARGET_FILE:${test_name}>)
 endmacro(add_ompl_test)

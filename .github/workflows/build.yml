@@ -41,7 +41,6 @@ jobs:
         libboost-filesystem-dev \
         libboost-program-options-dev \
         libboost-serialization-dev \
-        libboost-system-dev \
         libboost-test-dev \
         libeigen3-dev \
         libflann-dev \
@@ -58,7 +57,7 @@ jobs:
       with:
           vcpkgGitCommitId: da4b78d35084ec4e9808aa02017028da03b8d2ab
           vcpkgTriplet: 'x64-windows'
-          vcpkgArguments: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-system boost-test eigen3 flann'
+          vcpkgArguments: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-test eigen3 flann'
 
     - name: Build & Test (Linux, macOS)
       if: runner.os != 'Windows'

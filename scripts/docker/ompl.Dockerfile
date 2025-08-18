@@ -13,7 +13,6 @@ RUN apt-get update && \
         libboost-program-options-dev \
         libboost-python-dev \
         libboost-serialization-dev \
-        libboost-system-dev \
         libboost-test-dev \
         libeigen3-dev \
         libexpat1 \
@@ -58,7 +57,6 @@ RUN apt-get update && \
         libboost-program-options-dev \
         libboost-python-dev \
         libboost-serialization-dev \
-        libboost-system-dev \
         libeigen3-dev \
         libflann-dev \
         libtriangle-dev \

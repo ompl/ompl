@@ -12,7 +12,6 @@ if (OMPL_BUILD_DEMOS)
             ompl::ompl
             Eigen3::Eigen
             Boost::filesystem
-            Boost::system
             Boost::program_options)
     endmacro(add_ompl_demo)
 
