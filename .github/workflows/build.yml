@@ -38,7 +38,6 @@ jobs:
       run: |
         sudo apt-get update -y -qq &&
         sudo apt-get install -y -qq \
-        libboost-filesystem-dev \
         libboost-program-options-dev \
         libboost-serialization-dev \
         libboost-test-dev \
@@ -57,7 +56,7 @@ jobs:
       with:
           vcpkgGitCommitId: da4b78d35084ec4e9808aa02017028da03b8d2ab
           vcpkgTriplet: 'x64-windows'
-          vcpkgArguments: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-test eigen3 flann'
+          vcpkgArguments: 'boost-dynamic-bitset boost-graph boost-odeint boost-program-options boost-serialization boost-test eigen3 flann'
 
     - name: Build & Test (Linux, macOS)
       if: runner.os != 'Windows'

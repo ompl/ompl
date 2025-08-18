@@ -17,7 +17,6 @@ install_common_dependencies()
     ${SUDO} apt-get -y install \
         clang \
         cmake \
-        libboost-filesystem-dev \
         libboost-program-options-dev \
         libboost-serialization-dev \
         libboost-test-dev \

@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(SimpleIK)
 
     /* load environment */
     Environment2D env;
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    std::filesystem::path path(TEST_RESOURCES_DIR);
     path = path / "env1.txt";
     loadEnvironment(path.string().c_str(), env);
 

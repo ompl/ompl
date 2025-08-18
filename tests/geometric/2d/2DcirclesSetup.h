@@ -37,7 +37,7 @@
 #ifndef OMPL_TEST_2DCIRCLES_SETUP_
 #define OMPL_TEST_2DCIRCLES_SETUP_
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
