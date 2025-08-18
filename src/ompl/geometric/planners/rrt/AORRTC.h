@@ -148,12 +148,6 @@ namespace ompl
 
             double inflationFactor_{1.};
 
-            long int maxInternalIterations{100000000};
-            long int maxIterations{100000000};
-
-            long int maxInternalSamples{10000};
-            long int maxSamples{10000};
-
             /// The instance of the path simplifier
             PathSimplifierPtr psk_;
 

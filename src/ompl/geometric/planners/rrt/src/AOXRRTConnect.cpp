@@ -76,8 +76,6 @@ void ompl::geometric::AOXRRTConnect::setup()
             opt_ = pdef_->getOptimizationObjective();
         else
         {
-            // OMPL_INFORM("%s: No optimization objective specified. Defaulting to optimizing path length for the
-            // allowed planning time.", getName().c_str());
             opt_ = std::make_shared<base::PathLengthOptimizationObjective>(si_);
 
             // Store the new objective in the problem def'n
