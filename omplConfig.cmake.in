@@ -83,7 +83,7 @@ else()
     endif()
     
     # Add dependent libraries
-    foreach(_lib @Boost_SERIALIZATION_LIBRARY@;@Boost_FILESYSTEM_LIBRARY@;@Boost_SYSTEM_LIBRARY@;@SPOT_LIBRARIES@)
+    foreach(_lib @Boost_SERIALIZATION_LIBRARY@;@SPOT_LIBRARIES@)
         if(_lib)
             list(APPEND OMPL_LIBRARIES "${_lib}")
         endif()
