@@ -42,7 +42,7 @@
 #include "ompl/base/PlannerDataStorage.h"
 
 // Boost
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 ompl::tools::LightningDB::LightningDB(const base::StateSpacePtr &space)
 {
@@ -75,7 +75,7 @@ bool ompl::tools::LightningDB::load(const std::string &fileName)
         OMPL_ERROR("Empty filename passed to save function");
         return false;
     }
-    if (!boost::filesystem::exists(fileName))
+    if (!std::filesystem::exists(fileName))
     {
         OMPL_WARN("Database file does not exist: %s", fileName.c_str());
         return false;

@@ -415,7 +415,7 @@ protected:
     PlanTest()
     {
         verbose_ = VERBOSE;
-        boost::filesystem::path path(TEST_RESOURCES_DIR);
+        std::filesystem::path path(TEST_RESOURCES_DIR);
         circles_.loadCircles((path / "circle_obstacles.txt").string());
         circles_.loadQueries((path / "circle_queries.txt").string());
     }

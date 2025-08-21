@@ -8,7 +8,6 @@ RUN apt-get update && \
         castxml \
         clang \
         cmake \
-        libboost-filesystem-dev \
         libboost-numpy-dev \
         libboost-program-options-dev \
         libboost-python-dev \
@@ -52,7 +51,6 @@ RUN apt-get update && \
     apt-get install -y \
         build-essential \
         cmake \
-        libboost-filesystem-dev \
         libboost-numpy-dev \
         libboost-program-options-dev \
         libboost-python-dev \

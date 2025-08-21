@@ -11,7 +11,6 @@ if (OMPL_BUILD_DEMOS)
         target_link_libraries(${demo_name} PRIVATE
             ompl::ompl
             Eigen3::Eigen
-            Boost::filesystem
             Boost::program_options)
     endmacro(add_ompl_demo)
 
