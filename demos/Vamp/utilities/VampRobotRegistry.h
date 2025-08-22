@@ -447,7 +447,6 @@ public:
     }
     
     // ========== BENCHMARKING EXTENSIONS ==========
-    // Following the same patterns as above, but for benchmarking
     
     /**
      * @brief Create benchmark manager for specified robot (type-erased)
@@ -475,7 +474,7 @@ public:
     }
     
     /**
-     * @brief Execute benchmark with type erasure (following existing patterns)
+     * @brief Execute benchmark with type erasure
      * @param robot_name Robot identifier
      * @param benchmark_manager Type-erased benchmark manager  
      * @param experiment_name Name for the experiment
