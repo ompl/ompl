@@ -1,5 +1,5 @@
 [submodule "external/vamp"]
 	path = external/vamp
 	url = https://github.com/KavrakiLab/vamp
-	branch = 114cf87b0e4e1c41134a9250a66821486d1fe099
+	branch = main
 	update = checkout
