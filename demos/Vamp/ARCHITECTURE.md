@@ -1,5 +1,8 @@
 # VA-OMPL Motion Planning Package - Architecture Documentation
 
+**Author**: Sahruday Patti (Rice University)  
+**Based on**: VAMP library by Wil Thomason, Zachary Kingston, Lydia E. Kavraki
+
 This document provides architectural documentation for the VAMPOMPL (Vectorized Accelerated Motion Planning) package, which integrates high-performance SIMD collision detection with OMPL's motion planning algorithms.
 
 > ** Architecture Diagrams**: comprehensive visual diagrams are available in [`docs/diagrams/`](docs/diagrams/)
@@ -53,7 +56,7 @@ The VAMP architecture consists of multiple layers:
 - **Performance Features**:
   - SIMD vectorization: Process 8 configurations simultaneously  
   - "Rake" motion validation: Spatially distributed parallel sampling
-  - Thread-local buffer pools: Allocation-free hot paths
+  - Function-local static buffer pools: Allocation-free hot paths
   - Zero-copy OMPL-to-VAMP configuration conversion
 
 #### 3. **RobotRegistry** (Singleton + Registry Pattern)
@@ -87,7 +90,7 @@ The VAMP architecture consists of multiple layers:
 - **Efficient Pipeline**: Better CPU instruction pipeline utilization
 
 #### 3. **Memory Management**
-- **Thread-local Buffers**: Avoid allocations in collision checking hot path
+- **Function-local Static Buffers**: Avoid allocations in collision checking hot path
 - **Zero-copy Conversion**: Direct OMPL-to-VAMP configuration mapping
 - **SIMD-aligned Memory**: Proper alignment for vectorized operations
 
@@ -128,7 +131,7 @@ The planning workflow follows a well-defined sequence:
 4. **Solution Processing**: Path simplification, result formatting, optional file writing
 
 **Key Performance Points**:
-- Zero-copy state conversion using thread-local buffers
+- Zero-copy state conversion using function-local static buffers
 - SIMD "rake" sampling for motion validation (8x parallel collision checks)
 - Structure-of-Arrays memory layout for cache optimization
 
@@ -339,7 +342,6 @@ output:
 - **RAII**: All resources managed with RAII principles
 - **Error Handling**: Use `VampConfigurationError` hierarchy with actionable messages
 - **Documentation**: Comprehensive inline documentation for all public APIs
-- **Testing**: Include unit tests and integration tests for new features
 
 ---
 
@@ -391,7 +393,7 @@ demos/Vamp/
 
 **Measured Performance Improvements:**
 - **8x collision detection speedup** through SIMD vectorization
-- **Zero-allocation hot paths** through thread-local buffer pools
+- **Zero-allocation hot paths** through function-local static buffer pools
 - **Cache-optimized memory access** via Structure-of-Arrays layout
 
 **Performance Dependencies:**
@@ -407,5 +409,9 @@ demos/Vamp/
 - **OMPL Documentation**: [https://ompl.kavrakilab.org/](https://ompl.kavrakilab.org/)
 - **Contributing**: See [`docs/CONTRIBUTOR-GUIDE.md`](docs/CONTRIBUTOR-GUIDE.md) for detailed guidelines
 - **Architecture Decisions**: Review ADRs in [`docs/`](docs/) for design rationale
+
+## License
+
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
 
 *For implementation details, see the individual header files and comprehensive documentation in [`docs/`](docs/).*

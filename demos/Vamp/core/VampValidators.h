@@ -1,3 +1,20 @@
+/*
+ * Copyright 2024 Sahruday Patti (VAMP-OMPL Integration)
+ * Copyright 2024 Wil Thomason, Zachary Kingston, Lydia E. Kavraki (Original VAMP Library)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /**
  * @file VampValidators.h
  * @brief VAMP-optimized state and motion validators for OMPL integration
@@ -88,24 +105,27 @@ namespace conversion {
     };
     
     /**
-     * @brief Get thread-local converter instance for performance with safe initialization
+     * @brief Get function-local converter instance for performance with safe initialization
      * 
-     * Each thread gets its own converter instance to avoid allocation overhead
-     * while maintaining thread safety. Uses function-local static to avoid
-     * multiple definition issues with template variables.
+     * Each template instantiation gets its own converter instance to avoid allocation overhead
+     * while maintaining initialization safety. Uses function-local static to avoid
+     * static initialization order fiasco.
      * 
      * CRITICAL: Replaced thread_local with function-local static to avoid
      * static initialization order fiasco that causes segfaults in programmatic path.
+     * This provides one converter per template instantiation with lazy initialization.
      * 
      * @tparam Robot VAMP robot type
      * @return Reference to converter instance
      */
     template<typename Robot>
-    SafeConfigurationConverter<Robot>& get_thread_local_converter() {
-        // SOLUTION: Use thread_local to avoid shared destruction issues
-        // Each thread gets its own converter, preventing the malloc error
-        // during benchmark cleanup when multiple planners are destroyed
-        thread_local SafeConfigurationConverter<Robot> converter;
+    SafeConfigurationConverter<Robot>& get_converter() {
+        // CRITICAL: Use function-local static instead of thread_local to avoid
+        // static initialization order issues. This is safe because:
+        // 1. Function-local statics are initialized on first call (lazy initialization)
+        // 2. Avoids thread_local initialization during static construction
+        // 3. Still provides one converter per template instantiation
+        static SafeConfigurationConverter<Robot> converter;
         return converter;
     }
     
@@ -116,7 +136,7 @@ namespace conversion {
      * @return VAMP configuration optimized for SIMD operations
      * 
      * Performance Insight: Uses function-local static converter instances to avoid memory 
-     * allocations in hot path while maintaining thread safety and exception safety.
+     * allocations in hot path while maintaining initialization safety and exception safety.
      * 
      * Memory Layout Transformation:
      * OMPL AOS: [joint1, joint2, joint3, ...] (sequential memory, SIMD-inefficient)
@@ -125,7 +145,7 @@ namespace conversion {
     template<typename Robot>
     auto ompl_to_vamp(const ob::State* ompl_state) -> typename Robot::Configuration {
         try {
-            return get_thread_local_converter<Robot>().convert(ompl_state);
+            return get_converter<Robot>().convert(ompl_state);
         } catch (const std::exception& e) {
             // Enhanced error reporting for debugging initialization issues
             std::string error_msg = "Failed to convert OMPL state to VAMP configuration for robot '" 
@@ -199,7 +219,7 @@ public:
         
         // Test converter initialization early to catch static initialization issues
         try {
-            auto& converter = conversion::get_thread_local_converter<Robot>();
+            auto& converter = conversion::get_converter<Robot>();
             (void)converter; // Suppress unused variable warning
         } catch (const std::exception& e) {
             throw std::runtime_error("Failed to initialize state converter for robot " + 
@@ -313,7 +333,7 @@ public:
         
         // Test converter initialization early to catch static initialization issues
         try {
-            auto& converter = conversion::get_thread_local_converter<Robot>();
+            auto& converter = conversion::get_converter<Robot>();
             (void)converter; // Suppress unused variable warning
         } catch (const std::exception& e) {
             throw std::runtime_error("Failed to initialize motion converter for robot " + 
@@ -368,8 +388,7 @@ public:
      */
     bool checkMotion(const ob::State* start_state, const ob::State* end_state, 
                      std::pair<ob::State*, double>& last_valid_state) const override {
-        // Simple and safe implementation - avoid complex bisection for now
-        // Use the vectorized motion checking
+
         bool is_valid = checkMotion(start_state, end_state);
         
         if (is_valid) {
