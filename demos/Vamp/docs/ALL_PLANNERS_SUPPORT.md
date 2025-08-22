@@ -2,11 +2,11 @@
 
 ## Overview
 
-VAMP now supports **all OMPL geometric planners** through a comprehensive planner registry system. This eliminates the need for expert software knowledge to integrate new planners, as the system automatically handles all 45 OMPL geometric planners with proper configuration and error handling.
+VAMP supports **43+ OMPL geometric planners** through a comprehensive planner registry system. This eliminates the need for expert software knowledge to integrate new planners, as the system automatically handles the vast majority of OMPL geometric planners with proper configuration and error handling.
 
 ## Supported Planners
 
-VAMP now supports **45 OMPL geometric planners** organized into the following families:
+VAMP supports **43+ OMPL geometric planners** organized into the following families:
 
 ### RRT Family (14 planners)
 - **RRT** - Rapidly-exploring Random Tree

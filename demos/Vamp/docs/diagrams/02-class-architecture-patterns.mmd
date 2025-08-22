@@ -94,6 +94,29 @@ classDiagram
         +registerPlanner(name, factory) static
     }
     
+    class VampPlannerRegistry {
+        <<Singleton Registry>>
+        -plannerCreators map~string, PlannerCreatorFunction~
+        -projectionBasedPlanners set~string~
+        +getInstance() VampPlannerRegistry&
+        +createPlanner(config, si) PlannerPtr
+        +createPlanner(name, si) PlannerPtr
+        +registerPlanner(name, creator)
+        +getAvailablePlannerNames() string
+        +getPlannerCount() size_t
+        -registerAllOMPLPlanners()
+        -applyUserParameters(planner, params)
+        -applyProjectionIfNeeded(planner, si, name, robot)
+    }
+    
+    class VampParameterManager {
+        <<Parameter Optimization>>
+        +applyOptimalParameters(planner, robot) static
+        +getOptimalRangeRatio(robot) static
+        +getOptimalGoalBias(robot) static
+        -parameterDatabase map~string, Parameters~
+    }
+    
     %% Configuration System Hierarchy
     class RobotConfig~Robot~ {
         <<interface>>
@@ -249,9 +272,11 @@ classDiagram
     OMPLPlanningContext --> OMPLProblemDefinition : manages
     OMPLPlanningContext --> VampStateValidator : creates
     OMPLPlanningContext --> VampMotionValidator : creates
-    OMPLPlanningContext --> PlannerFactory : uses
+    OMPLPlanningContext --> VampPlannerRegistry : uses
     
-    PlannerFactory --> OMPLPlanner : creates
+    VampPlannerRegistry --> OMPLPlanner : creates
+    VampPlannerRegistry --> VampParameterManager : uses
+    VampParameterManager --> OMPLPlanner : optimizes
     
     %% Configuration System Relationships
     RobotConfig <|-- RobotConfiguration

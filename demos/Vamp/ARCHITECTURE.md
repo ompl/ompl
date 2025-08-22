@@ -257,62 +257,11 @@ python3 generate_diagrams.py
 
 ## Getting Started
 
-### Basic Usage
+### Quick Start
 
-```cpp
-#include "VampOMPLDemo.h"
-#include "VampRobotRegistry.h"
-#include "VampUtils.h"
+For basic usage examples, see the main [README.md](README.md#configuration-examples).
 
-using namespace vamp_ompl;
-
-// 1. Create planning configuration
-PlanningConfiguration config;
-config.robot_name = "panda";
-config.start_config = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-config.goal_config = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
-
-// 2. Add obstacles
-ObstacleConfig obstacle;
-obstacle.type = "sphere";
-obstacle.position = {0.5f, 0.5f, 0.5f};
-obstacle.radius = constants::DEFAULT_SPHERE_RADIUS;
-config.obstacles.push_back(obstacle);
-
-// 3. Configure planner
-config.planning.planner_name = "RRT-Connect";
-config.planning.planning_time = constants::DEFAULT_PLANNING_TIME;
-
-// 4. Execute planning (uses registry internally)
-auto result = executeMotionPlanning(config);
-
-// 5. Process results
-VampUtils::printResults(result.planning_result);
-```
-
-### YAML Configuration
-
-```yaml
-robot:
-  name: "panda"
-  description: "Franka Emika Panda arm"
-
-planner:
-  name: "BIT*"
-  planning_time: 5.0
-  simplification_time: 1.0
-
-start_config: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-goal_config: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-
-obstacles:
-  - type: "sphere"
-    position: [0.5, 0.5, 0.5]
-    radius: 0.1
-
-output:
-  write_path: true
-```
+For detailed API usage, see [docs/API-Reference.md](docs/API-Reference.md).
 
 ---
 

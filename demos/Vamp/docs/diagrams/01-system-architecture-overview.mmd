@@ -29,15 +29,16 @@ graph TB
     subgraph "OMPL Integration Layer"
         OPC --> SI["ompl::base::SpaceInformation<br/>(OMPL Core)"]
         OPC --> PD["ompl::base::ProblemDefinition<br/>(OMPL Core)"]
-        OPC --> PF["PlannerFactory<br/>(Registry Pattern)"]
+        OPC --> VPR["VampPlannerRegistry<br/>(Singleton Registry)"]
         
         SI --> VSV["VampStateValidator&lt;Robot&gt;<br/>(SIMD Bridge)"]
         SI --> VMV["VampMotionValidator&lt;Robot&gt;<br/>(SIMD Bridge)"]
         
-        PF --> OP1["RRT-Connect<br/>(OMPL Planner)"]
-        PF --> OP2["BIT*<br/>(OMPL Planner)"]
-        PF --> OP3["PRM<br/>(OMPL Planner)"]
-        PF --> OPN["Custom Planners<br/>(Extension Point)"]
+        VPR --> OP1["43+ OMPL Planners<br/>(Auto-registered)"]
+        VPR --> OP2["Experience Planners<br/>(Lightning/Thunder)"]
+        VPR --> OPN["Custom Planners<br/>(Extension Point)"]
+        
+        VPR --> VPM["VampParameterManager<br/>(Auto-optimization)"]
     end
     
     %% VAMP Performance Core

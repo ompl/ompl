@@ -317,6 +317,62 @@ static std::array<float, maxDimension> conversionBuffer;
 - **Link-time optimization**: Enable LTO for production builds
 - **Profile-guided optimization**: Use PGO for hot paths
 
+## Custom Robot Development
+
+### Robot Interface Requirements
+
+All custom robots must implement the VAMP robot interface:
+
+```cpp
+namespace vamp::robots {
+    struct CustomRobot {
+        // Required compile-time constants
+        static constexpr auto name = "custom_robot";
+        static constexpr auto dimension = 7;        // Number of joints
+        static constexpr auto n_spheres = 10;       // Collision spheres
+        static constexpr auto resolution = 32;      // Motion validation resolution
+        
+        // Joint limits (scaled to [0,1])
+        static constexpr std::array<float, dimension> s_a = {/* lower bounds */};
+        static constexpr std::array<float, dimension> s_m = {/* ranges */};
+        
+        // Required methods
+        template <std::size_t rake>
+        inline static auto fkcc(
+            const collision::Environment<FloatVector<rake>>& environment,
+            const ConfigurationBlock<rake>& q) noexcept -> bool;
+            
+        inline static void scale_configuration(Configuration& q) noexcept;
+        inline static void descale_configuration(Configuration& q) noexcept;
+    };
+}
+
+// Register the robot
+REGISTER_VAMP_ROBOT(vamp::robots::CustomRobot, "custom_robot");
+```
+
+### Implementation Guidelines
+
+1. **Vectorized Forward Kinematics**: The `fkcc` method must process `rake` configurations simultaneously
+2. **SIMD-Friendly Data**: Use aligned memory and avoid branching in hot paths
+3. **Configuration Scaling**: Implement proper scaling/descaling for joint limits
+4. **Collision Spheres**: Define sphere positions and radii for collision detection
+
+### Testing Custom Robots
+
+```bash
+# Test basic functionality
+./demo_Vamp --robot custom_robot
+
+# Run benchmarks
+./demo_Vamp --robot custom_robot --benchmark
+
+# List all registered robots
+./demo_Vamp --list-robots
+```
+
+For complete examples, see `examples/CustomRobotExample.h`.
+
 ## Debugging Guidelines
 
 ### Common Issues
