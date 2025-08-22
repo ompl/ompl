@@ -1,7 +1,5 @@
 # VAMP API Reference Guide
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-
 ## Overview
 This document provides comprehensive API documentation for the VAMP motion planning system, focusing on public interfaces and extension points for developers.
 

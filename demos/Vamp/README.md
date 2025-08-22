@@ -1,10 +1,5 @@
 # OMPL-VAMP Integration Demo
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-
-**Author**: Sahruday Patti (Rice University)  
-**Based on**: VAMP library by Wil Thomason, Zachary Kingston, Lydia E. Kavraki
-
 ## Prerequisites
 - pybullet for visualization
 

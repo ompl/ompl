@@ -1,15 +1,12 @@
 # VAMP Contributor Guide
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-
 ## Overview
 This guide helps new contributors understand the VAMP architecture, design principles, and extension patterns. VAMP integrates high-performance SIMD collision detection with OMPL's motion planning algorithms while maintaining clean architectural separation.
 
 ## License and Contributions
 
-By contributing to this project, you agree that your contributions will be licensed under the [Apache License 2.0](../LICENSE). All source files should include the appropriate Apache 2.0 license header.
 
-This VAMP-OMPL integration package was developed by Sahruday Patti at Rice University. The underlying VAMP system was developed by Wil Thomason, Zachary Kingston, and Lydia E. Kavraki, as described in their paper "Motions in Microseconds via Vectorized Sampling-Based Planning" (arXiv:2309.14545).
+This VAMP-OMPL integration package was developed by Sahruday Patti at Rice University. The underlying VAMP system was developed by Wil Thomason, Zachary Kingston, and Lydia E. Kavraki, as described in the paper "Motion in Microseconds via Vectorized Sampling-Based Planning".
 
 ## Architecture Principles
 

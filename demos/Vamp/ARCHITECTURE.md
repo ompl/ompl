@@ -1,8 +1,5 @@
 # VA-OMPL Motion Planning Package - Architecture Documentation
 
-**Author**: Sahruday Patti (Rice University)  
-**Based on**: VAMP library by Wil Thomason, Zachary Kingston, Lydia E. Kavraki
-
 This document provides architectural documentation for the VAMPOMPL (Vectorized Accelerated Motion Planning) package, which integrates high-performance SIMD collision detection with OMPL's motion planning algorithms.
 
 > ** Architecture Diagrams**: comprehensive visual diagrams are available in [`docs/diagrams/`](docs/diagrams/)
