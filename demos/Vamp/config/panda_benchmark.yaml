@@ -44,7 +44,7 @@ benchmark:
   display_progress: true      # Show progress during benchmarking
   auto_generate_filename: true
 
-  # ALL 41 AVAILABLE PLANNERS WITH COMPLETE PARAMETER SETS
+  # ALL 45 AVAILABLE PLANNERS WITH COMPLETE PARAMETER SETS
   # =======================================================
   planners:
     # ========================================
@@ -398,6 +398,16 @@ benchmark:
     - name: "PDST"  # Path-Directed Subdivision Tree
       parameters:
         goal_bias: "0.05"               # Goal bias
+
+    # ========================================
+    # EXPERIENCE-BASED PLANNERS (2 planners) - Learn from previous solutions
+    # ========================================
+    
+    - name: "Lightning"  # Lightning Retrieve Repair
+      parameters: {}  # Experience planners use database configuration, not YAML parameters
+    
+    - name: "Thunder"  # Thunder Retrieve Repair  
+      parameters: {}  # Experience planners use database configuration, not YAML parameters
 
     # ========================================
     # ADVANCED MANIPULATION PLANNERS (2 planners) - High-dimensional & Task-space

@@ -2,11 +2,11 @@
 
 ## Overview
 
-VAMP now supports **all OMPL geometric planners** through a comprehensive planner registry system. This eliminates the need for expert software knowledge to integrate new planners, as the system automatically handles all OMPL geometric planners with proper configuration and error handling.
+VAMP now supports **all OMPL geometric planners** through a comprehensive planner registry system. This eliminates the need for expert software knowledge to integrate new planners, as the system automatically handles all 45 OMPL geometric planners with proper configuration and error handling.
 
 ## Supported Planners
 
-VAMP now supports **43 OMPL geometric planners** organized into the following families:
+VAMP now supports **45 OMPL geometric planners** organized into the following families:
 
 ### RRT Family (14 planners)
 - **RRT** - Rapidly-exploring Random Tree
@@ -76,12 +76,11 @@ VAMP now supports **43 OMPL geometric planners** organized into the following fa
 - **CForest** - Concurrent Forest of Trees
 - **AnytimePathShortening** - Anytime Path Shortening
 
-### Experience-based Planners (0 planners in basic registry)
-**Note**: Experience-based planners require database setup:
-- **LightningRetrieveRepair** - Requires LightningDB setup
-- **ThunderRetrieveRepair** - Requires ThunderDB setup
+### Experience-based Planners (2 planners)
+- **Lightning** - Lightning Retrieve Repair (learns from previous solutions)
+- **Thunder** - Thunder Retrieve Repair (learns from previous solutions)
 
-These planners are available but require additional configuration beyond the basic registry system.
+**Note**: Experience planners work seamlessly with default databases but can be customized programmatically for advanced users.
 
 ## Usage
 
@@ -115,7 +114,9 @@ benchmark:
     - name: "BIT*"
     - name: "PRM"
     - name: "KPIECE"
-    # ... add any combination of the 40+ planners
+    - name: "Lightning"
+    - name: "Thunder"
+    # ... add any combination of the 45+ planners
 ```
 
 ### Robot-Specific Optimizations
@@ -150,6 +151,35 @@ vamp_ompl::registerCustomPlanner("MyCustomRRT", [](const ob::SpaceInformationPtr
 auto customPlanner = vamp_ompl::createPlannerByName("MyCustomRRT", spaceInfo);
 ```
 
+### Experience-based Planners
+
+Experience planners work out-of-the-box with default databases for seamless YAML benchmarking:
+
+```cpp
+// Use experience planners directly (with default databases)
+auto lightning = vamp_ompl::createPlannerByName("Lightning", spaceInfo);
+auto thunder = vamp_ompl::createPlannerByName("Thunder", spaceInfo);
+```
+
+For advanced users who want custom databases:
+
+```cpp
+#include "VampExperiencePlanners.h"
+
+// Register custom experience planners with specific databases
+vamp_ompl::registerCustomPlanner("MyLightning", [](const ob::SpaceInformationPtr& si) {
+    return vamp_ompl::createPersistentLightningPlanner(si, "/path/to/my/lightning.db");
+});
+
+vamp_ompl::registerCustomPlanner("MyThunder", [](const ob::SpaceInformationPtr& si) {
+    return vamp_ompl::createPersistentThunderPlanner(si, "/path/to/my/thunder.db");
+});
+
+// Or create with robot/environment specific configuration
+auto lightning = vamp_ompl::createLightningPlanner(si, "panda", "kitchen");
+auto thunder = vamp_ompl::createThunderPlanner(si, "ur5", "assembly");
+```
+
 ### Getting Available Planners
 
 ```cpp
@@ -176,7 +206,7 @@ The `VampPlannerRegistry` class provides:
 
 ### Key Features
 
-1. **Automatic Registration**: All OMPL geometric planners are automatically registered
+1. **Automatic Registration**: All 45 OMPL geometric planners are automatically registered
 2. **Error Handling**: Comprehensive error messages with available planner suggestions
 3. **Runtime Extensibility**: Custom planners can be registered at runtime
 4. **Type Safety**: Strong typing with proper OMPL integration

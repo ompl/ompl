@@ -80,6 +80,7 @@
 // Experience-based Planners
 #include <ompl/geometric/planners/experience/LightningRetrieveRepair.h>
 #include <ompl/geometric/planners/experience/ThunderRetrieveRepair.h>
+#include "VampExperiencePlanners.h"
 
 #include <memory>
 #include <map>
@@ -483,6 +484,8 @@ private:
     VampPlannerRegistry() {
         registerAllOMPLPlanners();
         initializeProjectionMetadata();
+        // Initialize experience planners system
+        vamp_ompl::initializeExperiencePlanners();
     }
     
     /**
@@ -817,6 +820,35 @@ private:
         // LightningRetrieveRepair requires LightningDBPtr
         // ThunderRetrieveRepair requires ThunderDBPtr
         // These are not suitable for basic registry without database setup
+        
+        // Experience-based planners WITH DEFAULT DATABASES
+        // Users can still register custom databases programmatically
+        registerPlanner("Lightning", [](const ob::SpaceInformationPtr& si) {
+            // Use default configuration
+            auto config = vamp_ompl::ExperienceConfig::createDefault("default", "default");
+            return std::static_pointer_cast<ob::Planner>(
+                vamp_ompl::VampExperiencePlanners::getInstance().createLightningPlanner(si, config));
+        });
+        
+        registerPlanner("Thunder", [](const ob::SpaceInformationPtr& si) {
+            // Use default configuration
+            auto config = vamp_ompl::ExperienceConfig::createDefault("default", "default");
+            return std::static_pointer_cast<ob::Planner>(
+                vamp_ompl::VampExperiencePlanners::getInstance().createThunderPlanner(si, config));
+        });
+        
+        // OMPL-standard names for compatibility
+        registerPlanner("LightningRetrieveRepair", [](const ob::SpaceInformationPtr& si) {
+            auto config = vamp_ompl::ExperienceConfig::createDefault("default", "default");
+            return std::static_pointer_cast<ob::Planner>(
+                vamp_ompl::VampExperiencePlanners::getInstance().createLightningPlanner(si, config));
+        });
+        
+        registerPlanner("ThunderRetrieveRepair", [](const ob::SpaceInformationPtr& si) {
+            auto config = vamp_ompl::ExperienceConfig::createDefault("default", "default");
+            return std::static_pointer_cast<ob::Planner>(
+                vamp_ompl::VampExperiencePlanners::getInstance().createThunderPlanner(si, config));
+        });
         
         // Other Single-Query Planners
         registerPlanner("SST", [](const ob::SpaceInformationPtr& si) {
