@@ -58,19 +58,7 @@ if (OMPL_BUILD_DEMOS)
 
     add_ompl_demo(demo_SpaceTimePlanning SpaceTimePlanning.cpp)
 
-    # yaml-cpp is now a required dependency, so we can use it directly
-    # yaml-cpp might not come with alias or namespaced target names, so add it here.
-    # https://github.com/jbeder/yaml-cpp/issues/1025
-    # https://github.com/jbeder/yaml-cpp/pull/1196
-    if(NOT TARGET yaml-cpp::yaml-cpp AND TARGET yaml-cpp)
-        # Aliasing local imported targets is only supported in CMake >=3.18.
-        # Promoting yaml-cpp to the global scope here prevents errors on
-        # older CMake versions.
-        # (see: https://cmake.org/cmake/help/latest/command/add_library.html#alias-libraries)
-        set_target_properties(yaml-cpp PROPERTIES IMPORTED_GLOBAL TRUE)
-
-        add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
-    endif()
+    # yaml-cpp is now a required dependency and target alias is handled in main CMakeLists.txt
 
         add_ompl_demo(demo_MulticopterPlanning 
                     multicopter/MulticopterPlanning.cpp
