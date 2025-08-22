@@ -8,14 +8,13 @@ robot:
 
 # Planning Configuration  
 planner:
-  name: "PDST"
-  planning_time: 2.0
+  name: "TSRRT"  # Task-Space RRT - End-effector control
+  parameters:
+    range: "0.1"
+    goal_bias: "0.05"               
+  planning_time: 200.0
   simplification_time: 1.0
   optimize_path: false
-  
-  # PDST specific parameters
-  # PDST (Path-Directed Subdivision Tree) - Efficient single-query planner with path-directed exploration
-  parameters: {}
 
 # Explicit Start Configuration (joint angles in radians)
 start_config:

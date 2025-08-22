@@ -325,11 +325,8 @@ public:
      * ```cpp
      * auto& registry = VampPlannerRegistry::getInstance();
      * 
-     * // Option 1: Robot-wide custom projection (affects all projection-based planners)
-     * auto workspace_proj = registry.createWorkspaceProjection(space, robot_dim, {0,1,2});
-     * registry.registerCustomProjection("panda", "default", workspace_proj);
      * 
-     * // Option 2: Planner-specific custom projection  
+     * // Planner-specific custom projection  
      * auto kpiece_proj = registry.createCustomOrthogonalProjection(space, {1,3,5}, {0.05, 0.1, 0.15});
      * registry.registerCustomProjection("panda", "KPIECE_projection", kpiece_proj);
      * 
@@ -691,13 +688,8 @@ private:
         // Task-Space RRT - Advanced manipulation planning
         registerPlanner("TSRRT", [](const ob::SpaceInformationPtr& si) {
             try {
-                // Create intelligent task space configuration with simple workspace bounds
-                ob::RealVectorBounds workspace_bounds(3);
-                workspace_bounds.setLow(0, -1.0); workspace_bounds.setHigh(0, 1.0);   // X: ±1m
-                workspace_bounds.setLow(1, -1.0); workspace_bounds.setHigh(1, 1.0);   // Y: ±1m  
-                workspace_bounds.setLow(2, -0.2); workspace_bounds.setHigh(2, 1.5);   // Z: table to reach
-                
-                auto task_config = VampTaskSpaceFactory::createIntelligentConfig(si, workspace_bounds);
+                // Create default task space configuration for manipulators
+                auto task_config = VampTaskSpaceFactory::createDefault(si);
                 
                 if (!task_config) {
                     throw std::runtime_error("Failed to create TSRRT task space configuration");
@@ -799,8 +791,8 @@ private:
         // XXL Family - High-dimensional manipulation planners
         registerPlanner("XXL", [](const ob::SpaceInformationPtr& si) {
             try {
-                // Create intelligent decomposition with automatic workspace estimation
-                auto decomposition = VampXXLDecompositionFactory::createIntelligentDecomposition(si);
+                // Create default decomposition for manipulators
+                auto decomposition = VampXXLDecompositionFactory::createDefault(si);
                 
                 if (!decomposition) {
                     throw std::runtime_error("Failed to create XXL decomposition");

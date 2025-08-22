@@ -80,15 +80,19 @@ namespace conversion {
     class SafeConfigurationConverter {
     private:
         static constexpr std::size_t robot_dimension_ = Robot::dimension;
-        std::unique_ptr<float[]> buffer_;
+        // CRITICAL: Use aligned allocation for SIMD compatibility
+        // VAMP configurations use SIMD operations that require 32-byte alignment
+        static constexpr std::size_t SIMD_ALIGNMENT = 32;
+        alignas(SIMD_ALIGNMENT) float buffer_[MAX_SUPPORTED_ROBOT_DIMENSION];
         std::size_t buffer_size_;
         
     public:
         SafeConfigurationConverter() 
-            : buffer_(std::make_unique<float[]>(robot_dimension_))
-            , buffer_size_(robot_dimension_) {
+            : buffer_size_(robot_dimension_) {
             static_assert(robot_dimension_ <= MAX_SUPPORTED_ROBOT_DIMENSION, 
                          "Robot dimension exceeds maximum supported dimension");
+            // Initialize buffer to zero for safety
+            std::fill(std::begin(buffer_), std::begin(buffer_) + robot_dimension_, 0.0f);
         }
         
         // Non-copyable but movable for performance
@@ -113,12 +117,17 @@ namespace conversion {
                 throw std::invalid_argument("Expected RealVectorStateSpace::StateType");
             }
             
+            // CRITICAL: Check if values array is valid before accessing
+            if (!real_vector_state->values) {
+                throw std::invalid_argument("RealVectorStateSpace::StateType has null values array");
+            }
+            
             // Safe conversion with bounds checking
             for (std::size_t joint_index = 0; joint_index < robot_dimension_; ++joint_index) {
                 buffer_[joint_index] = static_cast<float>(real_vector_state->values[joint_index]);
             }
             
-            return typename Robot::Configuration(buffer_.get());
+            return typename Robot::Configuration(buffer_);
         }
     };
     

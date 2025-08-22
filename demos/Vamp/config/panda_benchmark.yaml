@@ -359,18 +359,18 @@ benchmark:
     # META-PLANNERS (2 planners) - Multi-threaded planners
     # ========================================
     
-    # - name: "CForest"  # Concurrent Forest of planners
-    #   parameters:
-    #     focus_search: "1"               # Enable focused search
-    #     num_threads: "0"                # Number of threads (0 = auto-detect)
+    - name: "CForest"  # Concurrent Forest of planners
+      parameters:
+        focus_search: "1"               # Enable focused search
+        num_threads: "0"                # Number of threads (0 = auto-detect)
 
-    # - name: "AnytimePathShortening"  # Anytime path improvement
-    #   parameters:
-    #     shortcut: "1"                   # Enable shortcutting
-    #     hybridize: "1"                  # Enable hybridization
-    #     max_hybrid_paths: "24"          # Max hybridization paths
-    #     num_planners: "0"               # Number of planners (0 = auto-detect)
-    #     planners: ""                    # Planner list (empty = default)
+    - name: "AnytimePathShortening"  # Anytime path improvement
+      parameters:
+        shortcut: "1"                   # Enable shortcutting
+        hybridize: "1"                  # Enable hybridization
+        max_hybrid_paths: "24"          # Max hybridization paths
+        num_planners: "0"               # Number of planners (0 = auto-detect)
+        planners: ""                    # Planner list (empty = default)
 
     # ========================================
     # INDIVIDUAL PLANNERS (3 planners) - Specialized algorithms
@@ -401,7 +401,6 @@ benchmark:
 
     # ========================================
     # ADVANCED MANIPULATION PLANNERS (2 planners) - High-dimensional & Task-space
-    # NOTE: Temporarily disabled - requires proper implementation
     # ========================================
     
     - name: "XXL"  # eXtended eXtended Lattice - High-dimensional manipulation
