@@ -423,11 +423,6 @@ private:
             {"range", ParameterMetadata("Maximum step size for tree extension", 0.1, 0.01, 1.0)}
         };
         
-        // XXL commented out - requires special decomposition setup not implemented
-        // planner_metadata_["XXL"] = {
-        //     {"rand_walk_rate", ParameterMetadata("Random walk rate", 0.05, 0.0, 1.0)}
-        // };
-        
         // Many planners have no specific parameters beyond what OMPL provides by default
         // RRTXstatic - Advanced RRT* variant with many parameters
         planner_metadata_["RRTXstatic"] = {

@@ -73,9 +73,6 @@
 #include <ompl/geometric/planners/rlrt/RLRT.h>
 #include <ompl/geometric/planners/rlrt/BiRLRT.h>
 
-// XXL Family - Complete coverage (commented out - requires special decomposition setup)
-// #include <ompl/geometric/planners/xxl/XXL.h>
-
 // Anytime/Multi-threaded Planners
 #include <ompl/geometric/planners/cforest/CForest.h>
 #include <ompl/geometric/planners/AnytimePathShortening.h>
@@ -244,7 +241,7 @@ public:
     }
     
     /**
-     * @brief Create mathematically optimal default projection for manipulators
+     * @brief Create default projection for manipulators
      * 
      * 
      * 
@@ -316,7 +313,7 @@ public:
     }
     
     /**
-     * @brief Register custom projection function (Advanced Users)
+     * @brief Register custom projection function
      * 
      * Advanced users can register custom projection functions for specialized applications.
      * 
