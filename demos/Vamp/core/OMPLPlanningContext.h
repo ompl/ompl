@@ -3,12 +3,11 @@
 #include "VampOMPLInterfaces.h"
 #include "VampValidators.h"
 #include "VampUtils.h"
+#include "OMPLPlannerRegistry.h"
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/geometric/PathSimplifier.h>
-#include <ompl/geometric/planners/informedtrees/BITstar.h>
-#include <ompl/geometric/planners/rrt/RRTConnect.h>
-#include <ompl/geometric/planners/prm/PRM.h>
+#include <ompl/geometric/SimpleSetup.h>
 #include <chrono>
 #include <iostream>
 #include <functional>
@@ -23,6 +22,8 @@ namespace og = ompl::geometric;
  * 
  * This class encapsulates all OMPL-specific functionality and serves as an adapter
  * between the generic VAMP-OMPL interface and OMPL's internal structures.
+ * 
+ * @tparam Robot VAMP robot type (e.g., vamp::robots::Panda)
  */
 template<typename Robot>
 class OMPLPlanningContext {
@@ -33,18 +34,13 @@ public:
     using VectorizedEnvironment = vamp::collision::Environment<vamp::FloatVector<simd_lane_width_>>;
 
 private:
-    std::shared_ptr<ob::SpaceInformation> space_information_;
-    std::shared_ptr<ob::ProblemDefinition> problem_definition_;
+    std::unique_ptr<og::SimpleSetup> simple_setup_;
     
 public:
     /**
      * @brief Setup the OMPL state space using robot configuration
      * @param robot_configuration Robot configuration providing joint limits
      * @param vectorized_environment VAMP environment for validators
-     * 
-     * Note: This method demonstrates how to bridge different libraries'
-     * configuration systems. Robot limits from VAMP are translated to OMPL's
-     * bounds system, maintaining type safety and validation throughout.
      */
     void setup_state_space(const RobotConfig<Robot>& robot_configuration, 
                           const VectorizedEnvironment& vectorized_environment) {
@@ -68,34 +64,32 @@ public:
         
         real_vector_space->setBounds(joint_bounds);
         
-        // Create space information
-        space_information_ = std::make_shared<ob::SpaceInformation>(real_vector_space);
+        // Create SimpleSetup
+        simple_setup_ = std::make_unique<og::SimpleSetup>(real_vector_space);
         
         // Set VAMP validators
-        space_information_->setStateValidityChecker(
-            std::make_shared<VampStateValidator<Robot>>(space_information_, vectorized_environment));
-        space_information_->setMotionValidator(
-            std::make_shared<VampMotionValidator<Robot>>(space_information_, vectorized_environment));
+        simple_setup_->setStateValidityChecker(
+            std::make_shared<VampStateValidator<Robot>>(simple_setup_->getSpaceInformation(), vectorized_environment));
+        simple_setup_->getSpaceInformation()->setMotionValidator(
+            std::make_shared<VampMotionValidator<Robot>>(simple_setup_->getSpaceInformation(), vectorized_environment));
         
-        space_information_->setup();
+        // Set optimization objective
+        auto path_length_objective = std::make_shared<ob::PathLengthOptimizationObjective>(simple_setup_->getSpaceInformation());
+        simple_setup_->getProblemDefinition()->setOptimizationObjective(path_length_objective);
     }
     
     /**
      * @brief Set up the planning problem with start and goal configurations
      * @param start_configuration Start configuration as array
      * @param goal_configuration Goal configuration as array
-     * 
-     * Note: This method shows how to convert between different
-     * configuration representations while maintaining numerical precision.
-     * The conversion from arrays to OMPL states is explicit and type-safe.
      */
     void set_problem(const std::array<float, robot_dimension_>& start_configuration, 
                     const std::array<float, robot_dimension_>& goal_configuration) {
-        if (!space_information_) {
+        if (!simple_setup_) {
             throw VampConfigurationError("State space not set up. Call setup_state_space first.");
         }
         
-        const auto& configuration_space = space_information_->getStateSpace();
+        const auto& configuration_space = simple_setup_->getStateSpace();
         ob::ScopedState<> start_state_ompl(configuration_space);
         ob::ScopedState<> goal_state_ompl(configuration_space);
         
@@ -105,46 +99,28 @@ public:
             goal_state_ompl[joint_index] = static_cast<double>(goal_configuration[joint_index]);
         }
         
-        // Create problem definition
-        problem_definition_ = std::make_shared<ob::ProblemDefinition>(space_information_);
-        problem_definition_->setStartAndGoalStates(start_state_ompl, goal_state_ompl);
-        
-        // Set optimization objective
-        auto path_length_objective = std::make_shared<ob::PathLengthOptimizationObjective>(space_information_);
-        problem_definition_->setOptimizationObjective(path_length_objective);
+        simple_setup_->setStartAndGoalStates(start_state_ompl, goal_state_ompl);
     }
     
     /**
      * @brief Plan using the specified configuration
-     * @param planningConfiguration Planning configuration
+     * @param planning_configuration Planning configuration
      * @return Planning results with timing and path information
-     * 
-     * Note: This method demonstrates the Template Method pattern -
-     * it defines a standard planning workflow that works with any OMPL planner.
      */
     auto plan(const PlanningConfig& planning_configuration) -> PlanningResult {
-        if (!problem_definition_) {
+        if (!simple_setup_) {
             throw VampConfigurationError("Problem not defined. Call set_problem first.");
         }
         
         PlanningResult planning_result;
         
         try {
-            // Create planner
-            auto selected_planner = create_planner_by_name(planning_configuration.planner_name);
-            
-            // Set planner parameters
-            for (const auto& [param_name, param_value] : planning_configuration.planner_parameters) {
-                bool success = selected_planner->params().setParam(param_name, param_value);
-                (void)success; // Suppress unused variable warning
-            }
-            
-            selected_planner->setProblemDefinition(problem_definition_);
-            selected_planner->setup();
+            // Set planner using OMPL's recommended setPlannerAllocator approach
+            simple_setup_->setPlannerAllocator(create_planner_allocator(planning_configuration.planner_name, planning_configuration.planner_parameters));
             
             // Plan with timing
             auto planning_start_time = std::chrono::steady_clock::now();
-            ob::PlannerStatus planning_status = selected_planner->solve(planning_configuration.planning_time);
+            ob::PlannerStatus planning_status = simple_setup_->solve(planning_configuration.planning_time);
             auto planning_end_time = std::chrono::steady_clock::now();
             
             planning_result.planning_time_us = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -153,11 +129,11 @@ public:
             // Check if solution was found
             if (planning_status == ob::PlannerStatus::EXACT_SOLUTION) {
                 planning_result.success = true;
-                planning_result.solution_path = problem_definition_->getSolutionPath();
+                planning_result.solution_path = simple_setup_->getProblemDefinition()->getSolutionPath();
                 
                 // Get initial cost
                 auto& geometric_path = static_cast<og::PathGeometric&>(*planning_result.solution_path);
-                auto optimization_objective = problem_definition_->getOptimizationObjective();
+                auto optimization_objective = simple_setup_->getProblemDefinition()->getOptimizationObjective();
                 planning_result.initial_cost = geometric_path.cost(optimization_objective).value();
                 planning_result.path_length = geometric_path.getStateCount();
                 
@@ -165,22 +141,14 @@ public:
                 if (planning_configuration.simplification_time > 0.0) {
                     auto simplification_start_time = std::chrono::steady_clock::now();
                     
-                    og::PathSimplifier path_simplifier(space_information_, 
-                                                     problem_definition_->getGoal(), 
-                                                     optimization_objective);
-                    bool path_was_simplified = path_simplifier.simplify(geometric_path, 
-                                                                       planning_configuration.simplification_time);
+                    simple_setup_->simplifySolution(planning_configuration.simplification_time);
                     
                     auto simplification_end_time = std::chrono::steady_clock::now();
                     planning_result.simplification_time_us = std::chrono::duration_cast<std::chrono::microseconds>(
                         simplification_end_time - simplification_start_time).count();
                     
-                    if (path_was_simplified) {
-                        planning_result.final_cost = geometric_path.cost(optimization_objective).value();
-                        planning_result.path_length = geometric_path.getStateCount();
-                    } else {
-                        planning_result.final_cost = planning_result.initial_cost;
-                    }
+                    planning_result.final_cost = geometric_path.cost(optimization_objective).value();
+                    planning_result.path_length = geometric_path.getStateCount();
                 } else {
                     planning_result.final_cost = planning_result.initial_cost;
                 }
@@ -202,7 +170,7 @@ public:
      * @return Shared pointer to space information
      */
     auto get_space_information() const -> std::shared_ptr<ob::SpaceInformation> {
-        return space_information_;
+        return simple_setup_ ? simple_setup_->getSpaceInformation() : nullptr;
     }
     
     /**
@@ -210,151 +178,28 @@ public:
      * @return Shared pointer to problem definition
      */
     auto get_problem_definition() const -> std::shared_ptr<ob::ProblemDefinition> {
-        return problem_definition_;
+        return simple_setup_ ? simple_setup_->getProblemDefinition() : nullptr;
     }
 
 private:
     /**
-     * @brief Extensible Factory pattern for planner creation with Registry approach
+     * @brief Create planner allocator using the registry pattern
+     * @param planner_name Name of the planner to create
+     * @param planner_parameters Parameters to set on the planner
+     * @return Planner allocator function
      * 
-     * This factory implements the Open/Closed Principle by allowing runtime
-     * registration of new planners without source code modification.
-     * Uses the Registry pattern with lambda-based factory functions.
+     * This method uses the PlannerRegistry to create planners, allowing users
+     * to register custom planners without modifying this code. The registry
+     * handles parameter configuration using OMPL's ParamSet system.
      */
-    class PlannerFactory {
-    public:
-        using PlannerCreatorFunction = std::function<std::shared_ptr<ob::Planner>(const ob::SpaceInformationPtr&)>;
+    auto create_planner_allocator(const std::string& planner_name, 
+                                 const std::map<std::string, std::string>& planner_parameters) -> ob::PlannerAllocator {
         
-        /**
-         * @brief Get factory instance
-         * 
-         */
-        static PlannerFactory& getInstance() {
-            static PlannerFactory factoryInstance;
-            return factoryInstance;
-        }
-        
-        /**
-         * @brief Create planner by name using registry lookup
-         * @param plannerName Planner name as string identifier
-         * @param spaceInformation Space information for planner initialization
-         * @return Created planner instance
-         * @throws VampConfigurationError for unknown planners (explicit error handling)
-         * 
-         */
-        std::shared_ptr<ob::Planner> createPlanner(const std::string& plannerName, 
-                                                   const ob::SpaceInformationPtr& spaceInformation) {
-            auto factoryIterator = planner_creators_.find(plannerName);
-            if (factoryIterator == planner_creators_.end()) {
-                throw VampConfigurationError("Unknown planner: '" + plannerName + "'. Available: " + 
-                                          getAvailablePlannerNames());
-            }
-            return factoryIterator->second(spaceInformation);
-        }
-        
-        /**
-         * @brief Register a new planner type (Open/Closed Principle compliance)
-         * @param planner_name Name identifier for the planner
-         * @param plannerAllocatorFn Factory function to create the planner
-         */
-        void register_planner(const std::string& planner_name, PlannerCreatorFunction plannerAllocatorFn) {
-            planner_creators_[planner_name] = std::move(plannerAllocatorFn);
-        }
-        
-        /**
-         * @brief Get list of available planners for error messages and user interfaces
-         * 
-         */
-        std::string getAvailablePlannerNames() const {
-            std::string plannerNamesList;
-            for (const auto& plannerEntry : planner_creators_) {
-                if (!plannerNamesList.empty()) plannerNamesList += ", ";
-                plannerNamesList += plannerEntry.first;
-            }
-            return plannerNamesList;
-        }
-        
-    private:
-        std::map<std::string, PlannerCreatorFunction> planner_creators_;
-        
-        /**
-         * @brief Constructor registers default OMPL planners using lambda functions
-         * 
-         * This constructor only registers the core OMPL planners that are commonly used.
-         * Additional planners can be registered at runtime using the register_planner() 
-         * method without modifying this source code.
-         * 
-         * Extensibility Pattern:
-         * The factory follows the Open/Closed Principle:
-         * - OPEN for extension: New planners can be added via registerPlanner()
-         * - CLOSED for modification: No source code changes needed for new planners
-         * 
-         * Example of runtime planner registration:
-         * ```cpp
-         * OMPLPlanningContext<Robot>::registerPlanner("RRT*", 
-         *     [](const ob::SpaceInformationPtr& si) {
-         *         return std::make_shared<og::RRTstar>(si);
-         *     });
-         * ```
-         * 
-         * Performance Note: Lambda functions are compiled to optimal code
-         * with no runtime overhead compared to function pointers.
-         */
-        PlannerFactory() {
-            // Register standard OMPL planners with descriptive names
-            planner_creators_["BIT*"] = [](const ob::SpaceInformationPtr& spaceInformation) {
-                return std::make_shared<og::BITstar>(spaceInformation);
-            };
-            planner_creators_["RRT-Connect"] = [](const ob::SpaceInformationPtr& spaceInformation) {
-                return std::make_shared<og::RRTConnect>(spaceInformation);
-            };
-            planner_creators_["PRM"] = [](const ob::SpaceInformationPtr& spaceInformation) {
-                return std::make_shared<og::PRM>(spaceInformation);
-            };
-            
-            // Note: Additional planners can be registered at runtime using:
-            // OMPLPlanningContext<Robot>::registerPlanner(name, factory_function)
-            // This eliminates the need to modify this source code for new planners.
-        }
-    };
-    
-    /**
-     * @brief Register a new planner type for runtime extensibility (Open/Closed Principle)
-     * 
-     * This method allows adding new OMPL planners without modifying the library source code.
-     * The factory function will be called each time a planner instance is needed.
-     * 
-     * @param planner_name Unique string identifier for the planner
-     * @param plannerAllocatorFn Factory function that creates planner instances
-     * 
-     * Example:
-     * ```cpp
-     * OMPLPlanningContext<Robot>::registerPlanner("RRT*", 
-     *     [](const ob::SpaceInformationPtr& si) {
-     *         auto planner = std::make_shared<og::RRTstar>(si);
-     *         // Optional: Set planner-specific parameters here
-     *         return planner;
-     *     });
-     * ```
-     * 
-     * @note Thread safety: Registration should typically occur during initialization
-     * before concurrent planning operations begin.
-     */
-    static void registerPlanner(const std::string& planner_name, 
-                               std::function<std::shared_ptr<ob::Planner>(const ob::SpaceInformationPtr&)> plannerAllocatorFn) {
-        PlannerFactory::getInstance().register_planner(planner_name, std::move(plannerAllocatorFn));
+        return [planner_name, planner_parameters](const ob::SpaceInformationPtr& si) -> ob::PlannerPtr {
+            // Use the registry to create the planner with parameters
+            return createPlannerByName(planner_name, si, planner_parameters);
+        };
     }
-    
-    /**
-     * @brief Create planner by name
-     * 
-     * Note: This method hides the complexity of factory singleton access and
-     * provides a clean, simple interface for planner creation.
-     */
-    auto create_planner_by_name(const std::string& planner_name) -> std::shared_ptr<ob::Planner> {
-        return PlannerFactory::getInstance().createPlanner(planner_name, space_information_);
-    }
-
 };
 
 } // namespace vamp_ompl

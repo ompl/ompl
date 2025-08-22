@@ -17,7 +17,7 @@ A high-performance motion planning system that integrates VAMP's SIMD-accelerate
 
 # Benchmarking
 ./demo_Vamp panda_benchmark.yaml --benchmark
-./demo_Vamp --robot panda --benchmark    # Quick benchmark
+./demo_Vamp --robot panda               # Quick benchmark
 
 # Visualization
 ./demo_Vamp panda_demo.yaml --visualize
@@ -27,15 +27,14 @@ A high-performance motion planning system that integrates VAMP's SIMD-accelerate
 - `--benchmark`: Enable benchmarking mode (generates OMPL-compliant .log files)
 - `--visualize`: Enable 3D visualization output
 - `--robot <name>`: Quick benchmark for specific robot (panda, ur5, fetch)
-- `--runs <N>`: Number of benchmark runs (default: 25)
-- `--timeout <seconds>`: Planning timeout per run (default: 5.0)
+- `--planar-arm`: Run 2DOF planar arm demo (can combine with --benchmark or --visualize)
 - `--list-robots`: List all registered robots
 - `--help`: Show complete usage information
 
 ## Key Features
 
 - **SIMD-Accelerated Performance**: 8x faster collision checking via vectorization
-- **43+ OMPL Planners**: Comprehensive support for OMPL geometric planners
+- **Extensible OMPL Planners**: Built-in support for RRT-Connect, BIT*, PRM with easy registration for additional planners
 - **Multiple Robot Types**: Built-in support for Panda, UR5, Fetch robots
 - **Custom Robot Support**: Extensible robot registration system
 - **YAML Configuration**: Flexible scene and planner configuration
@@ -72,7 +71,7 @@ obstacles:
 # 1. Run benchmark
 ./demo_Vamp panda_benchmark.yaml --benchmark
 
-# 2. Generate database
+# 2. Generate database (from OMPL root directory)
 python3 scripts/ompl_benchmark_statistics.py vamp_benchmark_*.log -d results.db
 
 # 3. Visualize at http://plannerarena.org (upload results.db)
@@ -105,7 +104,7 @@ REGISTER_VAMP_ROBOT(vamp::robots::MyRobot, "my_robot");
 - **[Architecture Overview](ARCHITECTURE.md)**: System design and performance architecture
 - **[API Reference](docs/API-Reference.md)**: Complete API documentation
 - **[Contributor Guide](docs/CONTRIBUTOR-GUIDE.md)**: Development guidelines and extension patterns
-- **[All Planners Support](docs/ALL_PLANNERS_SUPPORT.md)**: Complete list of supported OMPL planners
+- **[Planner Registry](core/OMPLPlannerRegistry.h)**: Extensible planner registration system with built-in support for common planners
 - **[Visual Diagrams](docs/diagrams/)**: Architecture diagrams and system flows
 
 ## Performance Notes

@@ -94,27 +94,19 @@ classDiagram
         +registerPlanner(name, factory) static
     }
     
-    class VampPlannerRegistry {
+    class PlannerRegistry {
         <<Singleton Registry>>
-        -plannerCreators map~string, PlannerCreatorFunction~
-        -projectionBasedPlanners set~string~
-        +getInstance() VampPlannerRegistry&
-        +createPlanner(config, si) PlannerPtr
-        +createPlanner(name, si) PlannerPtr
-        +registerPlanner(name, creator)
+        -plannerAllocators map~string, PlannerAllocatorFunction~
+        -mutex mutex
+        +getInstance() PlannerRegistry& static
+        +registerPlanner(name, allocator)
+        +createPlanner(name, si, params) PlannerPtr
+        +isPlannerRegistered(name) bool
+        +getRegisteredPlanners() vector~string~
         +getAvailablePlannerNames() string
         +getPlannerCount() size_t
-        -registerAllOMPLPlanners()
-        -applyUserParameters(planner, params)
-        -applyProjectionIfNeeded(planner, si, name, robot)
-    }
-    
-    class VampParameterManager {
-        <<Parameter Optimization>>
-        +applyOptimalParameters(planner, robot) static
-        +getOptimalRangeRatio(robot) static
-        +getOptimalGoalBias(robot) static
-        -parameterDatabase map~string, Parameters~
+        -registerBuiltInPlanners()
+        -applyParameters(planner, params) static
     }
     
     %% Configuration System Hierarchy
@@ -272,11 +264,9 @@ classDiagram
     OMPLPlanningContext --> OMPLProblemDefinition : manages
     OMPLPlanningContext --> VampStateValidator : creates
     OMPLPlanningContext --> VampMotionValidator : creates
-    OMPLPlanningContext --> VampPlannerRegistry : uses
+    OMPLPlanningContext --> PlannerRegistry : uses
     
-    VampPlannerRegistry --> OMPLPlanner : creates
-    VampPlannerRegistry --> VampParameterManager : uses
-    VampParameterManager --> OMPLPlanner : optimizes
+    PlannerRegistry --> OMPLPlanner : creates
     
     %% Configuration System Relationships
     RobotConfig <|-- RobotConfiguration

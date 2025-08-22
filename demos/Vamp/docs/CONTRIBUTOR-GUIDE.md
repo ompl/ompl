@@ -3,11 +3,6 @@
 ## Overview
 This guide helps new contributors understand the VAMP architecture, design principles, and extension patterns. VAMP integrates high-performance SIMD collision detection with OMPL's motion planning algorithms while maintaining clean architectural separation.
 
-## License and Contributions
-
-
-This VAMP-OMPL integration package was developed by Sahruday Patti at Rice University. The underlying VAMP system was developed by Wil Thomason, Zachary Kingston, and Lydia E. Kavraki, as described in the paper "Motion in Microseconds via Vectorized Sampling-Based Planning".
-
 ## Architecture Principles
 
 ### Core Design Philosophy

@@ -6,15 +6,25 @@ robot:
   name: "panda"
   description: "Franka Emika Panda 7-DOF manipulator"
 
-# Planning Configuration  
+# Planning Configuration - Example 1: RRT-Connect with custom parameters
 planner:
-  name: "TSRRT"  # Task-Space RRT - End-effector control
+  name: "RRT-Connect"  # Simple and effective planner
   parameters:
-    range: "0.1"
-    goal_bias: "0.05"               
-  planning_time: 200.0
+    range: "0.3"                    # Connection range
+    intermediate_states: "false"    # Don't store intermediate states               
+  planning_time: 5.0
   simplification_time: 1.0
   optimize_path: false
+
+# Alternative Example 2: BIT* with custom parameters (uncomment to use)
+# planner:
+#   name: "BIT*"
+#   parameters:
+#     rewire_factor: "1.1"          # Rewiring factor
+#     samples_per_batch: "100"      # Samples per batch
+#     use_k_nearest: "true"         # Use k-nearest connection strategy
+#   planning_time: 10.0
+#   simplification_time: 2.0
 
 # Explicit Start Configuration (joint angles in radians)
 start_config:

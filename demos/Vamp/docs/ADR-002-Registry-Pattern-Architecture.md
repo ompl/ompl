@@ -1,21 +1,29 @@
-# ADR-002: Registry Pattern for Robot Type Management
+# ADR-002: Registry Pattern Architecture
 
 ## Status
-TBD
+IMPLEMENTED
 
 ## Context
-The system needs to support multiple robot types (Panda, UR5, Fetch, custom robots) while maintaining type safety and enabling runtime robot selection. Traditional approaches either sacrifice type safety for flexibility or require compile-time robot selection.
+The system needs to support multiple robot types (Panda, UR5, Fetch, custom robots) and multiple planner types (RRT-Connect, BIT*, PRM, custom planners) while maintaining type safety and enabling runtime selection. Traditional approaches either sacrifice type safety for flexibility or require compile-time selection.
 
 ## Decision
-Implement a Registry pattern with type erasure (`std::any`) that provides runtime polymorphism while preserving compile-time type safety for robot-specific operations.
+Implement Registry patterns for both robots and planners:
+1. **RobotRegistry**: Uses type erasure (`std::any`) for runtime robot selection with compile-time type safety
+2. **PlannerRegistry**: Uses factory functions for runtime planner registration and creation
 
 ## Architecture
 
-### Core Components
+### Robot Registry Components
 1. **RobotRegistry**: Singleton managing robot type registration
 2. **RobotHandler**: Abstract interface for type-erased operations
 3. **TypedRobotHandler<Robot>**: Concrete implementations maintaining type safety
 4. **REGISTER_VAMP_ROBOT**: Macro for automatic registration
+
+### Planner Registry Components
+1. **PlannerRegistry**: Singleton managing planner factory functions
+2. **PlannerAllocatorFunction**: Factory function type for planner creation
+3. **registerPlanner()**: Global function for planner registration
+4. **createPlannerByName()**: Global function for planner creation
 
 ### Type Safety Mechanism
 ```cpp
@@ -30,9 +38,16 @@ std::map<std::string, std::unique_ptr<RobotHandler>> handlers;
 ```
 
 ### Registration Strategy
+
+#### Robot Registration
 - **Built-in robots**: Auto-registered at static initialization
 - **Custom robots**: Manual registration via macro
 - **Runtime discovery**: Query available robots dynamically
+
+#### Planner Registration
+- **Built-in planners**: Auto-registered in PlannerRegistry constructor
+- **Custom planners**: Runtime registration via registerPlanner() function
+- **Extensible**: New planners added without core code modification
 
 ## Implementation Benefits
 
@@ -87,11 +102,29 @@ REGISTER_VAMP_ROBOT(vamp::robots::Panda, "panda");
 RobotRegistry::getInstance().registerRobot<MyCustomRobot>("my_robot");
 ```
 
-### Runtime Robot Selection
+### Planner Registration
+```cpp
+// Register custom planner
+registerPlanner("AORRTC", [](const ob::SpaceInformationPtr& si, const auto& params) {
+    auto planner = std::make_shared<ompl::geometric::AORRTC>(si);
+    // Apply parameters using OMPL's ParamSet
+    for (const auto& [key, value] : params) {
+        if (planner->params().hasParam(key)) {
+            planner->params().setParam(key, value);
+        }
+    }
+    return planner;
+});
+```
+
+### Runtime Selection
 ```cpp
 // Configuration-driven robot selection
-auto& registry = RobotRegistry::getInstance();
-auto planner = registry.createPlanner(robot_name, config, env_factory);
+auto& robot_registry = RobotRegistry::getInstance();
+auto planner = robot_registry.createPlanner(robot_name, config, env_factory);
+
+// Configuration-driven planner selection
+auto ompl_planner = createPlannerByName(planner_name, space_info, parameters);
 ```
 
 ## Error Handling Strategy

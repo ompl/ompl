@@ -1,6 +1,6 @@
-# VA-OMPL Motion Planning Package - Architecture Documentation
+# VAMP-OMPL Motion Planning Package - Architecture Documentation
 
-This document provides architectural documentation for the VAMPOMPL (Vectorized Accelerated Motion Planning) package, which integrates high-performance SIMD collision detection with OMPL's motion planning algorithms.
+This document provides architectural documentation for the VAMP-OMPL (Vectorized Accelerated Motion Planning with OMPL) package, which integrates high-performance SIMD collision detection with OMPL's motion planning algorithms.
 
 > ** Architecture Diagrams**: comprehensive visual diagrams are available in [`docs/diagrams/`](docs/diagrams/)
 
@@ -298,12 +298,13 @@ demos/Vamp/
 ├── ARCHITECTURE.md                    # This file - Architecture overview
 ├── README.md                          # User guide and examples
 │
-├── Core/
-├── VampOMPLPlanner.h                 # Main facade interface
-├── OMPLPlanningContext.h             # OMPL adapter layer
-├── VampValidators.h                  # SIMD-accelerated validators
-├── VampOMPLInterfaces.h              # Core data structures
-├── VampUtils.h                       # Utilities and configuration
+├── core/                             # Core implementation files
+│   ├── VampOMPLPlanner.h             # Main facade interface
+│   ├── OMPLPlanningContext.h         # OMPL adapter layer
+│   ├── VampValidators.h              # SIMD-accelerated validators
+│   ├── VampOMPLInterfaces.h          # Core data structures
+│   ├── VampOMPLDemo.h                # Demo application interface
+│   └── OMPLPlannerRegistry.h         # Planner registration system
 │
 ├── docs/                             #  Complete Documentation Suite
 │   ├── ADR-001-SIMD-Vectorization-Strategy.md
@@ -319,13 +320,15 @@ demos/Vamp/
 │       ├── 02-class-architecture-patterns.mmd
 │       ├── 03-planning-request-sequence.mmd
 │       └── 04-simd-performance-architecture.mmd
-        ├── 01-system-architecture-overview.svg
+│       ├── 01-system-architecture-overview.svg
 │       ├── 02-class-architecture-patterns.svg
 │       ├── 03-planning-request-sequence.svg
 │       └── 04-simd-performance-architecture.svg
 │
 ├── core/                             # Core implementation files
 ├── utilities/                        # Utility components
+│   ├── VampUtils.h                   # Configuration and utility functions
+│   └── VampRobotRegistry.h           # Robot registration system
 ├── examples/                         # Example implementations
 ├── demos/                           # Demo applications
 ├── benchmarking/                    # Performance measurement

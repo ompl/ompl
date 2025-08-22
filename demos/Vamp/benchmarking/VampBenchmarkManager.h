@@ -38,7 +38,7 @@
 #include "VampOMPLPlanner.h"
 #include "VampUtils.h"
 #include "VampRobotRegistry.h"
-#include "VampPlannerRegistry.h"
+#include "OMPLPlannerRegistry.h"
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <memory>
@@ -240,7 +240,7 @@ public:
 
 private:
     /**
-     * @brief Add planners to OMPL benchmark using comprehensive planner registry
+     * @brief Add planners to OMPL benchmark using the planner registry
      */
     void addPlannersToOMPLBenchmark(ompl::tools::Benchmark& benchmark,
                                    const BenchmarkConfiguration& config,
@@ -248,24 +248,19 @@ private:
         
         for (const auto& plannerName : config.planner_names) {
             try {
-                // Use the unified planner registry with enhanced optimization
-                std::shared_ptr<ompl::base::Planner> planner = 
-                    vamp_ompl::createPlannerByName(plannerName, spaceInfo);
-                
-                // Apply additional parameters if specified (these override optimized defaults)
+                // Use the registry to create planners with parameters
+                std::map<std::string, std::string> parameters;
                 if (config.planner_parameters.count(plannerName)) {
-                    const auto& params = config.planner_parameters.at(plannerName);
-                    for (const auto& [param_name, param_value] : params) {
-                        planner->params().setParam(param_name, param_value);
-                    }
+                    parameters = config.planner_parameters.at(plannerName);
                 }
                 
+                auto planner = createPlannerByName(plannerName, spaceInfo, parameters);
                 benchmark.addPlanner(planner);
-                std::cout << "Added optimized planner: " << plannerName << std::endl;
+                std::cout << "Added planner: " << plannerName << std::endl;
                 
-            } catch (const vamp_ompl::VampConfigurationError& e) {
+            } catch (const VampConfigurationError& e) {
                 std::cerr << "Warning: " << e.what() << std::endl;
-                std::cerr << "Available planners: " << vamp_ompl::getAllPlannerNames().size() << " planners" << std::endl;
+                std::cerr << "Available planners: " << PlannerRegistry::getInstance().getAvailablePlannerNames() << std::endl;
             } catch (const std::exception& e) {
                 std::cerr << "Warning: Failed to add planner " << plannerName 
                          << ": " << e.what() << std::endl;
