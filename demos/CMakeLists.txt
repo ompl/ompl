@@ -58,23 +58,19 @@ if (OMPL_BUILD_DEMOS)
 
     add_ompl_demo(demo_SpaceTimePlanning SpaceTimePlanning.cpp)
 
-    find_package(yaml-cpp CONFIG)
-    set_package_properties(yaml-cpp PROPERTIES
-        URL "https://github.com/jbeder/yaml-cpp"
-        PURPOSE "Used for parsing input data for the PlanarManipulator demo.")
-    if (yaml-cpp_FOUND)
-        # yaml-cpp might not come with alias or namespaced target names, so add it here.
-        # https://github.com/jbeder/yaml-cpp/issues/1025
-        # https://github.com/jbeder/yaml-cpp/pull/1196
-        if(NOT TARGET yaml-cpp::yaml-cpp AND TARGET yaml-cpp)
-            # Aliasing local imported targets is only supported in CMake >=3.18.
-            # Promoting yaml-cpp to the global scope here prevents errors on
-            # older CMake versions.
-            # (see: https://cmake.org/cmake/help/latest/command/add_library.html#alias-libraries)
-            set_target_properties(yaml-cpp PROPERTIES IMPORTED_GLOBAL TRUE)
+    # yaml-cpp is now a required dependency, so we can use it directly
+    # yaml-cpp might not come with alias or namespaced target names, so add it here.
+    # https://github.com/jbeder/yaml-cpp/issues/1025
+    # https://github.com/jbeder/yaml-cpp/pull/1196
+    if(NOT TARGET yaml-cpp::yaml-cpp AND TARGET yaml-cpp)
+        # Aliasing local imported targets is only supported in CMake >=3.18.
+        # Promoting yaml-cpp to the global scope here prevents errors on
+        # older CMake versions.
+        # (see: https://cmake.org/cmake/help/latest/command/add_library.html#alias-libraries)
+        set_target_properties(yaml-cpp PROPERTIES IMPORTED_GLOBAL TRUE)
 
-            add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
-        endif()
+        add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
+    endif()
 
         add_ompl_demo(demo_MulticopterPlanning 
                     multicopter/MulticopterPlanning.cpp
@@ -87,13 +83,12 @@ if (OMPL_BUILD_DEMOS)
         )
         target_link_libraries(demo_PlanarManipulator PRIVATE yaml-cpp::yaml-cpp)
 
-        add_ompl_demo(demo_MultiLevelPlanarManipulator
-            multilevel/MultiLevelPlanarManipulatorDemo.cpp
-            PlanarManipulator/PlanarManipulator.cpp
-            PlanarManipulator/PolyWorld.cpp
-        )
-        target_link_libraries(demo_MultiLevelPlanarManipulator PRIVATE yaml-cpp::yaml-cpp)
-    endif()
+    add_ompl_demo(demo_MultiLevelPlanarManipulator
+        multilevel/MultiLevelPlanarManipulatorDemo.cpp
+        PlanarManipulator/PlanarManipulator.cpp
+        PlanarManipulator/PolyWorld.cpp
+    )
+    target_link_libraries(demo_MultiLevelPlanarManipulator PRIVATE yaml-cpp::yaml-cpp)
 
     if (OMPL_EXTENSION_TRIANGLE)
         add_ompl_demo(demo_TriangulationDemo TriangulationDemo.cpp)
@@ -120,13 +115,9 @@ if (OMPL_BUILD_DEMOS)
             message(WARNING "VAMP vamp_cpp target not found - demos may not build correctly")
         endif()
         
-        # Link against yaml-cpp for configuration parsing
-        if(TARGET yaml-cpp::yaml-cpp)
-            target_link_libraries(demo_Vamp PRIVATE yaml-cpp::yaml-cpp)
-            message(STATUS "VAMP demos linked against yaml-cpp library")
-        else()
-            message(WARNING "yaml-cpp not found - VAMP demos may not build correctly")
-        endif()
+        # Link against yaml-cpp for configuration parsing (now required)
+        target_link_libraries(demo_Vamp PRIVATE yaml-cpp::yaml-cpp)
+        message(STATUS "VAMP demos linked against yaml-cpp library")
 
         # Copy configuration files to build directory for testing
         configure_file(

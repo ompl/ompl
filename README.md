@@ -20,6 +20,7 @@ OMPL has the following required dependencies:
 * [Boost](https://www.boost.org) (version 1.68 or higher)
 * [CMake](https://www.cmake.org) (version 3.12 or higher)
 * [Eigen](http://eigen.tuxfamily.org) (version 3.3 or higher)
+* [yaml-cpp](https://github.com/jbeder/yaml-cpp) - Used for parsing YAML configuration files, required for VAMP demos
 
 The following dependencies are optional:
 

@@ -66,7 +66,7 @@ sudo apt-get install ros-`rosversion -d`-ompl</pre>
   <!-- Linux (generic) -->
   <div class="tab-pane fade" id="linux" role="tabpanel" aria-labelledby="linux-tab">
     <h2>Linux (generic)</h2>
-    <p>OMPL requires <a href="https://www.boost.org">Boost</a> (version 1.68 or higher), <a href="https://www.cmake.org">CMake</a> (version 3.5 or higher), and <a href="http://eigen.tuxfamily.org">Eigen</a> (version 3.3 or higher).
+    <p>OMPL requires <a href="https://www.boost.org">Boost</a> (version 1.68 or higher), <a href="https://www.cmake.org">CMake</a> (version 3.5 or higher), <a href="http://eigen.tuxfamily.org">Eigen</a> (version 3.3 or higher), and <a href="https://github.com/jbeder/yaml-cpp">yaml-cpp</a> (for parsing YAML configuration files, required for VAMP demos).
     To be able to generate python bindings you need to install the <a href="https://www.python.org">Python</a> library and header files and <a href="installPyPlusPlus.html">Py++</a>.
     Finally, you need a C++17 compiler (g++-7 or newer).</p>
     <p><strong>Note:</strong> OMPL includes VAMP (Vector-Accelerated Motion Planning) by default, which requires <code>git</code> for submodule initialization.</p>
@@ -111,7 +111,7 @@ cmake ../..</pre></li>
         Install <a href="https://brew.sh">Homebrew</a> and type:
         <pre class="fragment">brew install ompl</pre>
         Note that the <a href="https://formulae.brew.sh/formula/ompl">Homebrew formula</a> does not include Python bindings. You could install all the dependencies for OMPL and the Python bindings and build OMPL from source:
-        <pre class="fragment">brew install eigen castxml numpy boost-python3 pypy3 flann</pre>
+        <pre class="fragment">brew install eigen castxml numpy boost-python3 pypy3 flann yaml-cpp</pre>
         <p><strong>Note:</strong> OMPL includes VAMP (Vector-Accelerated Motion Planning) by default, which requires <code>git</code> for submodule initialization.</p>
         <p>When building from source, initialize git submodules for VAMP:</p>
         <pre class="fragment">git submodule update --init --recursive</pre>

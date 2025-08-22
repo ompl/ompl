@@ -91,6 +91,11 @@ set_package_properties(Eigen3 PROPERTIES
     PURPOSE "A linear algebra library used throughout OMPL.")
 find_package(Eigen3 REQUIRED)
 
+set_package_properties(yaml-cpp PROPERTIES
+    URL "https://github.com/jbeder/yaml-cpp"
+    PURPOSE "Used for parsing YAML configuration files, required for VAMP demos.")
+find_package(yaml-cpp CONFIG REQUIRED)
+
 set_package_properties(Triangle PROPERTIES
     URL "http://www.cs.cmu.edu/~quake/triangle.html"
     PURPOSE "Used to create triangular decompositions of polygonal 2D environments.")
