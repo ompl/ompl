@@ -29,16 +29,17 @@ graph TB
     subgraph "OMPL Integration Layer"
         OPC --> SI["ompl::base::SpaceInformation<br/>(OMPL Core)"]
         OPC --> PD["ompl::base::ProblemDefinition<br/>(OMPL Core)"]
-        OPC --> VPR["VampPlannerRegistry<br/>(Singleton Registry)"]
+        OPC --> PR["PlannerRegistry<br/>(Singleton Registry)"]
         
         SI --> VSV["VampStateValidator&lt;Robot&gt;<br/>(SIMD Bridge)"]
         SI --> VMV["VampMotionValidator&lt;Robot&gt;<br/>(SIMD Bridge)"]
         
-        VPR --> OP1["43+ OMPL Planners<br/>(Auto-registered)"]
-        VPR --> OP2["Experience Planners<br/>(Lightning/Thunder)"]
-        VPR --> OPN["Custom Planners<br/>(Extension Point)"]
+        PR --> OP1["RRT-Connect<br/>(Built-in)"]
+        PR --> OP2["BIT*<br/>(Built-in)"]
+        PR --> OP3["PRM<br/>(Built-in)"]
+        PR --> OPN["Custom Planners<br/>(Extension Point)"]
         
-        VPR --> VPM["VampParameterManager<br/>(Auto-optimization)"]
+        PR --> PM["OMPL ParamSet<br/>(Parameter Management)"]
     end
     
     %% VAMP Performance Core
@@ -102,7 +103,7 @@ graph TB
     %% Apply styles
     class A,B,C,YL,VU userLayer
     class ER,RR,VOP,OPC,RC,EF facadeLayer
-    class SI,PD,PF,OP1,OP2,OP3,OPN omplLayer
+    class SI,PD,PR,OP1,OP2,OP3,OPN,PM omplLayer
     class VSV,VMV,CC,TLB,VE,SC,SPHERE,CUBOID,CAPSULE,CLOUD vampLayer
     class RT1,RT2,RT3,RTC,FKCC1,FKCC2,FKCC3,FKCCC robotLayer
     class VBM,OB,BL,OBS,PA benchLayer

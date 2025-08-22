@@ -5,8 +5,6 @@ A high-performance motion planning system that integrates VAMP's SIMD-accelerate
 ## Quick Start
 
 ### Prerequisites
-- C++17 or later
-- OMPL library
 - pybullet (for visualization): `pip install pybullet`
 
 ### Basic Usage

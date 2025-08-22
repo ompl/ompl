@@ -119,6 +119,76 @@ static void registerRobot(const std::string& name)
 **Template Parameter:** Robot type implementing VAMP robot interface  
 **Usage:** Typically called at static initialization time
 
+### PlannerRegistry
+
+Singleton registry for OMPL planner management with runtime string-based selection and parameter configuration.
+
+#### Core Methods
+
+##### getInstance()
+```cpp
+static PlannerRegistry& getInstance()
+```
+**Purpose:** Access singleton registry instance  
+**Thread Safety:** Safe for concurrent access after static initialization
+
+##### createPlanner()
+```cpp
+ob::PlannerPtr createPlanner(const std::string& name,
+                            const ob::SpaceInformationPtr& si,
+                            const std::map<std::string, std::string>& parameters = {})
+```
+**Purpose:** Create planner instance with parameters  
+**Returns:** Configured OMPL planner instance  
+**Throws:** `VampConfigurationError` for unknown planners
+
+**Parameters:**
+- `name`: Planner identifier (e.g., "RRT-Connect", "BIT*", "PRM")
+- `si`: OMPL space information
+- `parameters`: Parameter map for planner configuration
+
+##### getRegisteredPlanners()
+```cpp
+std::vector<std::string> getRegisteredPlanners() const
+```
+**Purpose:** Get list of available planner names  
+**Returns:** Vector of registered planner identifiers
+
+##### isPlannerRegistered()
+```cpp
+bool isPlannerRegistered(const std::string& name) const
+```
+**Purpose:** Check if planner is available  
+**Returns:** true if planner is registered
+
+#### Registration Methods
+
+##### registerPlanner()
+```cpp
+void registerPlanner(const std::string& name, PlannerAllocatorFunction allocator)
+```
+**Purpose:** Register custom planner with factory function  
+**Parameters:**
+- `name`: Unique planner identifier
+- `allocator`: Factory function that creates and configures the planner
+
+**Example:**
+```cpp
+PlannerRegistry::getInstance().registerPlanner("MyRRT*", 
+    [](const ob::SpaceInformationPtr& si, const auto& params) {
+        auto planner = std::make_shared<og::RRTstar>(si);
+        // Parameters are automatically applied via OMPL's ParamSet
+        return planner;
+    });
+```
+
+#### Built-in Planners
+
+The registry automatically registers three core planners:
+- **"RRT-Connect"**: Fast bidirectional tree planner
+- **"BIT*"**: Batch Informed Trees - asymptotically optimal
+- **"PRM"**: Probabilistic Roadmap - good for complex environments
+
 ### Configuration System
 
 #### PlanningConfig
@@ -187,13 +257,24 @@ REGISTER_VAMP_ROBOT(CustomRobot, "custom_robot");
 
 #### Factory Function Pattern
 ```cpp
-OMPLPlanningContext<Robot>::registerPlanner("CustomPlanner",
-    [](const ompl::base::SpaceInformationPtr& si) {
+registerPlanner("CustomPlanner",
+    [](const ompl::base::SpaceInformationPtr& si, const auto& params) {
         auto planner = std::make_shared<CustomOMPLPlanner>(si);
-        // Optional: Set planner-specific parameters
-        planner->setRange(0.5);
+        // Parameters are automatically applied via OMPL's ParamSet system
+        // Custom parameter handling can be added here if needed
         return planner;
     });
+```
+
+#### Using Convenience Functions
+```cpp
+// Global convenience function
+registerPlanner("MyPlanner", [](const auto& si, const auto& params) {
+    return std::make_shared<MyPlanner>(si);
+});
+
+// Create planner by name
+auto planner = createPlannerByName("MyPlanner", spaceInfo, {{"range", "0.5"}});
 ```
 
 ### Custom Environment Factory

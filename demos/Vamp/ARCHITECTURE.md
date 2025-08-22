@@ -359,8 +359,4 @@ demos/Vamp/
 - **Contributing**: See [`docs/CONTRIBUTOR-GUIDE.md`](docs/CONTRIBUTOR-GUIDE.md) for detailed guidelines
 - **Architecture Decisions**: Review ADRs in [`docs/`](docs/) for design rationale
 
-## License
-
-This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
-
 *For implementation details, see the individual header files and comprehensive documentation in [`docs/`](docs/).*

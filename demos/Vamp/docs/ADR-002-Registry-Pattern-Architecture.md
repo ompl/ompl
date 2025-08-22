@@ -24,6 +24,7 @@ Implement Registry patterns for both robots and planners:
 2. **PlannerAllocatorFunction**: Factory function type for planner creation
 3. **registerPlanner()**: Global function for planner registration
 4. **createPlannerByName()**: Global function for planner creation
+5. **OMPL ParamSet**: Built-in parameter management system
 
 ### Type Safety Mechanism
 ```cpp
@@ -45,8 +46,9 @@ std::map<std::string, std::unique_ptr<RobotHandler>> handlers;
 - **Runtime discovery**: Query available robots dynamically
 
 #### Planner Registration
-- **Built-in planners**: Auto-registered in PlannerRegistry constructor
+- **Built-in planners**: 3 core planners auto-registered (RRT-Connect, BIT*, PRM)
 - **Custom planners**: Runtime registration via registerPlanner() function
+- **Parameter management**: Uses OMPL's native ParamSet system for type-safe configuration
 - **Extensible**: New planners added without core code modification
 
 ## Implementation Benefits
@@ -55,24 +57,28 @@ std::map<std::string, std::unique_ptr<RobotHandler>> handlers;
 - Compile-time validation of robot interface compliance
 - Template-based type checking prevents configuration mismatches
 - SFINAE constraints ensure interface correctness
+- OMPL ParamSet provides type-safe parameter validation
 
 ### Runtime Flexibility
 - String-based robot selection for configuration systems
 - Dynamic robot discovery for tools and GUIs
 - Plugin architecture for external robot definitions
+- Runtime planner registration and parameter configuration
 
 ### Performance
 - Zero-cost abstractions for type-safe operations
 - Minimal overhead for type erasure (only at factory boundaries)
 - Template instantiation only for actually used robot types
+- OMPL's optimized parameter system for planner configuration
 
 ## Consequences
 
 ### Positive
-- **Extensibility**: New robots without core modifications
+- **Extensibility**: New robots and planners without core modifications
 - **Type Safety**: Compile-time validation prevents runtime errors
-- **Usability**: Simple string-based robot selection
+- **Usability**: Simple string-based robot and planner selection
 - **Performance**: Optimal code generation for robot-specific operations
+- **Standards Compliance**: Uses OMPL's standard parameter management
 
 ### Negative
 - Code complexity in registry implementation
