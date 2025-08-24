@@ -146,7 +146,7 @@
       <li>The <a href="https://ompl.kavrakilab.org/OMPL_Primer.pdf">OMPL primer</a> provides a brief background on
         sampling-based motion planning, and an overview of OMPL.</li>
       <li><a href="download.html">Download</a> and <a href="installation.html">install</a> OMPL.</li>
-      <li><a href="group__demos.html">Demos</a> and <a href="tutorials.html">tutorials</a>.</li>
+      <li><a href="demos.html">Demos</a> and <a href="tutorials.html">tutorials</a>.</li>
       <li><a href="FAQ.html">Frequently Asked Questions.</a></li>
       <li>Learn how to integrate your own code with <a href="buildSystem.html">OMPL's build system</a>.</li>
       <li><a href="integration.html">Learn more about how OMPL is integrated within other systems</a> (such as

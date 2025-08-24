@@ -1,13 +1,15 @@
-# VAMP-OMPL Integration Demo
+# VAMP-OMPL Integration Demo {#vamp-ompl}
 
 A high-performance motion planning system that integrates VAMP's SIMD-accelerated collision detection with OMPL's comprehensive planner library.
 
 ## Quick Start
 
 ### Prerequisites
+
 - pybullet (for visualization): `pip install pybullet`
 
 ### Basic Usage
+
 ```bash
 # Single planning run
 ./demo_Vamp                              # Default configuration
@@ -22,6 +24,7 @@ A high-performance motion planning system that integrates VAMP's SIMD-accelerate
 ```
 
 ### Command Line Options
+
 - `--benchmark`: Enable benchmarking mode (generates OMPL-compliant .log files)
 - `--visualize`: Enable 3D visualization output
 - `--robot <name>`: Quick benchmark for specific robot (panda, ur5, fetch)
@@ -43,6 +46,7 @@ A high-performance motion planning system that integrates VAMP's SIMD-accelerate
 ## Configuration Examples
 
 ### YAML Configuration
+
 ```yaml
 robot:
   name: "panda"
@@ -65,6 +69,7 @@ obstacles:
 ```
 
 ### Benchmarking Workflow
+
 ```bash
 # 1. Run benchmark
 ./demo_Vamp panda_benchmark.yaml --benchmark
@@ -77,9 +82,8 @@ python3 scripts/ompl_benchmark_statistics.py vamp_benchmark_*.log -d results.db
 
 ## Custom Robot Development
 
-For adding new robots, see the complete guide in [`docs/CONTRIBUTOR-GUIDE.md`](docs/CONTRIBUTOR-GUIDE.md#custom-robot-development).
-
 **Quick Example:**
+
 ```cpp
 // 1. Define robot (see examples/CustomRobotExample.h)
 namespace vamp::robots {
@@ -99,20 +103,19 @@ REGISTER_VAMP_ROBOT(vamp::robots::MyRobot, "my_robot");
 
 ## Documentation
 
-- **[Architecture Overview](ARCHITECTURE.md)**: System design and performance architecture
-- **[API Reference](docs/API-Reference.md)**: Complete API documentation
-- **[Contributor Guide](docs/CONTRIBUTOR-GUIDE.md)**: Development guidelines and extension patterns
-- **[Planner Registry](core/OMPLPlannerRegistry.h)**: Extensible planner registration system with built-in support for common planners
-- **[Visual Diagrams](docs/diagrams/)**: Architecture diagrams and system flows
+- **[Architecture Overview](vamp-ompl-architecture.html)**: System design and performance architecture
+- **[API Reference](vamp-ompl-api.html)**: Complete API documentation
 
 ## Performance Notes
 
 **Measured Improvements:**
+
 - 8x collision detection speedup through SIMD vectorization
 - Zero-allocation hot paths via function-local static buffers
 - Cache-optimized memory access with Structure-of-Arrays layout
 
 **Dependencies:**
+
 - Robot complexity (joint count, collision spheres)
 - Environment density (obstacle count and distribution)  
 - Hardware SIMD capabilities (AVX2 recommended)

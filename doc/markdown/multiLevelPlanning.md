@@ -91,7 +91,7 @@ Check out the [tutorial](multiLevelPlanningTutorial.html).
 
 ### Demos
 
-Check out the [demos](group__demos.html).
+Check out the [demos](demos.html).
 
 ### Papers
 
