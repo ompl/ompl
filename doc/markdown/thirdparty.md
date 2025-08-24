@@ -99,7 +99,7 @@ _arXiv_, 2013 [[PDF]](https://arxiv.org/pdf/1308.0189.pdf)
 
 ### Author: Andreas Orthey (MPI-IS)
 
-- [QRRT](\ref QRRT) A generalization of RRT to plan on different abstraction levels. See also our [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](group__demos.html).
+- [QRRT](\ref QRRT) A generalization of RRT to plan on different abstraction levels. See also our [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](demos.html).
 
   - A Orthey, S Akbar and M Toussaint, _Multilevel Motion Planning: A Fiber Bundle Approach_, 2020. Under review.
 

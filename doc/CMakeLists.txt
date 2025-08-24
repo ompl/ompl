@@ -18,17 +18,6 @@ if(DOXYGEN_FOUND AND NOT CMAKE_VERSION VERSION_LESS 3.9)
         "${CMAKE_BINARY_DIR}/doc/CForest.md")
 
     include(DoxygenSettings)
-    set(DOXYGEN_PROJECT_NAME "ompl")
-    set(DOXYGEN_EXAMPLE_PATH
-        "${CMAKE_CURRENT_SOURCE_DIR}/../demos"
-        "${CMAKE_CURRENT_SOURCE_DIR}/markdown/code")
-    set(DOXYGEN_HTML_COLORSTYLE "light")
-    set(DOXYGEN_HTML_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/header.html")
-    set(DOXYGEN_HTML_FOOTER "${CMAKE_CURRENT_SOURCE_DIR}/footer.html")
-    set(DOXYGEN_HTML_EXTRA_STYLESHEET "${CMAKE_CURRENT_SOURCE_DIR}/ompl.css")
-    set(DOXYGEN_HTML_OUTPUT "${CMAKE_BINARY_DIR}/ompl_doc")
-    set(DOXYGEN_GENERATE_TREEVIEW NO)
-    set(DOXYGEN_GENERATE_TAGFILE "${DOXYGEN_HTML_OUTPUT}/ompl.tag")
     doxygen_add_docs(ompl_doc
         "${CMAKE_CURRENT_SOURCE_DIR}/markdown"
         "${CMAKE_CURRENT_SOURCE_DIR}/../demos"
