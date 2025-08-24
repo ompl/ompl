@@ -10,6 +10,8 @@
   - Build option `OMPL_BUILD_VAMP=ON` enables VAMP integration as a git submodule
   - Supports both portable builds (`VAMP_PORTABLE_BUILD=ON`) for distribution and native builds for maximum performance
   - Compatible with existing OMPL planners as a drop-in acceleration layer for motion validation
+- New kinodynamic planner: HySST, and adaptation of the SST planner for hybrid systems.
+- New state space: ThrochoidStateSpace, an SE(2)-like state space where distance and interpolation is defined for Dubins vehicles subject to constant drift. This is useful in planning for aerial/underwater drones subject to constant wind/current.
 - Bug fixes.
 
 ## OMPL 1.7.0 (March 24, 2025)
