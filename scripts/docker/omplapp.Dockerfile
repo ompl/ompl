@@ -22,6 +22,7 @@ RUN apt-get update && \
         libexpat1 \
         libfcl-dev \
         libtriangle-dev \
+        libyaml-cpp-dev \
         ninja-build \
         pkg-config \
         python3-celery \

@@ -8,6 +8,7 @@
         "boost-serialization",
         "boost-test",
         "eigen3",
-        "flann"
+        "flann",
+        "yaml-cpp"
     ]
 }

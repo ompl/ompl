@@ -32,6 +32,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
 
     - name: "Install Linux dependencies"
       if: runner.os == 'Linux'
@@ -43,11 +45,12 @@ jobs:
         libboost-test-dev \
         libeigen3-dev \
         libflann-dev \
-        libtriangle-dev
+        libtriangle-dev \
+        libyaml-cpp-dev
 
     - name: "Install macOS dependencies"
       if: runner.os == 'macOS'
-      run: brew install boost eigen flann ode
+      run: brew install boost eigen flann ode yaml-cpp
 
     - name: "Install Windows dependencies"
       if: runner.os == 'Windows'
@@ -56,7 +59,7 @@ jobs:
       with:
           vcpkgGitCommitId: da4b78d35084ec4e9808aa02017028da03b8d2ab
           vcpkgTriplet: 'x64-windows'
-          vcpkgArguments: 'boost-dynamic-bitset boost-graph boost-odeint boost-program-options boost-serialization boost-test eigen3 flann'
+          vcpkgArguments: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-system boost-test eigen3 flann yaml-cpp'
 
     - name: Build & Test (Linux, macOS)
       if: runner.os != 'Windows'
@@ -64,7 +67,7 @@ jobs:
       with:
         build-dir: ${{ runner.workspace }}/build
         build-type: Release
-        configure-options: -DOMPL_REGISTRATION=OFF -DOMPL_BUILD_DEMOS=OFF -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python
+        configure-options: -DOMPL_REGISTRATION=OFF -DOMPL_BUILD_DEMOS=OFF -DVAMP_PORTABLE_BUILD=ON -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python
         run-test: true
         ctest-options: --output-on-failure
         install-build: true
@@ -80,7 +83,7 @@ jobs:
       with:
         build-dir: ${{ runner.workspace }}/build
         build-type: Release
-        configure-options: -DOMPL_REGISTRATION=OFF -DOMPL_BUILD_DEMOS=OFF -DMACHINE_SPEED_FACTOR=5.0 -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/ompl/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_GENERATOR_PLATFORM=x64
+        configure-options: -DOMPL_REGISTRATION=OFF -DOMPL_BUILD_DEMOS=OFF -DVAMP_PORTABLE_BUILD=ON -DMACHINE_SPEED_FACTOR=5.0 -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/ompl/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_GENERATOR_PLATFORM=x64
         run-test: true
         ctest-options: --output-on-failure
         install-build: true

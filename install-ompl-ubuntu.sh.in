@@ -17,12 +17,15 @@ install_common_dependencies()
     ${SUDO} apt-get -y install \
         clang \
         cmake \
+        git \
+        libboost-filesystem-dev \
         libboost-program-options-dev \
         libboost-serialization-dev \
         libboost-test-dev \
         libeigen3-dev \
         libexpat1 \
         libtriangle-dev \
+        libyaml-cpp-dev \
         ninja-build \
         pkg-config \
         wget

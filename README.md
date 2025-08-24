@@ -1,6 +1,8 @@
 The Open Motion Planning Library (OMPL)
 =======================================
 
+**OMPL** is a free sampling-based motion planning library with **VAMP integration** for high-performance collision checking using SIMD acceleration.
+
 Continuous Integration Status
 -----------------------------
 
@@ -18,9 +20,11 @@ OMPL has the following required dependencies:
 * [Boost](https://www.boost.org) (version 1.68 or higher)
 * [CMake](https://www.cmake.org) (version 3.12 or higher)
 * [Eigen](http://eigen.tuxfamily.org) (version 3.3 or higher)
+* [yaml-cpp](https://github.com/jbeder/yaml-cpp) - Used for parsing YAML configuration files, required for VAMP demos
 
 The following dependencies are optional:
 
+* [**VAMP**](https://github.com/KavrakiLab/vamp) (enabled by default) - Vector-Accelerated Motion Planning for high-performance collision checking with SIMD optimization
 * [Py++](https://github.com/ompl/ompl/blob/main/doc/markdown/installPyPlusPlus.md) (needed to generate Python bindings)
 * [Doxygen](http://www.doxygen.org) (needed to create a local copy of the documentation at
   https://ompl.kavrakilab.org/core)
@@ -31,6 +35,7 @@ Once dependencies are installed, you can build OMPL on Linux, macOS,
 and MS Windows. Go to the top-level directory of OMPL and type the
 following commands:
 
+    git submodule update --init --recursive  # for VAMP integration
     mkdir -p build/Release
     cd build/Release
     cmake ../..

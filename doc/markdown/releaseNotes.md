@@ -1,5 +1,17 @@
 # Release Notes {#releaseNotes}
 
+## OMPL 2.0.0beta (TBD)
+
+- **NEW: VAMP Integration** 🚀
+  - Added [VAMP (Vector-Accelerated Motion Planning)](https://github.com/KavrakiLab/vamp) as an optional high-performance backend for collision checking and motion validation
+  - VAMP leverages SIMD instructions to accelerate forward kinematics and collision detection, achieving planning speeds up to 25 kHz
+  - Features vectorized collision checking that processes multiple robot configurations simultaneously using AVX2/NEON instructions
+  - Includes comprehensive demo (`vampdemo`) showcasing integration with popular robots (Panda, UR5, Fetch, Baxter)
+  - Build option `OMPL_BUILD_VAMP=ON` enables VAMP integration as a git submodule
+  - Supports both portable builds (`VAMP_PORTABLE_BUILD=ON`) for distribution and native builds for maximum performance
+  - Compatible with existing OMPL planners as a drop-in acceleration layer for motion validation
+- Bug fixes.
+
 ## OMPL 1.7.0 (March 24, 2025)
 
 - Added new planners :
