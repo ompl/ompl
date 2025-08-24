@@ -43,9 +43,11 @@ A breakdown of all contributions by commits can be found on GitHub for the [OMPL
 - Johnny Nunez, University of Barcelona
 - [Andreas Orthey](http://aorthey.de), Realtime Robotics
 - Luigi Palmieri, Robert Bosch GmbH
+- Sahruday Reddy Patti, Rice University
 - Scott Paulin, University of Canterbury, New Zealand
 - [Alejandro Perez](http://people.csail.mit.edu/aperez/www), Seth Teller's [Robotics, Vision, and Sensor Networks Group](http://rvsn.csail.mit.edu), MIT
 - Louis Petit, University of Sherbrooke
+- Michael Ripperger, SwRI
 - Yuri Rocha, MakinaRocks
 - [Oren Salzman](http://orensalzman.com), Dan Halperin's [Computational Geometry Lab](http://acg.cs.tau.ac.il), Tel Aviv University (now at Technion)
 - Simon Schmeisser, Optonic
@@ -58,3 +60,4 @@ A breakdown of all contributions by commits can be found on GitHub for the [OMPL
 - Jafar Uruç, Humanoid
 - [Caleb Voss](http://calebvoss.com), Rice University (now at OpenText)
 - Bryce Willey, Rice University (now at [Realtime Robotics](https://rtr.ai))
+- Beverly Xu, UCSD
