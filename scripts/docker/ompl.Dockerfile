@@ -9,7 +9,6 @@ RUN apt-get update && \
         clang \
         cmake \
         git \
-        libboost-filesystem-dev \
         libboost-numpy-dev \
         libboost-program-options-dev \
         libboost-python-dev \
