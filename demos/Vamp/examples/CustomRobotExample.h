@@ -8,7 +8,7 @@
  * 
  * For REAL custom robots, you MUST use the VAMP ecosystem tools:
  * 
- * 1. **Cricket Compiler** (https://github.com/KavrakiLab/cricket)
+ * 1. **Cricket Compiler** (https://github.com/CoMMALab/cricket)
  *    - Generates SIMD-optimized collision detection code
  *    - Produces the critical vectorized `fkcc` method
  *    - Required for performance-critical SIMD operations

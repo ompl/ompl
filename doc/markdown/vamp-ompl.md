@@ -106,9 +106,9 @@ REGISTER_VAMP_ROBOT(vamp::robots::MyRobot, "my_robot");
 **⚠️ Important**: Custom robots for VAMP require specialized code generation tools:
 
 #### 1. **Cricket Compiler** (Required)
-VAMP uses a tracing compilation step to generate optimized SIMD code for collision checking. You **must** use the [cricket compiler](https://github.com/KavrakiLab/cricket) to generate the vectorized forward kinematics and collision checking methods (`fkcc` function).
+VAMP uses a tracing compilation step to generate optimized SIMD code for collision checking. You **must** use the [cricket compiler](https://github.com/CoMMALab/cricket) to generate the vectorized forward kinematics and collision checking methods (`fkcc` function).
 
-- **Repository**: https://github.com/KavrakiLab/cricket
+- **Repository**: https://github.com/CoMMALab/cricket
 - **Purpose**: Generates SIMD-optimized collision detection code from robot URDF
 - **Output**: Vectorized `fkcc` method required by VAMP robot interface
 
@@ -165,8 +165,6 @@ struct CustomRobot {
 - **[API Reference](vamp-ompl-api.html)**: Complete API documentation
 
 ## Performance Notes
-
-**Measured Improvements:**
 
 - 8x collision detection speedup through SIMD vectorization
 - Zero-allocation hot paths via function-local static buffers
