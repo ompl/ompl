@@ -45,6 +45,10 @@ std::map<std::string, std::unique_ptr<RobotHandler>> handlers;
 - **Custom robots**: Manual registration via macro
 - **Runtime discovery**: Query available robots dynamically
 
+**⚠️ Custom Robot Requirements**: Custom robots require specialized VAMP ecosystem tools:
+- **Cricket Compiler** (https://github.com/KavrakiLab/cricket): Generates SIMD-optimized `fkcc` method
+- **Foam Tool** (https://github.com/CoMMALab/foam): Generates spherical collision geometry approximations
+
 #### Planner Registration
 - **Built-in planners**: 3 core planners auto-registered (RRT-Connect, BIT*, PRM)
 - **Custom planners**: Runtime registration via registerPlanner() function
