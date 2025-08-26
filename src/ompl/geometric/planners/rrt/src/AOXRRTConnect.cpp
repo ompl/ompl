@@ -105,31 +105,44 @@ void ompl::geometric::AOXRRTConnect::setPathCost(double pc)
     opt_->setCostThreshold(bestCost_);
 }
 
+ompl::geometric::AOXRRTConnect::Motion *ompl::geometric::AOXRRTConnect::findNeighbour(Motion *sampled_motion,
+                                                                                      float rootDist, TreeData &tree)
+{
+    Motion *nearest_motion;
+    std::vector<Motion *> nearest_vec;
+
+    // Pad rootDist to account for floating point error
+    // Needed to make sure the root is included in nearest list
+    // TODO: Should use some relative epsilon for padding (FLT_EPSILON is good but does not scale with the magnitude of
+    // rootDist)
+    rootDist += 0.00001;
+
+    tree->nearestR(sampled_motion, rootDist, nearest_vec);
+    int idx = 0;
+    nearest_motion = nearest_vec[idx];
+    auto nearest_distance = si_->distance(sampled_motion->state, nearest_motion->state);
+
+    while (nearest_motion->cost > 0 && sampled_motion->cost < nearest_motion->cost + nearest_distance)
+    {
+        idx++;
+        nearest_motion = nearest_vec[idx];
+        nearest_distance = si_->distance(sampled_motion->state, nearest_motion->state);
+    }
+
+    return nearest_motion;
+}
+
 ompl::geometric::AOXRRTConnect::GrowState ompl::geometric::AOXRRTConnect::growTree(TreeData &tree, TreeGrowingInfo &tgi,
                                                                                    Motion *rmotion)
 {
-    std::vector<Motion *> nearest_vec;
-
     auto g_hat = tgi.start ? si_->distance(rmotion->state, startState) : si_->distance(rmotion->state, goalState);
 
     auto *root_motion = new Motion(si_);
     si_->copyState(root_motion->state, tgi.start ? startState : goalState);
     root_motion->cost = 0;
 
-    //* ------------------ ------ -------------------
-    Motion *nmotion;
     auto rootDist = tree->getDistanceFunction()(rmotion, root_motion);
-    tree->nearestR(rmotion, rootDist, nearest_vec);
-    int idx = 0;
-    nmotion = nearest_vec[idx];
-    auto nearest_distance = si_->distance(rmotion->state, nmotion->state);
-    while (nmotion->cost > 0 && rmotion->cost < nmotion->cost + nearest_distance)
-    {
-        idx++;
-        nmotion = nearest_vec[idx];
-        nearest_distance = si_->distance(rmotion->state, nmotion->state);
-    }
-    // =============================================*/
+    Motion *nmotion = findNeighbour(rmotion, rootDist, tree);
 
     /* assume we can reach the state we go towards */
     bool reach = true;
@@ -178,20 +191,8 @@ ompl::geometric::AOXRRTConnect::GrowState ompl::geometric::AOXRRTConnect::growTr
             double c_rand = (cost_sample * c_range) + g_hat;
             rmotion->cost = c_rand;
 
-            //* ------------------ ------ -------------------
-            Motion *n_nmotion;
             auto rootDist = tree->getDistanceFunction()(rmotion, root_motion);
-            tree->nearestR(rmotion, rootDist, nearest_vec);
-            idx = 0;
-            n_nmotion = nearest_vec[idx];
-            nearest_distance = si_->distance(rmotion->state, n_nmotion->state);
-            while (c_rand < n_nmotion->cost + nearest_distance && idx < (int)nearest_vec.size())
-            {
-                idx++;
-                n_nmotion = nearest_vec[idx];
-                nearest_distance = si_->distance(rmotion->state, n_nmotion->state);
-            }
-            // =============================================*/
+            Motion *n_nmotion = findNeighbour(rmotion, rootDist, tree);
 
             if (new_cost <= si_->distance(n_nmotion->state, dstate) + n_nmotion->cost || c_range == 0)
             {
@@ -397,12 +398,7 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
                 gsc = growTree(otherTree, tgi, cmotion);
             }
 
-            /* update distance between trees */
-            std::vector<Motion *> nearest_vec;
-
-            //* ------------------ ------ -------------------
             auto *root_motion = new Motion(si_);
-
             // could be done with restored_start == tgi.start but that isnt super clear
             if (restored_start)
             {
@@ -414,28 +410,14 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
             }
             root_motion->cost = 0;
 
-            Motion *nmotion;
             auto rootDist = otherTree->getDistanceFunction()(addedMotion, root_motion);
             delete root_motion;
-
-            otherTree->nearestR(addedMotion, rootDist, nearest_vec);
-            int idx = 0;
-            nmotion = nearest_vec[idx];
-            auto nearest_distance = si_->distance(addedMotion->state, nmotion->state);
-
-            while (cmotion->cost < nmotion->cost + nearest_distance && idx < (int)nearest_vec.size())
-            {
-                idx++;
-                nmotion = nearest_vec[idx];
-                nearest_distance = si_->distance(addedMotion->state, nmotion->state);
-            }
-            // =============================================*/
+            Motion *nmotion = findNeighbour(addedMotion, rootDist, otherTree);
 
             const double newDist = tree->getDistanceFunction()(addedMotion, nmotion);
             if (newDist < distanceBetweenTrees_)
             {
                 distanceBetweenTrees_ = newDist;
-                // OMPL_INFORM("Estimated distance to go: %f", distanceBetweenTrees_);
             }
 
             Motion *startMotion = tgi.start ? tgi.xmotion : addedMotion;
