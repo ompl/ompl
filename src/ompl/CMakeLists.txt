@@ -42,9 +42,7 @@ endif()
 add_library(ompl::ompl ALIAS ompl)
 target_link_libraries(ompl
     PUBLIC
-        Boost::filesystem
         Boost::serialization
-        Boost::system
         Eigen3::Eigen
         "$<$<BOOL:${Threads_FOUND}>:Threads::Threads>"
         "$<$<BOOL:${OMPL_HAVE_FLANN}>:flann::flann>"

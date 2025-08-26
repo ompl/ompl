@@ -60,7 +60,7 @@ public:
     SimplifyTest()
     {
         verbose_ = VERBOSE;
-        boost::filesystem::path path(TEST_RESOURCES_DIR);
+        std::filesystem::path path(TEST_RESOURCES_DIR);
         circles_.loadCircles((path / "circle_obstacles.txt").string());
         si_ = geometric::spaceInformation2DCircles(circles_);
         paths_ = geometric::readPathsFromFile(si_, (path / "circle_paths_to_simplify.txt").string());

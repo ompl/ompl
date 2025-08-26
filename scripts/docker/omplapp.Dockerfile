@@ -11,7 +11,6 @@ RUN apt-get update && \
         freeglut3-dev \
         git \
         libassimp-dev \
-        libboost-filesystem-dev \
         libboost-numpy-dev \
         libboost-program-options-dev \
         libboost-python-dev \
@@ -23,6 +22,7 @@ RUN apt-get update && \
         libexpat1 \
         libfcl-dev \
         libtriangle-dev \
+        libyaml-cpp-dev \
         ninja-build \
         pkg-config \
         python3-celery \
@@ -63,7 +63,6 @@ RUN apt-get update && \
         freeglut3-dev \
         git \
         libassimp-dev \
-        libboost-filesystem-dev \
         libboost-numpy-dev \
         libboost-program-options-dev \
         libboost-python-dev \

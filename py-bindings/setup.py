@@ -61,6 +61,9 @@ class CMakeBuild(build_ext):
             "-DOMPL_BUILD_DEMOS=OFF",
             "-DOMPL_BUILD_PYTESTS=OFF",
             "-DOMPL_BUILD_TESTS=OFF",
+            "-DOMPL_BUILD_VAMP=OFF",
+            "-DVAMP_PORTABLE_BUILD=OFF",
+            "-DVAMP_BUILD_PYTHON_BINDINGS=OFF",
         ]
         build_args = []
         # Adding CMake arguments set as environment variable

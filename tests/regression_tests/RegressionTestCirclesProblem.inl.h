@@ -6,7 +6,7 @@ std::string problemName<CIRCLES_ID>() { return "circles"; }
 
 // Setup for the Circles problem, part of the OMPL test suite.
 static std::shared_ptr<geometric::SimpleSetup> setupCirclesProblem(unsigned int query_index) {
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    std::filesystem::path path(TEST_RESOURCES_DIR);
 
     Circles2D circles;
     circles.loadCircles((path / "circle_obstacles.txt").string());

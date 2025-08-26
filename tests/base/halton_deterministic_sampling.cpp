@@ -35,7 +35,7 @@
 /* Author: Luigi Palmieri */
 #define BOOST_TEST_MODULE "HaltonDeterministicSampling"
 #include <boost/test/unit_test.hpp>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <ompl/config.h>
 #include <ompl/base/samplers/deterministic/HaltonSequence.h>
@@ -47,7 +47,7 @@ namespace ob = ompl::base;
 
 BOOST_AUTO_TEST_CASE(Halton_1D)
 {
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    std::filesystem::path path(TEST_RESOURCES_DIR);
     // Reading sequence from file
     HaltonXD hd1 = HaltonXD(1);
     hd1.loadSequence((path / "halton/halton_1d.txt").string().c_str());
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(Halton_1D)
 
 BOOST_AUTO_TEST_CASE(Halton_2D)
 {
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    std::filesystem::path path(TEST_RESOURCES_DIR);
     // Reading sequence from file
     HaltonXD hd2 = HaltonXD(2);
     hd2.loadSequence((path / "halton/halton_2d.txt").string().c_str());
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(Halton_2D)
 
 BOOST_AUTO_TEST_CASE(Halton_5D)
 {
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    std::filesystem::path path(TEST_RESOURCES_DIR);
     // Reading sequence from file
     HaltonXD hd5 = HaltonXD(5);
     hd5.loadSequence((path / "halton/halton_5d.txt").string().c_str());
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(Halton_5D)
 
 BOOST_AUTO_TEST_CASE(Halton_10D)
 {
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    std::filesystem::path path(TEST_RESOURCES_DIR);
     // Reading sequence from file
     HaltonXD hd10 = HaltonXD(10);
     hd10.loadSequence((path / "halton/halton_10d.txt").string().c_str());

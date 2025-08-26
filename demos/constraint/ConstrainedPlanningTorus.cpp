@@ -35,7 +35,7 @@
 /* Author: Zachary Kingston */
 
 #include <ompl/util/PPM.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include "ConstrainedPlanningCommon.h"
 
@@ -145,8 +145,8 @@ public:
         file << outer << std::endl;
         file << inner << std::endl;
 
-        boost::filesystem::path path(file_);
-        file << boost::filesystem::canonical(path).string() << std::endl;
+        std::filesystem::path path(file_);
+        file << std::filesystem::canonical(path).string() << std::endl;
     }
 
 private:
@@ -235,7 +235,7 @@ int main(int argc, char **argv)
     struct AtlasOptions a_opt;
 
     double outer, inner;
-    boost::filesystem::path path(__FILE__);
+    std::filesystem::path path(__FILE__);
     std::string maze = (path.parent_path() / "mazes/thick.ppm").string();
 
     po::options_description desc("Options");

@@ -25,8 +25,6 @@ install_boost() {
     ./bootstrap.sh
     sudo ./b2 "${b2_args[@]}" \
         --with-serialization \
-        --with-filesystem \
-        --with-system \
         --with-program_options \
         --with-python \
         install

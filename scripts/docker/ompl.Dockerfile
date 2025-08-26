@@ -8,17 +8,17 @@ RUN apt-get update && \
         castxml \
         clang \
         cmake \
-        libboost-filesystem-dev \
+        git \
         libboost-numpy-dev \
         libboost-program-options-dev \
         libboost-python-dev \
         libboost-serialization-dev \
-        libboost-system-dev \
         libboost-test-dev \
         libeigen3-dev \
         libexpat1 \
         libflann-dev \
         libtriangle-dev \
+        libyaml-cpp-dev \
         ninja-build \
         pkg-config \
         python3-dev \
@@ -34,11 +34,13 @@ RUN apt-get update && \
     pip3 install --break-system-packages pygccxml pyplusplus
 COPY . /ompl
 WORKDIR /ompl
-RUN cmake \
+RUN git submodule update --init --recursive && \
+    cmake \
         -G Ninja \
         -B build \
         -DPYTHON_EXEC=/usr/bin/python3 \
         -DOMPL_REGISTRATION=OFF \
+        -DVAMP_PORTABLE_BUILD=ON \
         -DCMAKE_INSTALL_PREFIX=/usr && \
     cmake --build build -t update_bindings && \
     cmake --build build && \
@@ -53,12 +55,10 @@ RUN apt-get update && \
     apt-get install -y \
         build-essential \
         cmake \
-        libboost-filesystem-dev \
         libboost-numpy-dev \
         libboost-program-options-dev \
         libboost-python-dev \
         libboost-serialization-dev \
-        libboost-system-dev \
         libeigen3-dev \
         libflann-dev \
         libtriangle-dev \
