@@ -19,7 +19,6 @@
   <build_depend>cmake</build_depend>
   <build_depend>libboost-program-options-dev</build_depend>
   <build_depend>libboost-serialization-dev</build_depend>
-  <build_depend>libboost-test-dev</build_depend>
   <build_depend>eigen</build_depend>
   <build_depend>pkg-config</build_depend>
   <build_depend>libflann-dev</build_depend>
@@ -27,7 +26,6 @@
 
   <exec_depend>libboost-program-options</exec_depend>
   <exec_depend>libboost-serialization</exec_depend>
-  <exec_depend>libboost-test</exec_depend>
   <exec_depend>eigen</exec_depend>
   <exec_depend>libflann-dev</exec_depend>
   <exec_depend>yaml-cpp</exec_depend>
