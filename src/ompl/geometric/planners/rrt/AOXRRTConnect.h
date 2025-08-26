@@ -154,6 +154,9 @@ namespace ompl
                 return dist;
             }
 
+            /** \brief Find a valid neighbour with asymmetric distance funtion via iteration */
+            Motion *findNeighbour(Motion *sampled_motion, float rootDist, TreeData &tree);
+
             /** \brief Grow a tree towards a random state */
             GrowState growTree(TreeData &tree, TreeGrowingInfo &tgi, Motion *rmotion);
 
