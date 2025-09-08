@@ -1,7 +1,7 @@
 # ADR-001: SIMD Vectorization Strategy for Collision Detection
 
 ## Status
-TBD
+**IMPLEMENTED**
 
 ## Context
 Motion planning requires intensive collision detection that typically dominates computational cost (60-80% of planning time). Traditional approaches check configurations sequentially, missing opportunities for parallel processing available in modern SIMD instruction sets.
@@ -29,8 +29,7 @@ Implement vectorized collision detection using SIMD instructions to process 8 ro
 ## Consequences
 
 ### Positive
-- **8x collision detection speedup** theoreticallys
-- **~50% overall motion planning improvement** for collision-heavy scenarios on assumption
+- **8x collision detection speedup** theoretically
 - Better CPU instruction pipeline utilization
 - Cache-efficient memory access patterns
 - Scalable to future SIMD instruction set extensions (AVX-512, ARM SVE)

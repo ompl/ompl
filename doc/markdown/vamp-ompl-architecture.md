@@ -2,8 +2,6 @@
 
 This document provides architectural documentation for VAMP-OMPL, which integrates high-performance SIMD collision detection with OMPL's motion planning algorithms.
 
-[TOC]
-
 ## Architecture Overview
 
 ### System Layers
