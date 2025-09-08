@@ -1,14 +1,14 @@
 # Release Notes {#releaseNotes}
 
-## OMPL 2.0.0beta (TBD)
+## OMPL 2.0.0beta (September 15th, 2025)
 
 - **NEW: VAMP Integration** 🚀
   - Added [VAMP (Vector-Accelerated Motion Planning)](https://github.com/KavrakiLab/vamp) as an optional high-performance backend for collision checking and motion validation
   - VAMP leverages SIMD instructions to accelerate forward kinematics and collision detection, achieving planning speeds up to 25 kHz
-  - Features vectorized collision checking that processes multiple robot configurations simultaneously using AVX2/NEON instructions
-  - Includes comprehensive demo (`vampdemo`) showcasing integration with popular robots (Panda, UR5, Fetch, Baxter)
-  - Build option `OMPL_BUILD_VAMP=ON` enables VAMP integration as a git submodule
-  - Supports both portable builds (`VAMP_PORTABLE_BUILD=ON`) for distribution and native builds for maximum performance
+  - Features vectorized collision checking that processes multiple robot configurations simultaneously using AVX2/NEON instructions.
+  - Includes comprehensive demo (`vampdemo`) showcasing integration with popular robots (Panda, UR5, Fetch).
+  - Build option `OMPL_BUILD_VAMP=ON` enables VAMP integration as a git submodule and is enabled by default.
+  - Supports both portable builds (`VAMP_PORTABLE_BUILD=ON`) for distribution and native builds for maximum performance.
   - Compatible with existing OMPL planners as a drop-in acceleration layer for motion validation
 - New kinodynamic planner: HySST, and adaptation of the SST planner for hybrid systems.
 - New state space: ThrochoidStateSpace, an SE(2)-like state space where distance and interpolation is defined for Dubins vehicles subject to constant drift. This is useful in planning for aerial/underwater drones subject to constant wind/current.

@@ -1,7 +1,7 @@
 # ADR-002: Registry Pattern Architecture
 
 ## Status
-IMPLEMENTED
+**IMPLEMENTED**
 
 ## Context
 The system needs to support multiple robot types (Panda, UR5, Fetch, custom robots) and multiple planner types (RRT-Connect, BIT*, PRM, custom planners) while maintaining type safety and enabling runtime selection. Traditional approaches either sacrifice type safety for flexibility or require compile-time selection.

@@ -161,8 +161,8 @@ struct CustomRobot {
 
 ## Documentation
 
-- **[Architecture Overview](vamp-ompl-architecture.html)**: System design and performance architecture
-- **[API Reference](vamp-ompl-api.html)**: Complete API documentation
+- **[Architecture Overview](vamp-ompl-architecture.md)**: System design and performance architecture
+- **[API Reference](vamp-ompl-API-reference.md)**: Complete API documentation
 
 ## Performance Notes
 

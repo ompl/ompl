@@ -6,7 +6,7 @@ This document provides architectural documentation for VAMP-OMPL, which integrat
 
 ### System Layers
 
-**System Architecture Overview**: ![System Architecture](images/vamp-ompl/01-system-architecture-overview.svg)
+**System Architecture Overview**: ![System Architecture](../images/vamp-ompl/01-system-architecture-overview.svg)
 
 The VAMP architecture consists of multiple layers:
 
@@ -53,7 +53,7 @@ The VAMP architecture consists of multiple layers:
 
 ### SIMD Vectorization Pipeline
 
-**SIMD Performance Architecture**: ![SIMD Performance](images/vamp-ompl/04-simd-performance-architecture.svg)
+**SIMD Performance Architecture**: ![SIMD Performance](../images/vamp-ompl/04-simd-performance-architecture.svg)
 
 ### Performance Optimizations
 
@@ -81,7 +81,7 @@ The VAMP architecture consists of multiple layers:
 
 ### Design Patterns & Relationships
 
-**Class Architecture & Design Patterns**: ![Class Architecture](images/vamp-ompl/02-class-architecture-patterns.svg)
+**Class Architecture & Design Patterns**: ![Class Architecture](../images/vamp-ompl/02-class-architecture-patterns.svg)
 
 The class architecture demonstrates sophisticated use of design patterns:
 
@@ -98,7 +98,7 @@ The class architecture demonstrates sophisticated use of design patterns:
 
 ### Request Lifecycle
 
-**Planning Request Sequence**: ![Planning Sequence](images/vamp-ompl/03-planning-request-sequence.svg)
+**Planning Request Sequence**: ![Planning Sequence](../images/vamp-ompl/03-planning-request-sequence.svg)
 
 The planning workflow follows a well-defined sequence:
 
