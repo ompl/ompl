@@ -34,7 +34,13 @@ archs = "auto64"
 build-verbosity = 1
 skip = ""
 
+[tool.cibuildwheel.linux]
 before-all = ".github/workflows/before_all.sh"
-
 manylinux-x86_64-image = "quay.io/pypa/manylinux_2_28_x86_64"
 manylinux-aarch64-image = "quay.io/pypa/manylinux_2_28_aarch64"
+
+[tool.cibuildwheel.macos]
+before-all = ".github/workflows/before_all.sh"
+
+[tool.cibuildwheel.windows]
+before-all = "powershell .github/workflows/before_all.ps1"
