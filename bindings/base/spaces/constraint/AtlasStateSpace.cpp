@@ -1,8 +1,9 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/function.h>
+#include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
-
+#include <sstream>
 #include "ompl/base/spaces/constraint/AtlasStateSpace.h"
 #include "ompl/base/spaces/constraint/AtlasChart.h"
 #include "../../init.hh"
@@ -55,7 +56,7 @@ void ompl::binding::base::initSpacesConstraint_AtlasStateSpace(nb::module_ &m)
         .def("getRho", &ob::AtlasStateSpace::getRho)
         .def("getAlpha", &ob::AtlasStateSpace::getAlpha)
         .def("getExploration", &ob::AtlasStateSpace::getExploration)
-        .def("getRhoS", &ob::AtlasStateSpace::getRho_s)
+        .def("getRho_s", &ob::AtlasStateSpace::getRho_s)
         .def("getMaxChartsPerExtension", &ob::AtlasStateSpace::getMaxChartsPerExtension)
         .def("isSeparated", &ob::AtlasStateSpace::isSeparated)
         .def("getChartCount", &ob::AtlasStateSpace::getChartCount)
@@ -71,5 +72,11 @@ void ompl::binding::base::initSpacesConstraint_AtlasStateSpace(nb::module_ &m)
             },
             nb::arg("from"), nb::arg("to"), nb::arg("interpolate") = false)
         .def("anchorChart", &ob::AtlasStateSpace::anchorChart, nb::arg("state"), nb::rv_policy::reference_internal)
-        .def("estimateFrontierPercent", &ob::AtlasStateSpace::estimateFrontierPercent);
+        .def("estimateFrontierPercent", &ob::AtlasStateSpace::estimateFrontierPercent)
+        .def("printPLY", [](const ob::AtlasStateSpace &space) { 
+            // space.printPLY(std::cout); 
+            std::ostringstream oss;
+            space.printPLY(oss);
+            return oss.str();
+        });
     }

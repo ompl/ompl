@@ -8,56 +8,56 @@
 #include "common.hh"
 
 namespace nb = nanobind;
-
+namespace ob = ompl::base;
 void ompl::binding::base::initSpaces_RealVectorStateSpace(nb::module_ &m)
 {
-    nb::class_<ompl::base::RealVectorStateSampler, ompl::base::StateSampler>(m, "RealVectorStateSampler")
-        .def(nb::init<const ompl::base::StateSpace *>())
-        .def("sampleUniform", &ompl::base::RealVectorStateSampler::sampleUniform)
-        .def("sampleUniformNear", &ompl::base::RealVectorStateSampler::sampleUniformNear)
-        .def("sampleGaussian", &ompl::base::RealVectorStateSampler::sampleGaussian);
+    nb::class_<ob::RealVectorStateSampler, ob::StateSampler>(m, "RealVectorStateSampler")
+        .def(nb::init<const ob::StateSpace *>())
+        .def("sampleUniform", &ob::RealVectorStateSampler::sampleUniform)
+        .def("sampleUniformNear", &ob::RealVectorStateSampler::sampleUniformNear)
+        .def("sampleGaussian", &ob::RealVectorStateSampler::sampleGaussian);
 
-    nb::class_<ompl::base::RealVectorStateSpace::StateType, ompl::base::State> stateType(m, "RealVectorStateType");
+    nb::class_<ob::RealVectorStateSpace::StateType, ob::State> stateType(m, "RealVectorStateType");
     stateType
         .def("__getitem__",
-             [](const ompl::base::RealVectorStateSpace::StateType *s, unsigned int i) { return s->values[i]; }, nb::rv_policy::reference_internal)
+             [](const ob::RealVectorStateSpace::StateType *s, unsigned int i) { return s->values[i]; }, nb::rv_policy::reference_internal)
         .def("__setitem__",
-             [](ompl::base::RealVectorStateSpace::StateType *s, unsigned int i, double v) { s->values[i] = v; });
+             [](ob::RealVectorStateSpace::StateType *s, unsigned int i, double v) { s->values[i] = v; });
 
     // Bind RealVectorStateSpace
-    nb::class_<ompl::base::RealVectorStateSpace, ompl::base::StateSpace>(m, "RealVectorStateSpace")
+    nb::class_<ob::RealVectorStateSpace, ob::StateSpace>(m, "RealVectorStateSpace")
         .def(nb::init<unsigned int>())
         .def(nb::init<>())
-        .def("getDimension", &ompl::base::RealVectorStateSpace::getDimension)
-        .def("addDimension", nb::overload_cast<double, double>(&ompl::base::RealVectorStateSpace::addDimension))
+        .def("getDimension", &ob::RealVectorStateSpace::getDimension)
+        .def("addDimension", nb::overload_cast<double, double>(&ob::RealVectorStateSpace::addDimension))
         .def("addDimension",
-             nb::overload_cast<const std::string &, double, double>(&ompl::base::RealVectorStateSpace::addDimension))
+             nb::overload_cast<const std::string &, double, double>(&ob::RealVectorStateSpace::addDimension))
         .def("setBounds",
-             nb::overload_cast<const ompl::base::RealVectorBounds &>(&ompl::base::RealVectorStateSpace::setBounds))
-        .def("setBounds", nb::overload_cast<double, double>(&ompl::base::RealVectorStateSpace::setBounds))
-        .def("getBounds", &ompl::base::RealVectorStateSpace::getBounds)
-        .def("getDimensionName", &ompl::base::RealVectorStateSpace::getDimensionName)
-        .def("getDimensionIndex", &ompl::base::RealVectorStateSpace::getDimensionIndex)
-        .def("setDimensionName", &ompl::base::RealVectorStateSpace::setDimensionName)
-        .def("getMaximumExtent", &ompl::base::RealVectorStateSpace::getMaximumExtent)
-        .def("getMeasure", &ompl::base::RealVectorStateSpace::getMeasure)
-        .def("enforceBounds", &ompl::base::RealVectorStateSpace::enforceBounds)
-        .def("satisfiesBounds", &ompl::base::RealVectorStateSpace::satisfiesBounds)
-        .def("copyState", &ompl::base::RealVectorStateSpace::copyState)
-        .def("getSerializationLength", &ompl::base::RealVectorStateSpace::getSerializationLength)
-        .def("serialize", &ompl::base::RealVectorStateSpace::serialize)
-        .def("deserialize", &ompl::base::RealVectorStateSpace::deserialize)
-        .def("distance", &ompl::base::RealVectorStateSpace::distance)
-        .def("equalStates", &ompl::base::RealVectorStateSpace::equalStates)
-        .def("interpolate", &ompl::base::RealVectorStateSpace::interpolate)
-        .def("allocDefaultStateSampler", &ompl::base::RealVectorStateSpace::allocDefaultStateSampler)
-        .def("allocState", &ompl::base::RealVectorStateSpace::allocState)
-        .def("getValueAddressAtIndex", &ompl::base::RealVectorStateSpace::getValueAddressAtIndex)
+             nb::overload_cast<const ob::RealVectorBounds &>(&ob::RealVectorStateSpace::setBounds))
+        .def("setBounds", nb::overload_cast<double, double>(&ob::RealVectorStateSpace::setBounds))
+        .def("getBounds", &ob::RealVectorStateSpace::getBounds)
+        .def("getDimensionName", &ob::RealVectorStateSpace::getDimensionName)
+        .def("getDimensionIndex", &ob::RealVectorStateSpace::getDimensionIndex)
+        .def("setDimensionName", &ob::RealVectorStateSpace::setDimensionName)
+        .def("getMaximumExtent", &ob::RealVectorStateSpace::getMaximumExtent)
+        .def("getMeasure", &ob::RealVectorStateSpace::getMeasure)
+        .def("enforceBounds", &ob::RealVectorStateSpace::enforceBounds)
+        .def("satisfiesBounds", &ob::RealVectorStateSpace::satisfiesBounds)
+        .def("copyState", &ob::RealVectorStateSpace::copyState)
+        .def("getSerializationLength", &ob::RealVectorStateSpace::getSerializationLength)
+        .def("serialize", &ob::RealVectorStateSpace::serialize)
+        .def("deserialize", &ob::RealVectorStateSpace::deserialize)
+        .def("distance", &ob::RealVectorStateSpace::distance)
+        .def("equalStates", &ob::RealVectorStateSpace::equalStates)
+        .def("interpolate", &ob::RealVectorStateSpace::interpolate)
+        .def("allocDefaultStateSampler", &ob::RealVectorStateSpace::allocDefaultStateSampler)
+        .def("allocState", &ob::RealVectorStateSpace::allocState)
+        .def("getValueAddressAtIndex", &ob::RealVectorStateSpace::getValueAddressAtIndex)
         .def(
-            "printState", [](const ompl::base::RealVectorStateSpace &space, const ompl::base::State *state)
+            "printState", [](const ob::RealVectorStateSpace &space, const ob::State *state)
             { space.printState(state, std::cout); })
         .def(
-            "printSettings", [](const ompl::base::RealVectorStateSpace &space) { space.printSettings(std::cout); })
-        .def("registerProjections", &ompl::base::RealVectorStateSpace::registerProjections)
-        .def("setup", &ompl::base::RealVectorStateSpace::setup);
+            "printSettings", [](const ob::RealVectorStateSpace &space) { space.printSettings(std::cout); })
+        .def("registerProjections", &ob::RealVectorStateSpace::registerProjections)
+        .def("setup", &ob::RealVectorStateSpace::setup);
 }

@@ -66,6 +66,11 @@ void ompl::binding::base::init_SpaceInformation(nb::module_& m)
         .def("samplesPerSecond", &ompl::base::SpaceInformation::samplesPerSecond)
         // Virtual method: printSettings
         .def("printSettings", [](const ompl::base::SpaceInformation &si) { si.printSettings(std::cout); })
+        .def("settings", [](const ompl::base::SpaceInformation &si) {
+            std::ostringstream oss;
+            si.printSettings(oss);
+            return oss.str();
+        })
         // Virtual method: printProperties
         .def("printProperties", [](const ompl::base::SpaceInformation &si) { si.printProperties(std::cout); })
         .def("params", nb::overload_cast<>(&ompl::base::SpaceInformation::params, nb::const_))

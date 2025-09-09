@@ -16,7 +16,7 @@ void ompl::binding::base::init_Constraint(nb::module_ &m)
     // trampoline to allow Python subclassing of the abstract base
     struct PyConstraint : ob::Constraint
     {
-        NB_TRAMPOLINE(ob::Constraint, 5);
+        NB_TRAMPOLINE(ob::Constraint, 6);
         void function(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::VectorXd> out) const override
         {
             NB_OVERRIDE_PURE(function, x, out);

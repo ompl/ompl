@@ -53,7 +53,11 @@ void ompl::binding::geometric::init_PathGeometric(nb::module_ &m)
             "print", [](const ompl::geometric::PathGeometric &path) { path.print(std::cout); },
             "Return a string representation of the path")
         .def(
-            "printAsMatrix", [](const ompl::geometric::PathGeometric &path) { path.printAsMatrix(std::cout); },
+            "printAsMatrix", [](const ompl::geometric::PathGeometric &path) { 
+               // path.printAsMatrix(std::cout); 
+               std::ostringstream oss;
+               path.printAsMatrix(oss);
+               return oss.str();},
             "Return a matrix representation of the path")
 
         // Interpolation (two overloads).

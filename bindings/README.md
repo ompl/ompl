@@ -15,6 +15,8 @@ The [Nanobind documentation](https://nanobind.readthedocs.io/en/latest/) provide
 ## How to contribute to the bindings
 
 ### Adding new bindings
+
+#### General Instructions
 The `bindings/` directory mimic the layout of the `src/ompl/` directory. If there is a new header file in `src/ompl/` in the future release, you can add a new binding file in the corresponding subdirectory under `bindings/`. The binding file should have the same name as the header file, with a `.cpp` extension. If you add a new header file `src/ompl/MODULE/SUBFOLERPATH/NEWFEATURE.h`, you should create a binding file `bindings/MODULE/SUBFOLERPATH/NEWFEATURE.cpp`. Here are some examples: 
 ```
 src/ompl/base/StateSpace.h -> bindings/base/StateSpace.cpp
@@ -55,6 +57,17 @@ Step 3: Continue in the `bindings/MODULE/SUBFOLERPATH/NEWFEATURE.cpp`, implement
 
 Step 4: In the `bindings/MODULE/init.h`, register the new binding function. Then, in `bindings/python.cpp` include the binding function. If the `MODULE` is `base`, leave the function under `nb::module_ base = m.def_submodule("base");`. **Notice that the nanobind compile function in sequencial order,** so if you new binding function depends on other binding functions, make sure to include your new binding function after the dependent binding functions. Otherwise you will get the example error `Critical nanobind error: nanobind::detail::nb_type_new("EIRMstar"): base type "ompl::geometric::EITstar" not known to nanobind!`. 
 
+#### Binding "OMPL::Magic" constants
+`bindings/base/spaces/constraint/AtlasStateSpace.cpp`
+```
+m.attr("ATLAS_STATE_SPACE_SAMPLES") = nb::cast(ompl::magic::ATLAS_STATE_SPACE_SAMPLES);
+m.attr("ATLAS_STATE_SPACE_EPSILON") = nb::cast(0.05);
+m.attr("ATLAS_STATE_SPACE_RHO_MULTIPLIER") = nb::cast(5);
+m.attr("ATLAS_STATE_SPACE_ALPHA") = nb::cast(boost::math::constants::pi<double>() / 8.0);
+m.attr("ATLAS_STATE_SPACE_EXPLORATION") = nb::cast(0.75);
+m.attr("ATLAS_STATE_SPACE_MAX_CHARTS_PER_EXTENSION") = nb::cast(200);
+m.attr("ATLAS_STATE_SPACE_BACKOFF") = nb::cast(0.75);
+```
 ### Note on ARM platforms
 
 Generating bindings on ARM platforms (e.g., Apple M-series) can sometimes fail due to compiler/linker incompatibilities. To work around this:
