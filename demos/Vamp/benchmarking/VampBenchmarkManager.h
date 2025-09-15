@@ -38,7 +38,6 @@
 #include "VampOMPLPlanner.h"
 #include "VampUtils.h"
 #include "VampRobotRegistry.h"
-#include "OMPLPlannerRegistry.h"
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <memory>
@@ -57,7 +56,7 @@ namespace vamp_ompl {
 namespace benchmarking {
 
 /**
- * @brief Benchmark configuration extending existing PlanningConfiguration
+ * @brief Benchmark configuration extending PlanningConfiguration
  * 
  * Uses composition to add benchmark-specific settings
  */
@@ -80,7 +79,7 @@ struct BenchmarkConfiguration {
     bool auto_generate_filename{true};
     
     /**
-     * @brief Validate configuration using existing patterns
+     * @brief Validate configuration
      */
     bool isValid() const {
         return base_config.isValid() && 
@@ -103,7 +102,7 @@ struct BenchmarkConfiguration {
 };
 
 /**
- * @brief benchmark manager following VampOMPLPlanner patterns
+ * @brief benchmark manager
  * 
  * This class extends the VampOMPLPlanner pattern to add benchmarking capabilities
  */
@@ -254,13 +253,13 @@ private:
                     parameters = config.planner_parameters.at(plannerName);
                 }
                 
-                auto planner = createPlannerByName(plannerName, spaceInfo, parameters);
+                auto planner = OMPLPlanningContext<Robot>::createPlannerByName(plannerName, spaceInfo, parameters);
                 benchmark.addPlanner(planner);
                 std::cout << "Added planner: " << plannerName << std::endl;
                 
             } catch (const VampConfigurationError& e) {
                 std::cerr << "Warning: " << e.what() << std::endl;
-                std::cerr << "Available planners: " << PlannerRegistry::getInstance().getAvailablePlannerNames() << std::endl;
+                std::cerr << "Available planners: " << OMPLPlanningContext<Robot>::getAvailablePlannerNames() << std::endl;
             } catch (const std::exception& e) {
                 std::cerr << "Warning: Failed to add planner " << plannerName 
                          << ": " << e.what() << std::endl;
@@ -345,9 +344,6 @@ inline bool loadBenchmarkConfiguration(const std::string& yaml_file,
 
 /**
  * @brief Helper function to create benchmark manager for a specific robot type
- * 
- * This function provides a way to create a typed benchmark manager
- * without going through the registry pattern.
  */
 template<typename Robot>
 std::shared_ptr<VampBenchmarkManager<Robot>> createBenchmarkManager(
@@ -360,6 +356,3 @@ std::shared_ptr<VampBenchmarkManager<Robot>> createBenchmarkManager(
 
 } // namespace benchmarking
 } // namespace vamp_ompl
-
-// 
-// Note: Benchmarking functionality is accessed through VampBenchmarkManager directly.

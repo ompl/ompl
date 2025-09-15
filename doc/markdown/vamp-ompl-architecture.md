@@ -2,6 +2,27 @@
 
 This document provides architectural documentation for VAMP-OMPL, which integrates high-performance SIMD collision detection with OMPL's motion planning algorithms.
 
+## Getting Started
+
+For users who want to get started quickly, VAMP-OMPL provides a comprehensive header:
+
+```cpp
+#include "VampOmplPlanning.h"
+
+// All functionality is now available
+vamp_ompl::PlanningConfiguration config;
+auto result = vamp_ompl::executeMotionPlanning(config);
+```
+
+The `VampOmplPlanning.h` header includes all necessary components:
+- Core interfaces and data structures
+- Robot registry with built-in robots (Panda, UR5, Fetch)
+- Integrated planner management (RRT-Connect, BIT*, PRM)
+- SIMD-accelerated collision detection
+- Benchmarking infrastructure
+- Visualization support
+- All required OMPL and VAMP dependencies
+
 ## Architecture Overview
 
 ### System Layers
@@ -14,187 +35,356 @@ The VAMP architecture consists of multiple layers:
 2. **Unified Interface Layer**: Registry-based execution with `executeMotionPlanning()`
 3. **Planning Facade Layer**: Main coordination components implementing design patterns
 4. **OMPL Integration Layer**: Standard OMPL interfaces with VAMP bridges
-5. **VAMP Performance Core**: SIMD-optimized collision detection and vectorization
-6. **Robot Type System**: Built-in and extensible robot implementations
-7. **Benchmarking System**: OMPL-compliant performance measurement infrastructure
+5. **VAMP Core Layer**: High-performance SIMD collision detection
 
-### Key Components
+### Key Design Patterns
 
-#### 1. **VampOMPLPlanner** (Facade Pattern)
+**Class Architecture Patterns**: ![Class Architecture](../images/vamp-ompl/02-class-architecture-patterns.svg)
 
-- **Purpose**: Main entry point that coordinates between VAMP and OMPL systems
-- **Key Features**: 
-  - Dependency injection for robot configuration and environment factory
-  - Two-phase initialization (constructor + initialize())
-  - Unified planning interface supporting both default and custom configurations
-  - Automatic path writing and visualization integration
+The system employs several design patterns:
 
-#### 2. **VampStateValidator & VampMotionValidator** (SIMD-Accelerated)
+- **Registry Pattern**: Runtime robot and planner selection with type safety
+- **Facade Pattern**: `VampOMPLPlanner` simplifies complex OMPL integration
+- **Factory Pattern**: Environment and robot configuration creation
+- **Template Method**: Standardized planning workflow with customization points
+- **Dependency Injection**: Constructor-based dependency management
 
-- **Purpose**: Bridge OMPL's validation interface with VAMP's vectorized collision detection
-- **Performance Features**:
-  - SIMD vectorization: Process 8 configurations simultaneously  
-  - "Rake" motion validation: Spatially distributed parallel sampling
-  - Function-local static buffer pools: Allocation-free hot paths
-  - Zero-copy OMPL-to-VAMP configuration conversion
+## Core Components
 
-#### 3. **RobotRegistry** (Singleton + Registry Pattern)
+### 1. OMPLPlanningContext - Unified OMPL Integration
 
-- **Purpose**: Type-erased robot management with compile-time safety
-- **Features**:
-  - Automatic registration of built-in robots (Panda, UR5, Fetch)
-  - Runtime robot creation from string identifiers
-  - Thread-safe robot handler management
-  - Extensible to custom robots without core modifications
+The `OMPLPlanningContext` serves as the central OMPL integration point with integrated planner management:
 
----
+```cpp
+template<typename Robot>
+class OMPLPlanningContext {
+    // OMPL Integration
+    void setupStateSpace(const RobotConfig<Robot>& robot_configuration, 
+                        const VectorizedEnvironment& vectorized_environment);
+    auto plan(const PlanningConfig& planning_configuration) -> PlanningResult;
+    
+    // Integrated Planner Management
+    static void registerPlanner(const std::string& name, PlannerAllocatorFunction allocator);
+    static ob::PlannerPtr createPlannerByName(const std::string& name, 
+                                             const ob::SpaceInformationPtr& si,
+                                             const std::map<std::string, std::string>& parameters);
+};
+```
 
-## Performance Architecture
+**Key Features:**
+- **Built-in Planners**: RRT-Connect, BIT*, PRM with automatic parameter handling
+- **Extensible Design**: Runtime registration of custom planners
+- **Thread Safety**: Function-local static registry with mutex protection
+- **Parameter Management**: Automatic OMPL ParamSet integration
 
-### SIMD Vectorization Pipeline
+### 2. RobotRegistry - Type-Safe Robot Management
 
-**SIMD Performance Architecture**: ![SIMD Performance](../images/vamp-ompl/04-simd-performance-architecture.svg)
+The `RobotRegistry` provides runtime robot selection while maintaining compile-time type safety:
 
-### Performance Optimizations
+```cpp
+class RobotRegistry {
+    template<typename Robot>
+    void registerRobot(const std::string& name);
+    
+    std::any createRobotConfig(const std::string& robot_name, 
+                              std::vector<float> start_config, 
+                              std::vector<float> goal_config);
+};
+```
 
-#### 1. **SIMD Vectorization**
+**Type Safety Mechanism:**
+- Templates ensure compile-time type checking
+- `std::any` enables runtime polymorphism
+- `TypedRobotHandler<Robot>` maintains type safety through type erasure
 
-- **8x Parallel Processing**: Process 8 robot configurations simultaneously using SIMD instructions
-- **Structure-of-Arrays (SOA)**: Memory layout optimized for vectorized operations
-- **Cache Efficiency**: Spatial locality in collision geometry access
+### 3. VampOMPLPlanner - Planning Facade
 
-#### 2. **"Rake" Motion Validation**
+The main planning interface that coordinates all components:
 
-- **Parallel Sampling**: Distribute temporal samples across SIMD lanes
-- **Resolution Control**: Configurable sampling density per robot type
-- **Efficient Pipeline**: Better CPU instruction pipeline utilization
+```cpp
+template<typename Robot>
+class VampOMPLPlanner {
+    VampOMPLPlanner(std::unique_ptr<RobotConfig<Robot>> robot_configuration,
+                    std::unique_ptr<EnvironmentFactory> environment_factory);
+    
+    void initialize();
+    auto plan(const PlanningConfig& planning_configuration) -> PlanningResult;
+};
+```
 
-#### 3. **Memory Management**
+**Design Benefits:**
+- **Two-Phase Initialization**: Constructor + `initialize()` for error handling
+- **Dependency Injection**: Accepts configured dependencies
+- **Template Method**: Standardized planning workflow
 
-- **Function-local Static Buffers**: Avoid allocations in collision checking hot path
-- **Zero-copy Conversion**: Direct OMPL-to-VAMP configuration mapping
-- **SIMD-aligned Memory**: Proper alignment for vectorized operations
+### 4. VAMP Validators - High-Performance Collision Detection
 
----
+VAMP validators provide SIMD-accelerated collision detection:
 
-## Class Architecture
+```cpp
+template<typename Robot>
+class VampStateValidator : public ompl::base::StateValidityChecker {
+    bool isValid(const ompl::base::State* state) const override;
+};
 
-### Design Patterns & Relationships
+template<typename Robot>
+class VampMotionValidator : public ompl::base::MotionValidator {
+    bool checkMotion(const ompl::base::State* s1, const ompl::base::State* s2) const override;
+};
+```
 
-**Class Architecture & Design Patterns**: ![Class Architecture](../images/vamp-ompl/02-class-architecture-patterns.svg)
+**Performance Features:**
+- **SIMD Vectorization**: Parallel collision checking
+- **Function-Local Static**: One converter per template instantiation
+- **Thread Safety**: Avoids static initialization order issues
 
-The class architecture demonstrates sophisticated use of design patterns:
-
-- **OMPL Foundation**: Standard interfaces (`StateValidityChecker`, `MotionValidator`, `Planner`)
-- **VAMP Integration**: Template-based bridges with SIMD acceleration
-- **Configuration System**: Hierarchical robot and environment configuration
-- **Registry System**: Type-erased management with compile-time safety
-- **Factory System**: Runtime creation with extensibility
-- **Template Relationships**: Type-safe robot-specific implementations
-
----
-
-## Planning Workflow
-
-### Request Lifecycle
+## Planning Request Lifecycle
 
 **Planning Request Sequence**: ![Planning Sequence](../images/vamp-ompl/03-planning-request-sequence.svg)
 
-The planning workflow follows a well-defined sequence:
+The complete planning workflow:
 
-1. **Configuration Phase**: Validation, registry lookup, planner creation
-2. **Initialization Phase**: Environment setup, OMPL configuration, validator setup
-3. **Planning Execution**: Planner creation, main planning loop with SIMD collision detection
-4. **Solution Processing**: Path simplification, result formatting, optional file writing
+1. **Configuration Phase**: Load robot and environment configurations
+2. **Initialization Phase**: Create OMPL state space and validators
+3. **Planning Phase**: Execute motion planning with selected algorithm
+4. **Post-Processing Phase**: Path simplification and result formatting
 
-**Key Performance Points**:
+## Registry Architecture
 
-- Zero-copy state conversion using function-local static buffers
-- SIMD "rake" sampling for motion validation (8x parallel collision checks)
-- Structure-of-Arrays memory layout for cache optimization
+### Robot Registration
 
----
-
-## Extension Points
-
-### Adding Custom Robots
-
-The extension points are clearly documented in the system architecture diagram above. Key extension areas include:
-
-#### 1. **Custom Robot Implementation**
-
+**Built-in Robots**: Automatically registered at startup
 ```cpp
-// Example: Define a custom robot
-namespace vamp::robots {
-    struct MyCustomRobot {
-        static constexpr auto name = "my_robot";
-        static constexpr auto dimension = 7;      // Number of joints
-        static constexpr auto n_spheres = 12;     // Collision spheres
-        static constexpr auto resolution = 32;    // Motion validation resolution
-        
-        // Joint limits
-        static constexpr std::array<float, dimension> s_a = {/* lower limits */};
-        static constexpr std::array<float, dimension> s_m = {/* ranges */};
-        
-        // Vectorized forward kinematics + collision checking
-        template <std::size_t rake>
-        inline static auto fkcc(
-            const collision::Environment<FloatVector<rake>> &environment,
-            const ConfigurationBlock<rake> &q) noexcept -> bool
-        {
-            // Implement vectorized forward kinematics
-            // Return true if collision-free, false otherwise
-        }
-        
-        // Configuration scaling methods
-        inline static void scale_configuration(Configuration &q) noexcept;
-        inline static void descale_configuration(Configuration &q) noexcept;
-    };
-}
-
-// Register the robot
-REGISTER_VAMP_ROBOT(vamp::robots::MyCustomRobot, "my_robot");
+// In RobotRegistry constructor
+registerRobot<vamp::robots::Panda>("panda");
+registerRobot<vamp::robots::UR5>("ur5");
+registerRobot<vamp::robots::Fetch>("fetch");
 ```
 
-#### 2. **Custom Planner Registration**
-
+**Custom Robots**: Manual registration via macro
 ```cpp
-// Register a custom OMPL planner
-OMPLPlanningContext<Robot>::registerPlanner("MyPlanner", 
-    [](const ob::SpaceInformationPtr& si) {
-        auto planner = std::make_shared<MyCustomPlanner>(si);
-        // Set planner-specific parameters
+REGISTER_VAMP_ROBOT(MyCustomRobot, "my_robot");
+```
+
+### Planner Registration
+
+**Built-in Planners**: Integrated within OMPLPlanningContext
+```cpp
+static std::map<std::string, PlannerAllocatorFunction> createBuiltInPlanners() {
+    std::map<std::string, PlannerAllocatorFunction> planners;
+    planners["RRT-Connect"] = [](const ob::SpaceInformationPtr& si, const auto& params) {
+        auto planner = std::make_shared<ompl::geometric::RRTConnect>(si);
+        applyParameters(planner, params);
+        return planner;
+    };
+    // Additional built-in planners...
+    return planners;
+}
+```
+
+**Custom Planners**: Runtime registration
+```cpp
+OMPLPlanningContext<Robot>::registerPlanner("MyRRT*", 
+    [](const ob::SpaceInformationPtr& si, const auto& params) {
+        auto planner = std::make_shared<og::RRTstar>(si);
+        // Configure parameters...
         return planner;
     });
 ```
 
----
+## Performance Characteristics
 
-## Design Patterns
+### SIMD Acceleration
 
-### Core Patterns Used
+**SIMD Performance Architecture**: ![SIMD Performance](../images/vamp-ompl/04-simd-performance-architecture.svg)
 
-#### 1. **Facade Pattern** (`VampOMPLPlanner`)
+- **Vectorized Collision Detection**: Up to 8x speedup with AVX2 instructions
+- **Batch Processing**: Multiple configurations checked simultaneously  
+- **Memory Efficiency**: Optimized data layout for SIMD operations
 
-- **Purpose**: Provides a unified interface hiding complexity of VAMP-OMPL integration
-- **Benefits**: Single point of entry, simplified client code, decoupled subsystems
+### Memory Layout Optimization
 
-#### 2. **Adapter Pattern** (`OMPLPlanningContext`)
+- **AOS to SOA Conversion**: Transforms OMPL's array-of-structures to VAMP's structure-of-arrays
+- **Zero-Copy Operations**: Function-local static buffers eliminate allocations
+- **SIMD-Aligned Memory**: Ensures optimal vectorization performance
 
-- **Purpose**: Bridges OMPL's interface with VAMP's collision detection system
-- **Benefits**: Maintains compatibility, clean separation of concerns
+## Thread Safety
 
-#### 3. **Factory Pattern** (`PlannerFactory`, `RobotRegistry`)
+### Registry Thread Safety
 
-- **Purpose**: Runtime creation of planners and robots from string identifiers
-- **Benefits**: Open/Closed Principle compliance, extensibility without modification
+The VAMP system provides comprehensive thread safety guarantees:
 
-#### 4. **Registry Pattern** (`RobotRegistry`)
+**Function-Local Static Initialization**:
+```cpp
+template<typename Robot>
+SafeConfigurationConverter<Robot>& get_converter() {
+    static SafeConfigurationConverter<Robot> converter;  // C++11 thread-safe
+    return converter;
+}
+```
 
-- **Purpose**: Type-erased management of different robot types
-- **Benefits**: Runtime polymorphism with compile-time safety
+**Thread Safety Guarantees**:
+- **Registry Access**: Read operations are lock-free after initialization
+- **Planner Creation**: Function-local static registry with mutex protection
+- **SIMD Validators**: Immutable state design ensures thread safety
+- **Configuration Conversion**: Per-template-instantiation converters avoid contention
 
-#### 5. **Template Method Pattern** (Planning workflow)
+**Best Practices**:
+- Initialize registry once at application startup
+- Avoid concurrent robot registration after initialization
+- SIMD validators are safe for concurrent planning operations
 
-- **Purpose**: Standardizes planning algorithm while allowing customization
-- **Benefits**: Consistent interface, flexible implementation
+### Static Initialization Order Safety
+
+**Problem Solved**: The system avoids static initialization order fiasco through:
+```cpp
+// CRITICAL: Function-local static instead of global static
+static SafeConfigurationConverter<Robot> converter;  // Lazy initialization
+```
+
+**Benefits**:
+- Guaranteed initialization on first use
+- No dependency on global constructor order
+- Exception-safe initialization
+
+## Performance Tuning
+
+### Hardware Requirements
+
+**Optimal Performance**:
+- **CPU**: AVX2 support required, AVX-512 recommended
+- **Memory**: 16GB+ for complex environments
+- **Cache**: L3 cache size affects batch processing efficiency
+
+**SIMD Lane Width Configuration**:
+```cpp
+// Automatically detected at compile time
+static constexpr std::size_t simd_lane_width_ = vamp::FloatVectorWidth;
+```
+
+### Robot-Specific Parameters
+
+**Performance Tuning Parameters**:
+```cpp
+struct CustomRobot {
+    static constexpr auto dimension = 7;        // Joint count affects memory layout
+    static constexpr auto n_spheres = 10;       // Collision complexity
+    static constexpr auto resolution = 64;      // Motion validation granularity
+};
+```
+
+**Tuning Guidelines**:
+- **Higher resolution**: More thorough validation, slower performance
+- **More spheres**: Better collision accuracy, higher memory usage
+- **Dimension**: Linear impact on SIMD efficiency
+
+### Environment Optimization
+
+**Environment Complexity Impact**:
+- **Sphere count**: Linear scaling with collision checks
+- **Pointcloud density**: Quadratic scaling with CAPT algorithm
+- **Spatial distribution**: Affects cache locality
+
+**Optimization Strategies**:
+```yaml
+obstacles:
+  - type: sphere
+    radius: 0.1          # Larger radii reduce collision check count
+  - type: pointcloud
+    point_radius: 0.005  # Balance accuracy vs performance
+```
+
+## Debugging and Troubleshooting
+
+### Common Issues
+
+**1. Static Initialization Errors**:
+```cpp
+// Symptom: Segfault during registry access
+// Solution: Ensure registry initialization before use
+RobotRegistry::getInstance();  // Call once at startup
+```
+
+**2. SIMD Alignment Issues**:
+```cpp
+// Symptom: Performance degradation or crashes
+// Solution: Verify 32-byte alignment
+alignas(32) float buffer[MAX_DIMENSION];
+```
+
+**3. Configuration Validation Errors**:
+```cpp
+// Symptom: VampConfigurationError exceptions
+// Solution: Validate configuration before use
+if (!config.isValid()) {
+    std::cout << config.getValidationErrors() << std::endl;
+}
+```
+
+### Debugging Tools
+
+**Error Reporting**:
+```cpp
+try {
+    auto result = executeMotionPlanning(config);
+} catch (const VampConfigurationError& e) {
+    std::cerr << "Configuration error: " << e.what() << std::endl;
+} catch (const VampYamlError& e) {
+    std::cerr << "YAML parsing error: " << e.what() << std::endl;
+}
+```
+
+**Performance Profiling**:
+- Use `printConfiguration()` methods for debugging
+- Monitor SIMD utilization with performance counters
+- Profile memory allocation patterns
+
+### Validation Checklist
+
+**Before Planning**:
+- ✅ Robot registered and dimensions match
+- ✅ Start/goal configurations within joint limits
+- ✅ Environment obstacles properly defined
+- ✅ Planner parameters valid for selected algorithm
+
+**Performance Validation**:
+- ✅ SIMD instructions being generated (check assembly)
+- ✅ Memory alignment correct (32-byte boundaries)
+- ✅ No unexpected allocations in hot path
+
+## Extension Points
+
+### Custom Robot Integration
+
+```cpp
+// Define robot traits
+template<>
+struct RobotTraits<MyRobot> {
+    static constexpr size_t dimension = 6;
+    static constexpr size_t n_spheres = 8;
+    // Additional traits...
+};
+
+// Register robot
+REGISTER_VAMP_ROBOT(MyRobot, "my_robot");
+```
+
+### Custom Environment Factories
+
+```cpp
+class MyEnvironmentFactory : public EnvironmentFactory {
+    auto create_environment() -> vamp::collision::Environment<float> override;
+    auto get_environment_name() const -> std::string override;
+    auto get_description() const -> std::string override;
+};
+```
+
+### Custom Planner Integration
+
+```cpp
+// Register at runtime
+OMPLPlanningContext<Robot>::registerPlanner("MyPlanner",
+    [](const ob::SpaceInformationPtr& si, const auto& params) {
+        return std::make_shared<MyCustomPlanner>(si);
+    });
+```

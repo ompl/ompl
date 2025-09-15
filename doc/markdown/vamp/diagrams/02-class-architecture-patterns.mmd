@@ -49,7 +49,7 @@ classDiagram
     }
     
     %% VAMP Core Integration Classes
-    class VampStateValidator~Robot~ {
+    class VampStateValidatorRobot {
         <<SIMD-accelerated>>
         -vectorizedEnvironment VectorizedEnvironment
         +isValid(state) bool
@@ -57,7 +57,7 @@ classDiagram
         +VampStateValidator(si, venv)
     }
     
-    class VampMotionValidator~Robot~ {
+    class VampMotionValidatorRobot {
         <<SIMD-accelerated>>
         -vectorizedEnvironment VectorizedEnvironment
         +checkMotion(start, end) bool
@@ -67,13 +67,13 @@ classDiagram
         +motionSamplingResolution: size_t = Robot::resolution
     }
     
-    class VampOMPLPlanner~Robot~ {
+    class VampOMPLPlannerRobot {
         <<Facade Pattern>>
-        -robotConfiguration unique_ptr~RobotConfig~Robot~~
-        -environmentFactory unique_ptr~EnvironmentFactory~
-        -planningContext OMPLPlanningContext~Robot~
-        -vectorizedEnvironment VectorizedEnvironment
-        -isInitialized bool
+        -robotConfiguration_ unique_ptr~RobotConfig~Robot~~
+        -environmentFactory_ unique_ptr~EnvironmentFactory~
+        -planningContext_ OMPLPlanningContext~Robot~
+        -vectorizedEnvironment_ VectorizedEnvironment
+        -isInitialized_ bool
         +VampOMPLPlanner(robotConfig, envFactory)
         +initialize()
         +plan(config) PlanningResult
@@ -83,220 +83,216 @@ classDiagram
         +isInitialized() bool
     }
     
-    class OMPLPlanningContext~Robot~ {
-        <<Adapter Pattern>>
-        -spaceInformation SpaceInformationPtr
-        -problemDefinition ProblemDefinitionPtr
+    class OMPLPlanningContextRobot {
+        <<Unified Adapter + Planner Management>>
+        -simpleSetup_ unique_ptr~SimpleSetup~
         +setupStateSpace(robotConfig, venv)
         +setProblem(start, goal)
         +plan(config) PlanningResult
-        -createPlannerByName(name) PlannerPtr
+        +getSpaceInformation() SpaceInformationPtr
+        +getProblemDefinition() ProblemDefinitionPtr
         +registerPlanner(name, factory) static
-    }
-    
-    class PlannerRegistry {
-        <<Singleton Registry>>
-        -plannerAllocators map~string, PlannerAllocatorFunction~
-        -mutex mutex
-        +getInstance() PlannerRegistry& static
-        +registerPlanner(name, allocator)
-        +createPlanner(name, si, params) PlannerPtr
-        +isPlannerRegistered(name) bool
-        +getRegisteredPlanners() vector~string~
-        +getAvailablePlannerNames() string
-        +getPlannerCount() size_t
-        -registerBuiltInPlanners()
+        +createPlannerByName(name, si, params) static
+        +getAvailablePlannerNames() static
+        -createPlannerAllocator(name, params) PlannerAllocator
+        -getPlannerRegistry() static map~string, PlannerAllocatorFunction~&
+        -getPlannerMutex() static mutex&
+        -createBuiltInPlanners() static map~string, PlannerAllocatorFunction~
         -applyParameters(planner, params) static
     }
     
     %% Configuration System Hierarchy
-    class RobotConfig~Robot~ {
+    class RobotConfigRobot {
         <<interface>>
-        +getJointLimits() vector~pair~double,double~~*
-        +getStartConfigurationArray() array~float,dimension~*
-        +getGoalConfigurationArray() array~float,dimension~*
-        +getRobotName() string*
-        +dimension: size_t = Robot::dimension
+        +get_joint_limits() vector~pair~double,double~~*
+        +get_start_configuration_array() array~float,dimension~*
+        +get_goal_configuration_array() array~float,dimension~*
+        +get_robot_name() string*
+        +dimension_: size_t = Robot::dimension
     }
     
-    class RobotConfiguration~Robot~ {
-        -startConfig vector~float~
-        -goalConfig vector~float~
-        -robotName string
+    class RobotConfigurationRobot {
+        <<concrete implementation>>
+        -startConfig_ vector~float~
+        -goalConfig_ vector~float~
+        -robotName_ string
         +RobotConfiguration(name, start, goal)
-        +getJointLimits() vector~pair~double,double~~
-        +getStartConfigurationArray() array~float,dimension~
-        +getGoalConfigurationArray() array~float,dimension~
-        +getRobotName() string
-        -vectorToArray(vec) array~float,dimension~
-        -validateConfigurationSize()
+        +get_joint_limits() vector~pair~double,double~~
+        +get_start_configuration_array() array~float,dimension~
+        +get_goal_configuration_array() array~float,dimension~
+        +get_robot_name() string
+        -validateDimensions()
         -validateJointLimits()
+        -vectorToArray(vec) array~float,dimension~
     }
     
     class EnvironmentFactory {
-        <<interface>>
-        +createEnvironment() Environment~float~*
-        +getEnvironmentName() string*
-        +getDescription() string*
+        <<Strategy Pattern>>
+        +create_environment() Environment~float~*
+        +get_environment_name() string*
+        +get_description() string*
     }
     
     class ConfigurableEnvironmentFactory {
-        -obstacleConfigurations vector~ObstacleConfig~
-        -environmentName string
-        +ConfigurableEnvironmentFactory(name, obstacles)
-        +createEnvironment() Environment~float~
-        +getEnvironmentName() string
-        +getDescription() string
-        +addObstacle(obstacle)
+        <<concrete implementation>>
+        -obstacleConfigurations_ vector~ObstacleConfig~
+        -environmentName_ string
+        -environmentDescription_ string
+        -robotName_ string
+        +ConfigurableEnvironmentFactory(obstacles, name, desc, robot)
         +setObstacles(obstacles)
+        +addObstacle(obstacle)
+        +setMetadata(name, desc)
+        +setRobotName(name)
+        +create_environment() Environment~float~
+        +get_environment_name() string
+        +get_description() string
     }
     
-    %% Registry System
+    %% Registry System Architecture
     class RobotRegistry {
-        <<Singleton>>
-        -handlers map~string,unique_ptr~RobotHandler~~
-        -metadata map~string,RobotMetadata~
-        +getInstance() RobotRegistry static
-        +registerRobot~Robot~(name) static
+        <<Singleton Registry>>
+        -handlers_ map~string, unique_ptr~RobotHandler~~
+        -robotMetadata_ map~string, RobotMetadata~
+        -mutex_ mutable mutex
+        +getInstance() RobotRegistry& static
+        +registerRobot~Robot~(name) template
+        +isRobotRegistered(name) bool
+        +getRobotMetadata(name) RobotMetadata
+        +getRegisteredRobots() vector~string~
         +createRobotConfig(name, start, goal) any
         +createPlanner(name, config, factory) any
         +initializePlanner(name, planner)
         +executePlanning(name, planner, config) PlanningResult
-        +isRobotRegistered(name) bool
-        +getRegisteredRobots() vector~string~
-        -RobotRegistry()
+        +getJointLimits(name) vector~pair~double,double~~
+        +createBenchmarkManager(name, start, goal, factory) any
+        +executeBenchmark(name, manager, experiment, planners, runs, timeout) map~string,string~
+        +isBenchmarkingAvailable(name) bool
+        +getBenchmarkingEnabledRobots() vector~string~
+        -registerBuiltInRobots()
     }
     
     class RobotHandler {
-        <<interface>>
-        +createRobotConfig(start, goal) any*
+        <<Type Erasure Interface>>
+        +createRobotConfig(name, start, goal) any*
         +createPlanner(config, factory) any*
         +initializePlanner(planner)*
         +executePlanning(planner, config) PlanningResult*
         +getMetadata() RobotMetadata*
-        +validateConfigurationSize(start, goal) bool*
+        +validateConfigurationSize(config) bool*
+        +getJointLimits() vector~pair~double,double~~*
+        +createBenchmarkManager(start, goal, factory) any*
+        +executeBenchmark(manager, experiment, planners, runs, timeout) map~string,string~*
     }
     
-    class TypedRobotHandler~Robot~ {
-        +createRobotConfig(start, goal) any
+    class TypedRobotHandlerRobot {
+        <<Type-safe Implementation>>
+        +createRobotConfig(name, start, goal) any
         +createPlanner(config, factory) any
         +initializePlanner(planner)
         +executePlanning(planner, config) PlanningResult
         +getMetadata() RobotMetadata
-        +validateConfigurationSize(start, goal) bool
-        -castPlanner(any) VampOMPLPlanner~Robot~*
+        +validateConfigurationSize(config) bool
+        +getJointLimits() vector~pair~double,double~~
+        +createBenchmarkManager(start, goal, factory) any
+        +executeBenchmark(manager, experiment, planners, runs, timeout) map~string,string~
     }
     
-    %% Factory System
-    class PlannerFactory {
-        <<Singleton + Registry>>
-        -plannerCreators map~string,PlannerCreatorFunction~
-        +getInstance() PlannerFactory static
-        +createPlanner(name, si) PlannerPtr
-        +registerPlanner(name, factory)
-        +getAvailablePlannerNames() string
-        -PlannerFactory()
+    %% OMPL Built-in Planners
+    class RRTConnect {
+        <<OMPL Built-in>>
+        +solve(terminationCondition) PlannerStatus
+        +range: double
+        +intermediateStates: bool
     }
     
-    %% VAMP Environment System
-    class VectorizedEnvironment {
-        <<SIMD-optimized>>
-        +spheres vector~Sphere~
-        +cuboids vector~Cuboid~
-        +capsules vector~Capsule~
-        +pointclouds vector~Pointcloud~
-        +sort()
-        +checkCollision(configurations) bool
+    class BITstar {
+        <<OMPL Built-in>>
+        +solve(terminationCondition) PlannerStatus
+        +rewireFactor: double
+        +samplesPerBatch: int
+        +useKNearest: bool
     }
     
-    %% Built-in Robot Types (examples)
-    class VAMPPanda {
-        <<Built-in Robot>>
-        +dimension: size_t = 7
-        +n_spheres: size_t = 10
-        +resolution: size_t = 64
-        +s_a: array~float,7~
-        +s_m: array~float,7~
-        +fkcc~rake~(env, config) bool static
-        +scale_configuration(config) static
-        +descale_configuration(config) static
-        +name: string = "panda"
+    class PRM {
+        <<OMPL Built-in>>
+        +solve(terminationCondition) PlannerStatus
+        +maxNearestNeighbors: int
+        +connectionStrategy: string
     }
     
-    class VAMPUR5 {
-        <<Built-in Robot>>
-        +dimension: size_t = 6
-        +n_spheres: size_t = 8
-        +resolution: size_t = 32
-        +s_a: array~float,6~
-        +s_m: array~float,6~
-        +fkcc~rake~(env, config) bool static
-        +scale_configuration(config) static
-        +descale_configuration(config) static
-        +name: string = "ur5"
+    %% Planner Factory Function Type
+    class PlannerAllocatorFunction {
+        <<Function Type>>
+        +operator()(si, params) PlannerPtr
     }
     
-    %% Benchmarking System
-    class VampBenchmarkManager~Robot~ {
-        <<Benchmarking Facade>>
-        -planner unique_ptr~VampOMPLPlanner~Robot~~
-        -robotName string
-        +VampBenchmarkManager(robotConfig, envFactory)
-        +initialize()
-        +executeBenchmark(config) string
-        +isInitialized() bool
-        +getRobotConfiguration() RobotConfig~Robot~
-        +getEnvironmentFactory() EnvironmentFactory
-        -addPlannersToOMPLBenchmark(benchmark, config, si)
-        -generateBenchmarkFileName(config) string
-    }
+    %% Relationships
     
-    %% Core Relationships - OMPL Integration
-    OMPLStateValidityChecker <|-- VampStateValidator
-    OMPLMotionValidator <|-- VampMotionValidator
+    %% OMPL Foundation
+    VampStateValidatorRobot --|> OMPLStateValidityChecker
+    VampMotionValidatorRobot --|> OMPLMotionValidator
+    RRTConnect --|> OMPLPlanner
+    BITstar --|> OMPLPlanner
+    PRM --|> OMPLPlanner
     
-    VampOMPLPlanner --> OMPLPlanningContext : uses
-    VampOMPLPlanner --> RobotConfig : configures
-    VampOMPLPlanner --> EnvironmentFactory : creates_environment
-    VampOMPLPlanner --> VectorizedEnvironment : optimizes
+    %% Core Integration
+    VampOMPLPlannerRobot --> OMPLPlanningContextRobot
+    VampOMPLPlannerRobot --> RobotConfigRobot
+    VampOMPLPlannerRobot --> EnvironmentFactory
     
-    OMPLPlanningContext --> OMPLSpaceInformation : manages
-    OMPLPlanningContext --> OMPLProblemDefinition : manages
-    OMPLPlanningContext --> VampStateValidator : creates
-    OMPLPlanningContext --> VampMotionValidator : creates
-    OMPLPlanningContext --> PlannerRegistry : uses
+    OMPLPlanningContextRobot --> OMPLSpaceInformation
+    OMPLPlanningContextRobot --> OMPLProblemDefinition
+    OMPLPlanningContextRobot --> VampStateValidatorRobot
+    OMPLPlanningContextRobot --> VampMotionValidatorRobot
     
-    PlannerRegistry --> OMPLPlanner : creates
+    %% Integrated Planner Management (no separate registry)
+    OMPLPlanningContextRobot --> PlannerAllocatorFunction
+    OMPLPlanningContextRobot ..> RRTConnect : creates
+    OMPLPlanningContextRobot ..> BITstar : creates
+    OMPLPlanningContextRobot ..> PRM : creates
     
-    %% Configuration System Relationships
-    RobotConfig <|-- RobotConfiguration
-    EnvironmentFactory <|-- ConfigurableEnvironmentFactory
+    %% Configuration System
+    RobotConfigurationRobot --|> RobotConfigRobot
+    ConfigurableEnvironmentFactory --|> EnvironmentFactory
     
-    %% Registry System Relationships
-    RobotRegistry --> RobotHandler : manages
-    RobotHandler <|-- TypedRobotHandler
-    TypedRobotHandler --> VampOMPLPlanner : creates
-    TypedRobotHandler --> RobotConfiguration : creates
+    %% Registry System
+    RobotRegistry --> RobotHandler
+    TypedRobotHandlerRobot --|> RobotHandler
+    RobotRegistry --> TypedRobotHandlerRobot
     
-    %% Environment System
-    ConfigurableEnvironmentFactory --> VectorizedEnvironment : creates
-    VampStateValidator --> VectorizedEnvironment : validates_against
-    VampMotionValidator --> VectorizedEnvironment : validates_against
+    %% Usage Dependencies
+    TypedRobotHandlerRobot ..> VampOMPLPlannerRobot : creates
+    TypedRobotHandlerRobot ..> RobotConfigurationRobot : creates
     
-    %% Built-in Robot Registration
-    VAMPPanda ..> RobotRegistry : auto_registered
-    VAMPUR5 ..> RobotRegistry : auto_registered
+    %% Styling
+    classDef omplInterface fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef vampCore fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef configSystem fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef registrySystem fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef plannerSystem fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
     
-    %% Benchmarking Relationships
-    VampBenchmarkManager --> VampOMPLPlanner : composes
-    VampBenchmarkManager --> OMPLSpaceInformation : uses
+    class OMPLStateValidityChecker omplInterface
+    class OMPLMotionValidator omplInterface
+    class OMPLPlanner omplInterface
+    class OMPLSpaceInformation omplInterface
+    class OMPLProblemDefinition omplInterface
     
-    %% Template Relationships
-    VampOMPLPlanner : Robot
-    OMPLPlanningContext : Robot
-    VampStateValidator : Robot
-    VampMotionValidator : Robot
-    RobotConfig : Robot
-    RobotConfiguration : Robot
-    TypedRobotHandler : Robot
-    VampBenchmarkManager : Robot
+    class VampStateValidatorRobot vampCore
+    class VampMotionValidatorRobot vampCore
+    class VampOMPLPlannerRobot vampCore
+    class OMPLPlanningContextRobot vampCore
+    
+    class RobotConfigRobot configSystem
+    class RobotConfigurationRobot configSystem
+    class EnvironmentFactory configSystem
+    class ConfigurableEnvironmentFactory configSystem
+    
+    class RobotRegistry registrySystem
+    class RobotHandler registrySystem
+    class TypedRobotHandlerRobot registrySystem
+    
+    class RRTConnect plannerSystem
+    class BITstar plannerSystem
+    class PRM plannerSystem
+    class PlannerAllocatorFunction plannerSystem

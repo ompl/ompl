@@ -1,10 +1,36 @@
-# VAMP-OMPL API Reference Guide {#vamp-ompl-api}
+# VAMP-OMPL API Reference {#vamp-ompl-api-reference}
 
-## Overview
+This document provides comprehensive API documentation for VAMP-OMPL integration.
 
-This document provides comprehensive API documentation for the VAMP motion planning system, focusing on public interfaces and extension points for developers.
+## Quick Start
 
-## Core APIs
+```cpp
+#include "VampOmplPlanning.h"
+
+// All VAMP-OMPL functionality is now available
+vamp_ompl::PlanningConfiguration config;
+config.robot_name = "panda";
+config.start_config = {0, 0, 0, 0, 0, 0, 0};
+config.goal_config = {1, 1, 1, 1, 1, 1, 1};
+config.planning.planner_name = "RRT-Connect";
+
+auto result = vamp_ompl::executeMotionPlanning(config);
+```
+
+## Header Organization
+
+**Primary Header**: `VampOmplPlanning.h` - Comprehensive header providing complete VAMP-OMPL functionality
+
+This single header includes:
+- High-level planning interface (`executeMotionPlanning`)
+- Robot registry system with built-in and custom robot support  
+- Integrated planner management (RRT-Connect, BIT*, PRM, custom planners)
+- SIMD-accelerated collision detection and motion validation
+- Configuration structures and utilities
+- Benchmarking infrastructure
+- Visualization support
+
+## Core Functions
 
 ### VampOMPLPlanner<Robot>
 
@@ -144,90 +170,198 @@ static void registerRobot(const std::string& name)
 **Template Parameter:** Robot type implementing VAMP robot interface  
 **Usage:** Typically called at static initialization time
 
-### PlannerRegistry
+### OMPLPlanningContext
 
-Singleton registry for OMPL planner management with runtime string-based selection and parameter configuration.
+Unified OMPL integration with integrated planner management. This class serves as the central OMPL adapter and planner registry, providing both state space management and planner creation in a single, cohesive interface.
 
 #### Core Methods
 
-##### getInstance()
+##### setupStateSpace()
 
 ```cpp
-static PlannerRegistry& getInstance()
+void setupStateSpace(const RobotConfig<Robot>& robot_configuration, 
+                    const VectorizedEnvironment& vectorized_environment)
 ```
 
-**Purpose:** Access singleton registry instance  
-**Thread Safety:** Safe for concurrent access after static initialization
-
-##### createPlanner()
-
-```cpp
-ob::PlannerPtr createPlanner(const std::string& name,
-                            const ob::SpaceInformationPtr& si,
-                            const std::map<std::string, std::string>& parameters = {})
-```
-
-**Purpose:** Create planner instance with parameters  
-**Returns:** Configured OMPL planner instance  
-**Throws:** `VampConfigurationError` for unknown planners
-
+**Purpose:** Initialize OMPL state space with robot configuration and VAMP validators  
 **Parameters:**
+- `robot_configuration`: Robot configuration providing joint limits
+- `vectorized_environment`: VAMP collision environment for validators
 
-- `name`: Planner identifier (e.g., "RRT-Connect", "BIT*", "PRM")
-- `si`: OMPL space information
-- `parameters`: Parameter map for planner configuration
-
-##### getRegisteredPlanners()
+##### plan()
 
 ```cpp
-std::vector<std::string> getRegisteredPlanners() const
+auto plan(const PlanningConfig& planning_configuration) -> PlanningResult
 ```
 
-**Purpose:** Get list of available planner names  
-**Returns:** Vector of registered planner identifiers
+**Purpose:** Execute motion planning with specified configuration  
+**Parameters:**
+- `planning_configuration`: Planning settings including planner name, time limits, and parameters
+**Returns:** Complete planning results with timing, path, and success information
 
-##### isPlannerRegistered()
+#### Integrated Planner Management
 
-```cpp
-bool isPlannerRegistered(const std::string& name) const
-```
+The `OMPLPlanningContext` includes built-in planner management functionality:
 
-**Purpose:** Check if planner is available  
-**Returns:** true if planner is registered
+##### Built-in Planners
 
-#### Registration Methods
+- **RRT-Connect**: Fast bidirectional tree planner for quick solutions
+- **BIT***: Batch Informed Trees for asymptotically optimal paths  
+- **PRM**: Probabilistic Roadmap for complex environments
 
 ##### registerPlanner()
 
 ```cpp
-void registerPlanner(const std::string& name, PlannerAllocatorFunction allocator)
+static void registerPlanner(const std::string& name, PlannerAllocatorFunction allocator)
 ```
 
-**Purpose:** Register custom planner with factory function  
+**Purpose:** Register custom planner for runtime selection  
 **Parameters:**
 - `name`: Unique planner identifier
-- `allocator`: Factory function that creates and configures the planner
+- `allocator`: Factory function creating configured planner instance
 
 **Example:**
-
 ```cpp
-PlannerRegistry::getInstance().registerPlanner("MyRRT*", 
+OMPLPlanningContext<Robot>::registerPlanner("MyRRT*", 
     [](const ob::SpaceInformationPtr& si, const auto& params) {
         auto planner = std::make_shared<og::RRTstar>(si);
-        // Parameters are automatically applied via OMPL's ParamSet
+        // Configure parameters using OMPL's ParamSet
         return planner;
     });
 ```
 
-#### Built-in Planners
+##### createPlannerByName()
 
-The registry automatically registers three core planners:
+```cpp
+static ob::PlannerPtr createPlannerByName(const std::string& name,
+                                         const ob::SpaceInformationPtr& si,
+                                         const std::map<std::string, std::string>& parameters)
+```
 
-- **"RRT-Connect"**: Fast bidirectional tree planner
-- **"BIT*"**: Batch Informed Trees - asymptotically optimal
-- **"PRM"**: Probabilistic Roadmap - good for complex environments
+**Purpose:** Create planner instance by name with parameters  
+**Parameters:**
+- `name`: Registered planner identifier
+- `si`: OMPL space information
+- `parameters`: Planner-specific parameter map
+**Returns:** Configured OMPL planner instance
+**Throws:** `VampConfigurationError` if planner not found
 
-### Configuration System
+##### getAvailablePlannerNames()
+
+```cpp
+static std::string getAvailablePlannerNames()
+```
+
+**Purpose:** Get comma-separated list of available planners  
+**Returns:** String listing all registered planner names
+
+#### Parameter Handling
+
+The integrated planner management automatically applies parameters using OMPL's ParamSet introspection:
+
+```cpp
+// Parameters are automatically validated and applied
+std::map<std::string, std::string> params = {
+    {"range", "0.3"},
+    {"intermediate_states", "false"}
+};
+auto planner = OMPLPlanningContext<Robot>::createPlannerByName("RRT-Connect", si, params);
+```
+
+#### Thread Safety
+
+- **Function-Local Static Registry**: Thread-safe initialization guaranteed by C++11
+- **Mutex Protection**: Write operations (registration) protected with mutex
+- **Lock-Free Reads**: Planner creation doesn't require synchronization
+
+### VampOMPLPlanner
+
+Main planning facade that coordinates VAMP-OMPL integration.
+
+#### Constructor
+
+```cpp
+VampOMPLPlanner(std::unique_ptr<RobotConfig<Robot>> robot_configuration,
+                std::unique_ptr<EnvironmentFactory> environment_factory)
+```
+
+**Purpose:** Create planner with dependency injection  
+**Parameters:**
+- `robot_configuration`: Robot configuration providing limits and poses
+- `environment_factory`: Factory for creating collision environments
+
+#### initialize()
+
+```cpp
+void initialize()
+```
+
+**Purpose:** Two-phase initialization - create environment and setup OMPL  
+**Note:** Must be called before planning
+
+#### plan()
+
+```cpp
+auto plan(const PlanningConfig& planning_configuration,
+         const std::array<float, robot_dimension_>& custom_start_configuration = {},
+         const std::array<float, robot_dimension_>& custom_goal_configuration = {}) -> PlanningResult
+```
+
+**Purpose:** Execute motion planning  
+**Parameters:**
+- `planning_configuration`: Planning settings and planner selection
+- `custom_start_configuration`: Optional custom start (uses robot default if empty)
+- `custom_goal_configuration`: Optional custom goal (uses robot default if empty)
+**Returns:** Complete planning results
+
+### RobotRegistry
+
+Singleton registry for type-safe robot management.
+
+#### getInstance()
+
+```cpp
+static RobotRegistry& getInstance()
+```
+
+**Purpose:** Get singleton registry instance  
+**Returns:** Reference to global robot registry
+
+#### registerRobot()
+
+```cpp
+template<typename Robot>
+void registerRobot(const std::string& name)
+```
+
+**Purpose:** Register robot type for runtime selection  
+**Template Parameter:** VAMP robot type
+**Parameters:**
+- `name`: Unique robot identifier
+
+#### createRobotConfig()
+
+```cpp
+std::any createRobotConfig(const std::string& robot_name,
+                          std::vector<float> start_config,
+                          std::vector<float> goal_config)
+```
+
+**Purpose:** Create type-erased robot configuration  
+**Parameters:**
+- `robot_name`: Registered robot identifier
+- `start_config`: Start joint configuration
+- `goal_config`: Goal joint configuration
+**Returns:** Type-erased robot configuration
+**Throws:** `VampConfigurationError` for invalid robot or configuration
+
+#### Built-in Robots
+
+- **panda**: Franka Emika Panda 7-DOF manipulator
+- **ur5**: Universal Robots UR5 6-DOF arm
+- **fetch**: Fetch Robotics 8-DOF mobile manipulator
+
+### Configuration Structures
 
 #### PlanningConfig
 
@@ -235,6 +369,7 @@ The registry automatically registers three core planners:
 struct PlanningConfig {
     double planning_time = 1.0;
     double simplification_time = 0.5;
+    bool optimize_path = false;
     std::string planner_name = "BIT*";
     bool write_path = false;
     std::map<std::string, std::string> planner_parameters;
@@ -252,250 +387,55 @@ struct PlanningResult {
     double final_cost = 0.0;
     size_t path_length = 0;
     std::string error_message;
-    ompl::base::PathPtr solution_path;
+    ob::PathPtr solution_path;
     std::string solution_file_path;
 };
 ```
 
-## Extension APIs
+### Error Handling
 
-### Custom Robot Implementation
-
-#### Robot Interface Requirements
+#### VampConfigurationError
 
 ```cpp
-struct CustomRobot {
-    // Required compile-time constants
-    static constexpr auto name = "custom_robot";
-    static constexpr auto dimension = 7;        // Joint count
-    static constexpr auto n_spheres = 10;       // Collision spheres
-    static constexpr auto resolution = 64;      // Motion validation resolution
-    
-    // Joint limit arrays
-    static constexpr std::array<float, dimension> s_a = {/* lower limits */};
-    static constexpr std::array<float, dimension> s_m = {/* ranges */};
-    
-    // Required type definitions
-    using Configuration = vamp::VectorXs<dimension>;
-    
-    // Required methods
-    template<std::size_t rake>
-    inline static auto fkcc(
-        const vamp::collision::Environment<vamp::FloatVector<rake>>& environment,
-        const vamp::ConfigurationBlock<rake>& q) noexcept -> bool;
-    
-    inline static void scale_configuration(Configuration& q) noexcept;
-    inline static void descale_configuration(Configuration& q) noexcept;
-};
+class VampConfigurationError : public std::runtime_error
 ```
 
-#### Registration Macro
+**Purpose:** Configuration and validation errors  
+**Usage:** Thrown for invalid robot configurations, unknown planners, etc.
+
+### Extension Patterns
+
+#### Custom Robot Registration
 
 ```cpp
-REGISTER_VAMP_ROBOT(CustomRobot, "custom_robot");
+// Define robot structure
+namespace vamp::robots {
+    struct MyRobot {
+        static constexpr auto name = "my_robot";
+        static constexpr auto dimension = 6;
+        // ... implement required interface
+    };
+}
+
+// Register robot
+REGISTER_VAMP_ROBOT(vamp::robots::MyRobot, "my_robot");
 ```
 
-### Custom Planner Registration
-
-#### Factory Function Pattern
+#### Custom Planner Registration
 
 ```cpp
-registerPlanner("CustomPlanner",
-    [](const ompl::base::SpaceInformationPtr& si, const auto& params) {
-        auto planner = std::make_shared<CustomOMPLPlanner>(si);
-        // Parameters are automatically applied via OMPL's ParamSet system
-        // Custom parameter handling can be added here if needed
+// Register at runtime
+OMPLPlanningContext<Robot>::registerPlanner("MyPlanner",
+    [](const ob::SpaceInformationPtr& si, const auto& params) {
+        auto planner = std::make_shared<MyPlanner>(si);
+        // Apply parameters using OMPL ParamSet
+        for (const auto& [key, value] : params) {
+            if (planner->params().hasParam(key)) {
+                planner->params().setParam(key, value);
+            }
+        }
         return planner;
     });
 ```
 
-#### Using Convenience Functions
-
-```cpp
-// Global convenience function
-registerPlanner("MyPlanner", [](const auto& si, const auto& params) {
-    return std::make_shared<MyPlanner>(si);
-});
-
-// Create planner by name
-auto planner = createPlannerByName("MyPlanner", spaceInfo, {{"range", "0.5"}});
-```
-
-### Custom Environment Factory
-
-#### Interface Implementation
-
-```cpp
-class CustomEnvironmentFactory : public EnvironmentFactory {
-public:
-    vamp::collision::Environment<float> createEnvironment() override {
-        vamp::collision::Environment<float> env;
-        // Add custom obstacles
-        env.spheres.push_back({{x, y, z}, radius});
-        return env;
-    }
-    
-    std::string getEnvironmentName() const override {
-        return "custom_environment";
-    }
-    
-    std::string getDescription() const override {
-        return "Custom environment with specialized obstacles";
-    }
-};
-```
-
-## Performance Guidelines
-
-### SIMD Optimization
-
-- **Robot Dimension**: Keep ≤ 16 DOF for optimal buffer usage
-- **Resolution Parameter**: Balance validation thoroughness vs performance
-- **Memory Alignment**: VAMP handles alignment automatically
-
-### Thread Safety
-
-- **Construction**: Thread-safe
-- **Initialization**: Single-threaded only
-- **Planning Operations**: Thread-safe after initialization
-- **Registry Access**: Thread-safe for read operations
-
-### Memory Management
-
-- **RAII**: All resources managed automatically
-- **Function-local Static Buffers**: Used internally for zero-allocation collision checking
-- **Environment Caching**: Vectorized environments cached after creation
-
-## Error Handling
-
-### Exception Hierarchy
-
-```cpp
-VampConfigurationError          // Base configuration error
-├── VampYamlError              // YAML parsing errors
-└── VampValidationError        // Configuration validation errors
-```
-
-### Best Practices
-
-1. **Catch specific exceptions** for targeted error handling
-2. **Validate configurations early** before expensive operations
-3. **Use isInitialized()** to check planner state before operations
-4. **Check planning results** for success flag before using solution
-
-## Usage Examples
-
-### Basic Planning
-
-```cpp
-#include "VampOMPLDemo.h"
-
-// Create configuration
-PlanningConfiguration config;
-config.robot_name = "panda";
-config.start_config = {0, 0, 0, 0, 0, 0, 0};
-config.goal_config = {1, 1, 1, 1, 1, 1, 1};
-config.planning.planner_name = "RRT-Connect";
-config.planning.planning_time = 5.0;
-
-// Add obstacles
-ObstacleConfig sphere{"sphere", {0.5f, 0.5f, 0.5f}, 0.1f};
-config.obstacles.push_back(sphere);
-
-// Execute planning
-auto result = executeMotionPlanning(config);
-if (result.success()) {
-    std::cout << "Planning succeeded! Cost: " << result.final_cost() << std::endl;
-}
-```
-
-### Advanced Planning with Custom Configuration
-
-```cpp
-// Create components directly
-auto robotConfig = std::make_unique<RobotConfiguration<vamp::robots::Panda>>(
-    "panda", startVec, goalVec);
-auto envFactory = std::make_unique<ConfigurableEnvironmentFactory>(
-    "test_env", obstacles);
-
-// Create and configure planner
-auto planner = createVampOMPLPlanner<vamp::robots::Panda>(
-    std::move(robotConfig), std::move(envFactory));
-planner->initialize();
-
-// Custom planning configuration
-PlanningConfig config;
-config.planner_name = "BIT*";
-config.planning_time = 10.0;
-config.planner_parameters["rewire_factor"] = "1.1";
-
-auto result = planner->plan(config);
-```
-
-### Benchmarking
-
-```cpp
-#include "VampBenchmarkManager.h"
-
-// Create benchmark manager
-auto benchmarkManager = std::make_unique<VampBenchmarkManager<vamp::robots::Panda>>(
-    std::move(robotConfig), std::move(envFactory));
-benchmarkManager->initialize();
-
-// Configure benchmark
-BenchmarkConfiguration benchConfig;
-benchConfig.experiment_name = "Panda Navigation Benchmark";
-benchConfig.planner_names = {"RRT-Connect", "BIT*", "PRM"};
-benchConfig.runs = 50;
-benchConfig.timeout = 5.0;
-
-// Execute benchmark
-std::string logFile = benchmarkManager->executeBenchmark(benchConfig);
-std::cout << "Results saved to: " << logFile << std::endl;
-```
-
-## Migration Guide
-
-### From Direct OMPL Usage
-
-1. **Replace SpaceInformation creation** with VampOMPLPlanner
-2. **Replace custom validators** with VAMP's vectorized validators
-3. **Use robot registry** for string-based robot selection
-4. **Leverage two-phase initialization** for better error handling
-
-### From Other Motion Planning Libraries
-
-1. **Map robot definitions** to VAMP robot interface
-2. **Convert collision environments** to VAMP format
-3. **Adapt planner parameters** to OMPL naming conventions
-4. **Use VAMP's unified configuration system**
-
-## Performance Tuning
-
-### Robot-Specific Optimization
-
-- **Adjust resolution parameter** based on robot complexity
-- **Minimize collision spheres** while maintaining accuracy
-- **Optimize joint limit ranges** for better space utilization
-
-### Environment Optimization
-
-- **Use appropriate obstacle types** (spheres for round objects, etc.)
-- **Minimize obstacle count** through scene simplification
-- **Consider pointcloud optimization** for complex geometries
-
-## Troubleshooting
-
-### Common Issues
-
-1. **"Robot not registered"**: Use RobotRegistry::getRegisteredRobots() to check available robots
-2. **"Planner not initialized"**: Call initialize() before planning operations
-3. **"Invalid configuration"**: Check joint limits and dimension matching
-4. **Poor performance**: Verify SIMD alignment and robot resolution settings
-
-### Debug Information
-
-- Use `printConfiguration()` for planner state inspection
-- Check `isInitialized()` status before operations
-- Examine error messages for specific failure details
-- Enable OMPL logging for detailed planner behavior
+This API provides a comprehensive, type-safe, and extensible interface for VAMP-OMPL motion planning with integrated planner management.

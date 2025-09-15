@@ -11,7 +11,6 @@ sequenceDiagram
     participant VSV as VampStateValidator
     participant VMV as VampMotionValidator
     participant VE as VectorizedEnvironment
-    participant PF as PlannerFactory
     participant PLANNER as OMPL Planner
     participant PD as ProblemDefinition
     
@@ -34,7 +33,7 @@ sequenceDiagram
     RR->>VOP: initialize()
     
     %% Environment Setup
-    VOP->>VOP: createEnvironment()
+    VOP->>VOP: create_environment()
     VOP->>VE: VectorizedEnvironment(scalarEnv)
     VE->>VE: vectorize obstacles (AOS→SOA)
     VE-->>VOP: vectorized environment
@@ -59,78 +58,65 @@ sequenceDiagram
     PD-->>OPC: configured problem
     
     VOP-->>RR: initialization complete
-    RR-->>API: ready
+    RR-->>API: initialization complete
     
-    %% Planning Execution
+    %% Planning Execution Phase
     API->>RR: executePlanning(name, planner, config)
-    RR->>VOP: plan(config)
-    VOP->>OPC: plan(config)
+    RR->>VOP: plan(planningConfig)
+    VOP->>OPC: plan(planningConfig)
     
-    %% Planner Creation
-    OPC->>PF: createPlannerByName(name)
-    PF->>PF: lookup factory function
-    PF->>PLANNER: factory(spaceInformation)
-    PLANNER-->>PF: planner instance
-    PF-->>OPC: planner
+    %% Integrated Planner Creation (no separate registry)
+    OPC->>OPC: createPlannerAllocator(name, params)
+    OPC->>OPC: getPlannerRegistry() [function-local static]
+    OPC->>OPC: lookup planner factory
+    OPC->>PLANNER: create planner instance
+    OPC->>PLANNER: applyParameters(params)
+    PLANNER-->>OPC: configured planner
     
-    %% Planner Setup
-    OPC->>PLANNER: setProblemDefinition(pdef)
-    OPC->>PLANNER: setup()
+    %% OMPL Planning Loop
+    OPC->>SI: setPlannerAllocator(allocator)
+    OPC->>SI: solve(timeLimit)
     
-    %% Main Planning Loop
-    OPC->>PLANNER: solve(timeout)
-    
-    loop Planning iterations
-        PLANNER->>SI: sample random state
-        PLANNER->>VSV: isValid(state)
-        VSV->>VSV: ompl_to_vamp(state)
-        VSV->>VE: validate_motion(config, config)
+    loop Planning Iterations
+        SI->>VSV: isValid(state) [SIMD batch validation]
+        VSV->>VE: validate_motion<Robot>(config, config, env)
+        VE->>VE: vectorized collision checking (8x parallel)
+        VE-->>VSV: collision results
+        VSV-->>SI: validity result
         
-        Note over VE: SIMD collision detection<br/>8x parallel processing
-        VE->>VE: vectorized collision check
-        VE-->>VSV: collision result
-        VSV-->>PLANNER: validity result
+        SI->>VMV: checkMotion(start, end) [SIMD rake validation]
+        VMV->>VE: validate_motion<Robot>(start, end, env)
+        VE->>VE: rake sampling + vectorized collision (8x parallel)
+        VE-->>VMV: motion validity
+        VMV-->>SI: motion result
         
-        PLANNER->>SI: extend tree/graph
-        PLANNER->>VMV: checkMotion(state1, state2)
-        VMV->>VMV: ompl_to_vamp(states)
-        VMV->>VE: validate_motion(start, end, resolution)
-        
-        Note over VE: "Rake" motion validation<br/>Parallel sampling across SIMD lanes
-        VE->>VE: vectorized motion check
-        VE-->>VMV: motion result
-        VMV-->>PLANNER: validity result
+        SI->>PLANNER: planning iteration
+        PLANNER->>PLANNER: tree expansion/connection
+        PLANNER-->>SI: iteration result
     end
     
-    PLANNER-->>OPC: PlannerStatus::EXACT_SOLUTION
+    SI-->>OPC: planning result
     
     %% Solution Processing
-    OPC->>PD: getSolutionPath()
-    PD-->>OPC: solution path
-    OPC->>OPC: calculate initial cost
-    
-    %% Path Simplification (optional)
-    alt simplification requested
-        OPC->>OPC: PathSimplifier.simplify(path, time)
-        OPC->>OPC: calculate final cost
-    end
-    
-    OPC-->>VOP: PlanningResult
-    
-    %% Path Writing (optional)
-    alt write_path enabled
+    alt Planning Successful
+        OPC->>OPC: getSolutionPath()
+        OPC->>OPC: simplifySolution(time)
+        OPC->>OPC: calculateCosts()
+        OPC-->>VOP: PlanningResult(success=true, path, costs)
+        
         VOP->>VOP: writeOptimizedSolutionPath()
-        VOP->>VOP: interpolate path waypoints
-        VOP->>VOP: generate filename
-        VOP->>VOP: write path matrix to file
-        VOP-->>VOP: solution file path
+        VOP-->>OPC: solution file path
+        
+    else Planning Failed
+        OPC-->>VOP: PlanningResult(success=false, error)
     end
     
-    VOP-->>RR: PlanningResult
-    RR-->>API: PlanningResult
+    VOP-->>RR: planning result
+    RR-->>API: motion planning result
     API-->>User: MotionPlanningResult
     
-    %% Performance Notes
-    Note over VSV, VE: Zero-copy state conversion<br/>Function-local static buffer pools
-    Note over VMV, VE: SIMD "rake" sampling<br/>8x collision checks per call
-    Note over VE: Structure-of-Arrays layout<br/>Cache-optimized memory access
+    %% Performance Annotations
+    Note over VSV,VE: SIMD State Validation<br/>8 configs processed simultaneously
+    Note over VMV,VE: SIMD Motion Validation<br/>"Rake" sampling with 8x parallelism
+    Note over OPC: Integrated Planner Management<br/>Function-local static registry
+    Note over VE: Vectorized Environment<br/>AOS→SOA memory layout optimization

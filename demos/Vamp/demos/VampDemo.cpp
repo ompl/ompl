@@ -33,10 +33,7 @@
  *********************************************************************/
 
 /* Author: Sahruday Patti */
-#include "VampOMPLDemo.h"
-#include "VampBenchmarkManager.h"
-#include "VampUtils.h"
-#include "VampRobotRegistry.h"
+#include "VampOmplPlanning.h"
 #include "CustomRobotExample.h"  // This registers our custom robots
 #include <iostream>
 #include <string>
@@ -59,6 +56,10 @@ PlanningConfiguration create_planar_arm_example();
 
 int main(int argc, char* argv[]) {
     std::cout << " VAMP Motion Planning & Benchmarking Demo" << std::endl;
+
+    // Note: All VAMP-OMPL functionality is available through the single header:
+    // #include "VampOmplPlanning.h"
+    // This provides: robot registry, planners, utilities, benchmarking, and visualization
 
     // Initialize the robot registry once
     RobotRegistry::getInstance();
@@ -232,7 +233,7 @@ std::string run_benchmark_example(const BenchmarkConfiguration& config) {
 
             auto envFactory = VampUtils::createEnvironmentFactory(config.base_config.obstacles, config.base_config.robot_name);
 
-            auto benchmarkManager = createBenchmarkManager<vamp::robots::Panda>(
+            auto benchmarkManager = vamp_ompl::benchmarking::createBenchmarkManager<vamp::robots::Panda>(
                 std::move(robotConfig), std::move(envFactory));
 
             benchmarkManager->initialize();
@@ -252,7 +253,7 @@ std::string run_benchmark_example(const BenchmarkConfiguration& config) {
 
             auto envFactory = VampUtils::createEnvironmentFactory(config.base_config.obstacles, config.base_config.robot_name);
 
-            auto benchmarkManager = createBenchmarkManager<vamp::robots::PlanarArm2DOF>(
+            auto benchmarkManager = vamp_ompl::benchmarking::createBenchmarkManager<vamp::robots::PlanarArm2DOF>(
                 std::move(robotConfig), std::move(envFactory));
 
             benchmarkManager->initialize();
@@ -378,25 +379,36 @@ void print_usage(const char* program_name) {
 void list_registered_robots() {
     std::cout << "\n Available Robots\n";
     std::cout << "==================\n";
-    auto& registry = RobotRegistry::getInstance();
-    auto robots = registry.getRegisteredRobots();
-    for (const auto& robot : robots) {
-        auto metadata = registry.getRobotMetadata(robot);
+    
+    auto builtin_robots = getBuiltInRobots();
+    auto all_robots = RobotRegistry::getInstance().getRegisteredRobots();
+    
+    for (const auto& robot : all_robots) {
+        auto metadata = getRobotInfo(robot);
         std::cout << robot << " (" << metadata.dimension << " DOF): "
-                  << metadata.description << "\n";
+                  << metadata.description;
+        
+        // Mark built-in robots
+        if (std::find(builtin_robots.begin(), builtin_robots.end(), robot) != builtin_robots.end()) {
+            std::cout << " [built-in]";
+        }
+        std::cout << "\n";
     }
-    std::cout << "\n";
+    
+    std::cout << "\n Available Planners: ";
+    auto builtin_planners = getBuiltInPlanners();
+    for (size_t i = 0; i < builtin_planners.size(); ++i) {
+        std::cout << builtin_planners[i];
+        if (i < builtin_planners.size() - 1) std::cout << ", ";
+    }
+    std::cout << "\n\n";
 }
 
 PlanningConfiguration create_basic_example() {
-    PlanningConfiguration config;
+
+    auto config = createBasicConfiguration("panda", "RRT-Connect", 5.0);
     
-    // Basic Panda configuration
-    config.robot_name = "panda";
-    config.planning.planner_name = "RRT-Connect";
-    config.planning.planning_time = 5.0;
-    
-    // Add planner-specific parameters to match YAML configuration
+    // Add planner-specific parameters
     config.planning.planner_parameters["range"] = "0.3";
     config.planning.planner_parameters["intermediate_states"] = "false";
     
@@ -432,9 +444,6 @@ PlanningConfiguration create_basic_example() {
     }
     
     config.obstacles = std::move(obstacles);
-    
-    // Output settings
-    config.save_path = true;
     config.description = " Panda 7-DOF Sphere Cage Navigation ";
     
     return config;
@@ -443,10 +452,7 @@ PlanningConfiguration create_basic_example() {
 PlanningConfiguration create_planar_arm_example() {
     std::cout << " Creating 2DOF Planar Arm configuration..." << std::endl;
     
-    PlanningConfiguration config;
-    
-    // Robot configuration
-    config.robot_name = "planar_arm_2dof";
+    auto config = createBasicConfiguration("planar_arm_2dof", "RRT-Connect", 5.0);
     config.description = "2DOF Planar Arm Navigation Demo";
     
     // Start configuration: arm pointing up and to the right (clear of obstacles)
@@ -462,12 +468,10 @@ PlanningConfiguration create_planar_arm_example() {
     };
     
     // Planning configuration
-    config.planning.planner_name = "RRT-Connect";
-    config.planning.planning_time = 5.0;  // Increased planning time
     config.planning.simplification_time = 1.0;
     config.planning.optimize_path = false;
     
-    // Add planner-specific parameters to match YAML configuration
+    // Add planner-specific parameters
     config.planning.planner_parameters["range"] = "0.3";
     config.planning.planner_parameters["intermediate_states"] = "false";
     
@@ -482,8 +486,6 @@ PlanningConfiguration create_planar_arm_example() {
     obstacle1.position = {0.8f, 0.0f, 0.0f};  // Far away from robot
     obstacle1.radius = 0.05f;
     config.obstacles.push_back(obstacle1);
-    
-    config.save_path = true;
     
     return config;
 }
