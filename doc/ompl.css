@@ -1,3 +1,5 @@
+.contents a, .contents a:visited { color: #007bff; }
+
 h1 { margin-top: 1em; }
 h2 {
     margin-bottom: .25em;
@@ -194,4 +196,3 @@ ul.navbar-nav.mr-auto { overflow: visible; }
 div.toc li.level2 { margin-left: 4px; }
 div.toc li.level3 { margin-left: 8px; }
 div.fragment { padding: 8px; }
-@OMPL_CSS@

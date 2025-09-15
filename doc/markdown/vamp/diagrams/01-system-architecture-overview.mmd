@@ -1,0 +1,113 @@
+---
+title: "VAMP Motion Planning System - Complete Architecture"
+---
+graph TB
+    %% User Interface Layer
+    subgraph "User Application Layer"
+        A[User Application] --> B["YAML Configuration<br/>(panda_demo.yaml)"]
+        A --> C["Programmatic API<br/>(Direct C++ calls)"]
+        B --> YL[YamlConfigLoader]
+        C --> VU[VampUtils]
+    end
+    
+    %% Unified Interface Layer
+    subgraph "Unified Interface Layer"
+        YL --> ER["executeMotionPlanning()<br/>(Registry-based execution)"]
+        VU --> ER
+        ER --> RR[RobotRegistry::getInstance]
+    end
+    
+    %% Planning Facade Layer
+    subgraph "Planning Facade Layer"
+        RR --> VOP["VampOMPLPlanner&lt;Robot&gt;<br/>(Facade Pattern)"]
+        VOP --> OPC["OMPLPlanningContext&lt;Robot&gt;<br/>(Unified Adapter + Planner Management)"]
+        VOP --> RC["RobotConfig&lt;Robot&gt;<br/>(Dependency Injection)"]
+        VOP --> EF["EnvironmentFactory<br/>(Strategy Pattern)"]
+    end
+    
+    %% OMPL Integration Layer
+    subgraph "OMPL Integration Layer"
+        OPC --> SI["ompl::base::SpaceInformation<br/>(OMPL Core)"]
+        OPC --> PD["ompl::base::ProblemDefinition<br/>(OMPL Core)"]
+        
+        SI --> VSV["VampStateValidator&lt;Robot&gt;<br/>(SIMD Bridge)"]
+        SI --> VMV["VampMotionValidator&lt;Robot&gt;<br/>(SIMD Bridge)"]
+        
+        %% Integrated Planner Management (now part of OMPLPlanningContext)
+        OPC --> OP1["RRT-Connect<br/>(Built-in)"]
+        OPC --> OP2["BIT*<br/>(Built-in)"]
+        OPC --> OP3["PRM<br/>(Built-in)"]
+        OPC --> OPN["Custom Planners<br/>(Extension Point)"]
+        
+        OPC --> PM["OMPL ParamSet<br/>(Parameter Management)"]
+    end
+    
+    %% VAMP Performance Core
+    subgraph "VAMP Performance Core"
+        VSV --> VCC["VAMP Collision Checking<br/>(SIMD Vectorized)"]
+        VMV --> VCC
+        
+        VCC --> FKC["Forward Kinematics<br/>(fkcc method)"]
+        VCC --> ENV["Environment Collision<br/>(Sphere-Environment)"]
+        
+        FKC --> SIMD["SIMD Operations<br/>(8-wide vectorization)"]
+        ENV --> SIMD
+        
+        SIMD --> VF["vamp::FloatVector<br/>(SIMD primitives)"]
+    end
+    
+    %% Robot Type System
+    subgraph "Robot Type System"
+        RR --> BR1["Panda<br/>(Built-in)"]
+        RR --> BR2["UR5<br/>(Built-in)"]
+        RR --> BR3["Fetch<br/>(Built-in)"]
+        RR --> CR["Custom Robots<br/>(Extension Point)"]
+        
+        BR1 --> RT["Robot Traits<br/>(dimension, resolution, limits)"]
+        BR2 --> RT
+        BR3 --> RT
+        CR --> RT
+        
+        RT --> RH["RobotHandler<br/>(Type Erasure)"]
+    end
+    
+    %% Benchmarking System
+    subgraph "Benchmarking System"
+        VOP --> BM["VampBenchmarkManager&lt;Robot&gt;<br/>(OMPL-compliant)"]
+        BM --> OB["ompl::tools::Benchmark<br/>(Standard OMPL)"]
+        BM --> OPC
+        
+        OB --> LOG["Benchmark Log<br/>(.log format)"]
+        LOG --> DB["Database Generation<br/>(ompl_benchmark_statistics.py)"]
+        DB --> PA["PlannerArena<br/>(Visualization)"]
+    end
+    
+    %% Extension Points
+    subgraph "Extension Points"
+        EP1["Custom Robot Registration<br/>(REGISTER_VAMP_ROBOT)"]
+        EP2["Custom Planner Registration<br/>(OMPLPlanningContext::registerPlanner)"]
+        EP3["Custom Environment Factory<br/>(EnvironmentFactory interface)"]
+        
+        EP1 --> RR
+        EP2 --> OPC
+        EP3 --> EF
+    end
+    
+    %% Styling
+    classDef userLayer fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef unifiedLayer fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef facadeLayer fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef omplLayer fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef vampLayer fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    classDef robotLayer fill:#f1f8e9,stroke:#33691e,stroke-width:2px
+    classDef benchLayer fill:#e0f2f1,stroke:#004d40,stroke-width:2px
+    classDef extLayer fill:#fafafa,stroke:#424242,stroke-width:2px
+    
+    class A,B,C,YL,VU userLayer
+    class ER,RR unifiedLayer
+    class VOP,OPC,RC,EF facadeLayer
+    class SI,PD,VSV,VMV,OP1,OP2,OP3,OPN,PM omplLayer
+    class VCC,FKC,ENV,SIMD,VF vampLayer
+    class BR1,BR2,BR3,CR,RT,RH robotLayer
+    class BM,OB,LOG,DB,PA benchLayer
+    class EP1,EP2,EP3 extLayer

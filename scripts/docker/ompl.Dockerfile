@@ -63,6 +63,7 @@ RUN apt-get update && \
         libeigen3-dev \
         libflann-dev \
         libtriangle-dev \
+        libyaml-cpp-dev \
         ninja-build \
         pkg-config \
         python3-dev \

@@ -1,0 +1,96 @@
+\chapter{Advanced Topics in OMPL}
+
+This chapter explains some of the more advanced features of OMPL.  This section
+is not meant to explain all of the expert level concepts, but to give the user
+an idea about some commonly used optional features of the library and how they
+can be included in the code.  API documentation is updated regularly at
+{\tt ompl.kavrakilab.org}, and includes the following concepts, among others.
+
+\section {State Space Construction}
+OMPL provides implementations for several common states spaces, including
+${\mathbb R}^n$ for Euclidean spaces and SO(2) and SO(3) for the space of
+rotations in 2D and 3D respectively.  Many systems operate in spaces
+that are combinations of ${\mathbb R}^n$ and orientations.  For example, the
+classic ``piano mover's'' problem operates in SE(3), which is a combination
+of ${\mathbb R}^3$ and SO(3).  OMPL contains an implementation of the SE(2) and
+SE(3) state spaces for such instances.
+
+In complex systems, like highly articulated robot arms, it is infeasible to
+enumerate all possible state spaces.  However, the state spaces in many of these
+systems can be decomposed into smaller spaces (like the SE(3) example).  To
+accommodate this, OMPL allows for the construction of such spaces through the
+CompoundStateSpace class, which allows state spaces to be formed from a
+combination of their subcomponents.  The existing state spaces all provide
+operator overloads for the `+' and `$-$', allowing readable and intuitive code to
+be written when constructing such spaces.
+
+\section {Planner Customization}
+In the motion planning literature, there exist many variants of the classical
+planning algorithms that change only one component of the planning algorithm
+in order to achieve benefits in certain instances.  Many of the planners that
+come bundled with OMPL are highly customizable, and in some cases it isn't
+necessary to derive a new planner from the existing code base to recreate one of
+these variations or test a new idea or algorithm.
+
+An easy example is the nearest neighbor search performed in nearly all of the
+planners to find the closest existing state to a newly generated random sample.
+There are many algorithms to perform this search---both exact and
+approximate---and evaluating the best approach for one particular system can become time
+consuming.  The {\tt PRM} and {\tt RRT} planners (among others) both provide a
+hook to replace the default nearest neighbor search with a user supplied
+object that derives from the abstract NearestNeighbor class.  This allows users
+to develop compact and portable components for differing nearest neighbor
+schemes and test them without creating unnecessary planner objects that are
+simply one-off from one another.  Similar possibilities exist not only with
+nearest neighbor searching, but also in other planning components, like state
+sampling and connection strategies.
+
+\section {Python Bindings}
+Users of OMPL are not bound to C++.  Most of the API is exposed through a set
+of Python bindings from which users can create Python scripts to solve motion
+planning queries.  These bindings are compiled separately from the OMPL core
+library, and require Py++ and Boost.Python for correct operation.  Ensure that
+these dependencies exist before installing OMPL to create the bindings. The
+Python bindings are still considered an experimental feature and all API
+documentation is for the C++ API (although we have tried to keep the python API
+as similar as possible). The easiest way to get started with the python bindings
+is by looking at a few of the demo programs.
+
+The bindings are separated by ompl namespaces into python modules contained
+within one parent {\tt ompl} module.  For example, to use a geometric motion
+planner from OMPL, the {\tt base} and {\tt geometric} modules must be imported:
+\\
+{\tt from ompl import base\\
+from ompl import geometric}
+
+There are some subtle and some not-so-subtle differences between the C++ and
+Python APIs due to the differences between the two programming languages.  A
+user checking the OMPL C++ API must note the following discrepancies when
+writing a program in Python:
+
+\begin {itemize}
+\item An STL vector of int's is of type vectorInt in Python (analogously for
+other types).
+\item The C++ class State has been renamed AbstractState, while the C++ class
+ScopedState<> is called State in Python.
+\item The C++ class ScopedState<RealVectorStateSpace> is called RealVectorState.
+The ScopedState's for the other pre-defined state spaces have been renamed
+analogously.
+\item The C++ class RealVectorStateSpace::StateType has been renamed to
+RealVectorStateInternal (analogously for the other state space types), to
+emphasize that a user should really be using RealVectorState.
+\item Use the ``()'' operator on a ScopedState in Python to retrieve a reference
+to a C++ State.
+\item The print method (for classes that have one) is mapped to the special
+python method \_\_str\_\_, so a C++ call like {\tt foo.print(std::cout)} becomes
+{\tt print foo} in python. Similarly, a C++ call like
+{\tt foo.printSettings(std::cout)} becomes {\tt print foo.settings()} in python.
+\item The signature of the state validity checker is changed. In python the
+state validity checker has the following form:
+\begin {verbatim}
+def isStateValid(spaceInformation, state):
+    return spaceInformation.satiesfiesBounds(state)
+\end {verbatim}
+
+\end {itemize}
+

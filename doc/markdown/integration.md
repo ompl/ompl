@@ -1,32 +1,62 @@
 # Integration of OMPL in Other Systems {#integration}
 
+<!-- make TOC wider so that every entry fits on one line -->
+\htmlonly<script type="application/javascript">$("div.toc").css("width", "250px")</script>\endhtmlonly
+
 [TOC]
 
 OMPL provides a high level of abstraction to make it easier to integrate it into larger robot software systems. By design, the core OMPL library does not include any code for representing geometry and kinematics. However, to solve motion planning problems, we _do_ need to pick a particular representation for robots and the environment. Below we have listed a number of projects that have done this in very different ways.
+
+<!-- force TOC above MoveIt section -->
+<div class="row"><div class="col-sm-12"></div></div>
 
 ## MoveIt {#integration_moveit2}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
-    [MoveIt2!](https://moveit.ros.org) provides motion planning functionality in [ROS](https://www.ros.org). Robots are described by [URDF files](https://wiki.ros.org/urdf), which describe the robot's geometry, kinematics, and additional robot information. MoveIt2! can load such files, create appropriate state spaces for user-defined joint groups (e.g., “left arm,” “right leg,” “upper body,” “whole body,” etc.), and call OMPL planners to find feasible paths. There is support for inverse kinematics, which makes is possible to, e.g, include end-effector constraints. The paths produced by OMPL are translated by MoveIt2! into dynamically feasible trajectories. The MoveIt2! setup wizard will automatically discover self-collisions in a pre-processing phase. The environment can either be provided in the form of collection of geometric objects (triangles, spheres, cylinders, etc.), a point cloud (obtained from a RGBD sensor), or a combination of both. The adjacent video is a montage of MoveIt2!'s capabilities in 2017.
+    [MoveIt2](https://moveit.ai) provides motion planning functionality in [ROS](https://www.ros.org). Robots are described by [URDF files](https://wiki.ros.org/urdf), which describe the robot's geometry, kinematics, and additional robot information. MoveIt2 can load such files, create appropriate state spaces for user-defined joint groups (e.g., “left arm,” “right leg,” “upper body,” “whole body,” etc.), and call OMPL planners to find feasible paths. There is support for inverse kinematics, which makes is possible to, e.g, include end-effector constraints. The paths produced by OMPL are translated by MoveIt2 into dynamically feasible trajectories. The MoveIt2 setup wizard will automatically discover self-collisions in a pre-processing phase. The environment can either be provided in the form of collection of geometric objects (triangles, spheres, cylinders, etc.), a point cloud (obtained from a RGBD sensor), or a combination of both. The adjacent video is a montage of MoveIt2's capabilities in 2020.
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-16by9">
-      \htmlonly<iframe src="https://www.youtube.com/embed/0og1SaZYtRc"></iframe>\endhtmlonly
+      \htmlonly<iframe src="https://www.youtube.com/embed/7KvF7Dj7bz0"></iframe>\endhtmlonly
     </div>
   </div>
 </div>
 
-## OpenRAVE {#integration_openrave}
+## Flightmare {#integration_flightmare}
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
-    [OpenRAVE](http://openrave.org) is a lightweight simulation and planning environment. It does not explicitly support OMPL, but it has a plugin architecture that makes it possible to add new planning algorithms. [Michael Koval](http://mkoval.org) has written a [plugin called or_ompl](https://github.com/personalrobotics/or_ompl) which allows you to use any of the OMPL planners with OpenRAVE. It also exposes OMPL's path simplification routines to OpenRAVE. The adjacent video outlines several key features of the plugin.
+    [Flightmare](uzh-rpg.github.io/flightmare/) is a flexible quadrotor simulator composed of two main components: a configurable rendering engine built on Unity and a flexible physics engine for dynamics simulation. Those two components are totally decoupled and can run independently from each other. Flightmare comes with several desirable features: (i) a large multi-modal sensor suite, including an interface to extract the 3D point-cloud of the scene; (ii) an API for reinforcement learning which can simulate hundreds of quadrotors in parallel; and (iii) an integration with a virtual-reality headset for interaction with the simulated environment. Flightmare can be used for various applications, including path-planning, reinforcement learning, visual-inertial odometry, deep learning, human-robot interaction, etc. See <a href="https://flightmare.readthedocs.io/en/latest/advanced_steps/motion_planning.html">Flightmare's Motion Planning page</a> for details on how to configure OMPL.
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-16by9">
-      \htmlonly<iframe src="https://www.youtube.com/embed/6qRRbvNzHG8"></iframe>\endhtmlonly
+      \htmlonly<iframe src="https://www.youtube.com/embed/m9Mx1BCNGFU"></iframe>\endhtmlonly
     </div>
+  </div>
+</div>
+
+## PyBullet Industrial Path Planner {#integration_pbi}
+
+<div class="row">
+  <div class="col-lg-7 col-md-6 col-sm-5">
+    <a href="https://pbi-path-planner.readthedocs.io/en/latest/?badge=latest">PyBullet Industrial Path Planner</a> is a modular Python package for sampling-based path planning with industrial robots in <a href="https://pybullet.org/">PyBullet</a> environments. It integrates OMPL and provides tools to define, execute, and validate motion plans under geometric constraints. This repository extends the <a href="https://pybullet-industrial.readthedocs.io/en/latest/how_to_use.html">PyBullet Industrial</a> (PBI) simulation library, which was developed to integrate process modeling into robotic simulations for industrial applications. A key feature is the simulation of additive and subtractive processes performed by multi-axis robots. The PBI Path Planner extension enhances these functionalities by enabling the planning of transitional movements such as tool changes and part handling, which are essential for creating complete, executable process sequences. In several example scenarios, planned paths are evaluated in simulation and parameterized through integrated numerical control (NC) code modules for deployment on physical robots.
+  </div>
+  <div class="col-lg-5 col-md-6 col-sm-7">
+    <div class="embed-responsive embed-responsive-16by9" width=100%>
+    \htmlonly<video controls muted src="https://github.com/WBK-Robotics/pybullet_industrial_path_planner/raw/refs/heads/main/docs/PBI_Path_Planner.mp4"></video>\endhtmlonly
+    </div>
+  </div>
+</div>
+
+## RoboGen / Genesis AI {#integration_robogen}
+
+<div class="row">
+  <div class="col-lg-7 col-md-6 col-sm-5">
+    [RoboGen](https://robogen-ai.github.io) is a self-guided and generative robotic agent that autonomously proposes new tasks, generates corresponding environments, and acquires new robotic skills continuously. RoboGen is powered by Genesis, a multi-material multi-solver generative simulation engine for general-purpose robot learning. Genesis is still under active development and will be released soon. RoboGen combines OMPL with PyBullet for generation and learning of rigid manipulation. See <a href="https://github.com/Genesis-Embodied-AI/RoboGen/tree/main/pybullet_ompl">their code</a> (or the <a href="https://github.com/lyfkyle/pybullet_ompl">upstream repo on which it is based</a>) for an example of how to integrate OMPL with Pybullet.
+  </div>
+  <div class="col-lg-5 col-md-6 col-sm-7">
+    \htmlonly<img src="images/robogen.png" width="100%">\endhtmlonly
   </div>
 </div>
 
@@ -34,12 +64,23 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
 
 <div class="row">
   <div class="col-lg-7 col-md-6 col-sm-5">
-    [CoppeliaSim](http://coppeliarobotics.com) is a modular, generic and general purpose robot simulation framework that offers various tools related to robotics (4 physics engines, collision detection, minimum distance calculation, proximity sensor simulation, vision sensor simulation, full FK/IK kinematic solver, etc.), with various kinds of interfaces (ROS, remote API, plug-ins, add-ons) and language support: C/C++, Python, Java, Matlab, Octave, Lua. It is built on a distributed control architecture, allowing virtually any number of scripts running in parallel and controlling various aspects of a simulation. The OMPL interface for V-REP was implemented via a plug-in wrapping the OMPL functionality, and offering that functionality via scripting functions. This allows to quickly test various scenarios, without the need to recompile/load test code over and over again. In combination with V-REP's kinematic functionality, complex movement sequences can easily be computed: e.g. V-REP can also quickly compute several valid robot configurations for a desired end-effector pose.
+    [CoppeliaSim](http://coppeliarobotics.com) is a modular, generic and general purpose robot simulation framework that offers various tools related to robotics (4 physics engines, collision detection, minimum distance calculation, proximity sensor simulation, vision sensor simulation, full FK/IK kinematic solver, etc.), with various kinds of interfaces (ROS, remote API, plug-ins, add-ons) and language support: C/C++, Python, Java, Matlab, Octave, Lua. It is built on a distributed control architecture, allowing virtually any number of scripts running in parallel and controlling various aspects of a simulation. The OMPL interface for CoppeliaSim was implemented via a plug-in wrapping the OMPL functionality, and offering that functionality via scripting functions. This allows to quickly test various scenarios, without the need to recompile/load test code over and over again. In combination with CoppeliaSim's kinematic functionality, complex movement sequences can easily be computed: e.g. CoppeliaSim can also quickly compute several valid robot configurations for a desired end-effector pose.
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <div class="embed-responsive embed-responsive-16by9">
       \htmlonly<iframe src="https://www.youtube.com/embed/JAs2yciPjvM"></iframe>\endhtmlonly
     </div>
+  </div>
+</div>
+
+## The NTNU Fish Otter Project
+
+<div class="row">
+  <div class="col-lg-7 col-md-6 col-sm-5">
+    [The NTNU Fish Otter Project](https://otter.itk.ntnu.no/) has combined OMPL's planners with a geospatial database that contains information from standardized electronic navigational charts (ENC). A [paper in Ocean Engineering](https://www.sciencedirect.com/science/article/pii/S0029801825020293) describes the approach and includes simulations for challenging scenarios. The implemented system provides collision-free paths for maritime navigation, includes a graphical user interface, and is incorporated to a system for autonomous surface vehicles. Simulations show that the implementation supports multiple planning algorithms in generating valid paths in four representative large-scale maritime environments: a cluttered archipelago, a river inlet, a peninsula, and a fjord transit. Their code can be downloaded via the [supplementary material link](https://ars.els-cdn.com/content/image/1-s2.0-S0029801825020293-mmc3.zip) in the paper linked above.
+  </div>
+  <div class="col-lg-5 col-md-6 col-sm-7">
+    <img src="images/NTNU-FishOtter.jpg" width="100%">
   </div>
 </div>
 
@@ -50,7 +91,9 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
     [The Kautham Project](https://sir.upc.edu/projects/kautham/) is a software tool used at the Institute of Industrial and Control Engineering (IOC-UPC) for teaching and research in robot motion planning. The tool can plan and simulate systems ranging from simple two degrees of freedom free-flying robots to multi-robot scenarios with mobile manipulators equipped with anthropomorphic hands.
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
-    <img src="https://sir.upc.edu/projects/kautham/images/justin.JPG" width="100%">
+    <div class="embed-responsive embed-responsive-16by9" width=100%>
+    \htmlonly<video controls muted src="https://sir.upc.edu/projects/kautham_tutorials/videos/hand-arm_look-at_simulation.webm"></video>\endhtmlonly
+    </div>
   </div>
 </div>
 
@@ -67,14 +110,6 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-## AIKIDO {#integration_aikido}
-
-<div class="row">
-  <div class="col-lg-7 col-md-6 col-sm-5">
-    [AIKIDO](https://github.com/personalrobotics/aikido) is a C++ library, complete with Python bindings, for solving robotic motion planning and decision making problems. This library is tightly integrated with [DART](http://dartsim.github.io/) for kinematic/dynamics calculations and [OMPL](https://ompl.kavrakilab.org/) for motion planning. AIKIDO optionally integrates with [ROS](https://ros.org/), through the suite of `aikido_ros` packages, for execution on real robots.
-  </div>
-</div>
-
 ## EXOTica {#integration_exotica}
 
 <div class="row">
@@ -88,19 +123,6 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
 </div>
 
-## Robotics Library {#integration_rl}
-
-<div class="row">
-  <div class="col-lg-7 col-md-6 col-sm-5">
-    [The Robotics Library](https://www.roboticslibrary.org) is a self-contained C++ library for robot kinematics, motion planning and control. It covers mathematics, kinematics and dynamics, hardware abstraction, motion planning, collision detection, and visualization. OMPL is not included by default, but we have created [a pull request on GitHub](https://github.com/roboticslibrary/rl/pull/2) to add OMPL support. Let us know if this works for you!
-  </div>
-  <div class="col-lg-5 col-md-6 col-sm-7">
-    <div class="embed-responsive embed-responsive-16by9">
-      \htmlonly<iframe src="https://www.youtube.com/embed/9JG3uY5M04A"></iframe>\endhtmlonly
-    </div>
-  </div>
-</div>
-
 ## SIMS {#integration_sims}
 
 <div class="row">
@@ -109,18 +131,5 @@ OMPL provides a high level of abstraction to make it easier to integrate it into
   </div>
   <div class="col-lg-5 col-md-6 col-sm-7">
     <img src="https://journals.plos.org/plosone/article/figure/image?size=medium&id=10.1371/journal.pone.0068826.g008" width="100%">
-  </div>
-</div>
-
-## OMPL.app {#integration_omplapp}
-
-<div class="row">
-  <div class="col-lg-7 col-md-6 col-sm-5">
-    OMPL.app consist of two components: a library and a GUI. The library provides bindings to the  [FCL](https://github.com/flexible-collision-library/fcl) and [PQP](http://gamma.cs.unc.edu/SSV) collision checking libraries. By default FCL's discrete collision checking is used, but its continuous collision checking or PQP's discrete collision checking can also be specified. The library relies on the [Assimp](http://www.assimp.org) library to import a large variety of mesh formats that can be used to represent the robot and its environment. The python-based GUI can be used for planning motions for rigid bodies and a few vehicle types (first-order and second-order cars, a blimp, and a quadrotor). The OMPL.app distribution also contains `ompl_benchmark`, a simple tool that demonstrates some of OMPL's [benchmarking](benchmark.html) capabilities.
-  </div>
-  <div class="col-lg-5 col-md-6 col-sm-7">
-    <div class="embed-responsive embed-responsive-4by3">
-      \htmlonly<iframe src="https://player.vimeo.com/video/58686592?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=0&amp;loop=1"></iframe>\endhtmlonly
-    </div>
   </div>
 </div>

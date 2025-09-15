@@ -34,8 +34,7 @@
          <ul>
            <li><code>./install-ompl-ubuntu.sh</code> will install the latest release of OMPL without Python bindings</li>
            <li><code>./install-ompl-ubuntu.sh --python</code> will install the latest release of OMPL with Python bindings</li>
-           <li><code>./install-ompl-ubuntu.sh --app</code> will install the latest release of OMPL.app with Python bindings</li>
-           <li><code>./install-ompl-ubuntu.sh --github</code> will install the main branch of OMPL (this can be combined with the other flags above)</li>         </ul>
+          </ul>
          The script downloads and installs OMPL and all dependencies via <code>apt-get</code> &amp; <code>pip</code> and from source. It will ask for your password to install things. The script has been tested on vanilla installs of 16.04 (Xenial) and higher. The Python binding generation requires a lot of RAM; having 6GB or more available is recommended.
       </div>
       <div role="tabpanel" class="tab-pane fade" id="ubuntubinary">
@@ -50,7 +49,7 @@ wget http://packages.ros.org/ros.key -O - | sudo apt-key add -</pre>
         and install OMPL:
         <pre class="fragment">sudo apt-get update
 sudo apt-get install ros-`rosversion -d`-ompl</pre>
-        Please see <a href="https://moveit.ros.org">MoveIt</a> for further information.
+        Please see <a href="https://moveit.ai">MoveIt</a> for further information.
       </div>
     </div>
   </div>
@@ -66,7 +65,7 @@ sudo apt-get install ros-`rosversion -d`-ompl</pre>
   <!-- Linux (generic) -->
   <div class="tab-pane fade" id="linux" role="tabpanel" aria-labelledby="linux-tab">
     <h2>Linux (generic)</h2>
-    <p>OMPL requires <a href="https://www.boost.org">Boost</a> (version 1.68 or higher), <a href="https://www.cmake.org">CMake</a> (version 3.5 or higher), <a href="http://eigen.tuxfamily.org">Eigen</a> (version 3.3 or higher), and <a href="https://github.com/jbeder/yaml-cpp">yaml-cpp</a> (for parsing YAML configuration files, required for VAMP demos).
+    <p>OMPL requires <a href="https://www.boost.org">Boost</a> (version 1.68 or higher), <a href="https://www.cmake.org">CMake</a> (version 3.12 or higher), <a href="http://eigen.tuxfamily.org">Eigen</a> (version 3.3 or higher), and <a href="https://github.com/jbeder/yaml-cpp">yaml-cpp</a> (for parsing YAML configuration files, required for VAMP demos).
     To be able to generate python bindings you need to install the <a href="https://www.python.org">Python</a> library and header files and <a href="installPyPlusPlus.html">Py++</a>.
     Finally, you need a C++17 compiler (g++-7 or newer).</p>
     <p><strong>Note:</strong> OMPL includes VAMP (Vector-Accelerated Motion Planning) by default, which requires <code>git</code> for submodule initialization.</p>
