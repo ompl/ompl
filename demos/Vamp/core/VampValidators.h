@@ -41,12 +41,6 @@
  * interface with VAMP's vectorized collision detection system. The validators are
  * designed to maximize SIMD utilization for significant performance improvements.
  * 
- * Key Performance Features:
- * - Vectorized collision checking: Process 8 configurations simultaneously
- * - SIMD-optimized memory layout: Structure-of-Arrays for cache efficiency
- * - "Rake" motion validation: Spatially distributed sampling for faster motion checks
- * - Zero-copy integration: Direct OMPL-to-VAMP configuration conversion
- * 
  * Validation Architecture:
  * - VampStateValidator: Point-in-space collision queries
  * - VampMotionValidator: Edge-based motion validation with vectorized sampling
@@ -117,7 +111,6 @@ namespace conversion {
                 throw std::invalid_argument("Expected RealVectorStateSpace::StateType");
             }
             
-            // CRITICAL: Check if values array is valid before accessing
             if (!real_vector_state->values) {
                 throw std::invalid_argument("RealVectorStateSpace::StateType has null values array");
             }

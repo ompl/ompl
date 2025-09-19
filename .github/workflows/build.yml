@@ -60,6 +60,14 @@ jobs:
           vcpkgGitCommitId: da4b78d35084ec4e9808aa02017028da03b8d2ab
           vcpkgTriplet: 'x64-windows'
           vcpkgArguments: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-system boost-test eigen3 flann yaml-cpp'
+          
+    - name: Load cache if it exists
+      id: cache-restore
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ runner.workspace }}/build
+        key: ${{ runner.os }}-${{ runner.arch }}-build-${{ hashFiles('**/Cargo.lock') }}
 
     - name: Build & Test (Linux, macOS)
       if: runner.os != 'Windows'
@@ -87,3 +95,12 @@ jobs:
         run-test: true
         ctest-options: --output-on-failure
         install-build: true
+        
+    - name: Save cache
+      id: cache-save
+      uses: actions/cache/save@v4
+      if: always() && steps.cache-restore.cache-hit != 'true'
+      with:
+        path: |
+          ${{ runner.workspace }}/build
+        key: ${{ runner.os }}-${{ runner.arch }}-build-${{ hashFiles('**/Cargo.lock') }}

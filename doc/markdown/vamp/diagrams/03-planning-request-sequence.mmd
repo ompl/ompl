@@ -1,0 +1,122 @@
+---
+title: "VAMP Planning Request Lifecycle - Complete Flow"
+---
+sequenceDiagram
+    participant User as User Application
+    participant API as executeMotionPlanning()
+    participant RR as RobotRegistry
+    participant VOP as VampOMPLPlanner
+    participant OPC as OMPLPlanningContext
+    participant SI as OMPL SpaceInformation
+    participant VSV as VampStateValidator
+    participant VMV as VampMotionValidator
+    participant VE as VectorizedEnvironment
+    participant PLANNER as OMPL Planner
+    participant PD as ProblemDefinition
+    
+    %% Configuration Phase
+    User->>API: executeMotionPlanning(config)
+    API->>API: validate configuration
+    API->>RR: getInstance()
+    API->>RR: createRobotConfig(name, start, goal)
+    RR->>RR: lookup robot handler
+    RR-->>API: robot configuration
+    
+    API->>API: createEnvironmentFactory(obstacles)
+    API->>RR: createPlanner(name, config, factory)
+    RR->>VOP: new VampOMPLPlanner(config, factory)
+    VOP-->>RR: planner instance
+    RR-->>API: planner
+    
+    %% Initialization Phase
+    API->>RR: initializePlanner(name, planner)
+    RR->>VOP: initialize()
+    
+    %% Environment Setup
+    VOP->>VOP: create_environment()
+    VOP->>VE: VectorizedEnvironment(scalarEnv)
+    VE->>VE: vectorize obstacles (AOS→SOA)
+    VE-->>VOP: vectorized environment
+    
+    %% OMPL Setup
+    VOP->>OPC: setupStateSpace(robotConfig, venv)
+    OPC->>SI: new SpaceInformation(realVectorSpace)
+    OPC->>SI: setBounds(jointLimits)
+    
+    %% Validator Setup
+    OPC->>VSV: new VampStateValidator(si, venv)
+    OPC->>VMV: new VampMotionValidator(si, venv)
+    OPC->>SI: setStateValidityChecker(validator)
+    OPC->>SI: setMotionValidator(validator)
+    OPC->>SI: setup()
+    SI-->>OPC: configured space info
+    
+    %% Problem Definition
+    OPC->>PD: new ProblemDefinition(si)
+    OPC->>PD: setStartAndGoalStates(start, goal)
+    OPC->>PD: setOptimizationObjective(pathLength)
+    PD-->>OPC: configured problem
+    
+    VOP-->>RR: initialization complete
+    RR-->>API: initialization complete
+    
+    %% Planning Execution Phase
+    API->>RR: executePlanning(name, planner, config)
+    RR->>VOP: plan(planningConfig)
+    VOP->>OPC: plan(planningConfig)
+    
+    %% Integrated Planner Creation (no separate registry)
+    OPC->>OPC: createPlannerAllocator(name, params)
+    OPC->>OPC: getPlannerRegistry() [function-local static]
+    OPC->>OPC: lookup planner factory
+    OPC->>PLANNER: create planner instance
+    OPC->>PLANNER: applyParameters(params)
+    PLANNER-->>OPC: configured planner
+    
+    %% OMPL Planning Loop
+    OPC->>SI: setPlannerAllocator(allocator)
+    OPC->>SI: solve(timeLimit)
+    
+    loop Planning Iterations
+        SI->>VSV: isValid(state) [SIMD batch validation]
+        VSV->>VE: validate_motion<Robot>(config, config, env)
+        VE->>VE: vectorized collision checking (8x parallel)
+        VE-->>VSV: collision results
+        VSV-->>SI: validity result
+        
+        SI->>VMV: checkMotion(start, end) [SIMD rake validation]
+        VMV->>VE: validate_motion<Robot>(start, end, env)
+        VE->>VE: rake sampling + vectorized collision (8x parallel)
+        VE-->>VMV: motion validity
+        VMV-->>SI: motion result
+        
+        SI->>PLANNER: planning iteration
+        PLANNER->>PLANNER: tree expansion/connection
+        PLANNER-->>SI: iteration result
+    end
+    
+    SI-->>OPC: planning result
+    
+    %% Solution Processing
+    alt Planning Successful
+        OPC->>OPC: getSolutionPath()
+        OPC->>OPC: simplifySolution(time)
+        OPC->>OPC: calculateCosts()
+        OPC-->>VOP: PlanningResult(success=true, path, costs)
+        
+        VOP->>VOP: writeOptimizedSolutionPath()
+        VOP-->>OPC: solution file path
+        
+    else Planning Failed
+        OPC-->>VOP: PlanningResult(success=false, error)
+    end
+    
+    VOP-->>RR: planning result
+    RR-->>API: motion planning result
+    API-->>User: MotionPlanningResult
+    
+    %% Performance Annotations
+    Note over VSV,VE: SIMD State Validation<br/>8 configs processed simultaneously
+    Note over VMV,VE: SIMD Motion Validation<br/>"Rake" sampling with 8x parallelism
+    Note over OPC: Integrated Planner Management<br/>Function-local static registry
+    Note over VE: Vectorized Environment<br/>AOS→SOA memory layout optimization
