@@ -168,7 +168,7 @@ namespace ompl
              * \return true if no error
              */
             bool findBestPath(const base::State *startState, const base::State *goalState,
-                              base::PlannerDataPtr &chosenPath);
+                              base::PlannerDataPtr &chosenPath, std::size_t &bestPathScore);
 
             /** \brief The database of motions to search through */
             tools::LightningDBPtr experienceDB_;
@@ -194,7 +194,7 @@ namespace ompl
             /** \brief Number of 'k' close solutions to choose from database for further filtering */
             int nearestK_;
         };
-    }
-}
+    }  // namespace geometric
+}  // namespace ompl
 
 #endif
