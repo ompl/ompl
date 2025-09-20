@@ -517,6 +517,27 @@ double ompl::base::ReedsSheppStateSpace::distance(const State *state1, const Sta
     return rho_ * getPath(state1, state2).length();
 }
 
+double ompl::base::ReedsSheppStateSpace::getMaximumExtent() const
+{
+    // Get the bounds of the underlying SE2 space
+    auto bounds = getBounds();
+
+    // Calculate the maximum spatial distance possible
+    double width = bounds.high[0] - bounds.low[0];   // x-dimension
+    double height = bounds.high[1] - bounds.low[1];  // y-dimension
+
+    // Maximum spatial distance is the diagonal of the bounded region
+    double spatialExtent = sqrt(width * width + height * height);
+
+    // Account for the turning radius (rho_) and angular component
+    // The maximum path length includes:
+    // 1. The spatial distance
+    // 2. The maximum angular difference (2π) multiplied by the turning radius
+    double maxLength = spatialExtent + 2.0 * M_PI * rho_;
+
+    return maxLength;
+}
+
 void ompl::base::ReedsSheppStateSpace::interpolate(const State *from, const State *to, const double t,
                                                    State *state) const
 {
