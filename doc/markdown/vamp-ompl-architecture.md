@@ -247,21 +247,6 @@ static SafeConfigurationConverter<Robot> converter;  // Lazy initialization
 - No dependency on global constructor order
 - Exception-safe initialization
 
-## Performance Tuning
-
-### Hardware Requirements
-
-**Optimal Performance**:
-- **CPU**: AVX2 support required, AVX-512 recommended
-- **Memory**: 16GB+ for complex environments
-- **Cache**: L3 cache size affects batch processing efficiency
-
-**SIMD Lane Width Configuration**:
-```cpp
-// Automatically detected at compile time
-static constexpr std::size_t simd_lane_width_ = vamp::FloatVectorWidth;
-```
-
 ### Robot-Specific Parameters
 
 **Performance Tuning Parameters**:
@@ -278,13 +263,6 @@ struct CustomRobot {
 - **More spheres**: Better collision accuracy, higher memory usage
 - **Dimension**: Linear impact on SIMD efficiency
 
-### Environment Optimization
-
-**Environment Complexity Impact**:
-- **Sphere count**: Linear scaling with collision checks
-- **Pointcloud density**: Quadratic scaling with CAPT algorithm
-- **Spatial distribution**: Affects cache locality
-
 **Optimization Strategies**:
 ```yaml
 obstacles:
@@ -293,64 +271,6 @@ obstacles:
   - type: pointcloud
     point_radius: 0.005  # Balance accuracy vs performance
 ```
-
-## Debugging and Troubleshooting
-
-### Common Issues
-
-**1. Static Initialization Errors**:
-```cpp
-// Symptom: Segfault during registry access
-// Solution: Ensure registry initialization before use
-RobotRegistry::getInstance();  // Call once at startup
-```
-
-**2. SIMD Alignment Issues**:
-```cpp
-// Symptom: Performance degradation or crashes
-// Solution: Verify 32-byte alignment
-alignas(32) float buffer[MAX_DIMENSION];
-```
-
-**3. Configuration Validation Errors**:
-```cpp
-// Symptom: VampConfigurationError exceptions
-// Solution: Validate configuration before use
-if (!config.isValid()) {
-    std::cout << config.getValidationErrors() << std::endl;
-}
-```
-
-### Debugging Tools
-
-**Error Reporting**:
-```cpp
-try {
-    auto result = executeMotionPlanning(config);
-} catch (const VampConfigurationError& e) {
-    std::cerr << "Configuration error: " << e.what() << std::endl;
-} catch (const VampYamlError& e) {
-    std::cerr << "YAML parsing error: " << e.what() << std::endl;
-}
-```
-
-**Performance Profiling**:
-- Use `printConfiguration()` methods for debugging
-- Monitor SIMD utilization with performance counters
-- Profile memory allocation patterns
-
-### Validation Checklist
-
-**Before Planning**:
-- ✅ Robot registered and dimensions match
-- ✅ Start/goal configurations within joint limits
-- ✅ Environment obstacles properly defined
-- ✅ Planner parameters valid for selected algorithm
-
-**Performance Validation**:
-- ✅ SIMD instructions being generated (check assembly)
-- ✅ Memory alignment correct (32-byte boundaries)
-- ✅ No unexpected allocations in hot path
 
 ## Extension Points
 
