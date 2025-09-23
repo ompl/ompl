@@ -43,6 +43,28 @@ add_definitions(-DBOOST_TEST_DYN_LINK)
 # Avoid valgrind error due to overflow error, cf. https://github.com/ompl/ompl/issues/664
 add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
 
+set_package_properties(Threads PROPERTIES
+    URL "https://en.wikipedia.org/wiki/POSIX_Threads"
+    PURPOSE "Pthreads is sometimes needed, depending on OS / compiler.")
+find_package(Threads QUIET)
+
+enable_testing()
+
+set_package_properties(Python PROPERTIES
+    URL "https://www.python.org"
+    PURPOSE "Used for python bindings.")
+find_package(Python QUIET)
+find_boost_python()
+
+if(PYTHON_FOUND)
+    set_package_properties(pypy PROPERTIES
+        URL "https://pypy.org"
+        PURPOSE "Used to speed up the generation of python bindings.")
+    find_package(pypy QUIET)
+endif()
+
+# look for boost AFTER find_boost_python which also uses
+# find_package(Boost) internally and can overwrite a selected Boost library
 set_package_properties(Boost PROPERTIES
     URL "https://www.boost.org"
     PURPOSE "Used throughout OMPL for data serialization, graphs, etc.")
@@ -65,27 +87,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
         add_definitions(-stdlib=${CXXSTDLIB})
     endif()
 endif()
-
-set_package_properties(Threads PROPERTIES
-    URL "https://en.wikipedia.org/wiki/POSIX_Threads"
-    PURPOSE "Pthreads is sometimes needed, depending on OS / compiler.")
-find_package(Threads QUIET)
-
-enable_testing()
-
-set_package_properties(Python PROPERTIES
-    URL "https://www.python.org"
-    PURPOSE "Used for python bindings.")
-find_package(Python QUIET)
-find_boost_python()
-
-if(PYTHON_FOUND)
-    set_package_properties(pypy PROPERTIES
-        URL "https://pypy.org"
-        PURPOSE "Used to speed up the generation of python bindings.")
-    find_package(pypy QUIET)
-endif()
-
 set_package_properties(Eigen3 PROPERTIES
     URL "http://eigen.tuxfamily.org"
     PURPOSE "A linear algebra library used throughout OMPL.")
