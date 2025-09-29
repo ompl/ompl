@@ -132,6 +132,27 @@ if (OMPL_BUILD_DEMOS)
             COPYONLY)
         
         message(STATUS "VAMP demo (demo_Vamp) will be built using VAMP C++ library and OMPL")
+        
+        # Add VampClean demos (simplified VAMP-OMPL integration)
+        add_ompl_demo(demo_VampClean_simple VampClean/demos/SimpleVampDemo.cpp)
+        add_ompl_demo(demo_VampClean_benchmark VampClean/examples/BenchmarkExample.cpp)
+        
+        # Add include directories for VampClean headers
+        target_include_directories(demo_VampClean_simple PRIVATE 
+            ${CMAKE_CURRENT_SOURCE_DIR}/VampClean/core)
+        target_include_directories(demo_VampClean_benchmark PRIVATE 
+            ${CMAKE_CURRENT_SOURCE_DIR}/VampClean/core)
+        
+        # Link against VAMP C++ library for VampClean demos
+        if(TARGET vamp_cpp)
+            target_link_libraries(demo_VampClean_simple PRIVATE vamp_cpp)
+            target_link_libraries(demo_VampClean_benchmark PRIVATE vamp_cpp)
+            message(STATUS "VampClean demos linked against vamp_cpp library")
+        else()
+            message(WARNING "VAMP vamp_cpp target not found - VampClean demos may not build correctly")
+        endif()
+        
+        message(STATUS "VampClean demos (clean VAMP-OMPL integration) will be built")
     endif()
     
 endif(OMPL_BUILD_DEMOS)
@@ -144,6 +165,6 @@ file(GLOB OMPL_DEMO_CXX_FILES "*.cpp")
 install(FILES ${OMPL_DEMO_CXX_FILES}
     DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
     COMPONENT ompl)
-install(DIRECTORY constraint Koules multilevel PlanarManipulator Vamp VFRRT
+install(DIRECTORY constraint Koules multilevel PlanarManipulator Vamp VampClean VFRRT
     DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
     COMPONENT ompl)
