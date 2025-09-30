@@ -153,9 +153,6 @@ endif()
 # R is needed for running Planner Arena locally
 find_program(R_EXEC R)
 
-add_subdirectory(src)
-add_subdirectory(py-bindings)
-
 # VAMP build options
 option(VAMP_PORTABLE_BUILD "Build VAMP with portable SIMD settings for distribution (package maintainers)" OFF)
 option(VAMP_BUILD_PYTHON_BINDINGS "Build VAMP Python bindings (requires OMPL_BUILD_VAMP=ON)" OFF)
@@ -177,12 +174,15 @@ option(OMPL_BUILD_VAMP "Build VAMP submodule" ON)
 if(OMPL_BUILD_VAMP)
     include(CMakeModules/VampConfig.cmake)
     configure_vamp()
-    set(OMPL_HAVE_VAMP TRUE CACHE BOOL "Whether VAMP integration is available" FORCE)
+    set(OMPL_HAVE_VAMP 1 CACHE INTERNAL "Whether VAMP integration is available")
     message(STATUS "VAMP integration enabled via OMPL_BUILD_VAMP=ON")
 else()
-    set(OMPL_HAVE_VAMP FALSE CACHE BOOL "Whether VAMP integration is available" FORCE)
+    set(OMPL_HAVE_VAMP 0 CACHE INTERNAL "Whether VAMP integration is available")
     message(STATUS "VAMP integration disabled. Use -DOMPL_BUILD_VAMP=ON to enable.")
 endif()
+
+add_subdirectory(src)
+add_subdirectory(py-bindings)
 
 add_subdirectory(tests)
 

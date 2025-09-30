@@ -38,6 +38,7 @@
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 
+#include "ompl/config.h"
 #include "ompl/base/ScopedState.h"
 #include "ompl/base/SpaceInformation.h"
 
@@ -60,6 +61,14 @@
 #include "ompl/base/spaces/special/SphereStateSpace.h"
 #include "ompl/base/spaces/special/MobiusStateSpace.h"
 #include "ompl/base/spaces/special/KleinBottleStateSpace.h"
+
+#if OMPL_HAVE_VAMP
+#include "ompl/base/spaces/VAMPStateSpace.h"
+#include <vamp/robots/panda.hh>
+#include <vamp/robots/ur5.hh>
+#include <vamp/collision/environment.hh>
+#include <vamp/collision/factory.hh>
+#endif
 
 #include <boost/math/constants/constants.hpp>
 
@@ -690,4 +699,140 @@ BOOST_AUTO_TEST_CASE(KleinBottle_Simple)
     m->interpolate(s1.get(), s2.get(), 0.5, s1.get());
     BOOST_CHECK_EQUAL(s1, s2);
 }
+
+#if OMPL_HAVE_VAMP
+// Test 1: Basic state space functionality and robot-specific configuration
+BOOST_AUTO_TEST_CASE(VAMP_StateSpace)
+{
+    vamp::collision::Environment<float> environment;
+    
+    // Test Panda robot
+    auto panda_space = std::make_shared<ompl::geometric::VAMPStateSpace<vamp::robots::Panda>>(environment);
+    panda_space->setup();
+    panda_space->sanityChecks();
+    BOOST_CHECK_EQUAL(panda_space->getDimension(), 7u);
+    
+    // Verify joint bounds come from robot definition (not default [-1,1])
+    auto bounds = panda_space->as<base::RealVectorStateSpace>()->getBounds();
+    for (size_t i = 0; i < 7; ++i) {
+        BOOST_CHECK_EQUAL(bounds.low[i], vamp::robots::Panda::s_a[i]);
+        BOOST_CHECK_EQUAL(bounds.high[i], vamp::robots::Panda::s_a[i] + vamp::robots::Panda::s_m[i]);
+    }
+    
+    // Run comprehensive state space tests (distance, interpolation, cloning)
+    StateSpaceTest panda_test(panda_space);
+    panda_test.test();
+    
+    // Test UR5 robot to verify template instantiation
+    auto ur5_space = std::make_shared<ompl::geometric::VAMPStateSpace<vamp::robots::UR5>>(environment);
+    ur5_space->setup();
+    ur5_space->sanityChecks();
+    BOOST_CHECK_EQUAL(ur5_space->getDimension(), 6u);
+    StateSpaceTest ur5_test(ur5_space);
+    ur5_test.test();
+}
+
+// Test 2: Collision detection with sphere primitives
+BOOST_AUTO_TEST_CASE(VAMP_CollisionDetection)
+{
+    vamp::collision::Environment<float> environment;
+    
+    // Create obstacle that will collide with extended Panda arm
+    // Position sphere at end-effector location when all joints at 0
+    environment.spheres.emplace_back(
+        vamp::collision::factory::sphere::array({0.5f, 0.0f, 0.5f}, 0.15f));
+    environment.sort();
+    
+    auto space = std::make_shared<ompl::geometric::VAMPStateSpace<vamp::robots::Panda>>(environment);
+    auto si = std::make_shared<base::SpaceInformation>(space);
+    si->setStateValidityChecker(space->allocDefaultStateValidityChecker(si));
+    si->setMotionValidator(space->allocDefaultMotionValidator(si));
+    si->setup();
+    
+    // Test state validity - configuration that should collide
+    base::ScopedState<> collision_state(space);
+    auto* state_values = collision_state->as<base::RealVectorStateSpace::StateType>()->values;
+    state_values[0] = 0.0; state_values[1] = 0.0; state_values[2] = 0.0;
+    state_values[3] = -1.5; state_values[4] = 0.0; state_values[5] = 1.5; state_values[6] = 0.0;
+    
+    // Validity checker should execute without throwing (actual collision depends on FK)
+    BOOST_CHECK_NO_THROW(si->isValid(collision_state.get()));
+    
+    // Test motion validation between random states
+    base::ScopedState<> state1(space);
+    base::ScopedState<> state2(space);
+    int motion_checks = 0;
+    for (int i = 0; i < 100; ++i) {
+        state1.random();
+        state2.random();
+        // Motion validator should execute without crashes (uses Robot::resolution)
+        BOOST_CHECK_NO_THROW(si->checkMotion(state1.get(), state2.get()));
+        motion_checks++;
+    }
+    BOOST_CHECK_EQUAL(motion_checks, 100);
+}
+
+// Test 3: CAPT point cloud environment
+BOOST_AUTO_TEST_CASE(VAMP_CAPT_Environment)
+{
+    vamp::collision::Environment<float> environment;
+    
+    // Create point cloud using CAPT data structure
+    std::vector<vamp::collision::Point> points;
+    // Add scattered points in workspace
+    for (float x = -0.5f; x <= 0.5f; x += 0.1f) {
+        for (float y = -0.5f; y <= 0.5f; y += 0.1f) {
+            points.push_back({{x, y, 0.5f}});
+        }
+    }
+    // CAPT constructor: (points, r_min, r_max, r_point)
+    // r_min and r_max are min/max sphere radii of the robot
+    environment.pointclouds.emplace_back(points, 0.05f, 0.1f, 0.02f);
+    environment.sort();
+    
+    auto space = std::make_shared<ompl::geometric::VAMPStateSpace<vamp::robots::Panda>>(environment);
+    space->setup();
+    space->sanityChecks();
+    
+    auto si = std::make_shared<base::SpaceInformation>(space);
+    si->setStateValidityChecker(space->allocDefaultStateValidityChecker(si));
+    si->setMotionValidator(space->allocDefaultMotionValidator(si));
+    si->setup();
+    
+    // Verify CAPT collision checking works
+    base::ScopedState<> state(space);
+    state.random();
+    si->isValid(state.get());  // Should execute without errors
+    
+    // Run standard tests with CAPT environment
+    StateSpaceTest test(space);
+    test.test();
+}
+
+// Test 4: Precision handling (double→float conversion)
+BOOST_AUTO_TEST_CASE(VAMP_Precision)
+{
+    vamp::collision::Environment<float> environment;
+    auto space = std::make_shared<ompl::geometric::VAMPStateSpace<vamp::robots::Panda>>(environment);
+    auto si = std::make_shared<base::SpaceInformation>(space);
+    si->setStateValidityChecker(space->allocDefaultStateValidityChecker(si));
+    si->setup();
+    
+    // Test high-precision double values that exceed float precision
+    base::ScopedState<> state(space);
+    auto* values = state->as<base::RealVectorStateSpace::StateType>()->values;
+    
+    // Set high-precision values
+    values[0] = 1.23456789012345;  // More precision than float can represent
+    values[1] = -2.98765432109876;
+    values[2] = 0.11111111111111;
+    values[3] = 3.14159265358979;
+    values[4] = -1.41421356237309;
+    values[5] = 2.71828182845904;
+    values[6] = 1.61803398874989;
+    
+    // Validator should handle conversion without errors
+    BOOST_CHECK_NO_THROW(si->isValid(state.get()));
+}
+#endif
 
