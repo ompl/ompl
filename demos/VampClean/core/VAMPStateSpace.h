@@ -36,18 +36,27 @@
 
 #pragma once
 
+// OMPL includes
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/StateValidityChecker.h>
 #include <ompl/base/MotionValidator.h>
 #include <ompl/base/SpaceInformation.h>
 
+// VAMP includes
 #include <vamp/collision/environment.hh>
+#include <vamp/collision/factory.hh>
 #include <vamp/planning/validate.hh>
+#include <vamp/robots/panda.hh>
+#include <vamp/robots/ur5.hh>
+#include <vamp/robots/fetch.hh>
+#include <vamp/robots/baxter.hh>
 
+// Standard library
 #include <memory>
 #include <array>
+#include <string>
 
-namespace ompl { namespace vamp {
+namespace ompl { namespace geometric {
 
 /**
  * @brief VAMP-aware StateSpace for robot motion planning
@@ -184,4 +193,4 @@ public:
     }
 };
 
-}} // namespace ompl::vamp 
+}} // namespace ompl::geometric 

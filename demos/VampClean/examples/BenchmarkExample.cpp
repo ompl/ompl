@@ -38,10 +38,10 @@
  * @file BenchmarkExample.cpp
  * @brief VAMP-OMPL benchmarking example
  * 
- * Demonstrates using VAMP state space with OMPL's benchmarking infrastructure.
+ * VAMP state space with OMPL's benchmarking.
  */
 
-#include "../core/VAMPSetup.h"
+#include "../core/VAMPStateSpace.h"
 
 #include <ompl/tools/benchmark/Benchmark.h>
 #include <ompl/geometric/SimpleSetup.h>
@@ -50,32 +50,28 @@
 #include <ompl/geometric/planners/informedtrees/BITstar.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 
-#include <vamp/robots/panda.hh>
-#include <vamp/collision/factory.hh>
-
 #include <iostream>
 
 using namespace ompl;
 
 /**
- * @brief Create environment for benchmarking
+ * @brief Create sphere cage environment
  */
-::vamp::collision::Environment<float> createBenchmarkEnvironment() {
-    ::vamp::collision::Environment<float> environment;
+vamp::collision::Environment<float> createSphereCageEnvironment() {
+    vamp::collision::Environment<float> environment;
     
-    environment.spheres.emplace_back(
-        ::vamp::collision::factory::sphere::array({0.0f, 0.0f, 0.5f}, 0.08f));
-    environment.spheres.emplace_back(
-        ::vamp::collision::factory::sphere::array({0.3f, -0.4f, 0.6f}, 0.06f));
-    environment.spheres.emplace_back(
-        ::vamp::collision::factory::sphere::array({-0.3f, 0.4f, 0.6f}, 0.06f));
+    const std::vector<std::array<float, 3>> sphere_positions = {
+        {0.55f, 0.0f, 0.25f},   {0.35f, 0.35f, 0.25f},  {0.0f, 0.55f, 0.25f},
+        {-0.55f, 0.0f, 0.25f},  {-0.35f, -0.35f, 0.25f},{0.0f, -0.55f, 0.25f},
+        {0.35f, -0.35f, 0.25f}, {0.35f, 0.35f, 0.8f},   {0.0f, 0.55f, 0.8f},
+        {-0.35f, 0.35f, 0.8f},  {-0.55f, 0.0f, 0.8f},   {-0.35f, -0.35f, 0.8f},
+        {0.0f, -0.55f, 0.8f},   {0.35f, -0.35f, 0.8f}
+    };
     
-    environment.cuboids.emplace_back(
-        ::vamp::collision::factory::cuboid::array(
-            {0.2f, 0.2f, 0.4f}, {0.0f, 0.0f, 0.0f}, {0.05f, 0.05f, 0.2f}));
-    environment.cuboids.emplace_back(
-        ::vamp::collision::factory::cuboid::array(
-            {-0.2f, -0.2f, 0.4f}, {0.0f, 0.0f, 0.0f}, {0.05f, 0.05f, 0.2f}));
+    for (const auto& pos : sphere_positions) {
+        environment.spheres.emplace_back(
+            vamp::collision::factory::sphere::array(pos, 0.15f));
+    }
     
     environment.sort();
     return environment;
@@ -87,12 +83,15 @@ int main(int argc, char** argv) {
     
     try {
         // 1. Create environment and state space
-        auto environment = createBenchmarkEnvironment();
-        auto space = std::make_shared<vamp::VAMPStateSpace<::vamp::robots::Panda>>(environment);
+        auto environment = createSphereCageEnvironment();
+        auto space = std::make_shared<geometric::VAMPStateSpace<vamp::robots::Panda>>(environment);
         
-        // 2. Create SimpleSetup
+        // 2. Create SimpleSetup and configure VAMP validators
         geometric::SimpleSetup ss(space);
-        std::cout << "SimpleSetup created with " << space->getName() << std::endl;
+        auto si = ss.getSpaceInformation();
+        ss.setStateValidityChecker(space->allocDefaultStateValidityChecker(si));
+        si->setMotionValidator(space->allocDefaultMotionValidator(si));
+        std::cout << "SimpleSetup created with " << space->getName() << " and VAMP validators" << std::endl;
         
         // 3. Set start and goal
         base::ScopedState<> start(space);
@@ -129,7 +128,7 @@ int main(int argc, char** argv) {
         std::string results_file = "vamp_ompl_benchmark.log";
         benchmark.saveResultsToFile(results_file.c_str());
         
-        std::cout << "\n✓ Benchmark completed!" << std::endl;
+        std::cout << "\n Benchmark completed!" << std::endl;
         std::cout << "Results saved to: " << results_file << std::endl;
         
     } catch (const std::exception& e) {

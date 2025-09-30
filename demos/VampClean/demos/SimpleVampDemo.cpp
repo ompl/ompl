@@ -39,14 +39,11 @@
  * @brief Simple demonstration of VAMP-OMPL integration
  */
 
-#include "../core/VAMPSetup.h"
+#include "../core/VAMPStateSpace.h"
 
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/informedtrees/BITstar.h>
-
-#include <vamp/robots/panda.hh>
-#include <vamp/collision/factory.hh>
 
 #include <iostream>
 #include <chrono>
@@ -56,8 +53,8 @@ using namespace ompl;
 /**
  * @brief Create a simple sphere cage environment
  */
-::vamp::collision::Environment<float> createSphereCageEnvironment() {
-    ::vamp::collision::Environment<float> environment;
+vamp::collision::Environment<float> createSphereCageEnvironment() {
+    vamp::collision::Environment<float> environment;
     
     const std::vector<std::array<float, 3>> sphere_positions = {
         {0.55f, 0.0f, 0.25f},   {0.35f, 0.35f, 0.25f},  {0.0f, 0.55f, 0.25f},
@@ -69,7 +66,7 @@ using namespace ompl;
     
     for (const auto& pos : sphere_positions) {
         environment.spheres.emplace_back(
-            ::vamp::collision::factory::sphere::array(pos, 0.15f));
+            vamp::collision::factory::sphere::array(pos, 0.15f));
     }
     
     environment.sort();
@@ -88,13 +85,18 @@ int main() {
         
         // 2. Create VAMP state space (automatically configures joint limits and validators)
         std::cout << "\n2. Creating VAMP state space..." << std::endl;
-        auto space = std::make_shared<vamp::VAMPStateSpace<::vamp::robots::Panda>>(environment);
+        auto space = std::make_shared<geometric::VAMPStateSpace<vamp::robots::Panda>>(environment);
         std::cout << "   State space: " << space->getName() << " (dimension: " << space->getDimension() << ")" << std::endl;
         
         // 3. Create SimpleSetup with VAMP state space
         std::cout << "\n3. Creating SimpleSetup..." << std::endl;
         geometric::SimpleSetup ss(space);
-        std::cout << "   SimpleSetup created (VAMP validators auto-configured)" << std::endl;
+        
+        // Set VAMP validators
+        auto si = ss.getSpaceInformation();
+        ss.setStateValidityChecker(space->allocDefaultStateValidityChecker(si));
+        si->setMotionValidator(space->allocDefaultMotionValidator(si));
+        std::cout << "   SimpleSetup created with VAMP validators" << std::endl;
         
         // 4. Set start and goal states
         std::cout << "\n4. Setting start and goal states..." << std::endl;
@@ -118,14 +120,14 @@ int main() {
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
         
         if (solved) {
-            std::cout << "   ✓ Solution found in " << duration.count() << " ms!" << std::endl;
+            std::cout << "    Solution found in " << duration.count() << " ms!" << std::endl;
             auto& path = ss.getSolutionPath();
             std::cout << "   Path: " << path.getStateCount() << " waypoints, length = " << path.length() << std::endl;
             
             ss.simplifySolution();
             std::cout << "   Simplified: " << path.getStateCount() << " waypoints, length = " << path.length() << std::endl;
         } else {
-            std::cout << "   ✗ No solution found" << std::endl;
+            std::cout << "    No solution found" << std::endl;
         }
         
         // 6. Try with BIT*
@@ -140,18 +142,26 @@ int main() {
         duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
         
         if (solved) {
-            std::cout << "   ✓ Solution found in " << duration.count() << " ms!" << std::endl;
+            std::cout << "    Solution found in " << duration.count() << " ms!" << std::endl;
             auto& path = ss.getSolutionPath();
             std::cout << "   Path: " << path.getStateCount() << " waypoints, length = " << path.length() << std::endl;
         } else {
-            std::cout << "   ✗ No solution found" << std::endl;
+            std::cout << "    No solution found" << std::endl;
         }
         
-        std::cout << "\n✓ Demo completed successfully!" << std::endl;
+        std::cout << "\n Demo completed successfully!" << std::endl;
         std::cout << "\nUsage pattern:" << std::endl;
-        std::cout << "  auto space = std::make_shared<vamp::VAMPStateSpace<Robot>>(environment);" << std::endl;
-        std::cout << "  geometric::SimpleSetup ss(space);" << std::endl;
-        std::cout << "  // Everything else is standard OMPL!" << std::endl;
+        std::cout << "  // 1. Create VAMP state space with environment" << std::endl;
+        std::cout << "  auto space = std::make_shared<ompl::geometric::VAMPStateSpace<Robot>>(environment);" << std::endl;
+        std::cout << "\n  // 2. Create SimpleSetup and configure validators" << std::endl;
+        std::cout << "  ompl::geometric::SimpleSetup ss(space);" << std::endl;
+        std::cout << "  auto si = ss.getSpaceInformation();" << std::endl;
+        std::cout << "  ss.setStateValidityChecker(space->allocDefaultStateValidityChecker(si));" << std::endl;
+        std::cout << "  si->setMotionValidator(space->allocDefaultMotionValidator(si));" << std::endl;
+        std::cout << "\n  // 3. Everything else is standard OMPL!" << std::endl;
+        std::cout << "  ss.setStartAndGoalStates(start, goal);" << std::endl;
+        std::cout << "  ss.setPlanner(...);" << std::endl;
+        std::cout << "  ss.solve(...);" << std::endl;
         
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
