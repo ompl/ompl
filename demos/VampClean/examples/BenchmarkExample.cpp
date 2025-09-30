@@ -36,15 +36,15 @@
 
 /**
  * @file BenchmarkExample.cpp
- * @brief Example showing VAMP-OMPL integration with benchmarking
+ * @brief VAMP-OMPL benchmarking example
  * 
- * This example demonstrates how to use VAMPSetup with OMPL's benchmarking
- * infrastructure to compare different planners using VAMP's collision detection.
+ * Demonstrates using VAMP state space with OMPL's benchmarking infrastructure.
  */
 
 #include "../core/VAMPSetup.h"
 
 #include <ompl/tools/benchmark/Benchmark.h>
+#include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/informedtrees/BITstar.h>
@@ -55,28 +55,26 @@
 
 #include <iostream>
 
-using namespace ompl::vamp;
+using namespace ompl;
 
 /**
- * @brief Create a challenging environment for benchmarking
+ * @brief Create environment for benchmarking
  */
-vamp::collision::Environment<float> createBenchmarkEnvironment() {
-    vamp::collision::Environment<float> environment;
+::vamp::collision::Environment<float> createBenchmarkEnvironment() {
+    ::vamp::collision::Environment<float> environment;
     
-    // Create a more complex environment with various obstacles
     environment.spheres.emplace_back(
-        vamp::collision::factory::sphere::array({0.0f, 0.0f, 0.5f}, 0.08f));
+        ::vamp::collision::factory::sphere::array({0.0f, 0.0f, 0.5f}, 0.08f));
     environment.spheres.emplace_back(
-        vamp::collision::factory::sphere::array({0.3f, -0.4f, 0.6f}, 0.06f));
+        ::vamp::collision::factory::sphere::array({0.3f, -0.4f, 0.6f}, 0.06f));
     environment.spheres.emplace_back(
-        vamp::collision::factory::sphere::array({-0.3f, 0.4f, 0.6f}, 0.06f));
+        ::vamp::collision::factory::sphere::array({-0.3f, 0.4f, 0.6f}, 0.06f));
     
-    // Add some cuboids for variety
     environment.cuboids.emplace_back(
-        vamp::collision::factory::cuboid::array(
+        ::vamp::collision::factory::cuboid::array(
             {0.2f, 0.2f, 0.4f}, {0.0f, 0.0f, 0.0f}, {0.05f, 0.05f, 0.2f}));
     environment.cuboids.emplace_back(
-        vamp::collision::factory::cuboid::array(
+        ::vamp::collision::factory::cuboid::array(
             {-0.2f, -0.2f, 0.4f}, {0.0f, 0.0f, 0.0f}, {0.05f, 0.05f, 0.2f}));
     
     environment.sort();
@@ -88,67 +86,50 @@ int main(int argc, char** argv) {
     std::cout << "==============================" << std::endl;
     
     try {
-        // Create environment and setup
+        // 1. Create environment and state space
         auto environment = createBenchmarkEnvironment();
-        VAMPSetup<vamp::robots::Panda> vamp_setup(environment);
+        auto space = std::make_shared<vamp::VAMPStateSpace<::vamp::robots::Panda>>(environment);
         
-        // Set challenging start and goal states using OMPL SimpleSetup
-        auto& simple_setup = vamp_setup.getSimpleSetup();
-        auto space = simple_setup.getStateSpace();
+        // 2. Create SimpleSetup
+        geometric::SimpleSetup ss(space);
+        std::cout << "SimpleSetup created with " << space->getName() << std::endl;
         
-        // Create start state
-        ompl::base::ScopedState<> start_state(space);
-        start_state[0] = -1.0; start_state[1] = -0.5; start_state[2] = 0.0;
-        start_state[3] = -2.0; start_state[4] = 0.0; start_state[5] = 1.5; start_state[6] = 0.0;
+        // 3. Set start and goal
+        base::ScopedState<> start(space);
+        start[0] = -1.0; start[1] = -0.5; start[2] = 0.0;
+        start[3] = -2.0; start[4] = 0.0; start[5] = 1.5; start[6] = 0.0;
         
-        // Create goal state
-        ompl::base::ScopedState<> goal_state(space);
-        goal_state[0] = 1.0; goal_state[1] = 0.5; goal_state[2] = 0.0;
-        goal_state[3] = -1.5; goal_state[4] = 0.0; goal_state[5] = 2.0; goal_state[6] = 0.785;
+        base::ScopedState<> goal(space);
+        goal[0] = 1.0; goal[1] = 0.5; goal[2] = 0.0;
+        goal[3] = -1.5; goal[4] = 0.0; goal[5] = 2.0; goal[6] = 0.785;
         
-        simple_setup.setStartAndGoalStates(start_state, goal_state);
+        ss.setStartAndGoalStates(start, goal);
         
-        std::cout << "Environment created with obstacles" << std::endl;
-        std::cout << "Start and goal states configured" << std::endl;
+        // 4. Create benchmark
+        tools::Benchmark benchmark(ss, "VAMP-OMPL Benchmark");
         
-        // Create benchmark using OMPL's benchmarking infrastructure
-        ompl::tools::Benchmark benchmark(simple_setup, "VAMP-OMPL Benchmark");
+        // 5. Add planners
+        std::cout << "Adding planners..." << std::endl;
+        benchmark.addPlanner(std::make_shared<geometric::RRTConnect>(ss.getSpaceInformation()));
+        benchmark.addPlanner(std::make_shared<geometric::RRTstar>(ss.getSpaceInformation()));
+        benchmark.addPlanner(std::make_shared<geometric::BITstar>(ss.getSpaceInformation()));
+        benchmark.addPlanner(std::make_shared<geometric::PRM>(ss.getSpaceInformation()));
         
-        // Add planners to benchmark (using OMPL directly)
-        std::cout << "Adding planners to benchmark..." << std::endl;
-        
-        benchmark.addPlanner(std::make_shared<ompl::geometric::RRTConnect>(
-            simple_setup.getSpaceInformation()));
-        
-        benchmark.addPlanner(std::make_shared<ompl::geometric::RRTstar>(
-            simple_setup.getSpaceInformation()));
-        
-        benchmark.addPlanner(std::make_shared<ompl::geometric::BITstar>(
-            simple_setup.getSpaceInformation()));
-        
-        benchmark.addPlanner(std::make_shared<ompl::geometric::PRM>(
-            simple_setup.getSpaceInformation()));
-        
-        // Configure benchmark parameters
-        ompl::tools::Benchmark::Request request;
-        request.maxTime = 5.0;         // 5 seconds per run
-        request.maxMem = 1000.0;       // 1GB memory limit
-        request.runCount = 10;         // 10 runs per planner
+        // 6. Run benchmark
+        tools::Benchmark::Request request;
+        request.maxTime = 5.0;
+        request.maxMem = 1000.0;
+        request.runCount = 10;
         request.displayProgress = true;
         
-        std::cout << "Running benchmark..." << std::endl;
-        std::cout << "- Time limit: " << request.maxTime << " seconds per run" << std::endl;
-        std::cout << "- Runs per planner: " << request.runCount << std::endl;
-        std::cout << "- Total planners: 4" << std::endl;
-        
-        // Run the benchmark
+        std::cout << "Running benchmark (4 planners, 10 runs each, 5s per run)..." << std::endl;
         benchmark.benchmark(request);
         
-        // Save results
+        // 7. Save results
         std::string results_file = "vamp_ompl_benchmark.log";
         benchmark.saveResultsToFile(results_file.c_str());
         
-        std::cout << "Benchmark completed!" << std::endl;
+        std::cout << "\n✓ Benchmark completed!" << std::endl;
         std::cout << "Results saved to: " << results_file << std::endl;
         
     } catch (const std::exception& e) {

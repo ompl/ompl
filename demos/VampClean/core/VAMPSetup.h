@@ -36,10 +36,10 @@
 
 #pragma once
 
-#include <ompl/geometric/SimpleSetup.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/StateValidityChecker.h>
 #include <ompl/base/MotionValidator.h>
+#include <ompl/base/SpaceInformation.h>
 
 #include <vamp/collision/environment.hh>
 #include <vamp/planning/validate.hh>
@@ -50,107 +50,98 @@
 namespace ompl { namespace vamp {
 
 /**
- * @brief VAMP StateValidityChecker
- */
-template<typename Robot>
-class VAMPStateValidityChecker : public base::StateValidityChecker {
-public:
-    using Configuration = typename Robot::Configuration;
-    static constexpr std::size_t dimension = Robot::dimension;
-    static constexpr std::size_t simd_width = ::vamp::FloatVectorWidth;
-    using VectorizedEnvironment = ::vamp::collision::Environment<::vamp::FloatVector<simd_width>>;
-
-private:
-    const VectorizedEnvironment& environment_;
-
-public:
-    VAMPStateValidityChecker(const base::SpaceInformationPtr& si,
-                            const VectorizedEnvironment& env)
-        : StateValidityChecker(si), environment_(env) {}
-
-    bool isValid(const base::State* state) const override {
-        auto config = convertOMPLToVAMP(state);
-        return ::vamp::planning::validate_motion<Robot, simd_width, 1>(
-            config, config, environment_);
-    }
-
-private:
-    Configuration convertOMPLToVAMP(const base::State* state) const {
-        alignas(Configuration::S::Alignment) 
-        std::array<typename Configuration::S::ScalarT, Configuration::num_scalars> buffer;
-        
-        auto* real_state = state->as<base::RealVectorStateSpace::StateType>();
-        for (std::size_t i = 0; i < dimension; ++i) {
-            buffer[i] = static_cast<float>(real_state->values[i]);
-        }
-        
-        return Configuration(buffer.data());
-    }
-};
-
-/**
- * @brief Vamp MotionValidator
- */
-template<typename Robot>
-class VAMPMotionValidator : public base::MotionValidator {
-public:
-    using Configuration = typename Robot::Configuration;
-    static constexpr std::size_t dimension = Robot::dimension;
-    static constexpr std::size_t simd_width = ::vamp::FloatVectorWidth;
-    using VectorizedEnvironment = ::vamp::collision::Environment<::vamp::FloatVector<simd_width>>;
-
-private:
-    const VectorizedEnvironment& environment_;
-
-public:
-    VAMPMotionValidator(const base::SpaceInformationPtr& si,
-                       const VectorizedEnvironment& env)
-        : MotionValidator(si), environment_(env) {}
-
-    bool checkMotion(const base::State* s1, const base::State* s2) const override {
-        auto config1 = convertOMPLToVAMP(s1);
-        auto config2 = convertOMPLToVAMP(s2);
-        return ::vamp::planning::validate_motion<Robot, simd_width, Robot::resolution>(
-            config1, config2, environment_);
-    }
-
-    bool checkMotion(const base::State* s1, const base::State* s2,
-                    std::pair<base::State*, double>& lastValid) const override {
-        bool valid = checkMotion(s1, s2);
-        if (!valid && lastValid.first) {
-            si_->copyState(lastValid.first, s1);
-            lastValid.second = 0.0;
-        }
-        return valid;
-    }
-
-private:
-    Configuration convertOMPLToVAMP(const base::State* state) const {
-        alignas(Configuration::S::Alignment) 
-        std::array<typename Configuration::S::ScalarT, Configuration::num_scalars> buffer;
-        
-        auto* real_state = state->as<base::RealVectorStateSpace::StateType>();
-        for (std::size_t i = 0; i < dimension; ++i) {
-            buffer[i] = static_cast<float>(real_state->values[i]);
-        }
-        
-        return Configuration(buffer.data());
-    }
-};
-
-/**
- * @brief VAMP-OMPL integration
+ * @brief VAMP-aware StateSpace for robot motion planning
+ * 
+ * This is a custom OMPL StateSpace that integrates VAMP's collision detection.
+ * It extends RealVectorStateSpace and automatically configures joint limits
+ * from the VAMP robot definition.
  * 
  * @tparam Robot VAMP robot type (e.g., vamp::robots::Panda)
  */
 template<typename Robot>
-class VAMPSetup {
+class VAMPStateSpace : public base::RealVectorStateSpace {
 public:
-    using VectorizedEnvironment = ::vamp::collision::Environment<::vamp::FloatVector<::vamp::FloatVectorWidth>>;
+    using Configuration = typename Robot::Configuration;
     static constexpr std::size_t dimension = Robot::dimension;
+    static constexpr std::size_t simd_width = ::vamp::FloatVectorWidth;
+    using VectorizedEnvironment = ::vamp::collision::Environment<::vamp::FloatVector<simd_width>>;
+
+    /**
+     * @brief VAMP StateValidityChecker
+     */
+    class StateValidityChecker : public base::StateValidityChecker {
+    private:
+        const VectorizedEnvironment& environment_;
+
+    public:
+        StateValidityChecker(const base::SpaceInformationPtr& si,
+                           const VectorizedEnvironment& env)
+            : base::StateValidityChecker(si), environment_(env) {}
+
+        bool isValid(const base::State* state) const override {
+            auto config = convertOMPLToVAMP(state);
+            return ::vamp::planning::validate_motion<Robot, simd_width, 1>(
+                config, config, environment_);
+        }
+
+    private:
+        Configuration convertOMPLToVAMP(const base::State* state) const {
+            alignas(Configuration::S::Alignment) 
+            std::array<typename Configuration::S::ScalarT, Configuration::num_scalars> buffer;
+            
+            auto* real_state = state->as<StateType>();
+            for (std::size_t i = 0; i < dimension; ++i) {
+                buffer[i] = static_cast<float>(real_state->values[i]);
+            }
+            
+            return Configuration(buffer.data());
+        }
+    };
+
+    /**
+     * @brief VAMP MotionValidator
+     */
+    class MotionValidator : public base::MotionValidator {
+    private:
+        const VectorizedEnvironment& environment_;
+
+    public:
+        MotionValidator(const base::SpaceInformationPtr& si,
+                       const VectorizedEnvironment& env)
+            : base::MotionValidator(si), environment_(env) {}
+
+        bool checkMotion(const base::State* s1, const base::State* s2) const override {
+            auto config1 = convertOMPLToVAMP(s1);
+            auto config2 = convertOMPLToVAMP(s2);
+            return ::vamp::planning::validate_motion<Robot, simd_width, Robot::resolution>(
+                config1, config2, environment_);
+        }
+
+        bool checkMotion(const base::State* s1, const base::State* s2,
+                        std::pair<base::State*, double>& lastValid) const override {
+            bool valid = checkMotion(s1, s2);
+            if (!valid && lastValid.first) {
+                si_->copyState(lastValid.first, s1);
+                lastValid.second = 0.0;
+            }
+            return valid;
+        }
+
+    private:
+        Configuration convertOMPLToVAMP(const base::State* state) const {
+            alignas(Configuration::S::Alignment) 
+            std::array<typename Configuration::S::ScalarT, Configuration::num_scalars> buffer;
+            
+            auto* real_state = state->as<StateType>();
+            for (std::size_t i = 0; i < dimension; ++i) {
+                buffer[i] = static_cast<float>(real_state->values[i]);
+            }
+            
+            return Configuration(buffer.data());
+        }
+    };
 
 private:
-    std::unique_ptr<geometric::SimpleSetup> simple_setup_;
     VectorizedEnvironment vectorized_environment_;
 
 public:
@@ -158,46 +149,39 @@ public:
      * @brief Constructor with VAMP collision environment
      * @param environment VAMP collision environment
      */
-    explicit VAMPSetup(const ::vamp::collision::Environment<float>& environment)
-        : vectorized_environment_(environment) {
+    explicit VAMPStateSpace(const ::vamp::collision::Environment<float>& environment)
+        : RealVectorStateSpace(dimension), vectorized_environment_(environment) {
         
-        // Create state space with robot joint limits
-        auto space = std::make_shared<base::RealVectorStateSpace>(dimension);
+        // Set robot joint limits
         base::RealVectorBounds bounds(dimension);
         for (std::size_t i = 0; i < dimension; ++i) {
             bounds.setLow(i, Robot::s_a[i]);
             bounds.setHigh(i, Robot::s_a[i] + Robot::s_m[i]);
         }
-        space->setBounds(bounds);
-
-        // Create SimpleSetup
-        simple_setup_ = std::make_unique<geometric::SimpleSetup>(space);
-
-        // Set VAMP validators
-        auto si = simple_setup_->getSpaceInformation();
-        simple_setup_->setStateValidityChecker(
-            std::make_shared<VAMPStateValidityChecker<Robot>>(si, vectorized_environment_));
-        si->setMotionValidator(
-            std::make_shared<VAMPMotionValidator<Robot>>(si, vectorized_environment_));
+        setBounds(bounds);
+        
+        setName("VAMP_" + std::string(Robot::name));
     }
 
     /**
-     * @brief Get the underlying SimpleSetup for all OMPL operations
-     * @return Reference to SimpleSetup instance
+     * @brief Allocate the default state validity checker for this space
+     * @param si Space information
+     * @return VAMP state validity checker
      */
-    geometric::SimpleSetup& getSimpleSetup() {
-        return *simple_setup_;
+    base::StateValidityCheckerPtr allocDefaultStateValidityChecker(
+        const base::SpaceInformationPtr& si) const {
+        return std::make_shared<StateValidityChecker>(si, vectorized_environment_);
     }
 
     /**
-     * @brief Get the underlying SimpleSetup (const version)
-     * @return Const reference to SimpleSetup instance
+     * @brief Allocate the default motion validator for this space
+     * @param si Space information
+     * @return VAMP motion validator
      */
-    const geometric::SimpleSetup& getSimpleSetup() const {
-        return *simple_setup_;
+    base::MotionValidatorPtr allocDefaultMotionValidator(
+        const base::SpaceInformationPtr& si) const {
+        return std::make_shared<MotionValidator>(si, vectorized_environment_);
     }
-
-
 };
 
 }} // namespace ompl::vamp 

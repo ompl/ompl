@@ -36,53 +36,40 @@
 
 /**
  * @file SimpleVampDemo.cpp
- * @brief Simple demonstration of the VAMP-OMPL integration
- * 
+ * @brief Simple demonstration of VAMP-OMPL integration
  */
 
 #include "../core/VAMPSetup.h"
 
-#include <vamp/robots/panda.hh>
-#include <vamp/collision/factory.hh>
-
+#include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/informedtrees/BITstar.h>
+
+#include <vamp/robots/panda.hh>
+#include <vamp/collision/factory.hh>
 
 #include <iostream>
 #include <chrono>
 
-using namespace ompl::vamp;
+using namespace ompl;
 
 /**
- * @brief Create a simple sphere cage environment using VAMP's factory
+ * @brief Create a simple sphere cage environment
  */
-vamp::collision::Environment<float> createSphereCageEnvironment() {
-    vamp::collision::Environment<float> environment;
+::vamp::collision::Environment<float> createSphereCageEnvironment() {
+    ::vamp::collision::Environment<float> environment;
     
-    // Create sphere cage
     const std::vector<std::array<float, 3>> sphere_positions = {
-        {0.55f, 0.0f, 0.25f},
-        {0.35f, 0.35f, 0.25f},
-        {0.0f, 0.55f, 0.25f},
-        {-0.55f, 0.0f, 0.25f},
-        {-0.35f, -0.35f, 0.25f},
-        {0.0f, -0.55f, 0.25f},
-        {0.35f, -0.35f, 0.25f},
-        {0.35f, 0.35f, 0.8f},
-        {0.0f, 0.55f, 0.8f},
-        {-0.35f, 0.35f, 0.8f},
-        {-0.55f, 0.0f, 0.8f},
-        {-0.35f, -0.35f, 0.8f},
-        {0.0f, -0.55f, 0.8f},
-        {0.35f, -0.35f, 0.8f}
+        {0.55f, 0.0f, 0.25f},   {0.35f, 0.35f, 0.25f},  {0.0f, 0.55f, 0.25f},
+        {-0.55f, 0.0f, 0.25f},  {-0.35f, -0.35f, 0.25f},{0.0f, -0.55f, 0.25f},
+        {0.35f, -0.35f, 0.25f}, {0.35f, 0.35f, 0.8f},   {0.0f, 0.55f, 0.8f},
+        {-0.35f, 0.35f, 0.8f},  {-0.55f, 0.0f, 0.8f},   {-0.35f, -0.35f, 0.8f},
+        {0.0f, -0.55f, 0.8f},   {0.35f, -0.35f, 0.8f}
     };
     
-    const float radius = 0.15f;
-    
-    for (const auto& position : sphere_positions) {
+    for (const auto& pos : sphere_positions) {
         environment.spheres.emplace_back(
-            vamp::collision::factory::sphere::array(position, radius)
-        );
+            ::vamp::collision::factory::sphere::array(pos, 0.15f));
     }
     
     environment.sort();
@@ -90,94 +77,81 @@ vamp::collision::Environment<float> createSphereCageEnvironment() {
 }
 
 int main() {
-    std::cout << "Simple VAMP-OMPL Integration Demo" << std::endl;
-    std::cout << "=================================" << std::endl;
+    std::cout << "VAMP-OMPL Integration Demo" << std::endl;
+    std::cout << "===========================" << std::endl;
     
     try {
         // 1. Create VAMP collision environment
-        std::cout << "Creating collision environment..." << std::endl;
+        std::cout << "\n1. Creating collision environment..." << std::endl;
         auto environment = createSphereCageEnvironment();
-        std::cout << "Environment created with " << environment.spheres.size() << " spheres" << std::endl;
+        std::cout << "   Created environment with " << environment.spheres.size() << " spheres" << std::endl;
         
-        // 2. Create VAMPSetup (this sets up OMPL SimpleSetup with VAMP validators)
-        std::cout << "Initializing VAMP-OMPL integration..." << std::endl;
-        VAMPSetup<vamp::robots::Panda> vamp_setup(environment);
-        std::cout << "VAMPSetup initialized for Panda robot" << std::endl;
+        // 2. Create VAMP state space (automatically configures joint limits and validators)
+        std::cout << "\n2. Creating VAMP state space..." << std::endl;
+        auto space = std::make_shared<vamp::VAMPStateSpace<::vamp::robots::Panda>>(environment);
+        std::cout << "   State space: " << space->getName() << " (dimension: " << space->getDimension() << ")" << std::endl;
         
-        // 3. Set start and goal configurations using OMPL SimpleSetup
-        std::cout << "Setting start and goal states..." << std::endl;
-        auto& simple_setup = vamp_setup.getSimpleSetup();
-        auto space = simple_setup.getStateSpace();
+        // 3. Create SimpleSetup with VAMP state space
+        std::cout << "\n3. Creating SimpleSetup..." << std::endl;
+        geometric::SimpleSetup ss(space);
+        std::cout << "   SimpleSetup created (VAMP validators auto-configured)" << std::endl;
         
-        // Create start state
-        ompl::base::ScopedState<> start_state(space);
-        start_state[0] = 0.0; start_state[1] = -0.785; start_state[2] = 0.0;
-        start_state[3] = -2.356; start_state[4] = 0.0; start_state[5] = 1.571; start_state[6] = 0.785;
+        // 4. Set start and goal states
+        std::cout << "\n4. Setting start and goal states..." << std::endl;
+        base::ScopedState<> start(space);
+        start[0] = 0.0; start[1] = -0.785; start[2] = 0.0;
+        start[3] = -2.356; start[4] = 0.0; start[5] = 1.571; start[6] = 0.785;
         
-        // Create goal state  
-        ompl::base::ScopedState<> goal_state(space);
-        goal_state[0] = 2.35; goal_state[1] = 1.0; goal_state[2] = 0.0;
-        goal_state[3] = -0.8; goal_state[4] = 0.0; goal_state[5] = 2.5; goal_state[6] = 0.785;
+        base::ScopedState<> goal(space);
+        goal[0] = 2.35; goal[1] = 1.0; goal[2] = 0.0;
+        goal[3] = -0.8; goal[4] = 0.0; goal[5] = 2.5; goal[6] = 0.785;
         
-        simple_setup.setStartAndGoalStates(start_state, goal_state);
-        std::cout << "Start and goal states configured" << std::endl;
+        ss.setStartAndGoalStates(start, goal);
         
-        // 4. Use OMPL SimpleSetup directly for planning
+        // 5. Plan with RRTConnect
+        std::cout << "\n5. Planning with RRTConnect..." << std::endl;
+        ss.setPlanner(std::make_shared<geometric::RRTConnect>(ss.getSpaceInformation()));
         
-        // Set planner
-        simple_setup.setPlanner(std::make_shared<ompl::geometric::RRTConnect>(
-            simple_setup.getSpaceInformation()));
-        
-        std::cout << "Planning with RRTConnect..." << std::endl;
         auto start_time = std::chrono::high_resolution_clock::now();
-        
-        ompl::base::PlannerStatus solved = simple_setup.solve(5.0);
-        
+        base::PlannerStatus solved = ss.solve(5.0);
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
         
         if (solved) {
-            std::cout << "Solution found in " << duration.count() << " ms!" << std::endl;
+            std::cout << "   ✓ Solution found in " << duration.count() << " ms!" << std::endl;
+            auto& path = ss.getSolutionPath();
+            std::cout << "   Path: " << path.getStateCount() << " waypoints, length = " << path.length() << std::endl;
             
-            // Get and print path info
-            auto& path = simple_setup.getSolutionPath();
-            std::cout << "Path has " << path.getStateCount() << " waypoints" << std::endl;
-            std::cout << "Path length: " << path.length() << std::endl;
-            
-            // Simplify path
-            std::cout << "Simplifying path..." << std::endl;
-            simple_setup.simplifySolution();
-            std::cout << "Simplified path has " << path.getStateCount() << " waypoints" << std::endl;
-            std::cout << "Simplified path length: " << path.length() << std::endl;
-            
+            ss.simplifySolution();
+            std::cout << "   Simplified: " << path.getStateCount() << " waypoints, length = " << path.length() << std::endl;
         } else {
-            std::cout << "No solution found" << std::endl;
+            std::cout << "   ✗ No solution found" << std::endl;
         }
         
-        // 5. Try with a different planner
-        std::cout << "\nTrying with BIT* planner..." << std::endl;
-        simple_setup.clear();
-        simple_setup.setStartAndGoalStates(start_state, goal_state);
-        
-        simple_setup.setPlanner(std::make_shared<ompl::geometric::BITstar>(
-            simple_setup.getSpaceInformation()));
+        // 6. Try with BIT*
+        std::cout << "\n6. Planning with BIT*..." << std::endl;
+        ss.clear();
+        ss.setStartAndGoalStates(start, goal);
+        ss.setPlanner(std::make_shared<geometric::BITstar>(ss.getSpaceInformation()));
         
         start_time = std::chrono::high_resolution_clock::now();
-        solved = simple_setup.solve(5.0);
+        solved = ss.solve(5.0);
         end_time = std::chrono::high_resolution_clock::now();
         duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
         
         if (solved) {
-            std::cout << "BIT* solution found in " << duration.count() << " ms!" << std::endl;
-            auto& path = simple_setup.getSolutionPath();
-            std::cout << "BIT* path has " << path.getStateCount() << " waypoints" << std::endl;
-            std::cout << "BIT* path length: " << path.length() << std::endl;
+            std::cout << "   ✓ Solution found in " << duration.count() << " ms!" << std::endl;
+            auto& path = ss.getSolutionPath();
+            std::cout << "   Path: " << path.getStateCount() << " waypoints, length = " << path.length() << std::endl;
         } else {
-            std::cout << "BIT* found no solution" << std::endl;
+            std::cout << "   ✗ No solution found" << std::endl;
         }
         
-        std::cout << "\nDemo completed successfully!" << std::endl;
-        std::cout << "VAMPSetup provides VAMP collision detection to OMPL SimpleSetup." << std::endl;
+        std::cout << "\n✓ Demo completed successfully!" << std::endl;
+        std::cout << "\nUsage pattern:" << std::endl;
+        std::cout << "  auto space = std::make_shared<vamp::VAMPStateSpace<Robot>>(environment);" << std::endl;
+        std::cout << "  geometric::SimpleSetup ss(space);" << std::endl;
+        std::cout << "  // Everything else is standard OMPL!" << std::endl;
         
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
