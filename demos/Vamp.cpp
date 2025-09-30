@@ -156,12 +156,12 @@ void runBenchmark() {
     
     // 3. Set start and goal
     base::ScopedState<> start(space);
-    start[0] = -1.0; start[1] = -0.5; start[2] = 0.0;
-    start[3] = -2.0; start[4] = 0.0; start[5] = 1.5; start[6] = 0.0;
+    start[0] = 0.0; start[1] = -0.785; start[2] = 0.0;
+    start[3] = -2.356; start[4] = 0.0; start[5] = 1.571; start[6] = 0.785;
     
     base::ScopedState<> goal(space);
-    goal[0] = 1.0; goal[1] = 0.5; goal[2] = 0.0;
-    goal[3] = -1.5; goal[4] = 0.0; goal[5] = 2.0; goal[6] = 0.785;
+    goal[0] = 2.35; goal[1] = 1.0; goal[2] = 0.0;
+    goal[3] = -0.8; goal[4] = 0.0; goal[5] = 2.5; goal[6] = 0.785;
     
     ss.setStartAndGoalStates(start, goal);
     
@@ -196,7 +196,7 @@ void runBenchmark() {
     std::cout << "\nNext steps to visualize results:" << std::endl;
     std::cout << "=================================" << std::endl;
     std::cout << "\n1. Process the log file into a database:" << std::endl;
-    std::cout << "   ompl_benchmark_statistics.py " << results_file << " -d vamp_benchmark.db" << std::endl;
+    std::cout << "   scripts/ompl_benchmark_statistics.py " << results_file << " -d vamp_benchmark.db" << std::endl;
     
     std::cout << "\n2. Visualize results (choose one):" << std::endl;
     std::cout << "   a) Upload to Planner Arena (recommended):" << std::endl;
@@ -208,7 +208,7 @@ void runBenchmark() {
     std::cout << "      (Requires R and dependencies. See: ompl.kavrakilab.org/plannerarena.html)" << std::endl;
     
     std::cout << "\n   c) Generate PDF plots:" << std::endl;
-    std::cout << "      ompl_benchmark_statistics.py -d vamp_benchmark.db -p vamp_plots.pdf" << std::endl;
+    std::cout << "      scripts/ompl_benchmark_statistics.py -d vamp_benchmark.db -p vamp_plots.pdf" << std::endl;
     
     std::cout << "\nFor more information: ompl_benchmark_statistics.py --help" << std::endl;
 }
