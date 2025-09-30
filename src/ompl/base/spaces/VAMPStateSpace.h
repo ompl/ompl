@@ -59,84 +59,115 @@
 
 namespace ompl { namespace geometric {
 
-/** \brief A RealVectorStateSpace with VAMP's SIMD-accelerated collision detection.
- *
- * This state space integrates the VAMP (Vector Accelerated Motion Planning) library
- * for high-performance collision detection and motion validation. VAMP provides
- * vectorized collision checking for manipulator robots using SIMD instructions.
- *
- * The state space automatically configures joint limits from the VAMP robot definition
- * and provides custom state validity checker and motion validator implementations that
- * leverage VAMP's optimized collision detection.
- *
- * Supported robots include: Panda, UR5, Fetch, Baxter, and custom robot models.
- *
- * Reference:
- * - Wil Thomason,  Zachary Kingston and Lydia E. Kavraki,
- *   "VAMP: Motions in Microseconds via Vectorized Sampling-Based Planning,"
- *   arXiv preprint arXiv:2309.14545, 2024.
- *   URL: https://arxiv.org/abs/2309.14545
- *
- * - VAMP library: https://github.com/KavrakiLab/vamp
- *
- * @tparam Robot VAMP robot type (e.g., vamp::robots::Panda)
- */
+    /**
+       @anchor gVAMP
+       @par Short Description
+       VAMPStateSpace provides SIMD-accelerated collision detection for manipulator motion planning by
+       integrating the VAMP (Vector Accelerated Motion Planning) library into OMPL. VAMP leverages
+       modern CPU vectorization (AVX2, NEON) to perform collision checking orders of
+       magnitude faster than traditional methods. The state space automatically configures joint limits
+       from robot definitions and provides optimized state validity checking and motion validation.
+
+       VAMPStateSpace supports both primitive collision objects (spheres, boxes, capsules) and point
+       cloud environments through VAMP's Collision-Affording Point Tree (CAPT) data structure, enabling
+       efficient planning in sensor-derived environments.
+
+       @par Supported Robots
+       Pre-defined robot models include: Panda (Franka Emika), UR5 (Universal Robots), Fetch, and Baxter.
+
+       @par Usage Example
+       @code
+       // Create VAMP environment with sphere obstacles
+       vamp::collision::Environment<float> environment;
+       environment.spheres.emplace_back(0.3, 0.0, 0.5, 0.2);  // x, y, z, radius
+
+       // Create state space for Panda robot
+       auto space = std::make_shared<ompl::geometric::VAMPStateSpace<vamp::robots::Panda>>(environment);
+
+       // Use with SimpleSetup
+       ompl::geometric::SimpleSetup ss(space);
+       auto si = ss.getSpaceInformation();
+       ss.setStateValidityChecker(space->allocDefaultStateValidityChecker(si));
+       si->setMotionValidator(space->allocDefaultMotionValidator(si));
+
+       // Set start/goal and plan using any OMPL geometric planner
+       @endcode
+
+       @par External Documentation
+       The following paper describes VAMP's vectorization methodology and performance characteristics:
+
+       Wil Thomason, Zachary Kingston, and Lydia E. Kavraki,
+       "VAMP: Motions in Microseconds via Vectorized Sampling-Based Planning,"
+       arXiv preprint arXiv:2309.14545, 2024.
+       <a href="https://arxiv.org/abs/2309.14545">arXiv:2309.14545</a>
+
+       VAMP library: <a href="https://github.com/KavrakiLab/vamp">https://github.com/KavrakiLab/vamp</a>
+    */
+
+    /** \brief A RealVectorStateSpace with VAMP's SIMD-accelerated collision detection.
+     *
+     * This state space extends RealVectorStateSpace to provide high-performance collision
+     * detection for manipulator robots using SIMD vectorization. Joint limits are automatically
+     * configured from the robot definition, and custom validators leverage VAMP's optimized
+     * collision checking algorithms.
+     *
+     * @tparam Robot VAMP robot type (e.g., vamp::robots::Panda, vamp::robots::UR5)
+     */
 template<typename Robot>
 class VAMPStateSpace : public base::RealVectorStateSpace {
 public:
     using Configuration = typename Robot::Configuration;
     static constexpr std::size_t dimension = Robot::dimension;
-    static constexpr std::size_t simd_width = ::vamp::FloatVectorWidth;
-    using VectorizedEnvironment = ::vamp::collision::Environment<::vamp::FloatVector<simd_width>>;
+    static constexpr std::size_t simd_width = vamp::FloatVectorWidth;
+    using VectorizedEnvironment = vamp::collision::Environment<vamp::FloatVector<simd_width>>;
 
-    /**
-     * @brief VAMP StateValidityChecker
+    /** \brief State validity checker using VAMP's vectorized collision detection.
+     *
+     * This checker uses VAMP's SIMD-optimized collision detection to verify that a
+     * robot configuration is collision-free. The implementation automatically converts
+     * OMPL states to VAMP's aligned configuration format and performs vectorized
+     * sphere-based collision checking against the environment.
      */
     class StateValidityChecker : public base::StateValidityChecker {
     private:
         const VectorizedEnvironment& environment_;
+        const VAMPStateSpace* space_;
 
     public:
         StateValidityChecker(const base::SpaceInformationPtr& si,
-                           const VectorizedEnvironment& env)
-            : base::StateValidityChecker(si), environment_(env) {}
+                           const VectorizedEnvironment& env,
+                           const VAMPStateSpace* space)
+            : base::StateValidityChecker(si), environment_(env), space_(space) {}
 
         bool isValid(const base::State* state) const override {
-            auto config = convertOMPLToVAMP(state);
-            return ::vamp::planning::validate_motion<Robot, simd_width, 1>(
+            auto config = space_->convertOMPLToVAMP(state);
+            return vamp::planning::validate_motion<Robot, simd_width, 1>(
                 config, config, environment_);
-        }
-
-    private:
-        Configuration convertOMPLToVAMP(const base::State* state) const {
-            alignas(Configuration::S::Alignment) 
-            std::array<typename Configuration::S::ScalarT, Configuration::num_scalars> buffer;
-            
-            auto* real_state = state->as<StateType>();
-            for (std::size_t i = 0; i < dimension; ++i) {
-                buffer[i] = static_cast<float>(real_state->values[i]);
-            }
-            
-            return Configuration(buffer.data());
         }
     };
 
-    /**
-     * @brief VAMP MotionValidator
+    /** \brief Motion validator using VAMP's vectorized continuous collision detection.
+     *
+     * This validator uses VAMP's SIMD-optimized swept-sphere collision detection to verify
+     * that a motion between two configurations is collision-free. The motion is discretized
+     * according to the robot's resolution parameter (defined in the robot template), and
+     * each intermediate configuration is checked using vectorized collision detection.
      */
     class MotionValidator : public base::MotionValidator {
     private:
         const VectorizedEnvironment& environment_;
+        const VAMPStateSpace* space_;
 
     public:
         MotionValidator(const base::SpaceInformationPtr& si,
-                       const VectorizedEnvironment& env)
-            : base::MotionValidator(si), environment_(env) {}
+                       const VectorizedEnvironment& env,
+                       const VAMPStateSpace* space)
+            : base::MotionValidator(si), environment_(env), space_(space) {}
 
         bool checkMotion(const base::State* s1, const base::State* s2) const override {
-            auto config1 = convertOMPLToVAMP(s1);
-            auto config2 = convertOMPLToVAMP(s2);
-            return ::vamp::planning::validate_motion<Robot, simd_width, Robot::resolution>(
+            auto config1 = space_->convertOMPLToVAMP(s1);
+            auto config2 = space_->convertOMPLToVAMP(s2);
+            return vamp::planning::validate_motion<Robot, simd_width, Robot::resolution>(
                 config1, config2, environment_);
         }
 
@@ -149,30 +180,43 @@ public:
             }
             return valid;
         }
-
-    private:
-        Configuration convertOMPLToVAMP(const base::State* state) const {
-            alignas(Configuration::S::Alignment) 
-            std::array<typename Configuration::S::ScalarT, Configuration::num_scalars> buffer;
-            
-            auto* real_state = state->as<StateType>();
-            for (std::size_t i = 0; i < dimension; ++i) {
-                buffer[i] = static_cast<float>(real_state->values[i]);
-            }
-            
-            return Configuration(buffer.data());
-        }
     };
 
 private:
     VectorizedEnvironment vectorized_environment_;
 
-public:
-    /**
-     * @brief Constructor with VAMP collision environment
-     * @param environment VAMP collision environment
+    /** \brief Convert OMPL state to VAMP configuration.
+     *
+     * This helper method converts an OMPL RealVectorState to a VAMP robot configuration,
+     * ensuring proper memory alignment and type conversion (double to float).
+     *
+     * @param state OMPL state to convert
+     * @return VAMP robot configuration
      */
-    explicit VAMPStateSpace(const ::vamp::collision::Environment<float>& environment)
+    Configuration convertOMPLToVAMP(const base::State* state) const {
+        alignas(Configuration::S::Alignment) 
+        std::array<typename Configuration::S::ScalarT, Configuration::num_scalars> buffer;
+        
+        auto* real_state = state->as<StateType>();
+        for (std::size_t i = 0; i < dimension; ++i) {
+            buffer[i] = static_cast<float>(real_state->values[i]);
+        }
+        
+        return Configuration(buffer.data());
+    }
+
+public:
+    /** \brief Construct a VAMP state space for the specified robot.
+     *
+     * The constructor automatically:
+     * - Sets the state space dimension to match the robot's DOF
+     * - Configures joint limits from the robot definition
+     * - Vectorizes the collision environment for SIMD operations
+     * - Sets the state space name to "VAMP_<robotname>"
+     *
+     * @param environment VAMP collision environment containing obstacles (spheres, boxes, capsules, or point clouds)
+     */
+    explicit VAMPStateSpace(const vamp::collision::Environment<float>& environment)
         : RealVectorStateSpace(dimension), vectorized_environment_(environment) {
         
         // Set robot joint limits
@@ -186,24 +230,32 @@ public:
         setName("VAMP_" + std::string(Robot::name));
     }
 
-    /**
-     * @brief Allocate the default state validity checker for this space
-     * @param si Space information
-     * @return VAMP state validity checker
+    /** \brief Allocate the VAMP state validity checker.
+     *
+     * This method provides VAMP's vectorized collision checker instead of the standard
+     * validity checker. The returned checker automatically uses SIMD instructions for
+     * collision detection.
+     *
+     * @param si The space information to associate with the checker
+     * @return A shared pointer to the VAMP state validity checker
      */
     base::StateValidityCheckerPtr allocDefaultStateValidityChecker(
         const base::SpaceInformationPtr& si) const {
-        return std::make_shared<StateValidityChecker>(si, vectorized_environment_);
+        return std::make_shared<StateValidityChecker>(si, vectorized_environment_, this);
     }
 
-    /**
-     * @brief Allocate the default motion validator for this space
-     * @param si Space information
-     * @return VAMP motion validator
+    /** \brief Allocate the VAMP motion validator.
+     *
+     * This method provides VAMP's vectorized continuous collision checker instead of the
+     * standard motion validator. The returned validator uses swept-sphere collision detection
+     * with SIMD acceleration.
+     *
+     * @param si The space information to associate with the validator
+     * @return A shared pointer to the VAMP motion validator
      */
     base::MotionValidatorPtr allocDefaultMotionValidator(
         const base::SpaceInformationPtr& si) const {
-        return std::make_shared<MotionValidator>(si, vectorized_environment_);
+        return std::make_shared<MotionValidator>(si, vectorized_environment_, this);
     }
 };
 

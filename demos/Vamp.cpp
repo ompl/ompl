@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2015, Rice University
+ *  Copyright (c) 2025, Rice University
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,35 @@
 
 /* Author: Sahruday Patti */
 
+/** @file Vamp.cpp
+    @brief Demonstration of VAMP-OMPL integration for SIMD-accelerated motion planning.
+
+    This demo showcases the integration of VAMP (Vector Accelerated Motion Planning) with OMPL,
+    providing SIMD-accelerated collision detection for manipulator planning. The demo includes:
+
+    1. Simple Planning Mode (--simple):
+       - Creates a sphere cage environment
+       - Plans paths using RRTConnect and BITstar
+       - Demonstrates basic VAMPStateSpace usage
+
+    2. Benchmarking Mode (--benchmark):
+       - Compares performance across multiple planners (RRTConnect, RRTstar, BITstar, PRM)
+       - Generates benchmark logs compatible with Planner Arena
+       - Shows how to use VAMP with OMPL's benchmarking infrastructure
+
+    The VAMPStateSpace provides automatic configuration of:
+    - Joint limits from robot definitions
+    - SIMD-accelerated state validity checking
+    - Vectorized continuous collision detection
+
+    All OMPL geometric planners work seamlessly with VAMPStateSpace without modification.
+
+    For more information on VAMP, see:
+    Wil Thomason, Zachary Kingston, and Lydia E. Kavraki,
+    "VAMP: Motions in Microseconds via Vectorized Sampling-Based Planning,"
+    arXiv:2309.14545, 2024. https://arxiv.org/abs/2309.14545
+*/
+
 /**
  * @file Vamp.cpp
  * @brief VAMP-OMPL integration with simple planning and benchmarking modes
@@ -54,8 +83,11 @@
 
 using namespace ompl;
 
-/**
- * @brief Create sphere cage environment
+/** \brief Create a sphere cage environment.
+ *
+ * Creates a VAMP collision environment with 14 spheres arranged in a 3D cage pattern.
+ *
+ * @return VAMP collision environment with 14 spheres
  */
 vamp::collision::Environment<float> createSphereCageEnvironment() {
     vamp::collision::Environment<float> environment;
@@ -77,8 +109,15 @@ vamp::collision::Environment<float> createSphereCageEnvironment() {
     return environment;
 }
 
-/**
- * @brief Run simple planning demo
+/** \brief Run a simple planning demonstration with VAMP.
+ *
+ * This function demonstrates basic usage of VAMPStateSpace for motion planning:
+ * 1. Creates a sphere cage environment
+ * 2. Sets up a VAMPStateSpace for the Panda robot
+ * 3. Plans paths using RRTConnect
+ * 4. Simplifies the solution path
+ *
+ * This serves as a minimal working example for integrating VAMP with OMPL.
  */
 void runSimpleDemo() {
     std::cout << "VAMP-OMPL Simple Planning Demo" << std::endl;
@@ -136,8 +175,16 @@ void runSimpleDemo() {
     }
 }
 
-/**
- * @brief Run benchmarking demo
+/** \brief Run benchmarking demonstration comparing multiple planners with VAMP.
+ *
+ * This function demonstrates how to use VAMP with OMPL's benchmarking infrastructure:
+ * 1. Creates a sphere cage environment
+ * 2. Sets up a VAMPStateSpace for the Panda robot
+ * 3. Benchmarks 4 planners (RRTConnect, RRTstar, BITstar, PRM)
+ * 4. Generates a log file compatible with ompl_benchmark_statistics.py and Planner Arena
+ *
+ * The benchmark runs each planner 10 times with a 5-second timeout per run.
+ * Results can be analyzed and visualized using OMPL's plotting tools.
  */
 void runBenchmark() {
     std::cout << "VAMP-OMPL Benchmarking" << std::endl;
