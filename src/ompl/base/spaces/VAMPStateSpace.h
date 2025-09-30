@@ -34,7 +34,8 @@
 
 /* Author: Sahruday Patti */
 
-#pragma once
+#ifndef OMPL_BASE_SPACES_VAMP_STATE_SPACE_
+#define OMPL_BASE_SPACES_VAMP_STATE_SPACE_
 
 // OMPL includes
 #include <ompl/base/spaces/RealVectorStateSpace.h>
@@ -58,13 +59,26 @@
 
 namespace ompl { namespace geometric {
 
-/**
- * @brief VAMP-aware StateSpace for robot motion planning
- * 
- * This is a custom OMPL StateSpace that integrates VAMP's collision detection.
- * It extends RealVectorStateSpace and automatically configures joint limits
- * from the VAMP robot definition.
- * 
+/** \brief A RealVectorStateSpace with VAMP's SIMD-accelerated collision detection.
+ *
+ * This state space integrates the VAMP (Vector Accelerated Motion Planning) library
+ * for high-performance collision detection and motion validation. VAMP provides
+ * vectorized collision checking for manipulator robots using SIMD instructions.
+ *
+ * The state space automatically configures joint limits from the VAMP robot definition
+ * and provides custom state validity checker and motion validator implementations that
+ * leverage VAMP's optimized collision detection.
+ *
+ * Supported robots include: Panda, UR5, Fetch, Baxter, and custom robot models.
+ *
+ * Reference:
+ * - Wil Thomason,  Zachary Kingston and Lydia E. Kavraki,
+ *   "VAMP: Motions in Microseconds via Vectorized Sampling-Based Planning,"
+ *   arXiv preprint arXiv:2309.14545, 2024.
+ *   URL: https://arxiv.org/abs/2309.14545
+ *
+ * - VAMP library: https://github.com/KavrakiLab/vamp
+ *
  * @tparam Robot VAMP robot type (e.g., vamp::robots::Panda)
  */
 template<typename Robot>
@@ -193,4 +207,6 @@ public:
     }
 };
 
-}} // namespace ompl::geometric 
+}} // namespace ompl::geometric
+
+#endif 
