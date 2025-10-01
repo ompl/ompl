@@ -66,8 +66,9 @@ namespace ompl
            [[PDF]](http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246)
            [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html)
            T. S. Wilson, W. Thomason, Z. Kingston, and J. D. Gammell, AORRTC: Finding optimal paths with AO-x and
-           RRT-Connect, in <em>Proc. Workshop on RoboARCH: Robotics Acceleration with Computing Hardware and Systems,
-           IEEE Intl. Conf. on Robotics and Automation</em>, May 2025.
+           RRT-Connect, in <em>IEEE Robotics and Automation Letters</em>, Sept. 2025. DOI:
+           [10.1109/LRA.2025.3615522](http://dx.doi.org/10.1109/LRA.2025.3615522)<br>
+           [[PDF]](https://arxiv.org/abs/2505.10542)
         */
 
         /** \brief Asymptotically Optimal RRT-Connect */
