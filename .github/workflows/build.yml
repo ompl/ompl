@@ -35,6 +35,41 @@ jobs:
       with:
         submodules: 'recursive'
 
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ${{ matrix.id }}-ccache-${{ github.ref }}
+        restore-keys: |
+          ${{ matrix.id }}-ccache-
+
+    - name: Cache CMake build artifacts
+      uses: actions/cache@v4
+      with:
+        path: ${{ runner.workspace }}/build
+        key: cmake-build-${{ matrix.id }}-${{ hashFiles('**/CMakeLists.txt', 'src/**') }}
+        restore-keys: |
+          cmake-build-${{ matrix.id }}-
+
+    - name: Cache APT packages
+      if: runner.os == 'Linux'
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt
+        key: apt-${{ matrix.id }}-${{ hashFiles('.github/workflows/build.yml') }}
+        restore-keys: |
+          apt-${{ matrix.id }}-
+
+    - name: Cache Homebrew packages
+      if: runner.os == 'macOS'
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/Library/Caches/Homebrew
+          /usr/local/Cellar
+        key: brew-${{ matrix.id }}-${{ hashFiles('.github/workflows/build.yml') }}
+        restore-keys: |
+          brew-${{ matrix.id }}-
+
     - name: "Install Linux dependencies"
       if: runner.os == 'Linux'
       run: |
@@ -50,7 +85,10 @@ jobs:
 
     - name: "Install macOS dependencies"
       if: runner.os == 'macOS'
-      run: brew install boost eigen flann ode yaml-cpp
+      run: |
+        export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
+        export HOMEBREW_NO_AUTO_UPDATE=1
+        brew install boost eigen flann ode yaml-cpp
 
     - name: "Install Windows dependencies"
       if: runner.os == 'Windows'
@@ -67,16 +105,18 @@ jobs:
       with:
         build-dir: ${{ runner.workspace }}/build
         build-type: Release
-        configure-options: -DOMPL_REGISTRATION=OFF -DOMPL_BUILD_DEMOS=OFF -DVAMP_PORTABLE_BUILD=ON -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python
+        configure-options: -DOMPL_REGISTRATION=OFF -DOMPL_BUILD_DEMOS=OFF -DVAMP_PORTABLE_BUILD=ON -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         run-test: true
         ctest-options: --output-on-failure
         install-build: true
+
     - name: Test CMake target linkage to ompl::ompl
       if: runner.os != 'Windows'
       run: |
         cd tests/cmake_export
         cmake -B build -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install
         cmake --build build
+
     - name: Build & Test (Windows)
       if: runner.os == 'Windows'
       uses: ashutoshvarma/action-cmake-build@master
