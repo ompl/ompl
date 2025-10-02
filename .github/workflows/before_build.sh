@@ -3,12 +3,24 @@
 set -eux
 
 # Dependency versions.
+yaml_cpp_version="0.8.0"
 castxml_version="0.6.11" # version specifier for Linux only
 boost_version="1.87.0"
 
 # Collect some information about the build target.
 build_os="$(uname)"
 python_version=$(python3 -c 'import sys; v=sys.version_info; print(f"{v.major}.{v.minor}")')
+
+install_yaml_cpp() {
+    curl -L "https://github.com/jbeder/yaml-cpp/archive/refs/tags/${yaml_cpp_version}.tar.gz" | tar xz
+
+    pushd "yaml-cpp-${yaml_cpp_version}"
+    mkdir -p mkdir
+    cmake -Bbuild -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release
+    cmake --build build --parallel
+    cmake --install build
+    popd
+}
 
 install_boost() {
     b2_args=("$@")
@@ -38,10 +50,10 @@ install_castxml() {
     clang_resource_dir=$(clang -print-resource-dir)
 
     pushd "CastXML-${castxml_version}"
-    mkdir -p build && cd build
-    cmake -DCMAKE_BUILD_TYPE=Release -DCLANG_RESOURCE_DIR="${clang_resource_dir}" ..
-    cmake --build .
-    make install
+    mkdir -p build
+    cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCLANG_RESOURCE_DIR="${clang_resource_dir}"
+    cmake --build build --parallel
+    cmake --install build
     popd
 }
 
@@ -50,8 +62,9 @@ install_castxml() {
 cd "$(mktemp -d -t 'ompl-wheels.XXX')"
 
 if [ "${build_os}" == "Linux" ]; then
-    # Install CastXML dependency from source, since the manylinux container
-    # doesn't have a prebuilt version in the repos.
+    # Install yaml-cpp and CastXML dependencies from source, since the manylinux
+    # container doesn't have prebuilt versions in the repos.
+    install_yaml_cpp
     install_castxml
 
     # Install the latest Boost, because it has to be linked to the exact version of
