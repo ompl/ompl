@@ -60,5 +60,6 @@ elif [ "${build_os}" == "Darwin" ]; then
         eigen \
         pypy3 \
         castxml \
-        llvm@18
+        llvm@18 \
+        yaml-cpp
 fi
