@@ -183,8 +183,12 @@ ompl::geometric::AOXRRTConnect::GrowState ompl::geometric::AOXRRTConnect::growTr
     {
         si_->copyState(rmotion->state, dstate);
         g_hat = tgi.start ? si_->distance(dstate, startState) : si_->distance(dstate, goalState);
-        while (validMotion)
+
+        int remaining_resample_attempts = maxResampleAttempts_;
+        while (validMotion && remaining_resample_attempts > 0)
         {
+            remaining_resample_attempts--;
+
             auto new_cost = si_->distance(nmotion->state, dstate) + nmotion->cost;
             double c_range = new_cost - g_hat;
             double cost_sample = rng_.uniformReal(0, 1);
