@@ -15,11 +15,10 @@
 namespace vamp_ompl {
 
 /**
- * @brief Main VAMP-OMPL integration planner
+ * @brief VAMP-OMPL integration planner
  * 
- * This class acts as a unified interface that coordinates between the VAMP collision
- * detection system and OMPL's motion planning algorithms. It implements the Facade
- * design pattern to hide the complexity of integrating these two systems.
+ * This class acts as a interface that coordinates between the VAMP collision
+ * detection system and OMPL's motion planning algorithms.
  * 
  * @tparam Robot VAMP robot type (e.g., vamp::robots::Panda)
  */
@@ -40,13 +39,12 @@ private:
 
 public:
     /**
-     * @brief Constructor taking robot and environment configuration (Dependency Injection)
+     * @brief Constructor taking robot and environment configuration
      * @param robot_configuration Robot configuration providing limits and poses
      * @param environment_factory Factory for creating collision environments
      * 
      * Note: This constructor demonstrates dependency injection - rather than
      * creating its dependencies internally, the planner accepts them as parameters.
-     * This design promotes testability, flexibility, and separation of concerns.
      */
     VampOMPLPlanner(std::unique_ptr<RobotConfig<Robot>> robot_configuration,
                     std::unique_ptr<EnvironmentFactory> environment_factory)
@@ -67,12 +65,6 @@ public:
      * This must be called before planning
      * 
      * Note: This two-phase initialization pattern (constructor + initialize)
-     * is common in complex systems where initialization can fail or is expensive.
-     * It allows error handling and provides clear separation between object creation
-     * and system setup.
-     * 
-     * Performance Note: Environment vectorization happens here, converting scalar
-     * collision geometry to SIMD-optimized format for speedup.
      */
     void initialize() {   
         // Create collision environment
@@ -92,7 +84,7 @@ public:
     }
     
     /**
-     * @brief Unified planning function - works with robot's default or custom start/goal
+     * @brief planning function - works with robot's default or custom start/goal
      * @param planning_configuration Planning configuration (time limits, planner type, etc.)
      * @param custom_start_configuration Optional custom start configuration (if empty, uses robot's default)
      * @param custom_goal_configuration Optional custom goal configuration (if empty, uses robot's default)
@@ -101,9 +93,6 @@ public:
      * Note: This method demonstrates the Template Method pattern - it
      * defines a standard algorithm structure (validate → configure → plan → process)
      * while allowing customization through parameters.
-     * 
-     * Performance Note: Configuration validation happens at planning time rather than
-     * construction time, allowing for dynamic reconfiguration without object recreation.
      */
     auto plan(const PlanningConfig& planning_configuration = PlanningConfig(),
              const std::array<float, robot_dimension_>& custom_start_configuration = {},
@@ -132,9 +121,6 @@ public:
 
     /**
      * @brief Write solution path using OMPL's built-in printAsMatrix() functionality
-     * 
-     * File Format: The output format is compatible with standard robotics
-     * visualization tools and can be easily imported into Python/MATLAB for analysis.
      */
     auto write_optimized_solution_path(const PlanningResult& planning_result, 
                                       const std::string& planner_name, 
@@ -230,11 +216,6 @@ public:
     /**
      * @brief Get the OMPL space information for advanced use cases
      * @return Shared pointer to the configured space information
-     * 
-     * Note: This method provides controlled access to the underlying OMPL setup
-     * for scenarios like benchmarking that need direct access to the space information.
-     * This follows the principle of exposing minimal necessary interface rather than
-     * duplicating setup logic.
      */
     auto get_space_information() const -> std::shared_ptr<ompl::base::SpaceInformation> {
         if (!is_initialized_) {
@@ -253,7 +234,7 @@ public:
 };
 
 /**
- * @brief Convenience function to create a VAMP-OMPL planner (Factory Function)
+ * @brief Convenience function to create a VAMP-OMPL planner
  * @param robot_configuration Robot configuration
  * @param environment_factory Environment factory
  * @return Unique pointer to configured planner

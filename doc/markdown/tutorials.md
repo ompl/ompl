@@ -1,6 +1,6 @@
 # Tutorials {#tutorials}
 
-Below we include a number of tutorials we believe are useful for understanding how OMPL works, grouped by level of difficulty. Users are encouraged to look at the [demos](group__demos.html) as well.
+Below we include a number of tutorials we believe are useful for understanding how OMPL works, grouped by level of difficulty. Users are encouraged to look at the [demos](demos.html) as well.
 
 ## Beginner
 

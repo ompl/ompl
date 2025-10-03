@@ -21,7 +21,6 @@ When developing your own code that relies on OMPL, you have several options:
          - `OMPL_FOUND`         - `TRUE`
          - `OMPL_INCLUDE_DIRS`  - The OMPL include directory
          - `OMPL_LIBRARIES`     - The OMPL library
-         - `OMPLAPP_LIBRARIES`  - The OMPL.app libraries (if installed)
          - `OMPL_VERSION`       - The OMPL version in the form <major>.<minor>.<patchlevel>
          - `OMPL_MAJOR_VERSION` - Major version
          - `OMPL_MINOR_VERSION` - Minor version
