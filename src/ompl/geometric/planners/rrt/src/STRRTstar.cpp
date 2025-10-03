@@ -36,6 +36,7 @@
 
 #include "ompl/geometric/planners/rrt/STRRTstar.h"
 #include <ompl/util/Exception.h>
+#include <ompl/base/ScopedState.h>
 
 ompl::geometric::STRRTstar::STRRTstar(const ompl::base::SpaceInformationPtr &si)
   : Planner(si, "SpaceTimeRRT"), sampler_(&(*si), startMotion_, goalMotions_, newBatchGoalMotions_, sampleOldBatch_)
@@ -153,7 +154,9 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
                 (int)(tStart_->size() + tGoal_->size()));
 
     TreeGrowingInfo tgi;
-    tgi.xstate = si_->allocState();
+    // Use ScopedState to ensure automatic cleanup even if exceptions are thrown
+    ompl::base::ScopedState<> xstateScoped(si_);
+    tgi.xstate = xstateScoped.get();
 
     std::vector<Motion *> nbh;
     const ompl::base::ReportIntermediateSolutionFn intermediateSolutionCallback =
@@ -402,7 +405,7 @@ ompl::base::PlannerStatus ompl::geometric::STRRTstar::solve(const ompl::base::Pl
         }
     }
 
-    si_->freeState(tgi.xstate);
+    // No need to manually free tgi.xstate anymore - ScopedState handles it
     si_->freeState(rstate);
     delete rmotion;
 
@@ -769,7 +772,9 @@ ompl::base::ConditionalStateSampler::Motion *ompl::geometric::STRRTstar::pruneGo
                     if (costSoFar + costToGo <= upperTimeBound_)
                     {
                         TreeGrowingInfo tgi{};
-                        tgi.xstate = si_->allocState();
+                        // Use ScopedState to ensure automatic cleanup even if exceptions are thrown
+                        ompl::base::ScopedState<> xstateScoped(si_);
+                        tgi.xstate = xstateScoped.get();
                         tgi.start = false;
                         std::vector<Motion *> nbh;
                         GrowState gsc = growTree(tGoal_, tgi, queue.front(), nbh, true);
