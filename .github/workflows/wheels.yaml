@@ -35,6 +35,15 @@ jobs:
         with:
           submodules: 'recursive'
 
+      - name: Restore dependency cache
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/ompl-deps-cache
+          key: deps-${{ matrix.id }}-boost-1.87.0-yaml-0.8.0-castxml-0.6.11
+          restore-keys: |
+            deps-${{ matrix.id }}-
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.23.2
         with:
@@ -44,7 +53,17 @@ jobs:
           OMPL_BUILD_ARCH: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.pybuilds }}
           CIBW_SKIP: "cp*-manylinux_i686 cp*-musllinux* cp*-win32"
-          CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET="15.0"
+          CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET="15.0" OMPL_DEPS_CACHE_DIR="${{ runner.temp }}/ompl-deps-cache"
+          CIBW_ENVIRONMENT_LINUX: OMPL_DEPS_CACHE_DIR=/host${{ runner.temp }}/ompl-deps-cache
+          CIBW_ENVIRONMENT_PASS_LINUX: OMPL_DEPS_CACHE_DIR
+
+      - name: Save dependency cache
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/ompl-deps-cache
+          key: deps-${{ matrix.id }}-boost-1.87.0-yaml-0.8.0-castxml-0.6.11
+
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}-${{ matrix.arch }}

@@ -11,7 +11,19 @@ boost_version="1.87.0"
 build_os="$(uname)"
 python_version=$(python3 -c 'import sys; v=sys.version_info; print(f"{v.major}.{v.minor}")')
 
+# Cache directory for dependencies (set by CI)
+cache_dir="${OMPL_DEPS_CACHE_DIR:-}"
+
 install_yaml_cpp() {
+    # Check if already cached
+    if [ -n "$cache_dir" ] && [ -f "$cache_dir/yaml-cpp-${yaml_cpp_version}/.installed" ]; then
+        echo "Using cached yaml-cpp ${yaml_cpp_version}"
+        pushd "$cache_dir/yaml-cpp-${yaml_cpp_version}"
+        sudo cmake --install build
+        popd
+        return 0
+    fi
+
     curl -L "https://github.com/jbeder/yaml-cpp/archive/refs/tags/${yaml_cpp_version}.tar.gz" | tar xz
 
     pushd "yaml-cpp-${yaml_cpp_version}"
@@ -19,11 +31,30 @@ install_yaml_cpp() {
     cmake -Bbuild -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release
     cmake --build build --parallel
     cmake --install build
+    
+    # Cache for future use
+    if [ -n "$cache_dir" ]; then
+        mkdir -p "$cache_dir"
+        cp -r "$(pwd)" "$cache_dir/yaml-cpp-${yaml_cpp_version}"
+        touch "$cache_dir/yaml-cpp-${yaml_cpp_version}/.installed"
+    fi
+    
     popd
 }
 
 install_boost() {
     b2_args=("$@")
+
+    # Check if already cached for this Python version
+    if [ -n "$cache_dir" ] && [ -f "$cache_dir/boost-${boost_version}-py${python_version}/.installed" ]; then
+        echo "Using cached Boost ${boost_version} for Python ${python_version}"
+        # Restore the cached boost installation
+        if [ -d "$cache_dir/boost-${boost_version}-py${python_version}/lib" ]; then
+            sudo cp -r "$cache_dir/boost-${boost_version}-py${python_version}"/lib/* /usr/local/lib/ || true
+            sudo cp -r "$cache_dir/boost-${boost_version}-py${python_version}"/include/* /usr/local/include/ || true
+        fi
+        return 0
+    fi
 
     curl -L "https://archives.boost.io/release/${boost_version}/source/boost_${boost_version//./_}.tar.bz2" | tar xj
     pushd "boost_${boost_version//./_}"
@@ -41,10 +72,30 @@ install_boost() {
         --with-python \
         install
 
+    # Cache for future use
+    if [ -n "$cache_dir" ]; then
+        mkdir -p "$cache_dir/boost-${boost_version}-py${python_version}"
+        # Cache the installed libraries
+        mkdir -p "$cache_dir/boost-${boost_version}-py${python_version}/lib"
+        mkdir -p "$cache_dir/boost-${boost_version}-py${python_version}/include"
+        sudo cp -r /usr/local/lib/libboost_* "$cache_dir/boost-${boost_version}-py${python_version}/lib/" || true
+        sudo cp -r /usr/local/include/boost "$cache_dir/boost-${boost_version}-py${python_version}/include/" || true
+        touch "$cache_dir/boost-${boost_version}-py${python_version}/.installed"
+    fi
+
     popd
 }
 
 install_castxml() {
+    # Check if already cached
+    if [ -n "$cache_dir" ] && [ -f "$cache_dir/castxml-${castxml_version}/.installed" ]; then
+        echo "Using cached CastXML ${castxml_version}"
+        pushd "$cache_dir/castxml-${castxml_version}"
+        sudo cmake --install build
+        popd
+        return 0
+    fi
+
     curl -L "https://github.com/CastXML/CastXML/archive/refs/tags/v${castxml_version}.tar.gz" | tar xz
 
     clang_resource_dir=$(clang -print-resource-dir)
@@ -54,6 +105,14 @@ install_castxml() {
     cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCLANG_RESOURCE_DIR="${clang_resource_dir}"
     cmake --build build --parallel
     cmake --install build
+    
+    # Cache for future use
+    if [ -n "$cache_dir" ]; then
+        mkdir -p "$cache_dir"
+        cp -r "$(pwd)" "$cache_dir/castxml-${castxml_version}"
+        touch "$cache_dir/castxml-${castxml_version}/.installed"
+    fi
+    
     popd
 }
 
