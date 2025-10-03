@@ -169,6 +169,9 @@ namespace ompl
             /** \brief The goal tree */
             TreeData tGoal_;
 
+            /** \brief Maximum allowed cost resampling iterations */
+            int maxResampleAttempts_{100};
+
             base::State *startState{nullptr};
             base::State *goalState{nullptr};
 
