@@ -18,14 +18,14 @@ endfunction()
 # VAMP configuration function
 function(configure_vamp)
     if(NOT OMPL_BUILD_VAMP)
-        set(OMPL_HAVE_VAMP FALSE CACHE BOOL "Whether VAMP integration is available" FORCE)
+        set(OMPL_HAVE_VAMP 0 CACHE INTERNAL "Whether VAMP integration is available")
         return()
     endif()
 
     # Check if VAMP submodule exists
     if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/vamp/CMakeLists.txt")
         message(WARNING "VAMP submodule not found. Run 'git submodule update --init --recursive' to initialize it.")
-        set(OMPL_HAVE_VAMP FALSE CACHE BOOL "Whether VAMP integration is available" FORCE)
+        set(OMPL_HAVE_VAMP 0 CACHE INTERNAL "Whether VAMP integration is available")
         return()
     endif()
 
@@ -46,7 +46,7 @@ function(configure_vamp)
     # Configure VAMP targets
     configure_vamp_targets()
     
-    set(OMPL_HAVE_VAMP TRUE CACHE BOOL "Whether VAMP integration is available" FORCE)
+    set(OMPL_HAVE_VAMP 1 CACHE INTERNAL "Whether VAMP integration is available")
     message(STATUS "VAMP integration configured successfully")
 endfunction()
 

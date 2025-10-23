@@ -83,55 +83,18 @@ if (OMPL_BUILD_DEMOS)
         add_ompl_demo(demo_LTLWithTriangulation LTLWithTriangulation.cpp)
     endif()
 
-    # Add VAMP demo only if VAMP is available and properly configured
+    # Add VAMP demo if VAMP is available
     if (OMPL_HAVE_VAMP)
-        # Build VAMP demo directly using VAMP C++ library and OMPL
-        add_ompl_demo(demo_Vamp Vamp/demos/VampDemo.cpp)
+        add_ompl_demo(demo_Vamp Vamp/Vamp.cpp)
         
-        # Add include directories for VAMP headers
-        target_include_directories(demo_Vamp PRIVATE 
-            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/core
-            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/utilities
-            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/benchmarking
-            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/examples)
-        
-        # Link against VAMP C++ library for all demos
+        # Link against VAMP C++ library
         if(TARGET vamp_cpp)
             target_link_libraries(demo_Vamp PRIVATE vamp_cpp)
-            message(STATUS "VAMP demos linked against vamp_cpp library")
         else()
-            message(WARNING "VAMP vamp_cpp target not found - demos may not build correctly")
+            message(WARNING "VAMP vamp_cpp target not found - VAMP demo may not build correctly")
         endif()
         
-        # Link against yaml-cpp for configuration parsing (now required)
-        target_link_libraries(demo_Vamp PRIVATE yaml-cpp::yaml-cpp)
-        message(STATUS "VAMP demos linked against yaml-cpp library")
-
-        # Copy configuration files to build directory for testing
-        configure_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/config/panda_demo.yaml
-            ${CMAKE_CURRENT_BINARY_DIR}/panda_demo.yaml
-            COPYONLY)
-        
-        # Copy custom robot configuration files to build directory for testing
-        configure_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/config/planar_arm_2dof_demo.yaml
-            ${CMAKE_CURRENT_BINARY_DIR}/planar_arm_2dof_demo.yaml
-            COPYONLY)
-        
-        # Copy custom robot URDF file to build directory for visualization
-        configure_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/config/planar_arm_2dof.urdf
-            ${CMAKE_CURRENT_BINARY_DIR}/planar_arm_2dof.urdf
-            COPYONLY)
-
-        # Copy benchmark configuration files to build directory for testing
-        configure_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/Vamp/config/panda_benchmark.yaml
-            ${CMAKE_CURRENT_BINARY_DIR}/panda_benchmark.yaml
-            COPYONLY)
-        
-        message(STATUS "VAMP demo (demo_Vamp) will be built using VAMP C++ library and OMPL")
+        message(STATUS "VAMP demo (using VampStateSpace) will be built")
     endif()
     
 endif(OMPL_BUILD_DEMOS)
@@ -144,6 +107,6 @@ file(GLOB OMPL_DEMO_CXX_FILES "*.cpp")
 install(FILES ${OMPL_DEMO_CXX_FILES}
     DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
     COMPONENT ompl)
-install(DIRECTORY constraint Koules multilevel PlanarManipulator Vamp VFRRT
+install(DIRECTORY constraint Koules multilevel PlanarManipulator VFRRT
     DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
     COMPONENT ompl)
