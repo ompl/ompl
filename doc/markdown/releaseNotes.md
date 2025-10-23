@@ -3,12 +3,8 @@
 ## OMPL 2.0.0beta (October 9th, 2025)
 
 - **NEW: VAMP Integration** 🚀
-  - Added ompl::geometric::VAMPStateSpace, a new state space with SIMD-accelerated collision detection for manipulator planning
-  - Integrates [VAMP (Vector-Accelerated Motion Planning)](https://github.com/KavrakiLab/vamp) library for vectorized collision checking and motion validation
-  - Achieves planning speeds orders of magnitude faster than traditional methods using AVX2/NEON SIMD instructions
-  - Supports popular robots (Panda/Franka Emika, UR5, Fetch, Baxter) with automatic joint limit configuration
-  - Compatible with all OMPL geometric planners as a drop-in replacement for RealVectorStateSpace
-  - Supports both primitive collision objects (spheres, boxes, capsules) and point cloud environments via CAPT (Collision-Affording Point Tree)
+  - Added ompl::geometric::VampStateSpace, a new state space with SIMD-accelerated collision detection for manipulator planning
+  - Integrates [VAMP (Vector-Accelerated Motion Planning)](https://github.com/KavrakiLab/vamp) library for vectorized collision checking and motion validation and compatible with all OMPL geometric planners as a drop-in replacement for RealVectorStateSpace and Supports both primitive collision objects (spheres, boxes, capsules) and point cloud environments via CAPT (Collision-Affording Point Tree)
   - Includes demo program (`demo_Vamp`) with simple planning and benchmarking modes
   - Build option `OMPL_BUILD_VAMP=ON` enables VAMP integration (enabled by default)
   - New kinodynamic planner: HySST, and adaptation of the SST planner for hybrid systems.

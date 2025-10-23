@@ -707,7 +707,7 @@ BOOST_AUTO_TEST_CASE(VAMP_StateSpace)
     vamp::collision::Environment<float> environment;
     
     // Test Panda robot
-    auto panda_space = std::make_shared<ompl::geometric::VAMPStateSpace<vamp::robots::Panda>>(environment);
+    auto panda_space = std::make_shared<ompl::base::VampStateSpace<vamp::robots::Panda>>(environment);
     panda_space->setup();
     panda_space->sanityChecks();
     BOOST_CHECK_EQUAL(panda_space->getDimension(), 7u);
@@ -724,7 +724,7 @@ BOOST_AUTO_TEST_CASE(VAMP_StateSpace)
     panda_test.test();
     
     // Test UR5 robot to verify template instantiation
-    auto ur5_space = std::make_shared<ompl::geometric::VAMPStateSpace<vamp::robots::UR5>>(environment);
+    auto ur5_space = std::make_shared<ompl::base::VampStateSpace<vamp::robots::UR5>>(environment);
     ur5_space->setup();
     ur5_space->sanityChecks();
     BOOST_CHECK_EQUAL(ur5_space->getDimension(), 6u);
@@ -743,7 +743,7 @@ BOOST_AUTO_TEST_CASE(VAMP_CollisionDetection)
         vamp::collision::factory::sphere::array({0.5f, 0.0f, 0.5f}, 0.15f));
     environment.sort();
     
-    auto space = std::make_shared<ompl::geometric::VAMPStateSpace<vamp::robots::Panda>>(environment);
+    auto space = std::make_shared<ompl::base::VampStateSpace<vamp::robots::Panda>>(environment);
     auto si = std::make_shared<base::SpaceInformation>(space);
     si->setStateValidityChecker(space->allocDefaultStateValidityChecker(si));
     si->setMotionValidator(space->allocDefaultMotionValidator(si));
@@ -790,7 +790,7 @@ BOOST_AUTO_TEST_CASE(VAMP_CAPT_Environment)
     environment.pointclouds.emplace_back(points, 0.05f, 0.1f, 0.02f);
     environment.sort();
     
-    auto space = std::make_shared<ompl::geometric::VAMPStateSpace<vamp::robots::Panda>>(environment);
+    auto space = std::make_shared<ompl::base::VampStateSpace<vamp::robots::Panda>>(environment);
     space->setup();
     space->sanityChecks();
     
@@ -813,7 +813,7 @@ BOOST_AUTO_TEST_CASE(VAMP_CAPT_Environment)
 BOOST_AUTO_TEST_CASE(VAMP_Precision)
 {
     vamp::collision::Environment<float> environment;
-    auto space = std::make_shared<ompl::geometric::VAMPStateSpace<vamp::robots::Panda>>(environment);
+    auto space = std::make_shared<ompl::base::VampStateSpace<vamp::robots::Panda>>(environment);
     auto si = std::make_shared<base::SpaceInformation>(space);
     si->setStateValidityChecker(space->allocDefaultStateValidityChecker(si));
     si->setup();

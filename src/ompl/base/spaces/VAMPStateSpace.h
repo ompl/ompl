@@ -37,6 +37,11 @@
 #ifndef OMPL_BASE_SPACES_VAMP_STATE_SPACE_
 #define OMPL_BASE_SPACES_VAMP_STATE_SPACE_
 
+#include "ompl/config.h"
+#if !OMPL_HAVE_VAMP
+#  error "ompl::base::VampStateSpace requires OMPL built with VAMP (OMPL_HAVE_VAMP=ON)."
+#endif
+
 // OMPL includes
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/StateValidityChecker.h>
@@ -57,18 +62,18 @@
 #include <array>
 #include <string>
 
-namespace ompl { namespace geometric {
+namespace ompl { namespace base {
 
     /**
        @anchor gVAMP
        @par Short Description
-       VAMPStateSpace provides SIMD-accelerated collision detection for manipulator motion planning by
+       VampStateSpace provides SIMD-accelerated collision detection for manipulator motion planning by
        integrating the VAMP (Vector Accelerated Motion Planning) library into OMPL. VAMP leverages
        modern CPU vectorization (AVX2, NEON) to perform collision checking orders of
        magnitude faster than traditional methods. The state space automatically configures joint limits
        from robot definitions and provides optimized state validity checking and motion validation.
 
-       VAMPStateSpace supports both primitive collision objects (spheres, boxes, capsules) and point
+       VampStateSpace supports both primitive collision objects (spheres, boxes, capsules) and point
        cloud environments through VAMP's Collision-Affording Point Tree (CAPT) data structure, enabling
        efficient planning in sensor-derived environments.
 
@@ -82,22 +87,22 @@ namespace ompl { namespace geometric {
        environment.spheres.emplace_back(0.3, 0.0, 0.5, 0.2);  // x, y, z, radius
 
        // Create state space for Panda robot
-       auto space = std::make_shared<ompl::geometric::VAMPStateSpace<vamp::robots::Panda>>(environment);
+       auto space = std::make_shared<ompl::base::VampStateSpace<vamp::robots::Panda>>(environment);
 
        // Use with SimpleSetup
-       ompl::geometric::SimpleSetup ss(space);
+       ompl::base::SimpleSetup ss(space);
        auto si = ss.getSpaceInformation();
        ss.setStateValidityChecker(space->allocDefaultStateValidityChecker(si));
        si->setMotionValidator(space->allocDefaultMotionValidator(si));
 
-       // Set start/goal and plan using any OMPL geometric planner
+       // Set start/goal and plan using any OMPL base planner
        @endcode
 
        @par External Documentation
        The following paper describes VAMP's vectorization methodology and performance characteristics:
 
        Wil Thomason, Zachary Kingston, and Lydia E. Kavraki,
-       "VAMP: Motions in Microseconds via Vectorized Sampling-Based Planning,"
+       "Motions in Microseconds via Vectorized Sampling-Based Planning,"
        arXiv preprint arXiv:2309.14545, 2024.
        <a href="https://arxiv.org/abs/2309.14545">arXiv:2309.14545</a>
 
@@ -114,7 +119,7 @@ namespace ompl { namespace geometric {
      * @tparam Robot VAMP robot type (e.g., vamp::robots::Panda, vamp::robots::UR5)
      */
 template<typename Robot>
-class VAMPStateSpace : public base::RealVectorStateSpace {
+class VampStateSpace : public base::RealVectorStateSpace {
 public:
     using Configuration = typename Robot::Configuration;
     static constexpr std::size_t dimension = Robot::dimension;
@@ -131,12 +136,12 @@ public:
     class StateValidityChecker : public base::StateValidityChecker {
     private:
         const VectorizedEnvironment& environment_;
-        const VAMPStateSpace* space_;
+        const VampStateSpace* space_;
 
     public:
         StateValidityChecker(const base::SpaceInformationPtr& si,
                            const VectorizedEnvironment& env,
-                           const VAMPStateSpace* space)
+                           const VampStateSpace* space)
             : base::StateValidityChecker(si), environment_(env), space_(space) {}
 
         bool isValid(const base::State* state) const override {
@@ -148,7 +153,7 @@ public:
 
     /** \brief Motion validator using VAMP's vectorized continuous collision detection.
      *
-     * This validator uses VAMP's SIMD-optimized swept-sphere collision detection to verify
+     * This validator uses VAMP's SIMD-optimized intermediate state probing collision detection to verify
      * that a motion between two configurations is collision-free. The motion is discretized
      * according to the robot's resolution parameter (defined in the robot template), and
      * each intermediate configuration is checked using vectorized collision detection.
@@ -156,12 +161,12 @@ public:
     class MotionValidator : public base::MotionValidator {
     private:
         const VectorizedEnvironment& environment_;
-        const VAMPStateSpace* space_;
+        const VampStateSpace* space_;
 
     public:
         MotionValidator(const base::SpaceInformationPtr& si,
                        const VectorizedEnvironment& env,
-                       const VAMPStateSpace* space)
+                       const VampStateSpace* space)
             : base::MotionValidator(si), environment_(env), space_(space) {}
 
         bool checkMotion(const base::State* s1, const base::State* s2) const override {
@@ -216,7 +221,7 @@ public:
      *
      * @param environment VAMP collision environment containing obstacles (spheres, boxes, capsules, or point clouds)
      */
-    explicit VAMPStateSpace(const vamp::collision::Environment<float>& environment)
+    explicit VampStateSpace(const vamp::collision::Environment<float>& environment)
         : RealVectorStateSpace(dimension), vectorized_environment_(environment) {
         
         // Set robot joint limits
@@ -247,7 +252,7 @@ public:
     /** \brief Allocate the VAMP motion validator.
      *
      * This method provides VAMP's vectorized continuous collision checker instead of the
-     * standard motion validator. The returned validator uses swept-sphere collision detection
+     * standard motion validator. The returned validator uses intermediate state probing collision detection
      * with SIMD acceleration.
      *
      * @param si The space information to associate with the validator
@@ -259,6 +264,6 @@ public:
     }
 };
 
-}} // namespace ompl::geometric
+}} // namespace ompl::base
 
 #endif 

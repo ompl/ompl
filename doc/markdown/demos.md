@@ -2,12 +2,14 @@
 
 - [Rigid body planning](RigidBodyPlanning_8cpp_source.html) [[Python version]](RigidBodyPlanning_8py_source.html). This demo is essentially the same example described in the first tutorial. It illustrates how to use the main classes.
 - [State sampling](StateSampling_8cpp_source.html) [[Python version]](StateSampling_8py_source.html). This is the demo program used in the last beginner tutorial.
-- **[VAMP Integration: SIMD-Accelerated Motion Planning](Vamp_8cpp_source.html)**. This demo showcases how to use ompl::geometric::VAMPStateSpace for high-performance manipulator planning using SIMD-accelerated collision detection. VAMP (Vector Accelerated Motion Planning) achieves planning speeds orders of magnitude faster than traditional methods by processing multiple robot configurations simultaneously using vectorized instructions (AVX2/NEON). The demo includes both simple planning and benchmarking modes, supporting popular robots including Panda (Franka Emika), UR5, Fetch, and Baxter. Command-line usage:
+- **[VAMP Integration: SIMD-Accelerated Motion Planning](Vamp_8cpp_source.html)**. This demo showcases how to use ompl::base::VampStateSpace for high-performance manipulator planning using SIMD-accelerated collision detection. VAMP (Vector Accelerated Motion Planning) achieves planning speeds orders of magnitude faster than traditional methods by processing multiple robot configurations simultaneously using vectorized instructions (AVX2/NEON). The demo includes both simple planning and benchmarking modes, supporting popular robots including Panda (Franka Emika), UR5, Fetch, and Baxter. Command-line usage:
 
-        > ./demo_Vamp --simple      # Run simple planning demo
-        > ./demo_Vamp --benchmark   # Compare multiple planners
+  ```sh
+    ./demo_Vamp --simple # Run planning demo
+    ./demo_Vamp --benchmark # Compare multiple planners
+  ```
 
-  See the [VAMP State Space documentation](@ref ompl::geometric::VAMPStateSpace) for detailed API information and the [VAMP paper](https://arxiv.org/abs/2309.14545) for performance characteristics.
+  See the [VAMP State Space documentation](@ref ompl::base::VampStateSpace) for detailed API information and the [VAMP paper](https://arxiv.org/abs/2309.14545) for performance characteristics.
 - [Analyze and visualize planner data in Python.](PlannerData_8py_source.html) This demo relies on the [graph-tool](https://graph-tool.skewed.de) package.
 - [Rigid body planning with controls](RigidBodyPlanningWithControls_8cpp_source.html) [[Python version]](RigidBodyPlanningWithControls_8py_source.html). This demo shows how to perform planning under differential constraints for a simple car-like vehicle.
 - [Rigid body planning with integration and controls.](RigidBodyPlanningWithIntegrationAndControls_8cpp_source.html) This example extends the previous example by showing how one can plan for systems of ordinary differential equations in a generic way. This example uses simple Euler integration. For higher accuracy it is recommended to use the ODESolver class described in the next demo.

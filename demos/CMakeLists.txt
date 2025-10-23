@@ -85,7 +85,7 @@ if (OMPL_BUILD_DEMOS)
 
     # Add VAMP demo if VAMP is available
     if (OMPL_HAVE_VAMP)
-        add_ompl_demo(demo_Vamp Vamp.cpp)
+        add_ompl_demo(demo_Vamp Vamp/Vamp.cpp)
         
         # Link against VAMP C++ library
         if(TARGET vamp_cpp)
@@ -94,7 +94,7 @@ if (OMPL_BUILD_DEMOS)
             message(WARNING "VAMP vamp_cpp target not found - VAMP demo may not build correctly")
         endif()
         
-        message(STATUS "VAMP demo (using VAMPStateSpace) will be built")
+        message(STATUS "VAMP demo (using VampStateSpace) will be built")
     endif()
     
 endif(OMPL_BUILD_DEMOS)

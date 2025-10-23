@@ -192,7 +192,7 @@ void runSimpleDemo() {
                 }
                 ofs.close();
                 std::cout << "   Exported solution to '" << out_file << "'" << std::endl;
-                std::cout << "   Visualize with: python3 demos/Vamp/Visualization/visualize.py --path " << out_file << std::endl;
+                std::cout << "   Visualize with: python3 demos/Vamp/visualize.py --path " << out_file << std::endl;
             } else {
                 std::cout << "   Warning: could not open file to export path." << std::endl;
             }
@@ -356,4 +356,4 @@ int main(int argc, char** argv) {
     }
     
     return 0;
-} 
+}
