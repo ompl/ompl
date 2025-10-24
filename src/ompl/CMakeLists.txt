@@ -34,10 +34,10 @@ source_group("OMPL Source" FILES "${OMPL_SOURCE_CODE}")
 source_group("OMPL Headers" FILES "${OMPL_HEADERS}")
 
 # build the library
-if(MSVC)
-    add_library(ompl STATIC ${OMPL_SOURCE_CODE})
-else()
+if(OMPL_BUILD_SHARED)
     add_library(ompl SHARED ${OMPL_SOURCE_CODE})
+else()
+    add_library(ompl STATIC ${OMPL_SOURCE_CODE})
 endif()
 add_library(ompl::ompl ALIAS ompl)
 target_link_libraries(ompl
