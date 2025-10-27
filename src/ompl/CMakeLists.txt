@@ -34,10 +34,10 @@ source_group("OMPL Source" FILES "${OMPL_SOURCE_CODE}")
 source_group("OMPL Headers" FILES "${OMPL_HEADERS}")
 
 # build the library
-if(MSVC)
-    add_library(ompl STATIC ${OMPL_SOURCE_CODE})
-else()
+if(OMPL_BUILD_SHARED)
     add_library(ompl SHARED ${OMPL_SOURCE_CODE})
+else()
+    add_library(ompl STATIC ${OMPL_SOURCE_CODE})
 endif()
 add_library(ompl::ompl ALIAS ompl)
 target_link_libraries(ompl
@@ -50,18 +50,24 @@ target_link_libraries(ompl
     PRIVATE
         "$<$<BOOL:${OMPL_HAVE_SPOT}>:Spot::Spot>")
 
-if (MSVC)
-    set_target_properties(ompl PROPERTIES VERSION "${PROJECT_VERSION}" STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")
-else (MSVC)
+set_target_properties(ompl PROPERTIES VERSION "${PROJECT_VERSION}")
+
+if (OMPL_BUILD_SHARED)
+    set_target_properties(ompl PROPERTIES SOVERSION "${OMPL_ABI_VERSION}")
     if (MINGW)
         target_link_libraries(ompl psapi ws2_32)
         set_target_properties(ompl PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
-    endif (MINGW)
-    set_target_properties(ompl PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${OMPL_ABI_VERSION}")
-endif (MSVC)
+    endif()
+else()
+    if (MSVC)
+        set_target_properties(ompl PROPERTIES STATIC_LIBRARY_FLAGS "psapi.lib ws2_32.lib")
+    elseif (MINGW)
+        target_link_libraries(ompl psapi ws2_32)
+    endif()
+endif()
 
-if (NOT MSVC)
+if (OMPL_BUILD_SHARED)
     add_custom_command(TARGET ompl POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:ompl>"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../py-bindings/ompl/util/libompl${CMAKE_SHARED_LIBRARY_SUFFIX}")
-endif (NOT MSVC)
+endif (OMPL_BUILD_SHARED)

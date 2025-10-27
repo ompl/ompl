@@ -7,6 +7,7 @@ If you are building OMPL from source, there are several options that you can use
 | OMPL_BUILD_DEMOS              | ON            | Compile the OMPL demo programs. (The binaries are never installed.) |
 | OMPL_BUILD_PYBINDINGS         | ON            | Whether to compile the Python bindings (requires Py++). |
 | OMPL_BUILD_PYTESTS            | ON            | Whether the Python tests should be added to the `test` target. |
+| OMPL_BUILD_SHARED             | ON            | Whether the OMPL library should be a static or dynamic library (the default on Windows is to build a static library)
 | OMPL_BUILD_TESTS              | ON            | Wether to compile the C++ unit tests |
 | OMPL_BUILD_VAMP               | ON            | Build VAMP (Vector-Accelerated Motion Planning) submodule for enhanced collision checking performance. |
 | OMPL_REGISTRATION             | ON            | Whether the registration page is shown. (Disabling it might be useful for build bots.) |

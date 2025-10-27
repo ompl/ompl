@@ -153,6 +153,12 @@ endif()
 # R is needed for running Planner Arena locally
 find_program(R_EXEC R)
 
+# default to building shared libs except Windows
+if (MSVC)
+    option(OMPL_BUILD_SHARED "Build OMPL as a shared library" OFF)
+else()
+    option(OMPL_BUILD_SHARED "Build OMPL as a shared library" ON)
+endif()
 add_subdirectory(src)
 add_subdirectory(py-bindings)
 
