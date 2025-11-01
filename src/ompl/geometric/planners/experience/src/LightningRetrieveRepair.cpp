@@ -147,10 +147,11 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     }
 
     ompl::base::PlannerDataPtr chosenPath;
+    std::size_t bestPathScore;
 
     // Filter top n paths to 1
     // TODO Rather than selecting 1 best path, you could also spawn n (n<=k) threads and repair the top n paths.
-    if (!findBestPath(startState, goalState, chosenPath))
+    if (!findBestPath(startState, goalState, chosenPath, bestPathScore))
     {
         return base::PlannerStatus::ABORT;
     }
@@ -158,20 +159,21 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
     // All saved trajectories should be at least 2 states long
     assert(chosenPath->numVertices() >= 2);
 
+    const bool perfect_match = bestPathScore == 0;
+
     // Convert chosen PlannerData experience to an actual path
     auto primaryPath(std::make_shared<PathGeometric>(si_));
     // Add start
-    primaryPath->append(startState);
+    if (!perfect_match)
+        primaryPath->append(startState);
     // Add old states
     for (std::size_t i = 0; i < chosenPath->numVertices(); ++i)
     {
         primaryPath->append(chosenPath->getVertex(i).getState());
     }
     // Add goal
-    primaryPath->append(goalState);
-
-    // All save trajectories should be at least 2 states long, and then we append the start and goal states
-    assert(primaryPath->getStateCount() >= 4);
+    if (!perfect_match)
+        primaryPath->append(goalState);
 
     // Repair chosen path
     if (!repairPath(ptc, *primaryPath))
@@ -196,13 +198,14 @@ ompl::base::PlannerStatus ompl::geometric::LightningRetrieveRepair::solve(const 
 }
 
 bool ompl::geometric::LightningRetrieveRepair::findBestPath(const base::State *startState, const base::State *goalState,
-                                                            ompl::base::PlannerDataPtr &chosenPath)
+                                                            ompl::base::PlannerDataPtr &chosenPath,
+                                                            std::size_t &bestPathScore)
 {
     OMPL_INFORM("LightningRetrieveRepair: Found %d similar paths. Filtering", nearestPaths_.size());
 
     // Filter down to just 1 chosen path
     ompl::base::PlannerDataPtr bestPath = nearestPaths_.front();
-    std::size_t bestPathScore = std::numeric_limits<std::size_t>::max();
+    bestPathScore = std::numeric_limits<std::size_t>::max();
 
     // Track which path has a shortest distance
     std::vector<double> distances(nearestPaths_.size(), 0);
