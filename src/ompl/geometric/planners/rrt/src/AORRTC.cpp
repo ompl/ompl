@@ -68,11 +68,6 @@ ompl::base::Cost ompl::geometric::AORRTC::bestCost() const
 void ompl::geometric::AORRTC::setup()
 {
     Planner::setup();
-    init_planner = std::make_shared<ompl::geometric::RRTConnect>(si_);
-    init_planner->setProblemDefinition(pdef_);
-    init_planner->setName("Initial RRTConnect");
-    init_planner->setRange(getRange());
-    init_planner->setIntermediateStates(getIntermediateStates());
 
     aox_planner = std::make_shared<ompl::geometric::AOXRRTConnect>(si_);
     aox_planner->setProblemDefinition(pdef_);
@@ -80,31 +75,34 @@ void ompl::geometric::AORRTC::setup()
     aox_planner->setRange(getRange());
     aox_planner->setIntermediateStates(getIntermediateStates());
 
-    init_planner->setup();
     aox_planner->setup();
 
     psk_ = std::make_shared<PathSimplifier>(si_);
-
     initCost_ = std::numeric_limits<double>::infinity();
-
     solve_status = base::PlannerStatus::TIMEOUT;
-    aox_solve_status = base::PlannerStatus::TIMEOUT;
+}
+
+// Reset our planner to begin a new search
+void ompl::geometric::AORRTC::reset(bool solvedProblem)
+{
+    aox_planner->clearQuery();
+    aox_planner->setFoundPath(nullptr);
+    aox_planner->reset(solvedProblem);
+    solve_status = base::PlannerStatus::TIMEOUT;
 }
 
 void ompl::geometric::AORRTC::setProblemDefinition(const base::ProblemDefinitionPtr &pdef)
 {
     pdef_ = pdef;
 
-    if (init_planner != nullptr)
+    if (aox_planner != nullptr)
     {
-        init_planner->setProblemDefinition(pdef);
         aox_planner->setProblemDefinition(pdef);
     }
 }
 
 void ompl::geometric::AORRTC::freeMemory()
 {
-    init_planner->clear();
     aox_planner->clear();
 }
 
@@ -126,21 +124,21 @@ ompl::base::PlannerStatus ompl::geometric::AORRTC::solve(const base::PlannerTerm
 {
     do
     {
+        // If we already have a solution (and therefore a reasonable cost range)
         if (pdef_->hasExactSolution())
         {
+            // Inform the planner about our cost bound
             aox_planner->setPathCost(bestCost_.value());
+            
+            // Try to solve the planning problem
+            solve_status = aox_planner->solve(ptc);
 
-            OMPL_INFORM("%s: Best cost is %.5f", getName().c_str(), bestCost_);
-            aox_solve_status = aox_planner->solve(ptc);
-
-            if (aox_solve_status != base::PlannerStatus::EXACT_SOLUTION)
+            if (solve_status == base::PlannerStatus::EXACT_SOLUTION)
             {
-                OMPL_INFORM("%s: Restarted before finding a solution", getName().c_str());
-            }
-            else
-            {
+                // If we found a solution, extract it and update our path
                 const base::PathPtr path = aox_planner->getFoundPath();
 
+                // Update our best path if our new path is better
                 if (path->length() < bestCost_.value())
                 {
                     bestPath_ = path;
@@ -149,34 +147,29 @@ ompl::base::PlannerStatus ompl::geometric::AORRTC::solve(const base::PlannerTerm
                     pdef_->addSolutionPath(bestPath_, false, 0.0, getName());
                 }
 
+                // Simplify our solution
                 simplifySolution(path, ptc);
-                OMPL_INFORM("%s: AOX search simplified to cost %.5f", getName().c_str(), path->length());
 
+                // Again, update our best path if our new (simplified) path is better
                 if (path->length() < bestCost_.value())
                 {
+                    OMPL_INFORM("%s: AOX search simplified to cost %.5f", getName().c_str(), path->length());
+
                     bestPath_ = path;
                     bestCost_ = ompl::base::Cost(path->length());
 
                     pdef_->addSolutionPath(bestPath_, false, 0.0, getName());
                 }
-
-                aox_planner->clearQuery();
-                aox_planner->setProblemDefinition(pdef_);
-            }
-
-            aox_planner->setFoundPath(nullptr);
-            aox_solve_status = base::PlannerStatus::TIMEOUT;
+            }            
         }
 
+        // Find an initial solution
         else
         {
-            solve_status = init_planner->solve(ptc);
+            solve_status = aox_planner->solve(ptc);
 
-            if (solve_status != base::PlannerStatus::EXACT_SOLUTION)
-            {
-                OMPL_INFORM("%s: Initial search restarted before finding a solution", getName().c_str());
-            }
-            else
+            // If we found a solution, extract it and update our path
+            if (solve_status == base::PlannerStatus::EXACT_SOLUTION)
             {
                 initCost_ = pdef_->getSolutionPath()->length();
                 bestPath_ = pdef_->getSolutionPath();
@@ -192,19 +185,48 @@ ompl::base::PlannerStatus ompl::geometric::AORRTC::solve(const base::PlannerTerm
                 pdef_->addSolutionPath(bestPath_, false, 0.0, getName());
             }
         }
+
+        // If we ran into errors, exit early
+        if (solve_status == base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE ||
+            solve_status == base::PlannerStatus::INVALID_START ||
+            solve_status == base::PlannerStatus::INVALID_GOAL)
+        {
+            return solve_status;
+        }
+
+        // If we found a solution, we can reset our planner
+        if (solve_status == base::PlannerStatus::EXACT_SOLUTION)
+        {
+            reset(true);
+        }
+
+        // If we didn't find a solution on this iteration of solve, reset our planner.
+        // (PDT visualize calls solve for each iteration of the search,
+        // so we need to check if our planner actually needs to reset)
+        else if (aox_planner->internalResetCondition())
+        {
+            OMPL_INFORM("%s: Restarted before finding a solution", getName().c_str());
+            reset(false);
+        }
+
+        // Something has surely gone wrong if you have found a zero-length path
+        if (bestCost_.value() == 0)
+        {
+            OMPL_ERROR("%s: Zero-length path found. May have a common start/goal.", getName().c_str());
+            return base::PlannerStatus::INVALID_GOAL;
+        }
     } while (!ptc);
 
-    return solve_status;
+    // Now that we're done, return whether or not we timed out
+    if (pdef_->hasExactSolution())
+    {
+        return base::PlannerStatus::EXACT_SOLUTION;
+    } else {
+        return base::PlannerStatus::TIMEOUT;
+    }
 }
 
 void ompl::geometric::AORRTC::getPlannerData(base::PlannerData &data) const
 {
-    if (pdef_->hasExactSolution())
-    {
-        aox_planner->getPlannerData(data);
-    }
-    else
-    {
-        init_planner->getPlannerData(data);
-    }
+    aox_planner->getPlannerData(data);
 }
