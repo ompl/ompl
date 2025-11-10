@@ -42,7 +42,6 @@
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/geometric/PathSimplifier.h"
 
-#include "ompl/geometric/planners/rrt/RRTConnect.h"
 #include "ompl/geometric/planners/rrt/AOXRRTConnect.h"
 
 namespace ompl
@@ -87,6 +86,8 @@ namespace ompl
             void clear() override;
 
             void setup() override;
+
+            void reset(bool solvedProblem);
 
             void setProblemDefinition(const base::ProblemDefinitionPtr &pdef) override;
 
@@ -138,7 +139,6 @@ namespace ompl
             /** \brief The random number generator */
             RNG rng_;
 
-            std::shared_ptr<ompl::geometric::RRTConnect> init_planner;
             std::shared_ptr<ompl::geometric::AOXRRTConnect> aox_planner;
 
             /** \brief Free the memory allocated by this planner */
@@ -164,7 +164,6 @@ namespace ompl
 
             double initCost_;
             ompl::base::PlannerStatus solve_status;
-            ompl::base::PlannerStatus aox_solve_status;
         };
     }  // namespace geometric
 }  // namespace ompl

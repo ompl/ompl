@@ -108,7 +108,25 @@ namespace ompl
                 setup();
             }
 
+            /** \brief Check if the inner loop planner met its  condition to terminate */
+            bool internalResetCondition()
+            {
+                bool shouldReset = false;
+                if (tStart_ && tGoal_) {
+                    // Reset if we have met our maximum internal vertices
+                    shouldReset = shouldReset || (tStart_->size() + tGoal_->size() >= maxInternalVertices);
+                } else {
+                    // If our trees don't exist, we're not in the middle of a search anyways
+                    shouldReset = true;
+                }
+                // Reset if we have attempted our maximum internal samples
+                shouldReset = shouldReset || (sampleAttempts >= maxInternalSamples);
+                return shouldReset;
+            }
+
             void setup() override;
+
+            void reset(bool solvedProblem);
 
             void setPathCost(double pc);
 
@@ -143,8 +161,14 @@ namespace ompl
                 bool start;
             };
 
-            /** \brief Compute distance between motions (actually distance between contained states) */
-            double distanceFunction(const Motion *a, const Motion *b) const
+            /** \brief Compute euclidian distance between motions */
+            double euclideanDistanceFunction(const Motion *a, const Motion *b) const
+            {
+                return si_->distance(a->state, b->state);
+            }
+
+            /** \brief Compute AOX distance between motions */
+            double aoxDistanceFunction(const Motion *a, const Motion *b) const
             {
                 auto space_diff = si_->distance(a->state, b->state);
                 auto cost_diff = a->cost - b->cost;
@@ -163,23 +187,39 @@ namespace ompl
             /** \brief State sampler */
             base::InformedSamplerPtr sampler_;
 
+            std::size_t sampleAttempts{0};
+
             /** \brief The start tree */
             TreeData tStart_;
 
             /** \brief The goal tree */
             TreeData tGoal_;
 
-            /** \brief Maximum allowed cost resampling iterations */
-            int maxResampleAttempts_{100};
+            /** \brief Maximum allowed cost resampling iterations before moving on */
+            long int maxResampleAttempts_{100};
+
+            /** \brief Maximum allowed total vertices in trees before the search is restarted */
+            std::size_t maxInternalVertices{10000};
+
+            /** \brief Increment by which maxVertices is increased */
+            std::size_t maxInternalVerticesIncrement{10000};
+
+            /** \brief Maximum samples tried before the search is restarted */
+            std::size_t maxInternalSamples{10000000};
+            
+            /** \brief Increment by which maxSamples is increased */
+            std::size_t maxInternalSamplesIncrement{10000000};
 
             base::State *startState{nullptr};
             base::State *goalState{nullptr};
 
             /** \brief Best cost found so far by algorithm */
-            base::Cost bestCost_{std::numeric_limits<double>::quiet_NaN()};
+            base::Cost bestCost_{std::numeric_limits<double>::infinity()};
 
+            /** \brief Path found by the algorithm */
             base::PathPtr foundPath{nullptr};
 
+            /** \brief Outer loop termination condition for AORRTC */
             base::PlannerTerminationCondition _ptc{nullptr};
 
             /** \brief Objective we're optimizing */

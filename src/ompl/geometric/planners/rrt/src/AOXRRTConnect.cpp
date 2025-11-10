@@ -93,10 +93,42 @@ void ompl::geometric::AOXRRTConnect::setup()
     if (!tGoal_)
         tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
 
+    reset(true);
+}
+
+void ompl::geometric::AOXRRTConnect::reset(bool solvedProblem)
+{
     tStart_->clear();
     tGoal_->clear();
-    tStart_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
-    tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
+
+    // If we have a reasonable cost bound, then use the AOX distance function
+    if (bestCost_.value() < std::numeric_limits<double>::infinity())
+    {
+        tStart_->setDistanceFunction([this](const Motion *a, const Motion *b) { return aoxDistanceFunction(a, b); });
+        tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return aoxDistanceFunction(a, b); });
+    } 
+    else // Use standard distance function if no cost bound is set 
+    {
+        tStart_->setDistanceFunction([this](const Motion *a, const Motion *b) { return euclideanDistanceFunction(a, b); });
+        tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return euclideanDistanceFunction(a, b); });
+    }
+
+    // Start from the start tree
+    startTree_ = true;
+    sampleAttempts = 0;
+
+    // If we didn't solve the problem, loosen our internal reset conditions
+    // This is for probabilistic completeness, so that the planner can still
+    // eventually find a solution that may require more vertices/samples
+    if (!solvedProblem)
+    {
+        maxInternalSamples += maxInternalSamplesIncrement;
+        maxInternalVertices += maxInternalVerticesIncrement;
+    } else {
+        // If we solved the problem, reset our internal reset conditions as well
+        maxInternalSamples = maxInternalSamplesIncrement;
+        maxInternalVertices = maxInternalVerticesIncrement;
+    }
 }
 
 void ompl::geometric::AOXRRTConnect::setPathCost(double pc)
@@ -113,11 +145,17 @@ ompl::geometric::AOXRRTConnect::Motion *ompl::geometric::AOXRRTConnect::findNeig
 
     // Pad rootDist to account for floating point error
     // Needed to make sure the root is included in nearest list
-    // TODO: Should use some relative epsilon for padding (FLT_EPSILON is good but does not scale with the magnitude of
-    // rootDist)
+    // TODO: Should use some relative epsilon for padding 
+    // (FLT_EPSILON is good but does not scale with the magnitude of rootDist and may be too small)
     rootDist += 0.00001;
 
     tree->nearestR(sampled_motion, rootDist, nearest_vec);
+    if (nearest_vec.empty())
+    {
+        OMPL_ERROR("%s: Failed to find any neighbours for a state", getName().c_str());
+        return nullptr;
+    }
+
     int idx = 0;
     nearest_motion = nearest_vec[idx];
     auto nearest_distance = si_->distance(sampled_motion->state, nearest_motion->state);
@@ -143,6 +181,14 @@ ompl::geometric::AOXRRTConnect::GrowState ompl::geometric::AOXRRTConnect::growTr
 
     auto rootDist = tree->getDistanceFunction()(rmotion, root_motion);
     Motion *nmotion = findNeighbour(rmotion, rootDist, tree);
+
+    // If there were no neighbours
+    if (nmotion == nullptr)
+    {
+        si_->freeState(root_motion->state);
+        delete root_motion;
+        return TRAPPED;
+    }
 
     /* assume we can reach the state we go towards */
     bool reach = true;
@@ -179,7 +225,8 @@ ompl::geometric::AOXRRTConnect::GrowState ompl::geometric::AOXRRTConnect::growTr
     }
 
     // Cost resampling for new vertices
-    if (!rmotion->connecting)
+    // Don't bother cost resampling if we don't have a meaningful cost range yet
+    if (!rmotion->connecting && bestCost_.value() < std::numeric_limits<double>::infinity())
     {
         si_->copyState(rmotion->state, dstate);
         g_hat = tgi.start ? si_->distance(dstate, startState) : si_->distance(dstate, goalState);
@@ -265,6 +312,17 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
 
     _ptc = ptc;
 
+    TreeGrowingInfo tgi;
+    tgi.xstate = si_->allocState();
+
+    Motion *approxsol = nullptr;
+    double approxdif = std::numeric_limits<double>::infinity();
+    auto *rmotion = new Motion(si_);
+    auto *cmotion = new Motion(si_);
+    base::State *rstate = rmotion->state;
+    bool solved = false;
+    GrowState gs;
+
     if (goal == nullptr)
     {
         OMPL_ERROR("%s: Unknown type of goal", getName().c_str());
@@ -279,6 +337,11 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
         motion->cost = 0;
         tStart_->add(motion);
         startState = motion->state;
+
+        // Straight line check for first search loop
+        // Nested here for PDT visualize, which calls solve for each iteration
+        si_->copyState(rstate, startState);
+        gs = REACHED;
     }
 
     if (tStart_->size() == 0)
@@ -303,31 +366,12 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
     OMPL_INFORM("%s: Started planning with %u states. Seeking a solution better than %.5f.", getName().c_str(),
                 (int)(tStart_->size() + tGoal_->size()), bestCost_);
 
-    TreeGrowingInfo tgi;
-    tgi.xstate = si_->allocState();
-
-    Motion *approxsol = nullptr;
-    double approxdif = std::numeric_limits<double>::infinity();
-    auto *rmotion = new Motion(si_);
-    auto *cmotion = new Motion(si_);
-    base::State *rstate = rmotion->state;
-    bool solved = false;
-
-    while (!ptc)
+    // Planner may restart early if it fails to find a solution and start the search anew
+    while (!ptc && !internalResetCondition())
     {
         TreeData &tree = startTree_ ? tStart_ : tGoal_;
         TreeData &otherTree = !startTree_ ? tStart_ : tGoal_;
-        tgi.start = startTree_;
-
-        float asize = tree->size();
-        float bsize = otherTree->size();
-        float ratio = std::abs(asize - bsize) / asize;
-
-        // Balanced RRTC
-        if (ratio < 1.f)
-        {
-            startTree_ = !startTree_;
-        }
+        tgi.start = startTree_;        
 
         if (tGoal_->size() == 0 || pis_.getSampledGoalsCount() < tGoal_->size() / 2)
         {
@@ -338,8 +382,15 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
                 si_->copyState(motion->state, st);
                 motion->root = motion->state;
                 motion->cost = 0;
-                tGoal_->add(motion);
 
+                // Straight line check for start of planning
+                // Nested here for PDT visualize, which calls solve for each iteration
+                if (tGoal_->size() == 0)
+                {
+                    tgi.xmotion = motion;
+                }
+
+                tGoal_->add(motion);
                 goalState = motion->state;
             }
 
@@ -350,78 +401,34 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
             }
         }
 
-        /* sample random state */
-        if (!sampler_->sampleUniform(rstate, bestCost_))
-        {
-            continue;
-        }
-
-        double cost_sample = rng_.uniformReal(0, 1);
-        auto g_hat = tgi.start ? si_->distance(rmotion->state, startState) : si_->distance(rmotion->state, goalState);
-        auto h_hat = !tgi.start ? si_->distance(rmotion->state, startState) : si_->distance(rmotion->state, goalState);
-        auto f_hat = g_hat + h_hat;
-
-        auto c_range = bestCost_.value() - f_hat;
-        if (c_range < 0)
-        {
-            continue;
-        }
-        double c_rand = (cost_sample * c_range) + g_hat;
-        rmotion->cost = c_rand;
-
-        GrowState gs = growTree(tree, tgi, rmotion);
-
         if (gs != TRAPPED)
         {
-            /* remember which motion was just added */
+            /* remember which motion was added in the last grow */
             Motion *addedMotion = tgi.xmotion;
-
-            /* attempt to connect trees */
 
             /* if reached, it means we used rstate directly, no need to copy again */
             if (gs != REACHED)
                 si_->copyState(rstate, tgi.xstate);
 
+            // Switch tree to try and connect from other side
             tgi.start = !tgi.start;
 
-            cmotion->state = rmotion->state;
+            si_->copyState(cmotion->state, rmotion->state);
             cmotion->cost = bestCost_.value() - tgi.xmotion->cost;
             cmotion->connecting = true;
 
-            auto restored_start = false;
             /* if initial progress cannot be done from the otherTree, restore tgi.start */
             GrowState gsc = growTree(otherTree, tgi, cmotion);
             if (gsc == TRAPPED)
             {
+                // Switch tree back if connect from other side failed
                 tgi.start = !tgi.start;
-                restored_start = true;
             }
 
+            // Keep trying to connect until we reach the other tree or fail to advance
             while (gsc == ADVANCED)
             {
                 gsc = growTree(otherTree, tgi, cmotion);
-            }
-
-            auto *root_motion = new Motion(si_);
-            // could be done with restored_start == tgi.start but that isnt super clear
-            if (restored_start)
-            {
-                si_->copyState(root_motion->state, tgi.start ? goalState : startState);
-            }
-            else
-            {
-                si_->copyState(root_motion->state, !tgi.start ? goalState : startState);
-            }
-            root_motion->cost = 0;
-
-            auto rootDist = otherTree->getDistanceFunction()(addedMotion, root_motion);
-            delete root_motion;
-            Motion *nmotion = findNeighbour(addedMotion, rootDist, otherTree);
-
-            const double newDist = tree->getDistanceFunction()(addedMotion, nmotion);
-            if (newDist < distanceBetweenTrees_)
-            {
-                distanceBetweenTrees_ = newDist;
             }
 
             Motion *startMotion = tgi.start ? tgi.xmotion : addedMotion;
@@ -489,8 +496,44 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
                 }
             }
         }
+
+        float asize = tree->size();
+        float bsize = otherTree->size();
+        float ratio = std::abs(asize - bsize) / asize;
+        
+        // Swap trees if our balanced RRTC condition is met
+        if (ratio < 1.f)
+        {
+            startTree_ = !startTree_;
+        }
+        tgi.start = startTree_;
+
+        // Sample random states until we find a valid and useful sample
+        bool placed_sampled = false;
+        double c_rand;
+        double c_range;
+        do {
+            placed_sampled = sampler_->sampleUniform(rstate, bestCost_);
+            sampleAttempts ++;
+            
+            double cost_sample = rng_.uniformReal(0, 1);
+            auto g_hat = tgi.start ? si_->distance(rmotion->state, startState) : si_->distance(rmotion->state, goalState);
+            auto h_hat = !tgi.start ? si_->distance(rmotion->state, startState) : si_->distance(rmotion->state, goalState);
+            auto f_hat = g_hat + h_hat;
+
+            c_range = bestCost_.value() - f_hat;
+            c_rand = (cost_sample * c_range) + g_hat;
+
+        } while (!ptc && (!placed_sampled || c_range < 0));
+        rmotion->cost = c_rand;
+
+        // Extend towards our new sample
+        // I can't change references when I swap the trees, so this will have to do
+        TreeData &temp_tree = startTree_ ? tStart_ : tGoal_;
+        gs = growTree(temp_tree, tgi, rmotion);
     }
 
+    // Cleanup our memory
     si_->freeState(tgi.xstate);
     si_->freeState(rstate);
     delete rmotion;
