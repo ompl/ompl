@@ -44,19 +44,15 @@
 
 #include <stdexcept>
 
-ompl::geometric::AOXRRTConnect::AOXRRTConnect(const base::SpaceInformationPtr &si, bool addIntermediateStates)
-  : ompl::geometric::RRTConnect(si, addIntermediateStates)
+ompl::geometric::AOXRRTConnect::AOXRRTConnect(const base::SpaceInformationPtr &si)
+  : base::Planner(si, "AOXRRTConnect")
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.directed = true;
 
     Planner::declareParam<double>("range", this, &AOXRRTConnect::setRange, &AOXRRTConnect::getRange, "0.:1.:10000.");
-    Planner::declareParam<bool>("intermediate_states", this, &AOXRRTConnect::setIntermediateStates,
-                                &AOXRRTConnect::getIntermediateStates, "0,1");
 
     connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
-    distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
-    addIntermediateStates_ = addIntermediateStates;
 }
 
 ompl::geometric::AOXRRTConnect::~AOXRRTConnect()
@@ -94,6 +90,33 @@ void ompl::geometric::AOXRRTConnect::setup()
         tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
 
     reset(true);
+}
+
+void ompl::geometric::AOXRRTConnect::freeMemory()
+{
+    std::vector<Motion *> motions;
+
+    if (tStart_)
+    {
+        tStart_->list(motions);
+        for (auto &motion : motions)
+        {
+            if (motion->state != nullptr)
+                si_->freeState(motion->state);
+            delete motion;
+        }
+    }
+
+    if (tGoal_)
+    {
+        tGoal_->list(motions);
+        for (auto &motion : motions)
+        {
+            if (motion->state != nullptr)
+                si_->freeState(motion->state);
+            delete motion;
+        }
+    }
 }
 
 void ompl::geometric::AOXRRTConnect::reset(bool solvedProblem)
@@ -263,42 +286,14 @@ ompl::geometric::AOXRRTConnect::GrowState ompl::geometric::AOXRRTConnect::growTr
         }
     }
 
-    if (addIntermediateStates_)
-    {
-        const base::State *astate = tgi.start ? nmotion->state : dstate;
-        const base::State *bstate = tgi.start ? dstate : nmotion->state;
+    auto *motion = new Motion(si_);
+    si_->copyState(motion->state, dstate);
+    motion->parent = nmotion;
+    motion->root = nmotion->root;
+    motion->cost = si_->distance(nmotion->state, motion->state) + nmotion->cost;
+    tree->add(motion);
 
-        std::vector<base::State *> states;
-        const unsigned int count = si_->getStateSpace()->validSegmentCount(astate, bstate);
-
-        if (si_->getMotionStates(astate, bstate, states, count, true, true))
-            si_->freeState(states[0]);
-
-        for (std::size_t i = 1; i < states.size(); ++i)
-        {
-            auto *motion = new Motion;
-            motion->state = states[i];
-            motion->parent = nmotion;
-            motion->root = nmotion->root;
-            motion->cost = si_->distance(nmotion->state, motion->state) + nmotion->cost;
-            tree->add(motion);
-
-            nmotion = motion;
-        }
-
-        tgi.xmotion = nmotion;
-    }
-    else
-    {
-        auto *motion = new Motion(si_);
-        si_->copyState(motion->state, dstate);
-        motion->parent = nmotion;
-        motion->root = nmotion->root;
-        motion->cost = si_->distance(nmotion->state, motion->state) + nmotion->cost;
-        tree->add(motion);
-
-        tgi.xmotion = motion;
-    }
+    tgi.xmotion = motion;
 
     si_->freeState(root_motion->state);
     delete root_motion;
