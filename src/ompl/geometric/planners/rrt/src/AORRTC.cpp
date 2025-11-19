@@ -39,13 +39,11 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
-ompl::geometric::AORRTC::AORRTC(const base::SpaceInformationPtr &si, bool addIntermediateStates)
+ompl::geometric::AORRTC::AORRTC(const base::SpaceInformationPtr &si)
   : base::Planner(si, "AORRTC")
 {
     specs_.approximateSolutions = true;
     specs_.directed = true;
-
-    addIntermediateStates_ = addIntermediateStates;
 }
 
 ompl::geometric::AORRTC::~AORRTC()
@@ -73,7 +71,6 @@ void ompl::geometric::AORRTC::setup()
     aox_planner->setProblemDefinition(pdef_);
     aox_planner->setName("AOXRRTConnect");
     aox_planner->setRange(getRange());
-    aox_planner->setIntermediateStates(getIntermediateStates());
 
     aox_planner->setup();
 

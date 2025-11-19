@@ -75,7 +75,7 @@ namespace ompl
         {
         public:
             /** \brief Constructor */
-            AORRTC(const base::SpaceInformationPtr &si, bool addIntermediateStates = false);
+            AORRTC(const base::SpaceInformationPtr &si);
 
             ~AORRTC() override;
 
@@ -114,20 +114,6 @@ namespace ompl
                 return psk_;
             }
 
-            /** \brief Return true if the intermediate states generated along motions are to be added to the tree itself
-             */
-            bool getIntermediateStates() const
-            {
-                return addIntermediateStates_;
-            }
-
-            /** \brief Specify whether the intermediate states generated along motions are to be added to the tree
-             * itself */
-            void setIntermediateStates(bool addIntermediateStates)
-            {
-                addIntermediateStates_ = addIntermediateStates;
-            }
-
             /** \brief Attempt to simplify the current solution path. Stop computation when \e ptc becomes true at the
              * latest. */
             void simplifySolution(const base::PathPtr &p, const base::PlannerTerminationCondition &ptc);
@@ -153,9 +139,6 @@ namespace ompl
             PathSimplifierPtr psk_;
 
             base::PathPtr bestPath_{nullptr};
-
-            /** \brief Flag indicating whether intermediate states are added to the built tree of motions */
-            bool addIntermediateStates_;
 
             ompl::base::Cost bestCost_{std::numeric_limits<double>::infinity()};
 

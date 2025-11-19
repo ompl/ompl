@@ -76,11 +76,11 @@ namespace ompl
         */
 
         /** \brief Modified RRT-Connect for AORRTC (AOXRRTConnect) */
-        class AOXRRTConnect : public ompl::geometric::RRTConnect
+        class AOXRRTConnect : public base::Planner
         {
         public:
             /** \brief Constructor */
-            AOXRRTConnect(const base::SpaceInformationPtr &si, bool addIntermediateStates = false);
+            AOXRRTConnect(const base::SpaceInformationPtr &si);
 
             ~AOXRRTConnect() override;
 
@@ -94,6 +94,22 @@ namespace ompl
             base::PathPtr getFoundPath() const
             {
                 return foundPath;
+            }
+
+            /** \brief Set the range the planner is supposed to use.
+
+                This parameter greatly influences the runtime of the
+                algorithm. It represents the maximum length of a
+                motion to be added in the tree of motions. */
+            void setRange(double distance)
+            {
+                maxDistance_ = distance;
+            }
+
+            /** \brief Get the range the planner is using */
+            double getRange() const
+            {
+                return maxDistance_;
             }
 
             /** \brief Set a different nearest neighbors datastructure */
@@ -161,6 +177,20 @@ namespace ompl
                 bool start;
             };
 
+            /** \brief The state of the tree after an attempt to extend it */
+            enum GrowState
+            {
+                /// no progress has been made
+                TRAPPED,
+                /// progress has been made towards the randomly sampled state
+                ADVANCED,
+                /// the randomly sampled state was reached
+                REACHED
+            };
+
+            /** \brief Free the memory allocated by this planner */
+            void freeMemory();
+
             /** \brief Compute euclidian distance between motions */
             double euclideanDistanceFunction(const Motion *a, const Motion *b) const
             {
@@ -195,6 +225,12 @@ namespace ompl
             /** \brief The goal tree */
             TreeData tGoal_;
 
+            /** \brief A flag that toggles between expanding the start tree (true) or goal tree (false). */
+            bool startTree_{true};
+
+            /** \brief The maximum length of a motion to be added to a tree */
+            double maxDistance_{0.};
+
             /** \brief Maximum allowed cost resampling iterations before moving on */
             long int maxResampleAttempts_{100};
 
@@ -224,6 +260,12 @@ namespace ompl
 
             /** \brief Objective we're optimizing */
             base::OptimizationObjectivePtr opt_;
+
+            /** \brief The random number generator */
+            RNG rng_;
+
+            /** \brief The pair of states in each tree connected during planning.  Used for PlannerData computation */
+            std::pair<base::State *, base::State *> connectionPoint_;
         };
     }  // namespace geometric
 }  // namespace ompl
