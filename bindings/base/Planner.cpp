@@ -92,7 +92,6 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
     nb::class_<ob::Planner, PyPlanner /* <-- trampoline */>(m, "Planner")
         // Constructors
         .def(nb::init<ob::SpaceInformationPtr, std::string>())
-        // Expose additional methods
         .def(
             "getSpaceInformation", [](ob::Planner &p) -> ob::SpaceInformationPtr { return p.getSpaceInformation(); },
             nb::rv_policy::reference_internal)
@@ -107,6 +106,8 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
         .def(
             "solve", [](ob::Planner &pl, const ob::PlannerTerminationConditionFn &fn, double checkInterval)
             { return pl.solve(fn, checkInterval); }, nb::arg("terminationConditionFn"), nb::arg("checkInterval") = 0.0)
+        .def("clearQuery", &ob::Planner::clearQuery)
+        .def("clear", &ob::Planner::clear)
         .def("getName", &ob::Planner::getName)
         .def("setName", &ob::Planner::setName, nb::arg("name"))
         .def("getSpecs", &ob::Planner::getSpecs, nb::rv_policy::reference_internal)
