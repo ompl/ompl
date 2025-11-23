@@ -44,6 +44,11 @@ class CMakeBuild(build_ext):
         # Can be set with Conda-Build, for example.
         cmake_generator = os.environ.get("CMAKE_GENERATOR", "")
 
+        # For Windows, we need to ensure the binary is placed in the ompl subdirectory
+        # to match the Python package structure
+        if sys.platform.startswith("win"):
+            extdir = extdir / "ompl"
+
         # - Hint the desired Python target for CMake to find, per [1].
         # - Set CMAKE_LIBRARY_OUTPUT_DIRECTORY to a location expected by the
         #   wheel builder so that libraries are included in the output artifact.
@@ -71,6 +76,27 @@ class CMakeBuild(build_ext):
         # (needed e.g. to build for ARM OSx on conda-forge)
         if "CMAKE_ARGS" in os.environ:
             cmake_args += [item for item in os.environ["CMAKE_ARGS"].split(" ") if item]
+
+        # Check for VCPKG_ROOT environment variable and set CMAKE_TOOLCHAIN_FILE accordingly
+        vcpkg_root = os.environ.get("VCPKG_ROOT")
+        if vcpkg_root:
+            cmake_toolchain_file = os.path.join(vcpkg_root, "scripts", "buildsystems", "vcpkg.cmake")
+            cmake_args += [f"-DCMAKE_TOOLCHAIN_FILE={cmake_toolchain_file}"]
+            # For vcpkg, we also need to specify the target triplet on Windows
+            if sys.platform.startswith("win"):
+                cmake_args += ["-DVCPKG_TARGET_TRIPLET=x64-windows"]
+        elif "CMAKE_TOOLCHAIN_FILE" in os.environ:
+            # If VCPKG_ROOT is not set but CMAKE_TOOLCHAIN_FILE is, use it directly
+            cmake_args += [f"-DCMAKE_TOOLCHAIN_FILE={os.environ['CMAKE_TOOLCHAIN_FILE']}"]
+        else:
+            # Fallback: try to find vcpkg in the project root directory
+            project_root = Path(__file__).parent.parent
+            vcpkg_dir = project_root / "vcpkg"
+            cmake_toolchain_file = vcpkg_dir / "scripts" / "buildsystems" / "vcpkg.cmake"
+            if cmake_toolchain_file.exists():
+                cmake_args += [f"-DCMAKE_TOOLCHAIN_FILE={cmake_toolchain_file}"]
+                if sys.platform.startswith("win"):
+                    cmake_args += ["-DVCPKG_TARGET_TRIPLET=x64-windows"]
 
         if self.compiler.compiler_type != "msvc":
             # Using Ninja-build since it a) is available as a wheel and b)
