@@ -169,6 +169,8 @@ def allocatePlanner(si, plannerType):
         return og.BITstar(si)
     elif plannerType.lower() == "fmtstar":
         return og.FMT(si)
+    elif plannerType.lower() == "greedyrrtstar":
+        return og.GreedyRRTstar(si)
     elif plannerType.lower() == "informedrrtstar":
         return og.InformedRRTstar(si)
     elif plannerType.lower() == "prmstar":
@@ -270,8 +272,8 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--runtime', type=float, default=1.0, help=\
         '(Optional) Specify the runtime in seconds. Defaults to 1 and must be greater than 0.')
     parser.add_argument('-p', '--planner', default='RRTstar', \
-        choices=['BFMTstar', 'BITstar', 'FMTstar', 'InformedRRTstar', 'PRMstar', 'RRTstar', \
-        'SORRTstar'], \
+        choices=['BFMTstar', 'BITstar', 'FMTstar', 'GreedyRRTstar', 'InformedRRTstar', 'PRMstar', \
+        'RRTstar', 'SORRTstar'], \
         help='(Optional) Specify the optimal planner to use, defaults to RRTstar if not given.')
     parser.add_argument('-o', '--objective', default='PathLength', \
         choices=['PathClearance', 'PathLength', 'ThresholdPathLength', \
