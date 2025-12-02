@@ -656,7 +656,7 @@ protected:
     PlanTest()
     {
         verbose_ = VERBOSE;
-        boost::filesystem::path path(TEST_RESOURCES_DIR);
+        std::filesystem::path path(TEST_RESOURCES_DIR);
         loadEnvironment((path / "env1.txt").string().c_str(), env_);
 
         if (env_.width * env_.height == 0)

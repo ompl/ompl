@@ -42,7 +42,7 @@
 #include "ompl/geometric/planners/informedtrees/BITstar.h"
 
 #include <thread>
-#include <mutex>
+#include <atomic>
 // For boost::scoped_ptr
 #include <boost/scoped_ptr.hpp>
 
@@ -63,9 +63,6 @@ namespace ompl
             /** \brief Generator a new id and increment the global/static counter of IDs. */
             BITstar::VertexId getNewId()
             {
-                // Create a scoped mutex copy of idMutex that unlocks when it goes out of scope:
-                std::lock_guard<std::mutex> lockGuard(idMutex_);
-
                 // Return the next id, purposefully post-decrementing:
                 return nextId_++;
             }
@@ -73,9 +70,7 @@ namespace ompl
         private:
             // Variables:
             // The next ID to be returned. We never use 0.
-            BITstar::VertexId nextId_{1u};
-            // The mutex
-            std::mutex idMutex_;
+            std::atomic<BITstar::VertexId> nextId_{1u};
         };
     }  // geometric
 }  // ompl

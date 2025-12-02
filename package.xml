@@ -3,7 +3,7 @@
   <name>ompl</name>
   <version>1.8.0</version>
   <description>OMPL is a free sampling-based motion planning library.</description>
-  <maintainer email="mmoll@rice.edu">Mark Moll</maintainer>
+  <maintainer email="mark@moll.ai">Mark Moll</maintainer>
   <maintainer email="marq.razz@gmail.com">Marq Rasumessen</maintainer>
   <maintainer email="jafar.uruc@gmail.com">Jafar Uruc</maintainer>
   <license>BSD</license>
@@ -17,14 +17,18 @@
   <buildtool_depend>cmake</buildtool_depend>
 
   <build_depend>cmake</build_depend>
-  <build_depend>boost</build_depend>
+  <build_depend>libboost-program-options-dev</build_depend>
+  <build_depend>libboost-serialization-dev</build_depend>
   <build_depend>eigen</build_depend>
   <build_depend>pkg-config</build_depend>
   <build_depend>libflann-dev</build_depend>
+  <build_depend>yaml-cpp</build_depend>
 
-  <exec_depend>boost</exec_depend>
+  <exec_depend>libboost-program-options</exec_depend>
+  <exec_depend>libboost-serialization</exec_depend>
   <exec_depend>eigen</exec_depend>
   <exec_depend>libflann-dev</exec_depend>
+  <exec_depend>yaml-cpp</exec_depend>
 
   <export>
     <build_type>cmake</build_type>

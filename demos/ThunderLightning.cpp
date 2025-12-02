@@ -41,7 +41,7 @@
 
 #include <ompl/config.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <iostream>
 
 namespace ob = ompl::base;
@@ -153,7 +153,7 @@ int main(int argc, char **)
 {
     std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    std::filesystem::path path(TEST_RESOURCES_DIR);
     Plane2DEnvironment env((path / "ppm" / "floor.ppm").string().c_str(), argc==1);
 
     for (unsigned int i = 0; i < 100; ++i)
