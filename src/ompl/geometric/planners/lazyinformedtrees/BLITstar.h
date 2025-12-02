@@ -136,7 +136,7 @@ namespace ompl
             /** \brief Get the maximum number of goals BLIT* will sample from sampleable goal regions. */
             unsigned int getMaxNumberOfGoals() const;
             
-            void runTime();
+            // void runTime();
             /**\brief Above references inherit from BLIT*. */
             
             /** \brief Perform sparse/compelete collision detection. */
