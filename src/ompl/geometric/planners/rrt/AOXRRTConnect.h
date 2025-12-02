@@ -70,9 +70,10 @@ namespace ompl
            [10.1109/ROBOT.2000.844730](http://dx.doi.org/10.1109/ROBOT.2000.844730)<br>
            [[PDF]](http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246)
            [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html)
-           T. S. Wilson, W. Thomason, Z. Kingston, and J. D. Gammell, AORRTC: Finding optimal paths with AO-x and
-           RRT-Connect, in <em>Proc. Workshop on RoboARCH: Robotics Acceleration with Computing Hardware and Systems,
-           IEEE Intl. Conf. on Robotics and Automation</em>, May 2025.
+           T. S. Wilson, W. Thomason, Z. Kingston, and J. D. Gammell, AORRTC: Almost-surely asymptotically optimal
+           planning with RRT-Connect, in <em>IEEE Robotics and Automation Letters</em>, Dec. 2025. DOI:
+           [10.1109/LRA.2025.3615522](http://dx.doi.org/10.1109/LRA.2025.3615522)<br>
+           [[PDF]](https://arxiv.org/abs/2505.10542)
         */
 
         /** \brief Modified RRT-Connect for AORRTC (AOXRRTConnect) */
@@ -129,13 +130,13 @@ namespace ompl
             {
                 bool shouldReset = false;
                 if (tStart_ && tGoal_) {
-                    // Reset if we have met our maximum internal vertices
+                    /* Reset if we have met our maximum internal vertices */
                     shouldReset = shouldReset || (tStart_->size() + tGoal_->size() >= maxInternalVertices);
                 } else {
-                    // If our trees don't exist, we're not in the middle of a search anyways
+                    /* If our trees don't exist, we're not in the middle of a search anyways */
                     shouldReset = true;
                 }
-                // Reset if we have attempted our maximum internal samples
+                /* Reset if we have attempted our maximum internal samples */
                 shouldReset = shouldReset || (sampleAttempts >= maxInternalSamples);
                 return shouldReset;
             }
@@ -180,11 +181,11 @@ namespace ompl
             /** \brief The state of the tree after an attempt to extend it */
             enum GrowState
             {
-                /// no progress has been made
+                /* no progress has been made */
                 TRAPPED,
-                /// progress has been made towards the randomly sampled state
+                /* progress has been made towards the randomly sampled state */
                 ADVANCED,
-                /// the randomly sampled state was reached
+                /* the randomly sampled state was reached */
                 REACHED
             };
 
@@ -218,6 +219,12 @@ namespace ompl
             base::InformedSamplerPtr sampler_;
 
             std::size_t sampleAttempts{0};
+
+            /* Pad rootDist to account for floating point error
+               Needed to make sure the root is included in nearest list
+               TODO: Should use some relative epsilon for padding 
+               (FLT_EPSILON is good but does not scale with the magnitude of rootDist and may be too small) */
+            const float rootDistPadding = 0.00001;
 
             /** \brief The start tree */
             TreeData tStart_;
