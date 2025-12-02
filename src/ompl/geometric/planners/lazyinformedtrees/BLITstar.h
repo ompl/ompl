@@ -101,8 +101,8 @@ namespace ompl
             ompl::base::PlannerStatus
             solve(const ompl::base::PlannerTerminationCondition &terminationCondition) override;
              
-            /** \brief Operate + . */
-            ompl::base::Cost costCombine(ompl::base::Cost c1, ompl::base::Cost c2);
+            /** \brief Operate + . Comment this out 
+            ompl::base::Cost costCombine(ompl::base::Cost c1, ompl::base::Cost c2);*/
             /** \brief Get the planner data. */
             void getPlannerData(base::PlannerData &data) const override;
 	    
