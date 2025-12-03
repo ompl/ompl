@@ -1,10 +1,14 @@
-FROM rocker/shiny-verse:4.0.3
+FROM rocker/shiny-verse:4.5.1
 RUN apt-get update && \
     apt-get install -y libv8-dev libjpeg-dev
 RUN install2.r --error --deps TRUE \
+    shiny \
     shinyjs \
     V8 \
-    pool \
+    dplyr \
+    dbplyr \
+    tidyr \
+    ggplot2 \
     Hmisc \
     RSQLite \
     markdown && \

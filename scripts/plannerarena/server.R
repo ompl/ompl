@@ -34,12 +34,12 @@
 
 # Author: Mark Moll
 
-library(pool)
 library(dplyr, warn.conflicts = FALSE)
 library(tidyr)
 library(ggplot2)
 library(rlang)
 library(Hmisc)
+library(DBI)
 
 default_database <- "www/benchmark.db"
 
@@ -202,7 +202,7 @@ shinyServer(function(input, output, session) {
             # case 3
             database <- paste(sessions_folder, query$user, query$job, sep = "/")
         if (file.exists(database)) {
-            con <- dbPool(RSQLite::SQLite(), dbname = database)
+            con <- dbConnect(RSQLite::SQLite(), dbname = database)
             # benchmark job may not yet be finished so check that "experiments"
             # table exists.
             if ("experiments" %in% DBI::dbListTables(con)) {
@@ -881,5 +881,9 @@ shinyServer(function(input, output, session) {
             tabPanel("Benchmark setup",  tableOutput("benchmark_info")),
             tabPanel("Planner Configurations", tableOutput("planner_configs"))
         )
+    })
+
+    session$onSessionEnded(function() {
+        dbDisconnect(con())
     })
 })
