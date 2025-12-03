@@ -25,6 +25,7 @@ src/ompl/geometric/planners/rrt/TRRT.h
 src/ompl/geometric/planners/rrt/RRTstar.h
 src/ompl/geometric/planners/rrt/TRRTstar.h
 src/ompl/geometric/planners/rrt/ATRRT.h
+src/ompl/geometric/planners/rrt/GreedyRRTstar.h
 src/ompl/geometric/planners/rrt/RRTXstatic.h
 src/ompl/geometric/planners/rrt/RRTsharp.h
 src/ompl/geometric/planners/rrt/LBTRRT.h
