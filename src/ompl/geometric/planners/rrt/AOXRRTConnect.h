@@ -71,7 +71,7 @@ namespace ompl
            [[PDF]](http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246)
            [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html)
            T. S. Wilson, W. Thomason, Z. Kingston, and J. D. Gammell, AORRTC: Almost-surely asymptotically optimal
-           planning with RRT-Connect, in <em>IEEE Robotics and Automation Letters</em>, Vol. 10, pp. 13375-13382, Dec. 2025. DOI:
+           planning with RRT-Connect, in <em>IEEE Robotics and Automation Letters</em>, Vol. 10, no. 12, pp. 13375-13382, Dec. 2025. DOI:
            [10.1109/LRA.2025.3615522](http://dx.doi.org/10.1109/LRA.2025.3615522)<br>
            [[PDF]](https://arxiv.org/abs/2505.10542)
         */
