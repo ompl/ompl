@@ -968,7 +968,7 @@ namespace ompl::vamp
 
         inline constexpr auto broadcast(std::size_t idx) const noexcept -> Vector<S, 1, S::VectorWidth>
         {
-            auto [v_idx, v_offset] = utils::c_div(idx, S::VectorWidth);
+            auto [v_idx, v_offset] = c_div(idx, S::VectorWidth);
             return Vector<S, 1, S::VectorWidth>({S::broadcast(data[v_idx], v_offset)});
         }
     };
