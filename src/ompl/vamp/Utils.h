@@ -1,63 +1,44 @@
 #pragma once
 
-#include <chrono>
-#include <cstdint>
-#include <cstdlib>
-#include <utility>
+#include <ompl/base/State.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 
 namespace ompl::vamp
 {
-    //==========================================================================
-    // Constants
-    //==========================================================================
-
-    namespace constants
-    {
-        // Backported from C++20
-        inline constexpr double e = 2.718281828459045235360287471352662498L;
-        inline constexpr double pi = 3.141592653589793238462643383279502884L;
-    }  // namespace constants
+    namespace ob = ompl::base;
 
     //==========================================================================
-    // General Utilities
+    // OMPL Conversion Utilities
     //==========================================================================
 
-    inline constexpr auto round_size(std::size_t size, std::size_t block) noexcept -> std::size_t
+    /// Convert an OMPL state to a VAMP Configuration
+    template <typename Robot>
+    inline auto ompl_to_vamp(const ob::State *state) -> typename Robot::Configuration
     {
-        return ((size + block - 1) / block) * block;
+        using Configuration = typename Robot::Configuration;
+
+        alignas(Configuration::S::Alignment)
+            std::array<typename Configuration::S::ScalarT, Configuration::num_scalars>
+                aligned_buffer{};
+
+        const auto *as = state->as<ob::RealVectorStateSpace::StateType>();
+        for (std::size_t i = 0; i < Robot::dimension; ++i)
+        {
+            aligned_buffer[i] = static_cast<float>(as->values[i]);
+        }
+
+        return Configuration(aligned_buffer.data());
     }
 
-    inline bool is_aligned(const void *ptr, uintptr_t alignment) noexcept
+    /// Convert a VAMP Configuration to an OMPL state
+    template <typename Robot>
+    inline void vamp_to_ompl(const typename Robot::Configuration &config, ob::State *state)
     {
-        auto iptr = reinterpret_cast<uintptr_t>(ptr);
-        return not(iptr % alignment);
-    }
-
-    template <typename T, std::size_t alignment, std::size_t vector_size>
-    inline auto vector_alloc(std::size_t n) noexcept -> T *
-    {
-        return static_cast<T *>(aligned_alloc(alignment, sizeof(T) * round_size(n, vector_size)));
-    }
-
-    // Because ceil isn't constexpr until C++23
-    inline constexpr auto c_ceil(double d) noexcept -> std::size_t
-    {
-        const auto s = static_cast<std::size_t>(d);
-        return d > s ? s + 1 : s;
-    }
-
-    // Same deal with div()
-    inline constexpr auto c_div(std::size_t idx, std::size_t dim) noexcept
-        -> std::pair<std::size_t, std::size_t>
-    {
-        return {idx / dim, idx % dim};
-    }
-
-    inline auto get_elapsed_nanoseconds(const std::chrono::time_point<std::chrono::steady_clock> &start)
-        -> std::size_t
-    {
-        return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start)
-            .count();
+        auto *as = state->as<ob::RealVectorStateSpace::StateType>();
+        for (std::size_t i = 0; i < Robot::dimension; ++i)
+        {
+            as->values[i] = static_cast<double>(config[{i, 0}]);
+        }
     }
 
 }  // namespace ompl::vamp
