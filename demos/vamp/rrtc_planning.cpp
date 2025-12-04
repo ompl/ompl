@@ -4,6 +4,7 @@
 #include <array>
 
 // OMPL headers
+#include <ompl/base/PlannerTerminationCondition.h>
 #include <ompl/base/ProblemDefinition.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
@@ -84,7 +85,7 @@ int main()
 
     // Solve with 5 second timeout
     std::cout << "Planning..." << std::endl;
-    ob::PlannerStatus status = planner->solve(5.0);
+    ob::PlannerStatus status = planner->solve(ob::timedPlannerTerminationCondition(5.0));
 
     if (status == ob::PlannerStatus::EXACT_SOLUTION)
     {
