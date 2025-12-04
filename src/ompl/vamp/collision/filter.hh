@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cstdint>
 
-#include <pdqsort.h>
+#include <ompl/vamp/pdqsort.h>
 
 #if defined(__x86_64__)
 #include <immintrin.h>
