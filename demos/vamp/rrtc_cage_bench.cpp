@@ -19,9 +19,8 @@
 #include <ompl/vamp/Utils.h>
 #include <ompl/vamp/VampStateValidityChecker.h>
 #include <ompl/vamp/VampMotionValidator.h>
-#include <vamp/collision/factory.hh>
 
-// Robot definition (local to demos)
+#include <vamp/collision/factory.hh>
 #include <vamp/robots/panda.hh>
 
 namespace ob = ompl::base;
