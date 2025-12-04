@@ -87,6 +87,10 @@ if (OMPL_BUILD_DEMOS)
     add_ompl_demo(demo_VampRRTC vamp/rrtc_planning.cpp)
     target_include_directories(demo_VampRRTC PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vamp)
     target_compile_options(demo_VampRRTC PRIVATE -mavx -mavx2)
+
+    add_ompl_demo(demo_VampRRTCCageBench vamp/rrtc_cage_bench.cpp)
+    target_include_directories(demo_VampRRTCCageBench PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vamp)
+    target_compile_options(demo_VampRRTCCageBench PRIVATE -mavx -mavx2)
     
     # Add VAMP demo only if VAMP is available and properly configured
     if (OMPL_HAVE_VAMP)
