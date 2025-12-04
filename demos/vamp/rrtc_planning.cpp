@@ -116,7 +116,8 @@ int main()
     ob::PlannerStatus status = planner->solve(ob::timedPlannerTerminationCondition(5.0));
     auto end_time = std::chrono::steady_clock::now();
     
-    auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    auto duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
+    auto duration_ms = duration_ns / 1e6;
     std::cout << "Planning time: " << duration_ms << " ms" << std::endl;
 
     if (status == ob::PlannerStatus::EXACT_SOLUTION)
