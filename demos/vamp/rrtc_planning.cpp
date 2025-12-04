@@ -15,21 +15,21 @@
 #include <ompl/vamp/Utils.h>
 #include <ompl/vamp/VampStateValidityChecker.h>
 #include <ompl/vamp/VampMotionValidator.h>
-#include <ompl/vamp/collision/factory.hh>
+#include <vamp/collision/factory.hh>
 
 // Robot definition (local to demos)
-#include "robots/panda.hh"
+#include <vamp/robots/panda.hh>
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-using Robot = ompl::vamp::robots::Panda;
-using Environment = ompl::vamp::collision::Environment<ompl::vamp::FloatVector<ompl::vamp::FloatVectorWidth>>;
+using Robot = vamp::robots::Panda;
+using Environment = vamp::collision::Environment<vamp::FloatVector<vamp::FloatVectorWidth>>;
 
 int main()
 {
     // Build a simple sphere obstacle environment
-    ompl::vamp::collision::Environment<float> env_float;
+    vamp::collision::Environment<float> env_float;
     
     // Add some sphere obstacles
     std::vector<std::array<float, 3>> obstacles = {
@@ -53,7 +53,7 @@ int main()
     for (const auto& obs : obstacles)
     {
         env_float.spheres.emplace_back(
-            ompl::vamp::collision::factory::sphere::array(obs, radius));
+            vamp::collision::factory::sphere::array(obs, radius));
     }
     env_float.sort();
     
