@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <array>
+#include <chrono>
 
 // OMPL headers
 #include <ompl/base/PlannerTerminationCondition.h>
@@ -32,10 +33,20 @@ int main()
     
     // Add some sphere obstacles
     std::vector<std::array<float, 3>> obstacles = {
-        {0.55f, 0.0f, 0.25f},
-        {0.0f, 0.55f, 0.25f},
-        {-0.55f, 0.0f, 0.25f},
-        {0.0f, -0.55f, 0.25f}
+        {0.55, 0, 0.25},
+        {0.35, 0.35, 0.25},
+        {0, 0.55, 0.25},
+        {-0.55, 0, 0.25},
+        {-0.35, -0.35, 0.25},
+        {0, -0.55, 0.25},
+        {0.35, -0.35, 0.25},
+        {0.35, 0.35, 0.8},
+        {0, 0.55, 0.8},
+        {-0.35, 0.35, 0.8},
+        {-0.55, 0, 0.8},
+        {-0.35, -0.35, 0.8},
+        {0, -0.55, 0.8},
+        {0.35, -0.35, 0.8},
     };
     
     constexpr float radius = 0.2f;
@@ -51,8 +62,25 @@ int main()
 
     // Create state space
     auto space = std::make_shared<ob::RealVectorStateSpace>(Robot::dimension);
-    space->setBounds(ompl::vamp::get_robot_bounds<Robot>());
+    // Get bounds from VAMP Robot information, scale 0/1 config to min/max
+    static constexpr std::array<float, Robot::dimension> zeros = {0., 0., 0., 0., 0., 0., 0.};
+    static constexpr std::array<float, Robot::dimension> ones = {1., 1., 1., 1., 1., 1., 1.};
 
+    auto zero_v = Robot::Configuration(zeros);
+    auto one_v = Robot::Configuration(ones);
+
+    Robot::scale_configuration(zero_v);
+    Robot::scale_configuration(one_v);
+    std::cout << "Zero config: " << zero_v << std::endl;
+    std::cout << "One config: " << one_v << std::endl;
+    ob::RealVectorBounds bounds(Robot::dimension);
+    for (auto i = 0U; i < Robot::dimension; ++i)
+    {
+        bounds.setLow(i, zero_v[{0, i}]);
+        bounds.setHigh(i, one_v[{0, i}]);
+    }
+
+    space->setBounds(bounds);
     // Create space information with VAMP validators
     auto si = std::make_shared<ob::SpaceInformation>(space);
     si->setStateValidityChecker(
@@ -84,8 +112,12 @@ int main()
     planner->setup();
 
     // Solve with 5 second timeout
-    std::cout << "Planning..." << std::endl;
+    auto start_time = std::chrono::steady_clock::now();
     ob::PlannerStatus status = planner->solve(ob::timedPlannerTerminationCondition(5.0));
+    auto end_time = std::chrono::steady_clock::now();
+    
+    auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    std::cout << "Planning time: " << duration_ms << " ms" << std::endl;
 
     if (status == ob::PlannerStatus::EXACT_SOLUTION)
     {
