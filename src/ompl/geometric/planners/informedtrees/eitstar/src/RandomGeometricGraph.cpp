@@ -208,8 +208,7 @@ namespace ompl
                     do
                     {
                         // Get a new goal. If there are none, or the underlying state is invalid this will be a nullptr.
-                        const auto newGoalState =
-                            inputStates->nextGoal(terminationCondition);
+                        const auto newGoalState = inputStates->nextGoal(terminationCondition);
 
                         // If there was a new valid goal, register it as such and remember that a goal has been added.
                         if (static_cast<bool>(newGoalState))
@@ -313,8 +312,7 @@ namespace ompl
                     // Allocate a state sampler if we have at least one start and one goal.
                     if (!startStates_.empty() && !goalStates_.empty())
                     {
-                        sampler_ =
-                            objective_->allocInformedStateSampler(problem_, std::numeric_limits<unsigned int>::max());
+                        sampler_ = objective_->allocInformedStateSampler(problem_, 100u);
                     }
                 }
 
@@ -494,7 +492,8 @@ namespace ompl
                 whitelistedStates_.push_back(state);
             }
 
-            std::shared_ptr<State> RandomGeometricGraph::getNewSample(const ompl::base::PlannerTerminationCondition& terminationCondition)
+            std::shared_ptr<State>
+            RandomGeometricGraph::getNewSample(const ompl::base::PlannerTerminationCondition &terminationCondition)
             {
                 // Allocate a new state.
                 auto state = std::make_shared<State>(spaceInfo_, objective_);
