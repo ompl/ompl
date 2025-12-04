@@ -9,7 +9,7 @@
 #include <cmath>
 #include <cassert>
 
-#include <pdqsort.h>
+#include <ompl/vamp/pdqsort.h>
 
 #include <ompl/vamp/collision/math.hh>
 #include <ompl/vamp/vector.hh>
