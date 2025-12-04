@@ -2,14 +2,23 @@
 
 #include <ompl/base/MotionValidator.h>
 #include <ompl/base/SpaceInformation.h>
+#include <ompl/base/State.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/util/Exception.h>
-#include <ompl/vamp/Utils.h>
 #include <ompl/vamp/Validate.hh>
 #include <ompl/vamp/collision/environment.hh>
 
 namespace ompl::vamp
 {
     namespace ob = ompl::base;
+
+    // Forward declaration - ompl_to_vamp is defined in VampStateValidityChecker.h
+    template <typename Robot>
+    inline auto ompl_to_vamp(const ob::State *state) -> typename Robot::Configuration;
+
+    //==========================================================================
+    // VAMP Motion Validator for OMPL
+    //==========================================================================
 
     template <typename Robot, std::size_t rake = FloatVectorWidth>
     class VampMotionValidator : public ob::MotionValidator
@@ -48,4 +57,3 @@ namespace ompl::vamp
     };
 
 }  // namespace ompl::vamp
-
