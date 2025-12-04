@@ -4,46 +4,15 @@
 #include <ompl/base/State.h>
 #include <ompl/base/StateValidityChecker.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
-#include <ompl/vamp/Validate.hh>
-#include <ompl/vamp/collision/environment.hh>
+
+#include <ompl/vamp/Utils.h>
+
+#include <vamp/planning/validate.hh>
+#include <vamp/collision/environment.hh>
 
 namespace ompl::vamp
 {
     namespace ob = ompl::base;
-
-    //==========================================================================
-    // OMPL Conversion Utilities
-    //==========================================================================
-
-    /// Convert an OMPL state to a VAMP Configuration
-    template <typename Robot>
-    inline auto ompl_to_vamp(const ob::State *state) -> typename Robot::Configuration
-    {
-        using Configuration = typename Robot::Configuration;
-
-        alignas(Configuration::S::Alignment)
-            std::array<typename Configuration::S::ScalarT, Configuration::num_scalars>
-                aligned_buffer{};
-
-        const auto *as = state->as<ob::RealVectorStateSpace::StateType>();
-        for (std::size_t i = 0; i < Robot::dimension; ++i)
-        {
-            aligned_buffer[i] = static_cast<float>(as->values[i]);
-        }
-
-        return Configuration(aligned_buffer.data());
-    }
-
-    /// Convert a VAMP Configuration to an OMPL state
-    template <typename Robot>
-    inline void vamp_to_ompl(const typename Robot::Configuration &config, ob::State *state)
-    {
-        auto *as = state->as<ob::RealVectorStateSpace::StateType>();
-        for (std::size_t i = 0; i < Robot::dimension; ++i)
-        {
-            as->values[i] = static_cast<double>(config[{i, 0}]);
-        }
-    }
 
     /// Get OMPL RealVectorBounds from Robot scaling parameters
     template <typename Robot>
@@ -75,11 +44,11 @@ namespace ompl::vamp
     // VAMP State Validity Checker for OMPL
     //==========================================================================
 
-    template <typename Robot, std::size_t rake = FloatVectorWidth>
+    template <typename Robot, std::size_t rake = ::vamp::FloatVectorWidth>
     class VampStateValidityChecker : public ob::StateValidityChecker
     {
     public:
-        using Environment = collision::Environment<FloatVector<rake>>;
+        using Environment = ::vamp::collision::Environment<::vamp::FloatVector<rake>>;
 
         VampStateValidityChecker(ob::SpaceInformation *si, const Environment &env)
           : ob::StateValidityChecker(si), env_(env)
@@ -94,7 +63,7 @@ namespace ompl::vamp
         auto isValid(const ob::State *state) const -> bool override
         {
             auto configuration = ompl_to_vamp<Robot>(state);
-            return validate_motion<Robot, rake, 1>(configuration, configuration, env_);
+            return ::vamp::planning::validate_motion<Robot, rake, 1>(configuration, configuration, env_);
         }
 
     private:
