@@ -200,7 +200,7 @@ namespace ompl::vamp
         inline constexpr auto
         fit_scalars_to_vectors(std::size_t num_scalars, std::size_t vector_width) noexcept -> std::size_t
         {
-            return utils::c_ceil(static_cast<double>(num_scalars) / static_cast<double>(vector_width));
+            return c_ceil(static_cast<double>(num_scalars) / static_cast<double>(vector_width));
         }
 
         // Patching yet another half-baked part of C++...
