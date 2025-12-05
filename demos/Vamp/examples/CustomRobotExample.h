@@ -4,10 +4,27 @@
  * @file CustomRobotExample.h
  * @brief Example of how to define and register a custom robot with VAMP
  * 
+ * ⚠️ IMPORTANT NOTE: This is a simplified example for a 2-DOF planar robot.
+ * 
+ * For REAL custom robots, you MUST use the VAMP ecosystem tools:
+ * 
+ * 1. **Cricket Compiler** (https://github.com/CoMMALab/cricket)
+ *    - Generates SIMD-optimized collision detection code
+ *    - Produces the critical vectorized `fkcc` method
+ *    - Required for performance-critical SIMD operations
+ * 
+ * 2. **Foam Tool** (https://github.com/CoMMALab/foam)  
+ *    - Generates spherical approximations of robot collision geometry
+ *    - Produces sphere positions, radii, and collision sphere count
+ *    - Required for VAMP's collision detection system
+ * 
+ * This example shows the interface structure but uses simplified manual implementations
+ * use with complex 3D robots.
+ * 
  * This file demonstrates the complete process of adding a new robot to VAMP
  * without modifying the core architecture. It shows how to:
  * 1. Define a custom robot with VAMP interface
- * 2. Implement vectorized forward kinematics
+ * 2. Implement vectorized forward kinematics (simplified version)
  * 3. Register the robot with the registry
  * 4. Use the robot in planning
  */

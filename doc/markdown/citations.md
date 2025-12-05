@@ -71,3 +71,24 @@ If you use the [constrained planning](constrainedPlanning.html) capabilities of 
 }</pre></div></div></div></div>
 \endhtmlonly
 </ul>
+
+If you use the VAMP SIMD acceleration feature, then we kindly ask you to include the following citation in your publications:
+<ul>
+
+<li> Wil Thomason, Zachary Kingston, and Lydia E. Kavraki, “Motions in Microseconds via Vectorized Sampling-Based Planning,” in _IEEE International Conference on Robotics and Automation (ICRA),_ 2024, pp. 8749–8756.
+\htmlonly
+<br><div class="btn-group btn-group-xs">
+  <a class="btn btn-primary" href="https://www.kavrakilab.org/publications/thomason2024vamp.pdf> pdf </a>
+  <a class="btn btn-primary" href="http://dx.doi.org/10.1109/ICRA57147.2024.10611190"> publisher </a>
+  <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#thomason2024vamp"> bibtex </button>
+</div>
+<div class="modal fade" tabindex="-1" id="thomason2024vamp"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h4 class="modal-title">BibTeX</h4><button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button></div><div class="modal-body"><pre>@inproceedings{thomason2024vamp,
+  author = "Thomason, Wil and Kingston, Zachary and Kavraki, Lydia E.",
+  booktitle = "IEEE Intl.\ Conf.\ on Robotics and Automation (ICRA)",
+  title = "Motions in Microseconds via Vectorized Sampling-Based Planning",
+  year = "2024",
+  pages = "8749-8756",
+  doi = "10.1109/ICRA57147.2024.10611190"
+}</pre></div></div></div></div>
+\endhtmlonly
+</ul>

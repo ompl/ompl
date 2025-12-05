@@ -72,7 +72,7 @@ Planners in this category only accounts for the geometric and kinematic constrai
   - [Bidirectional Fast Marching Tree algorithm (BFMT∗)](\ref gBFMT)<br>
     Executes two FMT* trees, one from the start and another one from the goal resulting in a faster planner as it explores less space.
 - **Multi-level planners**<br>
-  Planning algorithms which can exploit multiple levels of abstractions. If you want to use them, you should call them with a vector of `ompl::base::SpaceInformationPtr`. All planner then guarantee probabilistic completeness, if the supplied abstractions are admissible. There is extensive documentation in the form of a [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](group__demos.html).
+  Planning algorithms which can exploit multiple levels of abstractions. If you want to use them, you should call them with a vector of `ompl::base::SpaceInformationPtr`. All planner then guarantee probabilistic completeness, if the supplied abstractions are admissible. There is extensive documentation in the form of a [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](demos.html).
   - [Rapidly-exploring Random Quotient space Trees (QRRT)](\ref QRRT)<br>
     A generalization of RRT to plan on different abstraction levels. 
   - [QRRT*](\ref QRRTstar)<br> An asymptotically optimal version of QRRT
@@ -147,7 +147,7 @@ To solve problems involving high-dimensional state spaces, we often can use
 multilevel abstractions to simplify the state spaces, thereby allowing dedicated
 planner to quicker find solutions. The planner in this class support sequences
 of state spaces and can be utilized both for state spaces with geometric and
-dynamic constraints. There is extensive documentation in the form of a [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](group__demos.html).
+dynamic constraints. There is extensive documentation in the form of a [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](demos.html).
   - [Rapidly-exploring Random Quotient space Trees (QRRT)](\ref QRRT)<br>
     A generalization of RRT to plan on different abstraction levels. 
   - [QRRT*](\ref QRRTstar)<br> An asymptotically optimal version of QRRT

@@ -324,16 +324,10 @@ public:
         , goal_config_(std::move(goal))
         , robot_name_(robot_name) {
         
-        // TODO:
-        // We can't use VampUtils here due to circular dependencies.
-        // VampUtils includes this header, so we keep validation logic here
-        // but this could be refactored in the future with better header organization.
-        
         validate_dimensions();
         validate_joint_limits();
     }
     
-    // Modern interface methods
     auto get_joint_limits() const -> std::vector<std::pair<double, double>> override {
         return get_joint_limits_from_vamp<Robot>();
     }

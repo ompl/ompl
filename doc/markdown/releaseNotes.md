@@ -1,15 +1,17 @@
 # Release Notes {#releaseNotes}
 
-## OMPL 2.0.0beta (TBD)
+## OMPL 2.0.0beta (September 15th, 2025)
 
 - **NEW: VAMP Integration** 🚀
   - Added [VAMP (Vector-Accelerated Motion Planning)](https://github.com/KavrakiLab/vamp) as an optional high-performance backend for collision checking and motion validation
   - VAMP leverages SIMD instructions to accelerate forward kinematics and collision detection, achieving planning speeds up to 25 kHz
-  - Features vectorized collision checking that processes multiple robot configurations simultaneously using AVX2/NEON instructions
-  - Includes comprehensive demo (`vampdemo`) showcasing integration with popular robots (Panda, UR5, Fetch, Baxter)
-  - Build option `OMPL_BUILD_VAMP=ON` enables VAMP integration as a git submodule
-  - Supports both portable builds (`VAMP_PORTABLE_BUILD=ON`) for distribution and native builds for maximum performance
+  - Features vectorized collision checking that processes multiple robot configurations simultaneously using AVX2/NEON instructions.
+  - Includes comprehensive demo (`vampdemo`) showcasing integration with popular robots (Panda, UR5, Fetch).
+  - Build option `OMPL_BUILD_VAMP=ON` enables VAMP integration as a git submodule and is enabled by default.
+  - Supports both portable builds (`VAMP_PORTABLE_BUILD=ON`) for distribution and native builds for maximum performance.
   - Compatible with existing OMPL planners as a drop-in acceleration layer for motion validation
+- New kinodynamic planner: HySST, and adaptation of the SST planner for hybrid systems.
+- New state space: ThrochoidStateSpace, an SE(2)-like state space where distance and interpolation is defined for Dubins vehicles subject to constant drift. This is useful in planning for aerial/underwater drones subject to constant wind/current.
 - Bug fixes.
 
 ## OMPL 1.7.0 (March 24, 2025)
@@ -94,7 +96,7 @@
 
 ## OMPL 1.4.0 (June 25, 2018)
 
-- There is a new framework for planning with constraints that unifies and generalizes prior proposed algorithms such as CBiRRT2, AtlasRRT and TangentBundle-RRT. The framework decouples the methodology used for computing configurations that satisfy constraints from the high-level planning strategy. This allows the user to use any sampling-based planning algorithm in OMPL with arbitrary geometric constraints. See the [overview](constrainedPlanning.html), [tutorial](constrainedPlanningTutorial.html) and various [demos](group__demos.html) in `ompl/demos/constraint`.
+- There is a new framework for planning with constraints that unifies and generalizes prior proposed algorithms such as CBiRRT2, AtlasRRT and TangentBundle-RRT. The framework decouples the methodology used for computing configurations that satisfy constraints from the high-level planning strategy. This allows the user to use any sampling-based planning algorithm in OMPL with arbitrary geometric constraints. See the [overview](constrainedPlanning.html), [tutorial](constrainedPlanningTutorial.html) and various [demos](demos.html) in `ompl/demos/constraint`.
 - Eigen3 is now a required dependency.
 - Various BIT* improvements.
 - PRM and RRTConnect can now return approximate solutions if an exact solution cannot be found. (This feature was already supported by several other planning algorithms in previous versions of OMPL.)
@@ -208,7 +210,7 @@
   - [Search Tree with Resolution Independent Density Estimation (STRIDE)](\ref gSTRIDE), an EST-like planner that uses an extension of the GNAT nearest neighbor data structure that supports sampling states inversely proportional to the density of previously sampled states.
 - Added support for MORSE. Through a plugin you can use OMPL with Blender and MORSE to plan kinodynamic paths. See [the gallery](gallery.html) for some examples.
 - Added functionality to the Benchmark class to keep track of user-specified properties at regular intervals. This is especially useful for asymptotically/approximately optimal or anytime planners.
-- Added more [demo programs](group__demos.html).
+- Added more [demo programs](demos.html).
 - Updated gccxml snapshot. If you use gcc 4.8 and the OMPL Python bindings, you need to run "make installpyplusplus" again.
 - Bug fixes.
 
@@ -227,7 +229,7 @@
 - Certain path shortcutting techniques are disabled for non-metric state spaces during path simplification.
 - Extended ProblemDefinition API to support path optimizing planners.
 - Added printAsMatrix method to ompl::geometric::PathGeometric and ompl::control::PathControl to facilitate plotting of paths. Added a [tutorial on path visualization](pathVisualization.html).
-- Added more [demo programs](group__demos.html).
+- Added more [demo programs](demos.html).
 - Use the officially released version of [OdeInt](https://www.boost.org/libs/numeric/odeint) that comes with Boost 1.53 for numerical integration. The bundled version of OdeInt is not used or installed if the user has Boost >= 1.53 installed.
 - Updated Py++ toolchain (gccxml, pygccxml, pyplusplus). If you use gcc 4.7/4.8 or Boost 1.54, you need to run "make installpyplusplus" again.
 - Bug fixes.
