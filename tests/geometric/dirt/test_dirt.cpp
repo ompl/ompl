@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(SimpleDIRTTest)
     goal->values[1] = 5;
 
     auto pdef = std::make_shared<base::ProblemDefinition>(si);
-    pdef->setStartAndGoalStates(start, goal, 0.1);
+    pdef->setStartAndGoalStates(start, goal, 0.5);
     pdef->setOptimizationObjective(std::make_shared<base::PathLengthOptimizationObjective>(si));
 
     auto planner = std::make_shared<geometric::DIRT>(si);

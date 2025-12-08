@@ -37,6 +37,7 @@
 
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
+#include <limits>
 
 namespace ompl
 {
