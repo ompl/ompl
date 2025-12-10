@@ -45,7 +45,7 @@
 #include <ompl/base/samplers/deterministic/HaltonSequence.h>
 #include <ompl/config.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <iostream>
 
 namespace ob = ompl::base;
@@ -191,7 +191,7 @@ int main(int /*argc*/, char ** /*argv*/)
 {
     std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    std::filesystem::path path(TEST_RESOURCES_DIR);
     bool useDeterministicSampling = true;
     Plane2DEnvironment env((path / "ppm/floor.ppm").string().c_str(), useDeterministicSampling);
 

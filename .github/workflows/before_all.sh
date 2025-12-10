@@ -10,9 +10,8 @@ if [ "${build_os}" == "Linux" ]; then
     yum -y install \
         sudo \
         eigen3-devel \
-        llvm-devel \
-        clang-devel \
-        boost-devel
+        llvm-devel-18.* \
+        clang-devel-18.*
 
     if [ "${arch}" == "aarch64" ]; then
         echo "Detected AlmaLinux 8 AArch64. Applying architecture-specific fixes..."
@@ -34,6 +33,8 @@ elif [ "${build_os}" == "Darwin" ]; then
     export HOMEBREW_NO_AUTO_UPDATE=1
     brew install \
         eigen \
+        pypy3 \
+        castxml \
         llvm@18 \
-        boost
+        yaml-cpp
 fi

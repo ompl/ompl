@@ -43,7 +43,7 @@
 #include <ompl/base/PlannerDataStorage.h>
 
 // Boost
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 ompl::tools::ThunderDB::ThunderDB(const base::StateSpacePtr &space) : numPathsInserted_(0), saving_enabled_(true)
 {
@@ -65,7 +65,7 @@ bool ompl::tools::ThunderDB::load(const std::string &fileName)
         OMPL_ERROR("Empty filename passed to save function");
         return false;
     }
-    if (!boost::filesystem::exists(fileName))
+    if (!std::filesystem::exists(fileName))
     {
         OMPL_INFORM("Database file does not exist: %s.", fileName.c_str());
         return false;

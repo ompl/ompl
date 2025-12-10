@@ -105,6 +105,8 @@ namespace ompl
 
             virtual State *allocState() const override;
 
+            double getMaximumExtent() const override;
+
             /* \brief Convert a state to a 3D vector to visualize the state
              * space. */
             Eigen::Vector3f toVector(const State *state) const;

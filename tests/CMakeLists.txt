@@ -57,12 +57,33 @@ if (OMPL_BUILD_TESTS)
     # Test constrained planning
     add_ompl_test(test_constraint_sphere geometric/constraint/test_sphere.cpp)
 
+    # Test space-time planning
+    add_ompl_test(test_spacetime_STRRTstar geometric/spacetime/STRRTstar_test.cpp)
+
     # Test planning with controls on a 2D map
     add_ompl_test(test_2dmap_control control/2dmap/2dmap.cpp)
     add_ompl_test(test_planner_data_control control/planner_data.cpp)
 
     # Test experience based planning
     add_ompl_test(test_experience_planning tools/test_experience_planning.cpp)
+
+    # Test VAMP integration
+    if(OMPL_HAVE_VAMP)
+        add_ompl_test(test_vamp_integration util/test_vamp_integration.cpp)
+        if(TARGET vamp_cpp)
+            target_link_libraries(test_vamp_integration vamp_cpp)
+            
+            # Apply VAMP SIMD flags to the test to ensure SIMD functionality works
+            if(DEFINED VAMP_SIMD_FLAGS)
+                target_compile_options(test_vamp_integration PRIVATE ${VAMP_SIMD_FLAGS})
+                message(STATUS "Applied VAMP SIMD flags to test_vamp_integration: ${VAMP_SIMD_FLAGS}")
+            endif()
+            
+            message(STATUS "VAMP integration test configured with vamp_cpp target and SIMD flags")
+        else()
+            message(WARNING "OMPL_HAVE_VAMP is TRUE but vamp_cpp target not found")
+        endif()
+    endif()
 
     # Python unit tests
     if(PYTHON_FOUND AND OMPL_BUILD_PYTESTS)

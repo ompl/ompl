@@ -55,6 +55,8 @@ ompl::control::SST::SST(const SpaceInformationPtr &si) : base::Planner(si, "SST"
     Planner::declareParam<double>("selection_radius", this, &SST::setSelectionRadius, &SST::getSelectionRadius, "0.:.1:"
                                                                                                                 "100");
     Planner::declareParam<double>("pruning_radius", this, &SST::setPruningRadius, &SST::getPruningRadius, "0.:.1:100");
+
+    addPlannerProgressProperty("best cost REAL", [this] { return std::to_string(this->prevSolutionCost_.value()); });
 }
 
 ompl::control::SST::~SST()

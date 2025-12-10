@@ -36,7 +36,7 @@
 
 #define BOOST_TEST_MODULE "ControlPlanning"
 #include <boost/test/unit_test.hpp>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <iostream>
 
 #include "ompl/base/goals/GoalState.h"
@@ -501,7 +501,7 @@ protected:
     PlanTest()
     {
         verbose = true;
-        boost::filesystem::path path(TEST_RESOURCES_DIR);
+        std::filesystem::path path(TEST_RESOURCES_DIR);
         path = path / "env1.txt";
         loadEnvironment(path.string().c_str(), env);
 

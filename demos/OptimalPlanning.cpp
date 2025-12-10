@@ -43,7 +43,9 @@
 #include "ompl/util/Console.h"
 
 // The supported optimal planners, in alphabetical order
+#include <ompl/geometric/planners/lazyinformedtrees/BLITstar.h>
 #include <ompl/geometric/planners/informedtrees/AITstar.h>
+#include <ompl/geometric/planners/rrt/AORRTC.h>
 #include <ompl/geometric/planners/informedtrees/BITstar.h>
 #include <ompl/geometric/planners/informedtrees/EITstar.h>
 #include <ompl/geometric/planners/informedtrees/EIRMstar.h>
@@ -72,8 +74,10 @@ namespace og = ompl::geometric;
 enum optimalPlanner
 {
     PLANNER_AITSTAR,
+    PLANNER_AORRTC,
     PLANNER_BFMTSTAR,
     PLANNER_BITSTAR,
+    PLANNER_BLITSTAR,
     PLANNER_CFOREST,
     PLANNER_EITSTAR,
     PLANNER_EIRMSTAR,
@@ -154,6 +158,11 @@ ob::PlannerPtr allocatePlanner(ob::SpaceInformationPtr si, optimalPlanner planne
             return std::make_shared<og::AITstar>(si);
             break;
         }
+        case PLANNER_AORRTC:
+        {
+            return std::make_shared<og::AORRTC>(si);
+            break;
+        }
         case PLANNER_BFMTSTAR:
         {
             return std::make_shared<og::BFMT>(si);
@@ -162,6 +171,11 @@ ob::PlannerPtr allocatePlanner(ob::SpaceInformationPtr si, optimalPlanner planne
         case PLANNER_BITSTAR:
         {
             return std::make_shared<og::BITstar>(si);
+            break;
+        }
+        case PLANNER_BLITSTAR:
+        {
+            return std::make_shared<og::BLITstar>(si);
             break;
         }
         case PLANNER_CFOREST:
@@ -244,10 +258,10 @@ void plan(double runTime, optimalPlanner plannerType, planningObjective objectiv
 
     // Set the bounds of space to be in [0,1].
     space->setBounds(0.0, 1.0);
-
+    
     // Construct a space information instance for this state space
     auto si(std::make_shared<ob::SpaceInformation>(space));
-
+    
     // Set the object used to check which states in the space are valid
     si->setStateValidityChecker(std::make_shared<ValidityChecker>(si));
 
@@ -438,10 +452,10 @@ bool argParse(int argc, char **argv, double *runTimePtr, optimalPlanner *planner
     desc.add_options()("help,h", "produce help message")(
         "runtime,t", bpo::value<double>()->default_value(1.0),
         "(Optional) Specify the runtime in seconds. Defaults to 1 and "
-        "must be greater than 0.")("planner,p", bpo::value<std::string>()->default_value("RRTstar"),
+        "must be greater than 0.")("planner,p", bpo::value<std::string>()->default_value("BLITstar"),
                                    "(Optional) Specify the optimal planner to use, defaults to RRTstar if not given. "
                                    "Valid options are AITstar, "
-                                   "BFMTstar, BITstar, CForest, EITstar, EIRMstar, FMTstar, InformedRRTstar, PRMstar, RRTstar, "
+                                   "AORRTC, BFMTstar, BITstar, BLITstar, CForest, EITstar, EIRMstar, FMTstar, InformedRRTstar, PRMstar, RRTstar, "
                                    "and SORRTstar.")  // Alphabetical order
         ("objective,o", bpo::value<std::string>()->default_value("PathLength"),
          "(Optional) Specify the optimization objective, defaults to PathLength if not given. Valid options are "
@@ -501,6 +515,10 @@ bool argParse(int argc, char **argv, double *runTimePtr, optimalPlanner *planner
     {
         *plannerPtr = PLANNER_AITSTAR;
     }
+    else if (boost::iequals("AORRTC", plannerStr))
+    {
+        *plannerPtr = PLANNER_AORRTC;
+    }
     else if (boost::iequals("BFMTstar", plannerStr))
     {
         *plannerPtr = PLANNER_BFMTSTAR;
@@ -508,6 +526,10 @@ bool argParse(int argc, char **argv, double *runTimePtr, optimalPlanner *planner
     else if (boost::iequals("BITstar", plannerStr))
     {
         *plannerPtr = PLANNER_BITSTAR;
+    }
+    else if (boost::iequals("BLITstar", plannerStr))
+    {
+        *plannerPtr = PLANNER_BLITSTAR;
     }
     else if (boost::iequals("CForest", plannerStr))
     {

@@ -96,11 +96,8 @@ namespace ompl
             /** \brief ompl::base::VanaOwenStateSpace */
             STATE_SPACE_VANA_OWEN = 16,
 
-            /** \brief ompl::base::SpaceTimeStateSpace */
-            STATE_SPACE_SPACE_TIME = 17, 
-            
-            /** \brief ompl::base::ConstrainedStateSpace */
-            STATE_SPACE_CONSTRAINED = 18,
+            /** \brief ompl::base::TrochoidStateSpace */
+            STATE_SPACE_TROCHOID = 17,
 
             /** \brief Number of state space types; To add new types,
                 use values that are larger than the count*/

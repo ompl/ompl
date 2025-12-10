@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.12)
 project(ompl VERSION 1.8.0 LANGUAGES CXX)
-set(OMPL_ABI_VERSION 18)
+set(OMPL_ABI_VERSION 19)
 
 # Use the FindBoost provided by CMake, rather than the one provided by Boost
 # (for CMake >=3.30).
@@ -67,30 +67,71 @@ add_definitions(-DBOOST_TEST_DYN_LINK)
 # Avoid valgrind error due to overflow error, cf. https://github.com/ompl/ompl/issues/664
 add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
 
+set_package_properties(Threads PROPERTIES
+    URL "https://en.wikipedia.org/wiki/POSIX_Threads"
+    PURPOSE "Pthreads is sometimes needed, depending on OS / compiler.")
+find_package(Threads QUIET)
+
+enable_testing()
+
+set_package_properties(Python PROPERTIES
+    URL "https://www.python.org"
+    PURPOSE "Used for python bindings.")
+find_package(Python QUIET)
+find_boost_python()
+
+if(PYTHON_FOUND)
+    set_package_properties(pypy PROPERTIES
+        URL "https://pypy.org"
+        PURPOSE "Used to speed up the generation of python bindings.")
+    find_package(pypy QUIET)
+endif()
+
+# look for boost AFTER find_boost_python which also uses
+# find_package(Boost) internally and can overwrite a selected Boost library
 set_package_properties(Boost PROPERTIES
     URL "https://www.boost.org"
     PURPOSE "Used throughout OMPL for data serialization, graphs, etc.")
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost ${OMPL_MIN_BOOST_VERSION} REQUIRED COMPONENTS serialization filesystem system program_options)
+find_package(Boost 1.68 REQUIRED COMPONENTS serialization program_options)
 
-enable_testing()
-
-
-if(TARGET Python::Module)
-    include(FetchContent)
-    FetchContent_Declare(
-        nanobind
-        GIT_REPOSITORY https://github.com/wjakob/nanobind.git
-        GIT_TAG        v2.7.0
-        GIT_SHALLOW    ON
-    )
-    FetchContent_MakeAvailable(nanobind)
+# on macOS we need to check whether to use libc++ or libstdc++ with clang++
+if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
+    include(GetPrerequisites)
+    get_prerequisites("${Boost_SYSTEM_LIBRARY}" _libs 0 0 "/" "")
+    set(CXXSTDLIB "")
+    foreach(_lib ${_libs})
+        if(_lib MATCHES "libc\\+\\+")
+            set(CXXSTDLIB "libc++")
+        elseif(_lib MATCHES "libstdc\\+\\+")
+            set(CXXSTDLIB "libstdc++")
+        endif()
+    endforeach()
+    if(CXXSTDLIB)
+        add_definitions(-stdlib=${CXXSTDLIB})
+    endif()
 endif()
-
 set_package_properties(Eigen3 PROPERTIES
     URL "http://eigen.tuxfamily.org"
     PURPOSE "A linear algebra library used throughout OMPL.")
 find_package(Eigen3 REQUIRED)
+
+set_package_properties(yaml-cpp PROPERTIES
+    URL "https://github.com/jbeder/yaml-cpp"
+    PURPOSE "Used for parsing YAML configuration files, required for VAMP demos.")
+find_package(yaml-cpp CONFIG REQUIRED)
+
+# yaml-cpp might not come with alias or namespaced target names, so add it here.
+# https://github.com/jbeder/yaml-cpp/issues/1025
+# https://github.com/jbeder/yaml-cpp/pull/1196
+if(NOT TARGET yaml-cpp::yaml-cpp AND TARGET yaml-cpp)
+    # Aliasing local imported targets is only supported in CMake >=3.18.
+    # Promoting yaml-cpp to the global scope here prevents errors on
+    # older CMake versions.
+    # (see: https://cmake.org/cmake/help/latest/command/add_library.html#alias-libraries)
+    set_target_properties(yaml-cpp PROPERTIES IMPORTED_GLOBAL TRUE)
+    add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
+endif()
 
 set_package_properties(Triangle PROPERTIES
     URL "http://www.cs.cmu.edu/~quake/triangle.html"
@@ -121,11 +162,60 @@ set_package_properties(Doxygen PROPERTIES
     PURPOSE "Used to create the OMPL documentation (i.e., https://ompl.kavrakilab.org).")
 find_package(Doxygen)
 
-add_subdirectory(src)
-if(OMPL_BUILD_PYBINDINGS)
-    add_subdirectory(bindings)
+# Numpy is used to convert Eigen matrices/vectors to numpy arrays
+if(PYTHON_FOUND)
+    find_python_module(numpy)
+    if (PY_NUMPY)
+        find_boost_numpy()
+        if(Boost_NUMPY_LIBRARY)
+            set(OMPL_HAVE_NUMPY 1)
+            include_directories(SYSTEM "${PY_NUMPY}/core/include")
+        endif()
+    endif()
 endif()
+
+# R is needed for running Planner Arena locally
+find_program(R_EXEC R)
+
+# default to building shared libs except Windows
+if (MSVC)
+    option(OMPL_BUILD_SHARED "Build OMPL as a shared library" OFF)
+else()
+    option(OMPL_BUILD_SHARED "Build OMPL as a shared library" ON)
+endif()
+add_subdirectory(src)
+add_subdirectory(py-bindings)
+
+# VAMP build options
+option(VAMP_PORTABLE_BUILD "Build VAMP with portable SIMD settings for distribution (package maintainers)" OFF)
+option(VAMP_BUILD_PYTHON_BINDINGS "Build VAMP Python bindings (requires OMPL_BUILD_VAMP=ON)" OFF)
+
+if(VAMP_PORTABLE_BUILD)
+    message(STATUS "VAMP: Using portable build mode for distribution")
+else()
+    message(STATUS "VAMP: Using native build mode for best performance")
+endif()
+
+if(VAMP_BUILD_PYTHON_BINDINGS)
+    message(STATUS "VAMP: Python bindings enabled")
+else()
+    message(STATUS "VAMP: Python bindings disabled (C++ only)")
+endif()
+
+# VAMP submodule integration
+option(OMPL_BUILD_VAMP "Build VAMP submodule" ON)
+if(OMPL_BUILD_VAMP)
+    include(CMakeModules/VampConfig.cmake)
+    configure_vamp()
+    set(OMPL_HAVE_VAMP TRUE CACHE BOOL "Whether VAMP integration is available" FORCE)
+    message(STATUS "VAMP integration enabled via OMPL_BUILD_VAMP=ON")
+else()
+    set(OMPL_HAVE_VAMP FALSE CACHE BOOL "Whether VAMP integration is available" FORCE)
+    message(STATUS "VAMP integration disabled. Use -DOMPL_BUILD_VAMP=ON to enable.")
+endif()
+
 add_subdirectory(tests)
+
 add_subdirectory(demos)
 add_subdirectory(scripts)
 add_subdirectory(doc)
@@ -195,6 +285,23 @@ install(FILES package.xml
 # Allows Colcon to find non-Ament packages when using workspace underlays
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/share/ament_index/resource_index/packages/${PROJECT_NAME} "")
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/ament_index/resource_index/packages/${PROJECT_NAME} DESTINATION share/ament_index/resource_index/packages)
+
+set_package_properties(PkgConfig PROPERTIES
+    URL "https://www.freedesktop.org/wiki/Software/pkg-config/"
+    PURPOSE "Used to find (compilation flags for) dependencies.")
+set_package_properties(castxml PROPERTIES
+    URL "https://github.com/CastXML/CastXML"
+    PURPOSE "Used to generate Python bindings.")
+    
+# Add VAMP to feature summary
+set_package_properties(VAMP PROPERTIES
+    URL "https://github.com/KavrakiLab/vamp"
+    PURPOSE "VAMP (Vector Accelerated Motion Planning)")
+if(OMPL_HAVE_VAMP)
+    set(VAMP_FOUND TRUE)
+else()
+    set(VAMP_FOUND FALSE)
+endif()
 
 feature_summary(DESCRIPTION INCLUDE_QUIET_PACKAGES WHAT ALL)
 

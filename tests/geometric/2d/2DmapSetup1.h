@@ -34,7 +34,7 @@
 
 /* Author: Ioan Sucan */
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/ProblemDefinition.h"
@@ -101,7 +101,7 @@ namespace ompl
             void loadTestFile(const std::string &testFile)
             {
                 /* load environment */
-                boost::filesystem::path path(TEST_RESOURCES_DIR);
+                std::filesystem::path path(TEST_RESOURCES_DIR);
                 path = path / testFile;
                 loadEnvironment(path.string().c_str(), env_);
                 configure2DMap1();
