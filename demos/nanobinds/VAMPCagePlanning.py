@@ -84,9 +84,11 @@ def main(
                 e.add_sphere(vamp.Sphere(sphere, radius))
             planning_start = time.time()
             si = ob.SpaceInformation(space)
+            planner = og.RRTConnect(si)
             si.setMotionValidator(VampMotionValidator(si, e, dimension))
             si.setStateValidityChecker(partial(isStateValid, env=e, dimension=dimension))
             ss = og.SimpleSetup(si)
+            ss.setPlanner(planner)
             start = si.allocState()
             start[0:dimension] = a
             goal = si.allocState()
