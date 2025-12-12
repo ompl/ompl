@@ -97,12 +97,56 @@ def main(
             result = ss.solve(1.0)
             planning_time = time.time() - planning_start
             if result:
+                solution_length = ss.getSolutionPath().length()
+                simplify_start = time.time()
+                ss.simplifySolution()
+                simplified_solution_length = ss.getSolutionPath().length()
+                simplify_time = time.time() - simplify_start
                 results.append({
-                    "planning_time": planning_time,
+                    "planning_time(ms)": planning_time * 1000,
+                    "simplify_time(ms)": simplify_time * 1000,
+                    "solution_length": solution_length,
+                    "simplified_solution_length": simplified_solution_length,
                 })
         df = pd.DataFrame.from_dict(results)
         print(df.describe())
-
-
+    
+    if visualize: 
+        import viser
+        from viser.extras import ViserUrdf
+        from robot_descriptions.loaders.yourdfpy import load_robot_description        
+        server = viser.ViserServer()
+        robot_urdf = load_robot_description("panda_description")
+        urdf_vis = ViserUrdf(server, robot_urdf, root_node_name="/robot")
+        random.shuffle(spheres)
+        spheres_copy = copy.deepcopy(spheres)
+        e = vamp.Environment()
+        for i, sphere in enumerate(spheres_copy):
+            sphere += np.random.uniform(low = -variation, high = variation, size = (3, ))
+            e.add_sphere(vamp.Sphere(sphere, radius))
+            server.scene.add_icosphere(name=f"sphere_{i}", position=sphere, radius=radius, color=(1, 0, 0))
+        si = ob.SpaceInformation(space)
+        planner = og.RRTConnect(si)
+        si.setMotionValidator(VampMotionValidator(si, e, dimension))
+        si.setStateValidityChecker(partial(isStateValid, env=e, dimension=dimension))
+        ss = og.SimpleSetup(si)
+        ss.setPlanner(planner)
+        start = si.allocState()
+        start[0:dimension] = a
+        goal = si.allocState()
+        goal[0:dimension] = b
+        ss.setStartAndGoalStates(start, goal)
+        result = ss.solve(1.0)
+        if result:
+            ss.simplifySolution()
+            path = ss.getSolutionPath()
+            path.interpolate()
+            while True: 
+                for state in path.getStates():
+                    cfg = copy.deepcopy(state[0:dimension])
+                    cfg.append(0)
+                    urdf_vis.update_cfg(cfg)
+                    time.sleep(0.1)
+        
 if __name__ == "__main__":
     Fire(main)
