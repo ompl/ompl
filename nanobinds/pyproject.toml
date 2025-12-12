@@ -1,0 +1,30 @@
+[build-system]
+requires = [
+    "scikit-build-core >=0.4.3",
+    "nanobind",
+    "cmake >=3.18",
+    "ninja",
+]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "ompl"
+dynamic = ["version"]
+requires-python = ">=3.9"
+
+[tool.scikit-build]
+minimum-version = "0.4"
+build-dir = "build/{wheel_tag}"
+metadata.version.provider = "scikit_build_core.metadata.regex"
+metadata.version.input = "../CMakeLists.txt"
+metadata.version.regex = '''(?i)project\s*\(\s*\w+\s+VERSION\s+(?P<value>[\d.]+)'''
+
+[tool.scikit-build.cmake]
+source-dir = ".." 
+args = [
+    "-DOMPL_BUILD_NANOBIND=ON",
+    "-DOMPL_BUILD_PYBINDINGS=OFF",
+    "-DOMPL_REGISTRATION=OFF",
+    "-DOMPL_BUILD_DEMOS=OFF",
+    "-DOMPL_BUILD_TESTS=OFF",
+]

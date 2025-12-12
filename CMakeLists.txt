@@ -162,6 +162,16 @@ endif()
 add_subdirectory(src)
 add_subdirectory(py-bindings)
 
+option(OMPL_BUILD_NANOBIND "Build OMPL Nanobind bindings" OFF)
+add_feature_info(OMPL_BUILD_NANOBIND "${OMPL_BUILD_NANOBIND}" "Whether to build the Nanobind bindings.")
+
+if(OMPL_BUILD_NANOBIND)
+    find_package(Nanobind REQUIRED)
+    add_subdirectory(nanobinds)
+else()
+    message(STATUS "Nanobind bindings disabled. Use -DOMPL_BUILD_NANOBIND=ON to enable.")
+endif()
+
 # VAMP build options
 option(VAMP_PORTABLE_BUILD "Build VAMP with portable SIMD settings for distribution (package maintainers)" OFF)
 option(VAMP_BUILD_PYTHON_BINDINGS "Build VAMP Python bindings (requires OMPL_BUILD_VAMP=ON)" OFF)

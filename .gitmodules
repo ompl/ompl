@@ -3,3 +3,6 @@
 	url = https://github.com/KavrakiLab/vamp
 	branch = main
 	update = checkout
+[submodule "external/nanobind"]
+	path = external/nanobind
+	url = https://github.com/wjakob/nanobind.git
