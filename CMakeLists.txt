@@ -58,20 +58,12 @@ add_definitions(-DBOOST_TEST_DYN_LINK)
 # Avoid valgrind error due to overflow error, cf. https://github.com/ompl/ompl/issues/664
 add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
 
-
-
 add_subdirectory(src)
-if(VAMP_BUILD_PYTHON_BINDINGS)
-    message(STATUS "VAMP: Python bindings enabled")
-else()
-    message(STATUS "VAMP: Python bindings disabled (C++ only)")
-endif()
 
 # VAMP submodule integration
 if(OMPL_BUILD_VAMP)
     include(CMakeModules/VampConfig.cmake)
     configure_vamp()
-    set(OMPL_HAVE_VAMP TRUE CACHE BOOL "Whether VAMP integration is available" FORCE)
     message(STATUS "VAMP integration enabled via OMPL_BUILD_VAMP=ON")
 else()
     set(OMPL_HAVE_VAMP FALSE CACHE BOOL "Whether VAMP integration is available" FORCE)
