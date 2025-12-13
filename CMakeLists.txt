@@ -159,34 +159,13 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/ament_index/resource_index/packa
 set_package_properties(PkgConfig PROPERTIES
     URL "https://www.freedesktop.org/wiki/Software/pkg-config/"
     PURPOSE "Used to find (compilation flags for) dependencies.")
-set_package_properties(castxml PROPERTIES
-    URL "https://github.com/CastXML/CastXML"
-    PURPOSE "Used to generate Python bindings.")
     
 # Add VAMP to feature summary
 set_package_properties(VAMP PROPERTIES
     URL "https://github.com/KavrakiLab/vamp"
     PURPOSE "VAMP (Vector Accelerated Motion Planning)")
-if(OMPL_HAVE_VAMP)
-    set(VAMP_FOUND TRUE)
-else()
-    set(VAMP_FOUND FALSE)
-endif()
 
 feature_summary(DESCRIPTION INCLUDE_QUIET_PACKAGES WHAT ALL)
-# additional feature info: show which Python modules were found and weren't found
-get_property(PY_MODULES_FOUND GLOBAL PROPERTY PY_MODULES_FOUND)
-if(PY_MODULES_FOUND)
-    list(REMOVE_DUPLICATES PY_MODULES_FOUND)
-    string(REPLACE ";" " " PY_MODULES_FOUND_STR "${PY_MODULES_FOUND}")
-    message(STATUS "The following Python modules were found:\n\n * ${PY_MODULES_FOUND_STR}\n")
-endif()
-get_property(PY_MODULES_NOTFOUND GLOBAL PROPERTY PY_MODULES_NOTFOUND)
-if(PY_MODULES_NOTFOUND)
-    list(REMOVE_DUPLICATES PY_MODULES_NOTFOUND)
-    string(REPLACE ";" " " PY_MODULES_NOTFOUND_STR "${PY_MODULES_NOTFOUND}")
-    message(STATUS "The following Python modules were NOT found:\n\n * ${PY_MODULES_NOTFOUND_STR}\n")
-endif()
 
 # Create targets for building docker images
 # See CMakeModules/OMPLUtils.cmake and scripts/docker for details
