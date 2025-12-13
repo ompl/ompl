@@ -37,6 +37,7 @@ if(CMAKE_COMPILER_IS_GNUCXX AND NOT MINGW)
 endif(CMAKE_COMPILER_IS_GNUCXX AND NOT MINGW)
 
 option(OMPL_SKIP_RPATH "Don't set RPATH to the OMPL library" OFF)
+add_feature_info(OMPL_SKIP_RPATH "${OMPL_SKIP_RPATH}" "Whether to skip setting RPATH to the OMPL library.")
 if(NOT OMPL_SKIP_RPATH)
     # Set rpath, see https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
     set(CMAKE_SKIP_BUILD_RPATH OFF)

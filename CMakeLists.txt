@@ -2,6 +2,23 @@ cmake_minimum_required(VERSION 3.12)
 project(ompl VERSION 2.0.0 LANGUAGES CXX)
 set(PROJECT_VERSION 2.0.0-beta)
 set(OMPL_ABI_VERSION 19)
+include(FeatureSummary)
+
+option(OMPL_REGISTRATION "Enable one-time registration of OMPL" ON)
+add_feature_info(OMPL_REGISTRATION "${OMPL_REGISTRATION}" "Whether to enable one-time registration of OMPL.")
+# VAMP build options
+option(VAMP_BUILD_PYTHON_BINDINGS "Build VAMP Python bindings (requires OMPL_BUILD_VAMP=ON)" OFF)
+add_feature_info(VAMP_BUILD_PYTHON_BINDINGS "${VAMP_BUILD_PYTHON_BINDINGS}" "Whether to build VAMP Python bindings.")
+option(OMPL_BUILD_VAMP "Build VAMP submodule" ON)
+add_feature_info(OMPL_BUILD_VAMP "${OMPL_BUILD_VAMP}" "Whether to build VAMP submodule.")
+
+# default to building shared libs except Windows
+if (MSVC)
+    option(OMPL_BUILD_SHARED "Build OMPL as a shared library" OFF)
+else()
+    option(OMPL_BUILD_SHARED "Build OMPL as a shared library" ON)
+endif()
+add_feature_info(OMPL_BUILD_SHARED "${OMPL_BUILD_SHARED}" "Whether to build OMPL as a shared library (default is ON for non-Windows, OFF for Windows).")
 
 # Use the FindBoost provided by CMake, rather than the one provided by Boost
 # (for CMake >=3.30).
@@ -26,7 +43,6 @@ list(APPEND CMAKE_MODULE_PATH
     "${CMAKE_ROOT_DIR}/cmake/Modules"
     "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 include(GNUInstallDirs)
-include(FeatureSummary)
 include(OMPLCompilerSettings)
 include(OMPLUtils)
 include(OMPLDependencies)
@@ -43,16 +59,8 @@ add_definitions(-DBOOST_TEST_DYN_LINK)
 add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
 
 
-# default to building shared libs except Windows
-if (MSVC)
-    option(OMPL_BUILD_SHARED "Build OMPL as a shared library" OFF)
-else()
-    option(OMPL_BUILD_SHARED "Build OMPL as a shared library" ON)
-endif()
-add_subdirectory(src)
-# VAMP build options
-option(VAMP_BUILD_PYTHON_BINDINGS "Build VAMP Python bindings (requires OMPL_BUILD_VAMP=ON)" OFF)
 
+add_subdirectory(src)
 if(VAMP_BUILD_PYTHON_BINDINGS)
     message(STATUS "VAMP: Python bindings enabled")
 else()
@@ -60,7 +68,6 @@ else()
 endif()
 
 # VAMP submodule integration
-option(OMPL_BUILD_VAMP "Build VAMP submodule" ON)
 if(OMPL_BUILD_VAMP)
     include(CMakeModules/VampConfig.cmake)
     configure_vamp()
@@ -136,7 +143,6 @@ add_custom_target(uninstall
 
 include(CPackSettings)
 
-option(OMPL_REGISTRATION "Enable one-time registration of OMPL" ON)
 if (OMPL_REGISTRATION)
     find_file(OMPL_REGISTERED ".registered" PATHS "${CMAKE_CURRENT_SOURCE_DIR}" NO_DEFAULT_PATH)
     if (NOT OMPL_REGISTERED)
