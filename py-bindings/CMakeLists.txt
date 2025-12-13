@@ -53,17 +53,7 @@ if (OMPL_BUILD_PYBINDINGS)
             COMPONENT python
             PATTERN "*.pyc" EXCLUDE
             PATTERN "__pycache__" EXCLUDE
-            PATTERN "_*.so" EXCLUDE
-            PATTERN "app" EXCLUDE)
-        # put app submodule in omplapp component
-        if(PROJECT_NAME STREQUAL "omplapp")
-            install(DIRECTORY ompl/app
-                DESTINATION "${OMPL_PYTHON_INSTALL_DIR}/ompl"
-                COMPONENT omplapp
-                PATTERN "*.pyc" EXCLUDE
-                PATTERN "__pycache__" EXCLUDE
-                PATTERN "_*.so" EXCLUDE)
-        endif()
+            PATTERN "_*.so" EXCLUDE)
     endif()
 
 endif(OMPL_BUILD_PYBINDINGS)

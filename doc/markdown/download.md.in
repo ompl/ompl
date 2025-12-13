@@ -26,11 +26,11 @@
 
 - The [latest source](https://github.com/ompl/ompl) is available on GitHub:
 
-      git clone https://github.com/ompl/ompl.git
+      git clone --recurse-submodules https://github.com/ompl/ompl.git
 
 - [Installation instructions](installation.html) are the same as for a release.
 
 ## OMPL in ROS
 
 - __OMPL__ is used as a system dependency in [ROS 2](http://www.ros.org), and the correct .deb file is installed automatically as needed.
-- __OMPL__ is also used as a planning plugin in [MoveIt2!](https://moveit.picknik.ai/main/index.html)
+- __OMPL__ is also used as a planning plugin in [MoveIt2](https://moveit.ai).
