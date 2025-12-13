@@ -42,7 +42,6 @@ add_definitions(-DBOOST_TEST_DYN_LINK)
 # Avoid valgrind error due to overflow error, cf. https://github.com/ompl/ompl/issues/664
 add_definitions(-DBOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
 
-enable_testing()
 
 # default to building shared libs except Windows
 if (MSVC)
@@ -81,6 +80,7 @@ else()
     message(STATUS "VAMP integration disabled. Use -DOMPL_BUILD_VAMP=ON to enable.")
 endif()
 
+enable_testing()
 add_subdirectory(tests)
 
 add_subdirectory(demos)
