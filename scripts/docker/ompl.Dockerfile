@@ -40,7 +40,6 @@ RUN git submodule update --init --recursive && \
         -B build \
         -DPYTHON_EXEC=/usr/bin/python3 \
         -DOMPL_REGISTRATION=OFF \
-        -DVAMP_PORTABLE_BUILD=ON \
         -DCMAKE_INSTALL_PREFIX=/usr && \
     cmake --build build -t update_bindings && \
     cmake --build build && \

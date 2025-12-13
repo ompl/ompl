@@ -51,14 +51,7 @@ else()
 endif()
 add_subdirectory(src)
 # VAMP build options
-option(VAMP_PORTABLE_BUILD "Build VAMP with portable SIMD settings for distribution (package maintainers)" OFF)
 option(VAMP_BUILD_PYTHON_BINDINGS "Build VAMP Python bindings (requires OMPL_BUILD_VAMP=ON)" OFF)
-
-if(VAMP_PORTABLE_BUILD)
-    message(STATUS "VAMP: Using portable build mode for distribution")
-else()
-    message(STATUS "VAMP: Using native build mode for best performance")
-endif()
 
 if(VAMP_BUILD_PYTHON_BINDINGS)
     message(STATUS "VAMP: Python bindings enabled")

@@ -15,7 +15,6 @@ function(configure_vamp)
     message(STATUS "Configuring VAMP integration...")
     
     # Pass build options to VAMP submodule
-    set(VAMP_PORTABLE_BUILD ${VAMP_PORTABLE_BUILD} CACHE BOOL "Build VAMP with portable SIMD settings" FORCE)
     set(VAMP_BUILD_PYTHON_BINDINGS ${VAMP_BUILD_PYTHON_BINDINGS} CACHE BOOL "Build VAMP Python bindings" FORCE)
     set(VAMP_BUILD_CPP_DEMO OFF CACHE BOOL "Build VAMP C++ Demo Scripts" FORCE)
     set(VAMP_BUILD_OMPL_DEMO OFF CACHE BOOL "Build VAMP C++ OMPL Integration Demo Scripts" FORCE)
