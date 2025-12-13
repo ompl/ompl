@@ -12,7 +12,6 @@ If you are building OMPL from source, there are several options that you can use
 | OMPL_BUILD_VAMP               | ON            | Build VAMP (Vector-Accelerated Motion Planning) submodule for enhanced collision checking performance. |
 | OMPL_REGISTRATION             | ON            | Whether the registration page is shown. (Disabling it might be useful for build bots.) |
 | OMPL_VERSIONED_INSTALL        | ON            | Install header files in include/ompl-X.Y/ompl, where X and Y are the major and minor version numbers. |
-| VAMP_PORTABLE_BUILD           | OFF           | Build VAMP with portable SIMD settings for distribution (package maintainers). When OFF, uses native SIMD for best performance. |
 | VAMP_BUILD_PYTHON_BINDINGS    | OFF           | Build VAMP Python bindings (advanced feature, requires OMPL_BUILD_VAMP=ON). |
 
 There also several optional dependencies. By default, if an optional dependency is detected by `cmake`, support for this dependency is enabled. If this is not what you want, you can run `cmake` like so:
