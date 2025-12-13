@@ -64,22 +64,6 @@ set_package_properties(Boost PROPERTIES
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost 1.68 REQUIRED COMPONENTS serialization program_options)
 
-# on macOS we need to check whether to use libc++ or libstdc++ with clang++
-if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
-    include(GetPrerequisites)
-    get_prerequisites("${Boost_SYSTEM_LIBRARY}" _libs 0 0 "/" "")
-    set(CXXSTDLIB "")
-    foreach(_lib ${_libs})
-        if(_lib MATCHES "libc\\+\\+")
-            set(CXXSTDLIB "libc++")
-        elseif(_lib MATCHES "libstdc\\+\\+")
-            set(CXXSTDLIB "libstdc++")
-        endif()
-    endforeach()
-    if(CXXSTDLIB)
-        add_definitions(-stdlib=${CXXSTDLIB})
-    endif()
-endif()
 set_package_properties(Eigen3 PROPERTIES
     URL "http://eigen.tuxfamily.org"
     PURPOSE "A linear algebra library used throughout OMPL.")
