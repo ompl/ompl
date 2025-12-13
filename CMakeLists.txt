@@ -27,7 +27,7 @@ list(APPEND CMAKE_MODULE_PATH
     "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 include(GNUInstallDirs)
 include(FeatureSummary)
-include(CompilerSettings)
+include(OMPLCompilerSettings)
 include(OMPLUtils)
 include(Dependencies)
 set(OMPL_DEMO_INSTALL_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ompl/demos"
