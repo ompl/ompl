@@ -1,9 +1,0 @@
-py-bindings/stdsize.h
-src/ompl/tools/benchmark/Benchmark.h
-src/ompl/tools/benchmark/MachineSpecs.h
-src/ompl/tools/config/MagicConstants.h
-src/ompl/tools/config/SelfConfig.h
-src/ompl/tools/lightning/DynamicTimeWarp.h
-src/ompl/tools/multiplan/ParallelPlan.h
-src/ompl/tools/multiplan/OptimizePlan.h
-py-bindings/ompl_py_tools.h
