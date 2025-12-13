@@ -68,23 +68,6 @@ set_package_properties(Eigen3 PROPERTIES
     PURPOSE "A linear algebra library used throughout OMPL.")
 find_package(Eigen3 REQUIRED)
 
-set_package_properties(yaml-cpp PROPERTIES
-    URL "https://github.com/jbeder/yaml-cpp"
-    PURPOSE "Used for parsing YAML configuration files, required for VAMP demos.")
-find_package(yaml-cpp CONFIG REQUIRED)
-
-# yaml-cpp might not come with alias or namespaced target names, so add it here.
-# https://github.com/jbeder/yaml-cpp/issues/1025
-# https://github.com/jbeder/yaml-cpp/pull/1196
-if(NOT TARGET yaml-cpp::yaml-cpp AND TARGET yaml-cpp)
-    # Aliasing local imported targets is only supported in CMake >=3.18.
-    # Promoting yaml-cpp to the global scope here prevents errors on
-    # older CMake versions.
-    # (see: https://cmake.org/cmake/help/latest/command/add_library.html#alias-libraries)
-    set_target_properties(yaml-cpp PROPERTIES IMPORTED_GLOBAL TRUE)
-    add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
-endif()
-
 set_package_properties(Triangle PROPERTIES
     URL "http://www.cs.cmu.edu/~quake/triangle.html"
     PURPOSE "Used to create triangular decompositions of polygonal 2D environments.")
