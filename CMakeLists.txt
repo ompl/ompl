@@ -25,6 +25,7 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 list(APPEND CMAKE_MODULE_PATH
     "${CMAKE_ROOT_DIR}/cmake/Modules"
     "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
+include(FetchInitCPM)
 include(GNUInstallDirs)
 include(FeatureSummary)
 include(CompilerSettings)
