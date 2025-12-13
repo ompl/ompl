@@ -55,14 +55,6 @@ set_package_properties(Python PROPERTIES
     URL "https://www.python.org"
     PURPOSE "Used for python bindings.")
 find_package(Python QUIET)
-find_boost_python()
-
-if(PYTHON_FOUND)
-    set_package_properties(pypy PROPERTIES
-        URL "https://pypy.org"
-        PURPOSE "Used to speed up the generation of python bindings.")
-    find_package(pypy QUIET)
-endif()
 
 # look for boost AFTER find_boost_python which also uses
 # find_package(Boost) internally and can overwrite a selected Boost library
@@ -138,18 +130,6 @@ set_package_properties(Doxygen PROPERTIES
     URL "http://doxygen.org"
     PURPOSE "Used to create the OMPL documentation (i.e., https://ompl.kavrakilab.org).")
 find_package(Doxygen)
-
-# Numpy is used to convert Eigen matrices/vectors to numpy arrays
-if(PYTHON_FOUND)
-    find_python_module(numpy)
-    if (PY_NUMPY)
-        find_boost_numpy()
-        if(Boost_NUMPY_LIBRARY)
-            set(OMPL_HAVE_NUMPY 1)
-            include_directories(SYSTEM "${PY_NUMPY}/core/include")
-        endif()
-    endif()
-endif()
 
 # R is needed for running Planner Arena locally
 find_program(R_EXEC R)
