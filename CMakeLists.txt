@@ -50,8 +50,6 @@ else()
     option(OMPL_BUILD_SHARED "Build OMPL as a shared library" ON)
 endif()
 add_subdirectory(src)
-add_subdirectory(py-bindings)
-
 # VAMP build options
 option(VAMP_PORTABLE_BUILD "Build VAMP with portable SIMD settings for distribution (package maintainers)" OFF)
 option(VAMP_BUILD_PYTHON_BINDINGS "Build VAMP Python bindings (requires OMPL_BUILD_VAMP=ON)" OFF)
