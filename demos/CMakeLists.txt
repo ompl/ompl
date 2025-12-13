@@ -59,7 +59,7 @@ if (OMPL_BUILD_DEMOS)
     add_ompl_demo(demo_SpaceTimePlanning SpaceTimePlanning.cpp)
 
     # yaml-cpp is now a required dependency and target alias is handled in main CMakeLists.txt
-
+    if (OMPL_HAVE_YAMLCPP)
         add_ompl_demo(demo_MulticopterPlanning 
                     multicopter/MulticopterPlanning.cpp
                     multicopter/Quartic.cpp)
@@ -70,7 +70,8 @@ if (OMPL_BUILD_DEMOS)
             PlanarManipulator/PolyWorld.cpp
         )
         target_link_libraries(demo_PlanarManipulator PRIVATE yaml-cpp::yaml-cpp)
-
+    endif()
+    
     add_ompl_demo(demo_MultiLevelPlanarManipulator
         multilevel/MultiLevelPlanarManipulatorDemo.cpp
         PlanarManipulator/PlanarManipulator.cpp

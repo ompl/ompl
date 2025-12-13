@@ -46,6 +46,17 @@ else ()
     set(OMPL_HAVE_SPOT 0)
 endif()
 
+# yaml-cpp
+set_package_properties(yaml-cpp PROPERTIES
+    URL "https://github.com/jbeder/yaml-cpp"
+    PURPOSE "Used for parsing YAML configuration files, required for multicopter demos. If not found, multicopter demos will not be built.")
+find_package(yaml-cpp CONFIG QUIET)
+if (yaml-cpp_FOUND)
+    set(OMPL_HAVE_YAMLCPP 1)
+else ()
+    set(OMPL_HAVE_YAMLCPP 0)
+endif()
+
 # Doxygen
 set_package_properties(Doxygen PROPERTIES
     URL "http://doxygen.org"
