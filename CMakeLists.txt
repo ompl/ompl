@@ -29,7 +29,7 @@ include(GNUInstallDirs)
 include(FeatureSummary)
 include(CompilerSettings)
 include(OMPLUtils)
-
+include(Dependencies)
 set(OMPL_DEMO_INSTALL_DIR "${CMAKE_INSTALL_DATAROOTDIR}/ompl/demos"
     CACHE STRING "Relative path to directory where demos will be installed")
 
