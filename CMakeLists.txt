@@ -11,6 +11,8 @@ option(VAMP_BUILD_PYTHON_BINDINGS "Build VAMP Python bindings (requires OMPL_BUI
 add_feature_info(VAMP_BUILD_PYTHON_BINDINGS "${VAMP_BUILD_PYTHON_BINDINGS}" "Whether to build VAMP Python bindings.")
 option(OMPL_BUILD_VAMP "Build VAMP submodule" ON)
 add_feature_info(OMPL_BUILD_VAMP "${OMPL_BUILD_VAMP}" "Whether to build VAMP submodule.")
+option(VAMP_PORTABLE_BUILD "Build VAMP with portable SIMD settings for distribution (package maintainers)" OFF)
+add_feature_info(VAMP_PORTABLE_BUILD "${VAMP_PORTABLE_BUILD}" "Whether to build VAMP with portable SIMD settings for distribution (package maintainers).")
 
 # default to building shared libs except Windows
 if (MSVC)
