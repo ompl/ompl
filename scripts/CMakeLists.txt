@@ -1,3 +1,8 @@
+install(PROGRAMS ompl_benchmark_statistics.py
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
+    COMPONENT ompl
+    RENAME ompl_benchmark_statistics.py)
+    
 find_program(R_EXEC R)
 if (R_EXEC)
     install(DIRECTORY plannerarena
