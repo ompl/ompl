@@ -35,10 +35,7 @@
 /* Author: Mark Moll */
 
 #include "ompl/base/spaces/VanaOwenStateSpace.h"
-#include "ompl/base/SpaceInformation.h"
 #include "ompl/tools/config/MagicConstants.h"
-#include "ompl/util/Exception.h"
-#include <queue>
 #include <boost/math/tools/toms748_solve.hpp>
 
 using namespace ompl::base;
@@ -169,6 +166,8 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
             result.pathSZ_.type_ = &DubinsStateSpace::dubinsPathType()[0]; // LSL type
             result.pathSZ_.length_[0] = result.pathSZ_.length_[2] = 0.;
             result.pathSZ_.length_[1] = result.deltaZ_;
+            // don't break length() and interpolation()
+            result.verticalRadius_ = 0.;
             return true;
         }
         else
@@ -464,7 +463,7 @@ VanaOwenStateSpace::PathType &VanaOwenStateSpace::PathType::operator=(const Vana
 
 double VanaOwenStateSpace::PathType::length() const
 {
-    return verticalRadius_ * pathSZ_.length();
+    return verticalRadius_ > 0. ? verticalRadius_ * pathSZ_.length() : horizontalRadius_ * pathXY_.length();
 }
 
 VanaOwenStateSpace::PathCategory VanaOwenStateSpace::PathType::category() const
