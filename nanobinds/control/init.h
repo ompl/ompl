@@ -7,7 +7,6 @@ namespace ompl::binding::control
     void init_ControlSpace(nanobind::module_& m);
     void init_ControlSpaceTypes(nanobind::module_& m);
     void init_DirectedControlSampler(nanobind::module_& m);
-    void init_ODESolver(nanobind::module_& m);
     void init_PathControl(nanobind::module_& m);
     void init_PlannerData(nanobind::module_& m);
     void init_SimpleDirectedControlSampler(nanobind::module_& m);

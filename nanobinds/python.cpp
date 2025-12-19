@@ -150,7 +150,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::control::init_ControlSpace(control);
     ompl::binding::control::init_ControlSpaceTypes(control);
     ompl::binding::control::init_DirectedControlSampler(control);
-    ompl::binding::control::init_ODESolver(control);
     ompl::binding::control::init_PathControl(control);
     ompl::binding::control::init_PlannerData(control);
     ompl::binding::control::init_SimpleDirectedControlSampler(control);
