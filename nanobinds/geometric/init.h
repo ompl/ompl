@@ -9,8 +9,6 @@ namespace ompl::binding::geometric
     void initPlannersPrm_PRMstar(nanobind::module_& m);
     void initPlannersPrm_SPARS(nanobind::module_& m);
     void initPlannersPrm_SPARStwo(nanobind::module_& m);
-    void initPlannersRlrt_BiRLRT(nanobind::module_& m);
-    void initPlannersRlrt_RLRT(nanobind::module_& m);
     void initPlannersRrt_BiTRRT(nanobind::module_& m);
     void initPlannersRrt_InformedRRTstar(nanobind::module_& m);
     void initPlannersRrt_LBTRRT(nanobind::module_& m);
