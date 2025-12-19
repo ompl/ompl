@@ -76,6 +76,8 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::initPlannersPrm_PRMstar(geometric);
     ompl::binding::geometric::initPlannersPrm_SPARS(geometric);
     ompl::binding::geometric::initPlannersPrm_SPARStwo(geometric);
+    ompl::binding::geometric::initPlannersRrt_RRT(geometric);
+    ompl::binding::geometric::initPlannersRrt_RRTConnect(geometric);
 
 
 
