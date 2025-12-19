@@ -63,8 +63,6 @@ NB_MODULE(_ompl, m)
 
 
     nb::module_ geometric = m.def_submodule("geometric");
-    ompl::binding::geometric::init_GeneticSearch(geometric);
-    ompl::binding::geometric::init_HillClimbing(geometric);
     ompl::binding::geometric::init_PathGeometric(geometric);
     ompl::binding::geometric::init_PathHybridization(geometric);
     ompl::binding::geometric::init_PathSimplifier(geometric);

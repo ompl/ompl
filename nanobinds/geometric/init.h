@@ -71,8 +71,6 @@ namespace ompl::binding::geometric
     void initPlannersXxl_XXLPlanarDecomposition(nanobind::module_& m);
     void initPlannersXxl_XXLPositionDecomposition(nanobind::module_& m);
     void initPlanners_AnytimePathShortening(nanobind::module_& m);
-    void init_GeneticSearch(nanobind::module_& m);
-    void init_HillClimbing(nanobind::module_& m);
     void init_PathGeometric(nanobind::module_& m);
     void init_PathHybridization(nanobind::module_& m);
     void init_PathSimplifier(nanobind::module_& m);
