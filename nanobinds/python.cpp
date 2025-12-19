@@ -67,9 +67,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::init_PathHybridization(geometric);
     ompl::binding::geometric::init_PathSimplifier(geometric);
     ompl::binding::geometric::init_SimpleSetup(geometric);
-    ompl::binding::geometric::initPlannersCforest_CForest(geometric);
-    ompl::binding::geometric::initPlannersCforest_CForestStateSampler(geometric);
-    ompl::binding::geometric::initPlannersCforest_CForestStateSpaceWrapper(geometric);
     ompl::binding::geometric::initPlannersEst_BiEST(geometric);
     ompl::binding::geometric::initPlannersEst_EST(geometric);
     ompl::binding::geometric::initPlannersEst_ProjEST(geometric);

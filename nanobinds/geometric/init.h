@@ -2,9 +2,6 @@
 
 namespace ompl::binding::geometric
 {
-    void initPlannersCforest_CForest(nanobind::module_& m);
-    void initPlannersCforest_CForestStateSampler(nanobind::module_& m);
-    void initPlannersCforest_CForestStateSpaceWrapper(nanobind::module_& m);
     void initPlannersEst_BiEST(nanobind::module_& m);
     void initPlannersEst_EST(nanobind::module_& m);
     void initPlannersEst_ProjEST(nanobind::module_& m);
