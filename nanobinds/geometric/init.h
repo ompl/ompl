@@ -2,9 +2,6 @@
 
 namespace ompl::binding::geometric
 {
-    void initPlannersEst_BiEST(nanobind::module_& m);
-    void initPlannersEst_EST(nanobind::module_& m);
-    void initPlannersEst_ProjEST(nanobind::module_& m);
     void initPlannersExperience_LightningRetrieveRepair(nanobind::module_& m);
     void initPlannersExperience_ThunderRetrieveRepair(nanobind::module_& m);
     void initPlannersFmt_BFMT(nanobind::module_& m);

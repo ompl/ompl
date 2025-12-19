@@ -67,9 +67,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::init_PathHybridization(geometric);
     ompl::binding::geometric::init_PathSimplifier(geometric);
     ompl::binding::geometric::init_SimpleSetup(geometric);
-    ompl::binding::geometric::initPlannersEst_BiEST(geometric);
-    ompl::binding::geometric::initPlannersEst_EST(geometric);
-    ompl::binding::geometric::initPlannersEst_ProjEST(geometric);
     ompl::binding::geometric::initPlannersExperience_LightningRetrieveRepair(geometric);
     ompl::binding::geometric::initPlannersExperience_ThunderRetrieveRepair(geometric);
     ompl::binding::geometric::initPlannersFmt_BFMT(geometric);
