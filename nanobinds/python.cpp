@@ -77,22 +77,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::initPlannersPrm_SPARS(geometric);
     ompl::binding::geometric::initPlannersPrm_SPARStwo(geometric);
 
-    ompl::binding::geometric::initPlannersRrt_RRT(geometric);
-    ompl::binding::geometric::initPlannersRrt_RRTstar(geometric);
-    ompl::binding::geometric::initPlannersRrt_LazyRRT(geometric);
-    ompl::binding::geometric::initPlannersRrt_BiTRRT(geometric);
-    ompl::binding::geometric::initPlannersRrt_InformedRRTstar(geometric);
-    ompl::binding::geometric::initPlannersRrt_LBTRRT(geometric);
-    ompl::binding::geometric::initPlannersRrt_LazyLBTRRT(geometric);
-    ompl::binding::geometric::initPlannersRrt_RRTConnect(geometric);
-    ompl::binding::geometric::initPlannersRrt_RRTXstatic(geometric);
-    ompl::binding::geometric::initPlannersRrt_RRTsharp(geometric);
-    ompl::binding::geometric::initPlannersRrt_SORRTstar(geometric);
-    ompl::binding::geometric::initPlannersRrt_STRRTstar(geometric);
-    ompl::binding::geometric::initPlannersRrt_TRRT(geometric);
-    ompl::binding::geometric::initPlannersRrt_TSRRT(geometric);
-    ompl::binding::geometric::initPlannersRrt_VFRRT(geometric);
-    ompl::binding::geometric::initPlannersRrt_pRRT(geometric);
 
     ompl::binding::geometric::initPlannersSbl_SBL(geometric);
     ompl::binding::geometric::initPlannersSbl_pSBL(geometric);
