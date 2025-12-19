@@ -69,13 +69,7 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::init_SimpleSetup(geometric);
 
 
-    ompl::binding::geometric::initPlannersPrm_ConnectionStrategy(geometric);
-    ompl::binding::geometric::initPlannersPrm_LazyPRM(geometric);
-    ompl::binding::geometric::initPlannersPrm_LazyPRMstar(geometric);
-    ompl::binding::geometric::initPlannersPrm_PRM(geometric);
-    ompl::binding::geometric::initPlannersPrm_PRMstar(geometric);
-    ompl::binding::geometric::initPlannersPrm_SPARS(geometric);
-    ompl::binding::geometric::initPlannersPrm_SPARStwo(geometric);
+
     ompl::binding::geometric::initPlannersRrt_RRT(geometric);
     ompl::binding::geometric::initPlannersRrt_RRTConnect(geometric);
 
