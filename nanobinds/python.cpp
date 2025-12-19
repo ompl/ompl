@@ -78,8 +78,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::initPlannersPrm_SPARStwo(geometric);
 
 
-    ompl::binding::geometric::initPlannersSbl_SBL(geometric);
-    ompl::binding::geometric::initPlannersSbl_pSBL(geometric);
     ompl::binding::geometric::initPlannersSst_SST(geometric);
     ompl::binding::geometric::initPlannersStride_STRIDE(geometric);
     ompl::binding::geometric::initPlannersXxl_XXL(geometric);
