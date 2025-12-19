@@ -49,9 +49,6 @@ namespace ompl::binding::base
     void initSamplersDeterministic_DeterministicSequence(nanobind::module_& m);
     void initSamplersDeterministic_HaltonSequence(nanobind::module_& m);
     void initSamplersDeterministic_PrecomputedSequence(nanobind::module_& m);
-    void initSamplersInformed_OrderedInfSampler(nanobind::module_& m);
-    void initSamplersInformed_PathLengthDirectInfSampler(nanobind::module_& m);
-    void initSamplersInformed_RejectionInfSampler(nanobind::module_& m);
     void initSamplers_BridgeTestValidStateSampler(nanobind::module_& m);
     void initSamplers_ConditionalStateSampler(nanobind::module_& m);
     void initSamplers_DeterministicStateSampler(nanobind::module_& m);

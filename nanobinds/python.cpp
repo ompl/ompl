@@ -71,9 +71,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initSamplers_MinimumClearanceValidStateSampler(base);
     ompl::binding::base::initSamplers_ObstacleBasedValidStateSampler(base);
     ompl::binding::base::initSamplers_UniformValidStateSampler(base);
-    ompl::binding::base::initSamplersInformed_OrderedInfSampler(base);
-    ompl::binding::base::initSamplersInformed_PathLengthDirectInfSampler(base);
-    ompl::binding::base::initSamplersInformed_RejectionInfSampler(base);
 
     ompl::binding::base::initSpaces_DiscreteStateSpace(base);
     ompl::binding::base::initSpaces_RealVectorBounds(base);
