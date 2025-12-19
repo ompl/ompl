@@ -59,14 +59,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initObjectives_VFMechanicalWorkOptimizationObjective(base);
     ompl::binding::base::initObjectives_VFUpstreamCriterionOptimizationObjective(base);
 
-    ompl::binding::base::initSamplers_BridgeTestValidStateSampler(base);
-    ompl::binding::base::initSamplers_ConditionalStateSampler(base);
-    ompl::binding::base::initSamplers_DeterministicStateSampler(base);
-    ompl::binding::base::initSamplers_GaussianValidStateSampler(base);
-    ompl::binding::base::initSamplers_InformedStateSampler(base);
-    ompl::binding::base::initSamplers_MaximizeClearanceValidStateSampler(base);
-    ompl::binding::base::initSamplers_MinimumClearanceValidStateSampler(base);
-    ompl::binding::base::initSamplers_ObstacleBasedValidStateSampler(base);
     ompl::binding::base::initSamplers_UniformValidStateSampler(base);
 
     ompl::binding::base::initSpaces_DiscreteStateSpace(base);

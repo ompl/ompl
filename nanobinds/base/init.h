@@ -46,14 +46,6 @@ namespace ompl::binding::base
     void initObjectives_StateCostIntegralObjective(nanobind::module_& m);
     void initObjectives_VFMechanicalWorkOptimizationObjective(nanobind::module_& m);
     void initObjectives_VFUpstreamCriterionOptimizationObjective(nanobind::module_& m);
-    void initSamplers_BridgeTestValidStateSampler(nanobind::module_& m);
-    void initSamplers_ConditionalStateSampler(nanobind::module_& m);
-    void initSamplers_DeterministicStateSampler(nanobind::module_& m);
-    void initSamplers_GaussianValidStateSampler(nanobind::module_& m);
-    void initSamplers_InformedStateSampler(nanobind::module_& m);
-    void initSamplers_MaximizeClearanceValidStateSampler(nanobind::module_& m);
-    void initSamplers_MinimumClearanceValidStateSampler(nanobind::module_& m);
-    void initSamplers_ObstacleBasedValidStateSampler(nanobind::module_& m);
     void initSamplers_UniformValidStateSampler(nanobind::module_& m);
     void initSpacesConstraint_AtlasChart(nanobind::module_& m);
     void initSpacesConstraint_AtlasStateSpace(nanobind::module_& m);
