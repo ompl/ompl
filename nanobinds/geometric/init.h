@@ -9,7 +9,6 @@ namespace ompl::binding::geometric
     void initPlannersPrm_PRMstar(nanobind::module_& m);
     void initPlannersPrm_SPARS(nanobind::module_& m);
     void initPlannersPrm_SPARStwo(nanobind::module_& m);
-    void initPlannersSst_SST(nanobind::module_& m);
     void initPlannersStride_STRIDE(nanobind::module_& m);
     void initPlannersXxl_XXL(nanobind::module_& m);
     void initPlannersXxl_XXLDecomposition(nanobind::module_& m);
