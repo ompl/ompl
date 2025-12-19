@@ -78,10 +78,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::initPlannersPrm_SPARStwo(geometric);
 
 
-    ompl::binding::geometric::initPlannersXxl_XXL(geometric);
-    ompl::binding::geometric::initPlannersXxl_XXLDecomposition(geometric);
-    ompl::binding::geometric::initPlannersXxl_XXLPlanarDecomposition(geometric);
-    ompl::binding::geometric::initPlannersXxl_XXLPositionDecomposition(geometric);
 
     nb::module_ control = m.def_submodule("control");
     ompl::binding::control::init_Control(control);
