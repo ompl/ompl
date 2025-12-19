@@ -2,7 +2,6 @@
 
 namespace ompl::binding::geometric
 {
-    void initPlannersPdst_PDST(nanobind::module_& m);
     void initPlannersPrm_ConnectionStrategy(nanobind::module_& m);
     void initPlannersPrm_LazyPRM(nanobind::module_& m);
     void initPlannersPrm_LazyPRMstar(nanobind::module_& m);

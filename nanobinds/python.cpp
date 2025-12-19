@@ -69,7 +69,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::init_SimpleSetup(geometric);
 
 
-    ompl::binding::geometric::initPlannersPdst_PDST(geometric);
     ompl::binding::geometric::initPlannersPrm_ConnectionStrategy(geometric);
     ompl::binding::geometric::initPlannersPrm_LazyPRM(geometric);
     ompl::binding::geometric::initPlannersPrm_LazyPRMstar(geometric);
