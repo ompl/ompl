@@ -16,7 +16,6 @@ namespace ompl::binding::control
     void init_SteeredControlSampler(nanobind::module_& m);
     void initPlannersEst_EST(nanobind::module_& m);
     void initPlannersKpiece_KPIECE1(nanobind::module_& m);
-    void initPlannersPdst_PDST(nanobind::module_& m);
     void initPlannersRrt_RRT(nanobind::module_& m);
     void initPlannersSst_SST(nanobind::module_& m);
     void initPlannersSyclop_Decomposition(nanobind::module_& m);

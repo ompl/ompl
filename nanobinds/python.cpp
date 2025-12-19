@@ -159,7 +159,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::control::init_SteeredControlSampler(control);
     ompl::binding::control::initPlannersEst_EST(control);
     ompl::binding::control::initPlannersKpiece_KPIECE1(control);
-    ompl::binding::control::initPlannersPdst_PDST(control);
     ompl::binding::control::initPlannersRrt_RRT(control);
     ompl::binding::control::initPlannersSst_SST(control);
     ompl::binding::control::initPlannersSyclop_Decomposition(control);
