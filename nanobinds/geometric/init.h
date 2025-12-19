@@ -2,8 +2,6 @@
 
 namespace ompl::binding::geometric
 {
-    void initPlannersFmt_BFMT(nanobind::module_& m);
-    void initPlannersFmt_FMT(nanobind::module_& m);
     void initPlannersInformedtreesAitstar_Edge(nanobind::module_& m);
     void initPlannersInformedtreesAitstar_ImplicitGraph(nanobind::module_& m);
     void initPlannersInformedtreesAitstar_Vertex(nanobind::module_& m);

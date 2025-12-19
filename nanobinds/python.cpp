@@ -67,8 +67,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::init_PathHybridization(geometric);
     ompl::binding::geometric::init_PathSimplifier(geometric);
     ompl::binding::geometric::init_SimpleSetup(geometric);
-    ompl::binding::geometric::initPlannersFmt_BFMT(geometric);
-    ompl::binding::geometric::initPlannersFmt_FMT(geometric);
 
     ompl::binding::geometric::initPlannersInformedtrees_BITstar(geometric);
     ompl::binding::geometric::initPlannersInformedtrees_ABITstar(geometric);
