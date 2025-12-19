@@ -78,7 +78,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::initPlannersPrm_SPARStwo(geometric);
 
 
-    ompl::binding::geometric::initPlannersStride_STRIDE(geometric);
     ompl::binding::geometric::initPlannersXxl_XXL(geometric);
     ompl::binding::geometric::initPlannersXxl_XXLDecomposition(geometric);
     ompl::binding::geometric::initPlannersXxl_XXLPlanarDecomposition(geometric);
