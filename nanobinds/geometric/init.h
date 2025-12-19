@@ -2,26 +2,6 @@
 
 namespace ompl::binding::geometric
 {
-    void initPlannersInformedtreesAitstar_Edge(nanobind::module_& m);
-    void initPlannersInformedtreesAitstar_ImplicitGraph(nanobind::module_& m);
-    void initPlannersInformedtreesAitstar_Vertex(nanobind::module_& m);
-    void initPlannersInformedtreesBitstar_CostHelper(nanobind::module_& m);
-    // void initPlannersInformedtreesBitstar_HelperFunctions(nanobind::module_& m);
-    void initPlannersInformedtreesBitstar_IdGenerator(nanobind::module_& m);
-    void initPlannersInformedtreesBitstar_ImplicitGraph(nanobind::module_& m);
-    void initPlannersInformedtreesBitstar_SearchQueue(nanobind::module_& m);
-    void initPlannersInformedtreesBitstar_Vertex(nanobind::module_& m);
-    void initPlannersInformedtreesEitstar_Edge(nanobind::module_& m);
-    void initPlannersInformedtreesEitstar_ForwardQueue(nanobind::module_& m);
-    void initPlannersInformedtreesEitstar_RandomGeometricGraph(nanobind::module_& m);
-    void initPlannersInformedtreesEitstar_ReverseQueue(nanobind::module_& m);
-    void initPlannersInformedtreesEitstar_State(nanobind::module_& m);
-    void initPlannersInformedtreesEitstar_Vertex(nanobind::module_& m);
-    void initPlannersInformedtrees_ABITstar(nanobind::module_& m);
-    void initPlannersInformedtrees_AITstar(nanobind::module_& m);
-    void initPlannersInformedtrees_BITstar(nanobind::module_& m);
-    void initPlannersInformedtrees_EIRMstar(nanobind::module_& m);
-    void initPlannersInformedtrees_EITstar(nanobind::module_& m);
     void initPlannersKpiece_BKPIECE1(nanobind::module_& m);
     void initPlannersKpiece_Discretization(nanobind::module_& m);
     void initPlannersKpiece_KPIECE1(nanobind::module_& m);

@@ -68,27 +68,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::init_PathSimplifier(geometric);
     ompl::binding::geometric::init_SimpleSetup(geometric);
 
-    ompl::binding::geometric::initPlannersInformedtrees_BITstar(geometric);
-    ompl::binding::geometric::initPlannersInformedtrees_ABITstar(geometric);
-    ompl::binding::geometric::initPlannersInformedtrees_AITstar(geometric);
-    ompl::binding::geometric::initPlannersInformedtrees_EITstar(geometric);
-    ompl::binding::geometric::initPlannersInformedtrees_EIRMstar(geometric);
-
-    ompl::binding::geometric::initPlannersInformedtreesAitstar_Edge(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesAitstar_ImplicitGraph(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesAitstar_Vertex(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesBitstar_CostHelper(geometric);
-    // ompl::binding::geometric::initPlannersInformedtreesBitstar_HelperFunctions(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesBitstar_IdGenerator(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesBitstar_ImplicitGraph(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesBitstar_SearchQueue(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesBitstar_Vertex(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesEitstar_Edge(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesEitstar_ForwardQueue(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesEitstar_RandomGeometricGraph(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesEitstar_ReverseQueue(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesEitstar_State(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesEitstar_Vertex(geometric);
 
     ompl::binding::geometric::initPlannersKpiece_BKPIECE1(geometric);
     ompl::binding::geometric::initPlannersKpiece_Discretization(geometric);
