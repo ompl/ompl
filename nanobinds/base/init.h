@@ -66,10 +66,6 @@ namespace ompl::binding::base
     void initSpacesConstraint_ConstrainedStateSpace(nanobind::module_& m);
     void initSpacesConstraint_ProjectedStateSpace(nanobind::module_& m);
     void initSpacesConstraint_TangentBundleStateSpace(nanobind::module_& m);
-    void initSpacesSpecial_KleinBottleStateSpace(nanobind::module_& m);
-    void initSpacesSpecial_MobiusStateSpace(nanobind::module_& m);
-    void initSpacesSpecial_SphereStateSpace(nanobind::module_& m);
-    void initSpacesSpecial_TorusStateSpace(nanobind::module_& m);
     void initSpaces_DiscreteStateSpace(nanobind::module_& m);
     void initSpaces_DubinsStateSpace(nanobind::module_& m);
     void initSpaces_EmptyStateSpace(nanobind::module_& m);

@@ -95,10 +95,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initSpacesConstraint_AtlasChart(base);
     ompl::binding::base::initSpacesConstraint_AtlasStateSpace(base);
     ompl::binding::base::initSpacesConstraint_TangentBundleStateSpace(base);
-    ompl::binding::base::initSpacesSpecial_KleinBottleStateSpace(base);
-    ompl::binding::base::initSpacesSpecial_MobiusStateSpace(base);
-    ompl::binding::base::initSpacesSpecial_SphereStateSpace(base);
-    ompl::binding::base::initSpacesSpecial_TorusStateSpace(base);
 
 
     nb::module_ geometric = m.def_submodule("geometric");
