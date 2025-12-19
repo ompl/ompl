@@ -2,8 +2,6 @@
 
 namespace ompl::binding::geometric
 {
-    void initPlannersExperience_LightningRetrieveRepair(nanobind::module_& m);
-    void initPlannersExperience_ThunderRetrieveRepair(nanobind::module_& m);
     void initPlannersFmt_BFMT(nanobind::module_& m);
     void initPlannersFmt_FMT(nanobind::module_& m);
     void initPlannersInformedtreesAitstar_Edge(nanobind::module_& m);
