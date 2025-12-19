@@ -84,6 +84,4 @@ namespace ompl::binding::base
     void initSpaces_SpaceTimeStateSpace(nanobind::module_& m);
     void initSpaces_TimeStateSpace(nanobind::module_& m);
     void initSpaces_WrapperStateSpace(nanobind::module_& m);
-    void initTerminationconditions_CostConvergenceTerminationCondition(nanobind::module_& m);
-    void initTerminationconditions_IterationTerminationCondition(nanobind::module_& m);
 }  // namespace ompl::binding::base

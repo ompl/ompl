@@ -100,8 +100,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initSpacesSpecial_SphereStateSpace(base);
     ompl::binding::base::initSpacesSpecial_TorusStateSpace(base);
 
-    ompl::binding::base::initTerminationconditions_CostConvergenceTerminationCondition(base);
-    ompl::binding::base::initTerminationconditions_IterationTerminationCondition(base);
 
     nb::module_ geometric = m.def_submodule("geometric");
     ompl::binding::geometric::init_GeneticSearch(geometric);
