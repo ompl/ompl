@@ -33,7 +33,6 @@ namespace ompl::binding::control
     void initPlannersSyclop_Syclop(nanobind::module_& m);
     void initPlannersSyclop_SyclopEST(nanobind::module_& m);
     void initPlannersSyclop_SyclopRRT(nanobind::module_& m);
-    void initPlanners_PlannerIncludes(nanobind::module_& m);
     void initSpaces_DiscreteControlSpace(nanobind::module_& m);
     void initSpaces_RealVectorControlSpace(nanobind::module_& m);
     

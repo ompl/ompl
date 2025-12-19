@@ -14,7 +14,6 @@ namespace ompl::binding::geometric
     void initPlannersFmt_FMT(nanobind::module_& m);
     void initPlannersInformedtreesAitstar_Edge(nanobind::module_& m);
     void initPlannersInformedtreesAitstar_ImplicitGraph(nanobind::module_& m);
-    void initPlannersInformedtreesAitstar_Queuetypes(nanobind::module_& m);
     void initPlannersInformedtreesAitstar_Vertex(nanobind::module_& m);
     void initPlannersInformedtreesBitstar_CostHelper(nanobind::module_& m);
     // void initPlannersInformedtreesBitstar_HelperFunctions(nanobind::module_& m);
@@ -22,7 +21,6 @@ namespace ompl::binding::geometric
     void initPlannersInformedtreesBitstar_ImplicitGraph(nanobind::module_& m);
     void initPlannersInformedtreesBitstar_SearchQueue(nanobind::module_& m);
     void initPlannersInformedtreesBitstar_Vertex(nanobind::module_& m);
-    void initPlannersInformedtreesEitstar_Direction(nanobind::module_& m);
     void initPlannersInformedtreesEitstar_Edge(nanobind::module_& m);
     void initPlannersInformedtreesEitstar_ForwardQueue(nanobind::module_& m);
     void initPlannersInformedtreesEitstar_RandomGeometricGraph(nanobind::module_& m);
@@ -73,7 +71,6 @@ namespace ompl::binding::geometric
     void initPlannersXxl_XXLPlanarDecomposition(nanobind::module_& m);
     void initPlannersXxl_XXLPositionDecomposition(nanobind::module_& m);
     void initPlanners_AnytimePathShortening(nanobind::module_& m);
-    void initPlanners_PlannerIncludes(nanobind::module_& m);
     void init_GeneticSearch(nanobind::module_& m);
     void init_HillClimbing(nanobind::module_& m);
     void init_PathGeometric(nanobind::module_& m);

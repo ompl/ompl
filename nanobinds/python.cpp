@@ -26,7 +26,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::init_Path(base);
     ompl::binding::base::init_Planner(base);
     ompl::binding::base::init_PlannerData(base);
-    ompl::binding::base::init_PlannerDataGraph(base);
     ompl::binding::base::init_PlannerDataStorage(base);
     ompl::binding::base::init_PlannerStatus(base);
     ompl::binding::base::init_PlannerTerminationCondition(base);
@@ -39,7 +38,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::init_State(base);
     ompl::binding::base::init_StateSamplerArray(base);
     ompl::binding::base::init_StateSpace(base);
-    ompl::binding::base::init_StateSpaceTypes(base);
     ompl::binding::base::init_StateStorage(base);
     ompl::binding::base::init_StateValidityChecker(base);
     ompl::binding::base::init_TypedSpaceInformation(base);
@@ -131,7 +129,6 @@ NB_MODULE(_ompl, m)
 
     ompl::binding::geometric::initPlannersInformedtreesAitstar_Edge(geometric);
     ompl::binding::geometric::initPlannersInformedtreesAitstar_ImplicitGraph(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesAitstar_Queuetypes(geometric);
     ompl::binding::geometric::initPlannersInformedtreesAitstar_Vertex(geometric);
     ompl::binding::geometric::initPlannersInformedtreesBitstar_CostHelper(geometric);
     // ompl::binding::geometric::initPlannersInformedtreesBitstar_HelperFunctions(geometric);
@@ -139,7 +136,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::initPlannersInformedtreesBitstar_ImplicitGraph(geometric);
     ompl::binding::geometric::initPlannersInformedtreesBitstar_SearchQueue(geometric);
     ompl::binding::geometric::initPlannersInformedtreesBitstar_Vertex(geometric);
-    ompl::binding::geometric::initPlannersInformedtreesEitstar_Direction(geometric);
     ompl::binding::geometric::initPlannersInformedtreesEitstar_Edge(geometric);
     ompl::binding::geometric::initPlannersInformedtreesEitstar_ForwardQueue(geometric);
     ompl::binding::geometric::initPlannersInformedtreesEitstar_RandomGeometricGraph(geometric);
@@ -188,7 +184,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::initPlannersXxl_XXLPlanarDecomposition(geometric);
     ompl::binding::geometric::initPlannersXxl_XXLPositionDecomposition(geometric);
     ompl::binding::geometric::initPlanners_AnytimePathShortening(geometric);
-    ompl::binding::geometric::initPlanners_PlannerIncludes(geometric);
 
     nb::module_ control = m.def_submodule("control");
     ompl::binding::control::init_Control(control);
@@ -222,20 +217,10 @@ NB_MODULE(_ompl, m)
     ompl::binding::control::initPlannersSyclop_Syclop(control);
     ompl::binding::control::initPlannersSyclop_SyclopEST(control);
     ompl::binding::control::initPlannersSyclop_SyclopRRT(control);
-    ompl::binding::control::initPlanners_PlannerIncludes(control);
     ompl::binding::control::initSpaces_DiscreteControlSpace(control);
     ompl::binding::control::initSpaces_RealVectorControlSpace(control);
 
     nb::module_ util = m.def_submodule("util");
-    ompl::binding::util::init_ClassForward(util);
     ompl::binding::util::init_Console(util);
-    ompl::binding::util::init_DisableCompilerWarning(util);
-    ompl::binding::util::init_Exception(util);
-    ompl::binding::util::init_GeometricEquations(util);
-    ompl::binding::util::init_Hash(util);
     ompl::binding::util::init_PPM(util);
-    ompl::binding::util::init_ProlateHyperspheroid(util);
-    ompl::binding::util::init_RandomNumbers(util);
-    ompl::binding::util::init_String(util);
-    ompl::binding::util::init_Time(util);
 }

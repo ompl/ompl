@@ -1,9 +1,0 @@
-#include <nanobind/nanobind.h>
-#include "ompl/geometric/planners/informedtrees/bitstar/HelperFunctions.h"
-#include "../../../init.h"
-
-namespace nb = nanobind;
-
-void ompl::binding::geometric::initPlannersInformedtreesBitstar_HelperFunctions(nb::module_& m)
-{
-}

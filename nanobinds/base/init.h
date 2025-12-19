@@ -14,7 +14,6 @@ namespace ompl::binding::base
     void init_Path(nanobind::module_& m);
     void init_Planner(nanobind::module_& m);
     void init_PlannerData(nanobind::module_& m);
-    void init_PlannerDataGraph(nanobind::module_& m);
     void init_PlannerDataStorage(nanobind::module_& m);
     void init_PlannerStatus(nanobind::module_& m);
     void init_PlannerTerminationCondition(nanobind::module_& m);
@@ -27,7 +26,6 @@ namespace ompl::binding::base
     void init_StateSampler(nanobind::module_& m);
     void init_StateSamplerArray(nanobind::module_& m);
     void init_StateSpace(nanobind::module_& m);
-    void init_StateSpaceTypes(nanobind::module_& m);
     void init_StateStorage(nanobind::module_& m);
     void init_StateValidityChecker(nanobind::module_& m);
     void init_TypedSpaceInformation(nanobind::module_& m);
