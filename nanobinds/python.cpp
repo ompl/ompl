@@ -58,9 +58,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initObjectives_StateCostIntegralObjective(base);
     ompl::binding::base::initObjectives_VFMechanicalWorkOptimizationObjective(base);
     ompl::binding::base::initObjectives_VFUpstreamCriterionOptimizationObjective(base);
-    ompl::binding::base::initSamplersDeterministic_DeterministicSequence(base);
-    ompl::binding::base::initSamplersDeterministic_HaltonSequence(base);
-    ompl::binding::base::initSamplersDeterministic_PrecomputedSequence(base);
 
     ompl::binding::base::initSamplers_BridgeTestValidStateSampler(base);
     ompl::binding::base::initSamplers_ConditionalStateSampler(base);
