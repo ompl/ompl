@@ -37,15 +37,6 @@ namespace ompl::binding::base
     void initGoals_GoalSpace(nanobind::module_& m);
     void initGoals_GoalState(nanobind::module_& m);
     void initGoals_GoalStates(nanobind::module_& m);
-    void initObjectives_ControlDurationObjective(nanobind::module_& m);
-    void initObjectives_MaximizeMinClearanceObjective(nanobind::module_& m);
-    void initObjectives_MechanicalWorkOptimizationObjective(nanobind::module_& m);
-    void initObjectives_MinimaxObjective(nanobind::module_& m);
-    void initObjectives_MinimizeArrivalTime(nanobind::module_& m);
-    void initObjectives_PathLengthOptimizationObjective(nanobind::module_& m);
-    void initObjectives_StateCostIntegralObjective(nanobind::module_& m);
-    void initObjectives_VFMechanicalWorkOptimizationObjective(nanobind::module_& m);
-    void initObjectives_VFUpstreamCriterionOptimizationObjective(nanobind::module_& m);
     void initSamplers_UniformValidStateSampler(nanobind::module_& m);
     void initSpacesConstraint_AtlasChart(nanobind::module_& m);
     void initSpacesConstraint_AtlasStateSpace(nanobind::module_& m);
