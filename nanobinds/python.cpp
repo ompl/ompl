@@ -86,9 +86,7 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initSpaces_SpaceTimeStateSpace(base);
     ompl::binding::base::initSpaces_TimeStateSpace(base);
     ompl::binding::base::initSpaces_WrapperStateSpace(base);
-    ompl::binding::base::initSpaces_DubinsStateSpace(base);
     ompl::binding::base::initSpaces_EmptyStateSpace(base);
-    ompl::binding::base::initSpaces_ReedsSheppStateSpace(base);
 
     ompl::binding::base::initSpacesConstraint_ConstrainedStateSpace(base);
     ompl::binding::base::initSpacesConstraint_ProjectedStateSpace(base);
