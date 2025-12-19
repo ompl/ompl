@@ -161,11 +161,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::control::initPlannersKpiece_KPIECE1(control);
     ompl::binding::control::initPlannersRrt_RRT(control);
     ompl::binding::control::initPlannersSst_SST(control);
-    ompl::binding::control::initPlannersSyclop_Decomposition(control);
-    ompl::binding::control::initPlannersSyclop_GridDecomposition(control);
-    ompl::binding::control::initPlannersSyclop_Syclop(control);
-    ompl::binding::control::initPlannersSyclop_SyclopEST(control);
-    ompl::binding::control::initPlannersSyclop_SyclopRRT(control);
     ompl::binding::control::initSpaces_DiscreteControlSpace(control);
     ompl::binding::control::initSpaces_RealVectorControlSpace(control);
 

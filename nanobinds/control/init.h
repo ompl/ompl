@@ -18,11 +18,6 @@ namespace ompl::binding::control
     void initPlannersKpiece_KPIECE1(nanobind::module_& m);
     void initPlannersRrt_RRT(nanobind::module_& m);
     void initPlannersSst_SST(nanobind::module_& m);
-    void initPlannersSyclop_Decomposition(nanobind::module_& m);
-    void initPlannersSyclop_GridDecomposition(nanobind::module_& m);
-    void initPlannersSyclop_Syclop(nanobind::module_& m);
-    void initPlannersSyclop_SyclopEST(nanobind::module_& m);
-    void initPlannersSyclop_SyclopRRT(nanobind::module_& m);
     void initSpaces_DiscreteControlSpace(nanobind::module_& m);
     void initSpaces_RealVectorControlSpace(nanobind::module_& m);
     
