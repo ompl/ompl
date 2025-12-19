@@ -2,10 +2,6 @@
 
 namespace ompl::binding::geometric
 {
-    void initPlannersKpiece_BKPIECE1(nanobind::module_& m);
-    void initPlannersKpiece_Discretization(nanobind::module_& m);
-    void initPlannersKpiece_KPIECE1(nanobind::module_& m);
-    void initPlannersKpiece_LBKPIECE1(nanobind::module_& m);
     void initPlannersPdst_PDST(nanobind::module_& m);
     void initPlannersPrm_ConnectionStrategy(nanobind::module_& m);
     void initPlannersPrm_LazyPRM(nanobind::module_& m);

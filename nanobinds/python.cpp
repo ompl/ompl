@@ -69,10 +69,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::geometric::init_SimpleSetup(geometric);
 
 
-    ompl::binding::geometric::initPlannersKpiece_BKPIECE1(geometric);
-    ompl::binding::geometric::initPlannersKpiece_Discretization(geometric);
-    ompl::binding::geometric::initPlannersKpiece_KPIECE1(geometric);
-    ompl::binding::geometric::initPlannersKpiece_LBKPIECE1(geometric);
     ompl::binding::geometric::initPlannersPdst_PDST(geometric);
     ompl::binding::geometric::initPlannersPrm_ConnectionStrategy(geometric);
     ompl::binding::geometric::initPlannersPrm_LazyPRM(geometric);
