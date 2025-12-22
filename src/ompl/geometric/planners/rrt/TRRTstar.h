@@ -69,7 +69,7 @@ namespace ompl
            @par External documentation
            D. Devaurs, T. Siméon, J. Cortés, Efficient sampling-based approaches to optimal path planning in complex
            cost spaces, in <em>Algorithmic Foundations of Robotics XI. Springer Tracts in Advanced Robotics, VOL. 107,
-           2016</em>. DOI: [10.1007/978-3-319-16595-0_9](https://doi.org/10.1007/978-3-319-16595-0_9)<br />
+           pp.143-159, 2015</em>. DOI: [10.1007/978-3-319-16595-0_9](https://doi.org/10.1007/978-3-319-16595-0_9)<br />
 
            D. Devaurs, T. Siméon, J. Cortés, Optimal Path Planning in Complex Cost Spaces with Sampling-Based
            Algorithms, in <em>IEEE Transactions on Automation Science and Engineering, VOL. 13, NO. 2, APRIL 2016</em>.
