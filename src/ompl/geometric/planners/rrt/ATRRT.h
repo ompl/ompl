@@ -71,9 +71,14 @@ namespace ompl
             Please see [Dave Coleman's example](https://github.com/davetcoleman/ompl_rviz_viewer/)to see how TRRT can be
             used. TRRT* and ATRRT are used in the same way.
             @par External documentation
+            D. Devaurs, T. Siméon, J. Cortés, Efficient sampling-based approaches to optimal path planning in complex
+            cost spaces, in <em>Algorithmic Foundations of Robotics XI. Springer Tracts in Advanced Robotics, VOL. 107,
+            2016</em>. DOI: [10.1007/978-3-319-16595-0_9](https://doi.org/10.1007/978-3-319-16595-0_9)<br />
+
             D. Devaurs, T. Siméon, J. Cortés, Optimal Path Planning in Complex Cost Spaces with Sampling-Based
             Algorithms, in <em>IEEE Transactions on Automation Science and Engineering, VOL. 13, NO. 2, APRIL 2016</em>.
             DOI: [10.1109/TASE.2015.2487881](http://dx.doi.org/10.1109/TASE.2015.2487881)<br />
+            [[PDF]](https://hal.science/hal-01231482/file/devaurs_tase_2015.pdf)
         */
 
         /** \brief Transition-based Rapidly-exploring Random Trees */
@@ -334,7 +339,7 @@ namespace ompl
             /** \brief Constant derived from the free space volume */
             double gamma_{1.0};
 
-            /** \brief Factor of maxDistance_ used to calculate neighborhood radius 
+            /** \brief Factor of maxDistance_ used to calculate neighborhood radius
                 TODO: temporary solution */
             double neighborhoodRadiusFactor_{0.4};
 
