@@ -2,6 +2,7 @@
 #include "control/init.h"
 #include "geometric/init.h"
 #include "util/init.h"
+#include "tools/init.h"
 
 #include <nanobind/nanobind.h>
 namespace nb = nanobind;
@@ -121,4 +122,7 @@ NB_MODULE(_ompl, m)
     ompl::binding::util::init_Console(util);
     ompl::binding::util::init_PPM(util);
     ompl::binding::util::init_RandomNumbers(util);
+
+    nb::module_ tools = m.def_submodule("tools");
+    ompl::binding::tools::initBenchmark_Benchmark(tools);
 }

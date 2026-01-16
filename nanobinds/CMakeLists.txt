@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------
 # Create a single python module named _ompl
 # ---------------------------------------------------------------------
-file(GLOB_RECURSE PY_OMPL_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} base/*.cpp control/*.cpp geometric/*.cpp util/*.cpp python.cpp)
+file(GLOB_RECURSE PY_OMPL_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} base/*.cpp control/*.cpp geometric/*.cpp util/*.cpp tools/*.cpp python.cpp)
 nanobind_add_module(_ompl
     STABLE_ABI
     ${PY_OMPL_SOURCES}
@@ -64,5 +64,6 @@ install(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/geometric.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/control.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/util.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/ompl/tools.py
         DESTINATION ompl)
 # install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
