@@ -9,7 +9,9 @@ from ompl import geometric as og
 from ompl import tools as ot
 
 import time
-
+import subprocess
+import os 
+import shutil
 
 # Starting configuration
 a = [0., -0.785, 0., -2.356, 0., 1.571, 0.785]
@@ -142,6 +144,13 @@ def planBenchmark(variation: float = 0.01, radius: float = 0.2, n_trials: int = 
     db_path = "benchmark.db"
     ot.readBenchmarkLog(db_path, [log_file], moveitformat=False)  
     print(f"Database saved to {db_path}")
+    
+    if shutil.which("plannerarena") is not None: 
+        env = os.environ.copy()
+        env["DATABASE"] = db_path
+        subprocess.run(["plannerarena"], env=env)
+    else: 
+        print("PlannerArena not found, please install it from https://github.com/ompl/plannerarena")
 
 
 def main(
