@@ -9,6 +9,8 @@ from ompl import geometric as og
 from ompl import tools as ot
 
 import time
+
+
 # Starting configuration
 a = [0., -0.785, 0., -2.356, 0., 1.571, 0.785]
 
@@ -133,7 +135,14 @@ def planBenchmark(variation: float = 0.01, radius: float = 0.2, n_trials: int = 
     req.runCount = n_trials
     req.displayProgress = True
     benchmark.benchmark(req)
-    benchmark.saveResultsToFile()
+
+    log_file = "benchmark.log"
+    benchmark.saveResultsToFile(log_file)
+    # db_path = os.path.join(temp_dir, "benchmark.db")
+    db_path = "benchmark.db"
+    ot.readBenchmarkLog(db_path, [log_file], moveitformat=False)  
+    print(f"Database saved to {db_path}")
+
 
 def main(
     variation: float = 0.01,
