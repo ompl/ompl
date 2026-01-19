@@ -145,13 +145,13 @@ def planBenchmark(variation: float = 0.01, radius: float = 0.2, n_trials: int = 
     ot.readBenchmarkLog(db_path, [log_file], moveitformat=False)  
     print(f"Database saved to {db_path}")
     
-    if shutil.which("plannerarena") is not None: 
-        env = os.environ.copy()
-        env["DATABASE"] = db_path
-        subprocess.run(["plannerarena"], env=env)
-    else: 
+    try:
+        import plannerarena.app
+        # Override the database path directly in the module
+        plannerarena.app.DATABASE = os.path.abspath(db_path)
+        plannerarena.app.run()
+    except ImportError:
         print("PlannerArena not found, please install it from https://github.com/ompl/plannerarena")
-
 
 def main(
     variation: float = 0.01,
