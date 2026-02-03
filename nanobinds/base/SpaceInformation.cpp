@@ -113,10 +113,20 @@ void ompl::binding::base::init_SpaceInformation(nb::module_& m)
         .def("getMotionValidator", nb::overload_cast<>(&ompl::base::SpaceInformation::getMotionValidator, nb::const_))
         .def("setStateValidityCheckingResolution", &ompl::base::SpaceInformation::setStateValidityCheckingResolution)
         .def("getStateValidityCheckingResolution", &ompl::base::SpaceInformation::getStateValidityCheckingResolution)
-        .def("allocState", &ompl::base::SpaceInformation::allocState)
-        .def("allocStates", &ompl::base::SpaceInformation::allocStates)
+        .def("allocState", [](const ompl::base::SpaceInformation &si) { 
+            ompl::base::State* state = si.allocState();
+            //state->setSpaceInformation(&si);
+            std::cout << "Create state " << state << std::endl;
+            //return state;
+            return std::shared_ptr<ompl::base::State>(
+                state, 
+                [&si](ompl::base::State* s) {
+                    std::cout << "del state " << s << std::endl;
+                    si.freeState(s);
+                }
+            );
+        })
         .def("freeState", &ompl::base::SpaceInformation::freeState)
-        .def("freeStates", &ompl::base::SpaceInformation::freeStates)
         .def("copyState", &ompl::base::SpaceInformation::copyState)
         .def("cloneState", &ompl::base::SpaceInformation::cloneState)
 
