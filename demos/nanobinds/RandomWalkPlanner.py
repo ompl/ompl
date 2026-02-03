@@ -59,7 +59,9 @@ class RandomWalkPlanner(ob.Planner):
         pi = self.getPlannerInputStates()
         st = pi.nextStart()
         while st:
-            self.states_.append(st)
+            start_state = si.allocState()
+            si.copyState(start_state, st)
+            self.states_.append(start_state)
             st = pi.nextStart()
         solution = None
         approxsol = 0

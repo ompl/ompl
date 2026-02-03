@@ -115,17 +115,13 @@ void ompl::binding::base::init_SpaceInformation(nb::module_& m)
         .def("getStateValidityCheckingResolution", &ompl::base::SpaceInformation::getStateValidityCheckingResolution)
         .def("allocState", [](const ompl::base::SpaceInformation &si) { 
             ompl::base::State* state = si.allocState();
-            //state->setSpaceInformation(&si);
-            std::cout << "Create state " << state << std::endl;
-            //return state;
             return std::shared_ptr<ompl::base::State>(
                 state, 
                 [&si](ompl::base::State* s) {
-                    std::cout << "del state " << s << std::endl;
                     si.freeState(s);
                 }
             );
-        })
+        }, nb::keep_alive<0, 1>()) // Return value (index 0) keeps self (index 1) alive
         .def("freeState", &ompl::base::SpaceInformation::freeState)
         .def("copyState", &ompl::base::SpaceInformation::copyState)
         .def("cloneState", &ompl::base::SpaceInformation::cloneState)
