@@ -59,7 +59,6 @@ install_ompl()
         -G Ninja \
         -B build \
         -DPYTHON_EXEC=/usr/bin/python3 \
-        -DOMPL_REGISTRATION=OFF \
         -DCMAKE_INSTALL_PREFIX=/usr && \
     cmake --build build -t update_bindings && \
     cmake --build build && \
