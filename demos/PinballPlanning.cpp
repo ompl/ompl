@@ -252,12 +252,12 @@ int main()
     jumpControlSpace->setBounds(jumpBounds);
 
     ompl::control::RealVectorControlUniformSampler flowControlSampler(flowControlSpace);
-    flowControlSpace->setControlSamplerAllocator([flowControlSpace](const ompl::control::ControlSpace *space) -> ompl::control::ControlSamplerPtr {
+    flowControlSpace->setControlSamplerAllocator([](const ompl::control::ControlSpace *space) -> ompl::control::ControlSamplerPtr {
         return std::make_shared<ompl::control::RealVectorControlUniformSampler>(space);
     });
 
     ompl::control::RealVectorControlUniformSampler jumpControlSampler(jumpControlSpace);     // Doesn't do anything because the bounds for jump input are just [0, 0], but here for demonstration
-    jumpControlSpace->setControlSamplerAllocator([jumpControlSpace](const ompl::control::ControlSpace *space) -> ompl::control::ControlSamplerPtr {
+    jumpControlSpace->setControlSamplerAllocator([](const ompl::control::ControlSpace *space) -> ompl::control::ControlSamplerPtr {
         return std::make_shared<ompl::control::RealVectorControlUniformSampler>(space);
     });
 
