@@ -89,7 +89,7 @@ void ompl::control::HySST::setup()
     else
     {   // if no optimization objective set, assume we want to minimize hybrid time
         OMPL_WARN("%s: No optimization object set. Using hybrid time", getName().c_str());
-        costFunc_ = [this](Motion *motion) -> base::Cost
+        costFunc_ = [](Motion *motion) -> base::Cost
         {
             return base::Cost(ompl::base::HybridStateSpace::getStateTime(motion->state) - ompl::base::HybridStateSpace::getStateTime(motion->parent->state) + ompl::base::HybridStateSpace::getStateJumps(motion->state) - ompl::base::HybridStateSpace::getStateJumps(motion->parent->state));
         };
