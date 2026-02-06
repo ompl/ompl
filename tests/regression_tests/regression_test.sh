@@ -34,7 +34,7 @@ do
     echo "Building $tag ..."
     mkdir -p build
     cd build
-    cmake -DCMAKE_BUILD_TYPE=Release -DOMPL_REGISTRATION=OFF -DPYTHON_EXEC=/usr/bin/python2.7 ..
+    cmake -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXEC=/usr/bin/python2.7 ..
     make -j$NPROC regression_test
     echo "Running $tag ..."
     ./bin/regression_test

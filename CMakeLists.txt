@@ -255,20 +255,6 @@ add_custom_target(uninstall
 
 include(CPackSettings)
 
-option(OMPL_REGISTRATION "Enable one-time registration of OMPL" ON)
-if (OMPL_REGISTRATION)
-    find_file(OMPL_REGISTERED ".registered" PATHS "${CMAKE_CURRENT_SOURCE_DIR}" NO_DEFAULT_PATH)
-    if (NOT OMPL_REGISTERED)
-        file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/.registered" "")
-        find_package(Python QUIET)
-        if (PYTHON_FOUND)
-            execute_process(COMMAND ${CMAKE_COMMAND} -E env
-               TERM="" "${PYTHON_EXEC}" "-m" "webbrowser" "https://ompl.kavrakilab.org/core/register.html"
-                OUTPUT_QUIET ERROR_QUIET)
-        endif()
-    endif()
-endif()
-
 # install catkin package.xml (needed for ROS installation)
 install(FILES package.xml
     DESTINATION share/${PROJECT_NAME})

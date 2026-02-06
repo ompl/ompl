@@ -57,7 +57,6 @@ class CMakeBuild(build_ext):
             f"-DPYTHON_LIBRARIES={get_paths()['stdlib']}",
             f"-DCMAKE_BUILD_TYPE={cfg}",  # not used on MSVC, but no harm
             "-DOMPL_BUILD_PYBINDINGS=ON",
-            "-DOMPL_REGISTRATION=OFF",
             "-DOMPL_BUILD_DEMOS=OFF",
             "-DOMPL_BUILD_PYTESTS=OFF",
             "-DOMPL_BUILD_TESTS=OFF",
