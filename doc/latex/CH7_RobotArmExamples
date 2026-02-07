@@ -1,0 +1,25 @@
+\chapter{EXEMPLARY Robot Arm Demos}
+
+This tutorial shows how to move a UR5 robot arm from one pose to another
+by clicking buttons and dragging targets in a graphical interface using RRT-Connect planner
+Although we use RRT-Connect as an illustrative example,  any planner provided by OMPL can be applied to this scenario.
+
+In this tutorial, we present a simple but complete pipeline for robotic arm motion planning.
+Using OMPL as the motion planner, PyRoKi for inverse kinematics and collision checking, and Viser as an interactive visualizer, we demonstrate how a robot arm can move from one configuration to another in joint space.
+
+To use the demo, the user performs the following steps:
+1. Drag the ur5 in the UI to move the robot arm.
+2. Click "Set start configuration" to save the start pose.
+3. Drag the robot to a new pose and click "Set goal configuration".
+4. Click "Solve" to compute and visualize a collision-free motion.
+
+
+The following sections explain the structure of the code used in this tutorial.
+1. Load the UR5 URDF and the sphere-based collision model 
+2. Register a custom state validity checker using Pyroki collision checker.
+3. specify start and goal configurations from Viser UI
+4. Run the RRTConnect planner in OMPL to solve
+5. Interpolate and visualize the resulting trajectory in UI.
+
+
+
