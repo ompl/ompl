@@ -22,4 +22,61 @@ The following sections explain the structure of the code used in this tutorial.
 5. Interpolate and visualize the resulting trajectory in UI.
 
 
+\section{Loading the Robot Model and Collision Geometry}
+
+The first step is to load the UR5 robot model and its corresponding
+collision geometry. The robot description is loaded from a URDF file,
+and a sphere-based approximation is used for efficient collision
+checking. 
+
+Example codes are as follows:
+urdf = load_robot_description("ur5_description")
+robot = pk.Robot.from_urdf(urdf)
+robot_coll = RobotCollision.from_sphere_decomposition(...)
+
+\section{State Validity Checking}
+
+OMPL requires a state validity checker to determine whether a given
+robot configuration is collision-free. In this tutorial, we used
+a custom validity checker that uses PyRoKi to detect both self-collisions
+and collisions with the environment.
+
+Example codes are as follows:
+ss.setStateValidityChecker(_is_valid)
+
+
+\section{Specifying Start and Goal Configurations}
+
+Start and goal configurations are specified interactively using the
+Viser interface. The user can move the robot to a desired pose using
+inverse kinematics and save the current configuration by clicking
+the corresponding UI buttons. 
+
+Examples codes are as follows: 
+on_start_click(_)
+on_goal_click(_)   
+
+This two function is basically responsible for button actions.
+
+\section{Running the RRTConnect Planner}
+
+Once the start and goal configurations are defined, the RRTConnect
+planner from OMPL is used to compute a collision-free joint-space
+trajectory between them.
+
+Example codes are as follows:
+ss.setPlanner(og.RRTConnect(si)) -> og: OMPL’s geometric planning library
+solved = ss.solve(timeout) -> ss:  State Space
+
+\section{Visualizing the Trajectory}
+
+If a valid solution is found, the resulting path is interpolated and
+animated in the Viser interface to show the robot motion over time.
+
+Examples codes are as follows: 
+path.interpolate(...)
+urdf_vis.update_cfg(q_current)
+
+
+
 
