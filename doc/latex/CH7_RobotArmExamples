@@ -1,104 +1,144 @@
 \usepackage{graphicx}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{url}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false
+}
 
 \chapter{EXEMPLARY Robot Arm Demos}
 
 This tutorial shows how to move a UR5 robot arm from one pose to another
-by clicking buttons and dragging targets in a graphical interface using RRT-Connect planner
-Although we use RRT-Connect as an illustrative example,  any planner provided by OMPL can be applied to this scenario.
+by clicking buttons and dragging targets in a graphical interface using RRT-Connect planner.
+Although we use RRT-Connect as an illustrative example, any planner provided by OMPL can be applied to this scenario.
 
 In this tutorial, we present a simple but complete pipeline for robotic arm motion planning.
 Using OMPL as the motion planner, PyRoKi for inverse kinematics and collision checking, and Viser as an interactive visualizer, we demonstrate how a robot arm can move from one configuration to another in joint space.
 
 To use the demo, the user performs the following steps:
-\begin{figure}[t]
+
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.85\linewidth]{images/robotArm1.png}
   \caption{UR5 Base Status}
 \end{figure}
-\begin{figure}[t]
+
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.85\linewidth]{images/robotArm2.png}
   \caption{Drag the handle to move the ur5}
 \end{figure}
+
 1. Drag the ur5 in the UI to move the robot arm.
-\begin{figure}[t]
+
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.85\linewidth]{images/robotArm3.png}
   \caption{Click the Set start configuration button}
 \end{figure}
-2. Click "Set start configuration" to save the start pose.
-\begin{figure}[t]
+
+2. Click ``Set start configuration'' to save the start pose.
+
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.85\linewidth]{images/robotArm4.png}
   \caption{Drag to a new post}
 \end{figure}
+
 3. Drag the robot to a new pose.
-\begin{figure}[t]
+
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.85\linewidth]{images/robotArm5.png}
   \caption{Click the Set goal configuration button}
 \end{figure}
-4. Click "Set goal configuration"
-\begin{figure}[t]
+
+4. Click ``Set goal configuration''
+
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.85\linewidth]{images/robotArm6.png}
   \caption{Click the Solve button}
 \end{figure}
-4. Click "Solve" to compute and visualize a collision-free motion.
 
+4. Click ``Solve'' to compute and visualize a collision-free motion.
 
 The following sections explain the structure of the code used in this tutorial.
-This code follows five big steps: 
-1. Load the UR5 URDF and the sphere-based collision model 
+This code follows five big steps:
+1. Load the UR5 URDF and the sphere-based collision model
 2. Register a custom state validity checker using Pyroki collision checker.
 3. specify start and goal configurations from Viser UI
 4. Run the RRTConnect planner in OMPL to solve
 5. Interpolate and visualize the resulting trajectory in UI.
 
-
+% =========================================================
 \section{Loading the Robot Model and Collision Geometry}
 
 The first step is to load the UR5 robot model and its corresponding
 collision geometry. The robot description is loaded from a URDF file,
 and a sphere-based approximation is used for efficient collision
-checking. 
-\section{Code explanation}
-urdf = load_robot_description("ur5_description") : We call the robot URDF by calling ur5_description which is a ROS package name.
-target_link_name = "tool0" : Specify the link that we want to match using inverse kinematics
-robot = pk.Robot.from_urdf(urdf): Create a PyRoKi robot model from the URDF
+checking.
+
+\subsection{Code explanation}
+
+\begin{lstlisting}
+urdf = load_robot_description("ur5_description")
+\end{lstlisting}
+We call the robot URDF by calling ur5_description which is a ROS package name.
+
+\begin{lstlisting}
+target_link_name = "tool0"
+\end{lstlisting}
+Specify the link that we want to match using inverse kinematics
+
+\begin{lstlisting}
+robot = pk.Robot.from_urdf(urdf)
+\end{lstlisting}
+Create a PyRoKi robot model from the URDF
 
 The Second step is to set a obstacle
 
+\begin{lstlisting}
 robot_coll = RobotCollision.from_sphere_decomposition(
     sphere_decomposition=sphere_decomposition,
     urdf=urdf,
-) 
-
+)
+\end{lstlisting}
 This line of codes create a sphere-based collision model for efficient robot collision checking.
 
+\begin{lstlisting}
 plane_coll = HalfSpace.from_point_and_normal(
     np.array([0.0, 0.0, -0.15]),
     np.array([0.0, 0.0, 1.0]),
 )
+\end{lstlisting}
 This line of codes create a ground plane that the robot stands on
 
+\begin{lstlisting}
 sphere_obs = Sphere.from_center_and_radius(
     np.array([0.0, 0.0, 0.0]),
     0.10,
 )
+\end{lstlisting}
 This line of codes create a spherical obstacle that can be interactively moved in the scene
 
-The third step is to set a viser visualizer. I would not explain this part in detail
-You can check the following url("https://viser.studio/main/")
+The third step is to set a viser visualizer. I would not explain this part in detail.
+You can check the following url (\url{https://viser.studio/main/})
 
 The fourth step is to setting a button logic.
-on_solve_click(_) uses plan function. we'll describe this function on Motion planner class.
-on_start_click(_) :  set the current configuration of robot arm as start configuration
-on_goal_click() :  sets the current configuration of robot arm as goal configuration.
-on_play_or_pause_click: helps us to start and pause the trajectory following that we get from the solve function.
 
+on\_solve\_click(\_) uses plan function. we'll describe this function on Motion planner class.\\
+on\_start\_click(\_) : set the current configuration of robot arm as start configuration\\
+on\_goal\_click() : sets the current configuration of robot arm as goal configuration.\\
+on\_play\_or\_pause\_click: helps us to start and pause the trajectory following that we get from the solve function.
 
-
+% =========================================================
 \section{State Validity Checking}
 
 OMPL requires a state validity checker to determine whether a given
@@ -106,26 +146,30 @@ robot configuration is collision-free. In this tutorial, we used
 a custom validity checker that uses PyRoKi to detect both self-collisions
 and collisions with the environment.
 
-\section{Code explanation}
+\subsection{Code explanation}
 
+\begin{lstlisting}
 self.robot_coll = robot_coll
 self.plane_coll = plane_coll
-self.robot: pk.Robot = robot  
+self.robot: pk.Robot = robot
 self.obstacles = {}
-
+\end{lstlisting}
 We initialize the collision checker with the robot collision model, ground plane, and robot kinematics.
 
-set_obs(self, obstacle_dict: dict):
+\begin{lstlisting}
+def set_obs(self, obstacle_dict: dict):
     self.obstacles = obstacle_dict or {}
-
+\end{lstlisting}
 We update the set of obstacles in the environment.
 
+\begin{lstlisting}
 def global_obs_list(self):
     world = [self.plane_coll]
-
+\end{lstlisting}
 We add all the obstacles to check whether it collides with the robot.
 In this line, we first add ground plane into our obstacle set.
 
+\begin{lstlisting}
 for _, obs in self.obstacles.items():
     world.append(
         Sphere.from_center_and_radius(
@@ -134,18 +178,20 @@ for _, obs in self.obstacles.items():
         )
     )
 return world
-
+\end{lstlisting}
 In this for loop, we traverse through obstacle dictionary and change
-each obstacle as a collision-checkable sphere object.
+each obstacle as a collision-checkable sphere object.\\
 TLDR, this function constructs a list of world collision geometry.
 
+\begin{lstlisting}
 def is_state_valid(self, q: np.ndarray):
     q = np.asarray(q, dtype=np.float32)
     world_list = self.global_obs_list()
-
+\end{lstlisting}
 In this function, we first convert the joint configuration into float32
 and create a world collision object.
 
+\begin{lstlisting}
 for world_coll in world_list:
     world_dist = self.robot_coll.compute_world_collision_distance(
         self.robot, q, world_coll
@@ -153,131 +199,177 @@ for world_coll in world_list:
     if float(jnp.min(world_dist)) <= -1e-2:
         print("world collision")
         return False
-
+\end{lstlisting}
 In this for loop, we computes the distance between each object with each collision sphere of robot.
 if the distance is $<$ 0, it means the obstacle collides with the robot.
 
+\begin{lstlisting}
 self_dist = self.robot_coll.compute_self_collision_distance(self.robot, q)
 if float(jnp.min(self_dist)) <= -5e-2:
     print("self collision")
     return False
-
+\end{lstlisting}
 Here, we calculates the distance between the robot links.
 this function checks for self-collision by computing the distance between the robot links.
-the is_state_valid(self,q) returns True if the configuration is collision-free
+the is\_state\_valid(self,q) returns True if the configuration is collision-free
 
-
-
-
-
+% =========================================================
 \section{Specifying Start and Goal Configurations}
 
 Start and goal configurations are specified interactively using the
 Viser interface. The user can move the robot to a desired pose using
 inverse kinematics and save the current configuration by clicking
-the corresponding UI buttons. 
+the corresponding UI buttons.
 
-Examples codes are as follows: 
+Examples codes are as follows:
+\begin{lstlisting}
 on_start_click(_)
-on_goal_click(_)   
+on_goal_click(_)
+\end{lstlisting}
 
 This two function is basically responsible for button actions.
 
+% =========================================================
 \section{Running the RRTConnect Planner}
 
 Once the start and goal configurations are defined, the RRTConnect
 planner from OMPL is used to compute a collision-free joint-space
 trajectory between them.
 
+\subsection{Code Explanation}
 
-\sectoin{Code Explanation}
-We use motion planner class to use RRT-connect to compute the collision free trajectory
-
+\begin{lstlisting}
 def __init__(self, collision_checker, lower_limits, upper_limits, dim):
     self.collision_checker = collision_checker
     self.dim = dim
     self.lower_limits = np.array(lower_limits, dtype=float)
     self.upper_limits = np.array(upper_limits, dtype=float)
-
-we first initialize the necessary fields. 
-dim : dimenstion of the state space
+\end{lstlisting}
+we first initialize the necessary fields.\\
+dim : dimenstion of the state space\\
 lower/upper limits: joint limit of each links.
 
-def plan(self, start_config: np.ndarray, goal_config: np.ndarray, 
+\begin{lstlisting}
+def plan(self, start_config: np.ndarray, goal_config: np.ndarray,
             timeout: float, obstacles: dict = None)
+\end{lstlisting}
 
+\begin{lstlisting}
 start_config = np.asarray(start_config, dtype=float).reshape(-1)
 goal_config  = np.asarray(goal_config, dtype=float).reshape(-1)
-
+\end{lstlisting}
 For the plan function we first convert the start/goal into 1D vector.
 
+\begin{lstlisting}
 self.collision_checker.set_obs(obstacles)
-
+\end{lstlisting}
 Before planning, we update current obstable location to CollisionChecker class.
 
-
+\begin{lstlisting}
 for i in range(self.dim):
     bounds.setLow(i, float(self.lower_limits[i]))
     bounds.setHigh(i, float(self.upper_limits[i]))
 space.setBounds(bounds)
-
+\end{lstlisting}
 We incorporate the joint limits into the state space bounds so that OMPL samples only valid states within the allowable joint ranges.
 
-og.SimpleSetup(space) 
-
-This line create a high-level planning interface that bundles the state space, validity checking, 
+\begin{lstlisting}
+og.SimpleSetup(space)
+\end{lstlisting}
+This line create a high-level planning interface that bundles the state space, validity checking,
 planner configuration, and solution handling into a single object.
 
+\begin{lstlisting}
 def _is_valid(state):
     q = np.array([state[i] for i in range(self.dim)], dtype=float)
     return bool(self.collision_checker.is_state_valid(q))
-
-ss.setStateValidityChecker(_is_valid)
-
+\end{lstlisting}
 While planning we call this function to check whether the trajectory is collision-free for each sample.
 
-
+\begin{lstlisting}
 start = space.allocState()
 goal  = space.allocState()
 for i in range(self.dim):
     start[i] = float(start_config[i])
     goal[i]  = float(goal_config[i])
-
+\end{lstlisting}
 We create a State object and allocate an adequate values.
 
-si = ss.getSpaceInformation() 
-ss.setPlanner(og.RRTConnect(si)) 
+\begin{lstlisting}
+si = ss.getSpaceInformation()
+ss.setPlanner(og.RRTConnect(si))
 solved = ss.solve(timeout)
-
-First, we retrieve the SpaceInformation object, which encapsulates the state space, joint bounds, and collision checking. 
-We then configure the planner by instantiating RRT-Connect with this space information. 
+\end{lstlisting}
+First, we retrieve the SpaceInformation object, which encapsulates the state space, joint bounds, and collision checking.
+We then configure the planner by instantiating RRT-Connect with this space information.
 Finally, we call solve() to execute the motion planning process within a specified time limit.
 
+\begin{lstlisting}
 if solved:
     ss.simplifySolution()
-
+\end{lstlisting}
 We post-processes the computed path to make it shorter and smoother by removing unnecessary detours.
 
-
-
+% =========================================================
 \section{Visualizing the Trajectory}
 
 If a valid solution is found, the resulting path is interpolated and
 animated in the Viser interface to show the robot motion over time.
 
-Examples codes are as follows: 
-path.interpolate(...) 
-
-With this line, we interpolate path into a dense sequence of states, with the number of interpolation 
+Examples codes are as follows:
+\begin{lstlisting}
+path.interpolate(...)
+\end{lstlisting}
+With this line, we interpolate path into a dense sequence of states, with the number of interpolation
 points proportional to the path length, to produce smoother motion.
 
+\begin{lstlisting}
 urdf_vis.update_cfg(q_current)
-
+\end{lstlisting}
 For the viser, add the link that we put above.
 
+% =========================================================
+\section{Main function}
 
+Main loop that continuously updates the environment, checks collisions, and updates the robot configuration
+either by playing back a planned path or by solving IK interactively.
 
+\begin{lstlisting}
+while True:
+    t0 = time.time()
+\end{lstlisting}
+We save t0 to measure how much time is taken to find a path.
 
+\begin{lstlisting}
+obs_dict = get_obstacles()
+cc.set_obs(obs_dict)
+\end{lstlisting}
+We update the obstacles to the collision checker.
 
+\begin{lstlisting}
+if is_playing and path is not None:
 
+    if path_i < len(path):
+        q_current = path[path_i]
+        path_i += 1
 
+    elif path_i == len(path):
+        q_current = path[0]
+        path_i = 1
+\end{lstlisting}
+We first check whether path is found with the interactive solve button,
+and we get one waypoint from the waypoint list and update it into current configuration.
+and then if the path has reached the goal state, we loop back to the start configuration.
+
+\begin{lstlisting}
+ik_result = PyrokiHelper.solve_ik_with_collision(
+    robot=robot,
+    coll=robot_coll,
+    world_coll_list=world_coll_list,
+    target_link_name=target_link_name,
+    target_position=target_pos,
+    target_wxyz=target_wxyz,
+)
+\end{lstlisting}
+In this function, we used inverse-kinematics solver provided by pyroki to find the colision free trajectory\\
+Further information can be found in the following url (\url{https://pyroki-toolkit.github.io})
