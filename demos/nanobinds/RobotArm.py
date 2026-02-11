@@ -199,7 +199,7 @@ def main():
     timing_handle = server.gui.add_number("Elapsed (ms)", 0.001, disabled=True)
     collision_handle = server.gui.add_checkbox("Robot in collision?", False, disabled=True)
     
-    cc = CollisionChceker(robot_coll, plane_coll, robot)
+    cc = CollisionChecker(robot_coll, plane_coll, robot)
     lower = np.array(robot.joints.lower_limits, dtype=float)
     upper = np.array(robot.joints.upper_limits, dtype=float)
 
@@ -263,7 +263,7 @@ def main():
 # CollisionChecker
 # ============================================================================
 
-class CollisionChceker():
+class CollisionChecker():
 
     def __init__(self, robot_coll, plane_coll,robot):
         self.robot_coll = robot_coll
@@ -319,7 +319,7 @@ class CollisionChceker():
 
 class MotionPlanner():
 
-    def __init__(self, collision_checker: CollisionChceker, lower_limits, upper_limits, dim):
+    def __init__(self, collision_checker: CollisionChecker, lower_limits, upper_limits, dim):
         self.collision_checker = collision_checker
         self.dim = dim
         self.lower_limits = np.array(lower_limits, dtype=float)
@@ -338,7 +338,7 @@ class MotionPlanner():
             obstacles: Dict of obstacles - {obs_id: {'position': np.ndarray, 'radius': float}}
         """
 
-        start_config = np.asarray(start_config, dtype=float).reshape(-1)
+        start_config = np.asarray(start_config, dtype=float)
         goal_config = np.asarray(goal_config, dtype=float).reshape(-1)
 
         if start_config.shape[0] != self.dim or goal_config.shape[0] != self.dim:
@@ -365,8 +365,8 @@ class MotionPlanner():
         start = space.allocState()
         goal = space.allocState()
         for i in range(self.dim):
-            start[i] = float(start_config[i])
-            goal[i] = float(goal_config[i])
+            start[i] = start_config[i]
+            goal[i] = goal_config[i]
         
         si = ss.getSpaceInformation()
         ss.setStartAndGoalStates(start, goal)
