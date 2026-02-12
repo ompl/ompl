@@ -36,12 +36,8 @@
 
 # Author: Mark Moll, Weihang Guo
 
-try:
-    from ompl import base as ob
-    from ompl import geometric as og
-except ImportError:
-    print("Error: ompl module not found")
-    exit(1)
+from ompl import base as ob
+from ompl import geometric as og
 
 def isStateValid(state):
     # Some arbitrary condition on the state (note that thanks to

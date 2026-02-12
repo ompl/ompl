@@ -37,15 +37,9 @@
 # Author: Ioan Sucan, Mark Moll, Weihang Guo
 
 from os.path import abspath, dirname, join
-import sys
-try:
-    from ompl import util as ou
-    from ompl import base as ob
-    from ompl import geometric as og
-except ImportError:
-    print("Error: ompl module not found")
-    exit(1)
-    
+from ompl import util as ou
+from ompl import base as ob
+from ompl import geometric as og
 from functools import partial
 
 class Plane2DEnvironment:
