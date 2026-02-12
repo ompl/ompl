@@ -10,7 +10,7 @@ namespace nb = nanobind;
 NB_MODULE(_ompl, m)
 {
     // nb::set_leak_warnings(false);
-    
+
     m.doc() = "OMPL Python Bindings";
 
     nb::module_ base = m.def_submodule("base");
@@ -67,14 +67,10 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initSpacesConstraint_AtlasStateSpace(base);
     ompl::binding::base::initSpacesConstraint_TangentBundleStateSpace(base);
 
-
     nb::module_ geometric = m.def_submodule("geometric");
     ompl::binding::geometric::init_PathGeometric(geometric);
-    ompl::binding::geometric::init_PathHybridization(geometric);
     ompl::binding::geometric::init_PathSimplifier(geometric);
     ompl::binding::geometric::init_SimpleSetup(geometric);
-
-
 
     ompl::binding::geometric::initPlannersPrm_PRM(geometric);
     ompl::binding::geometric::initPlannersPrm_PRMstar(geometric);
@@ -104,7 +100,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::control::init_SimpleSetup(control);
     ompl::binding::control::init_SpaceInformation(control);
     ompl::binding::control::init_StatePropagator(control);
-    ompl::binding::control::init_SteeredControlSampler(control);
     ompl::binding::control::initPlannersEst_EST(control);
     ompl::binding::control::initPlannersKpiece_KPIECE1(control);
     ompl::binding::control::initPlannersPdst_PDST(control);
@@ -115,7 +110,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::control::initPlannersSyclop_Syclop(control);
     ompl::binding::control::initPlannersSyclop_SyclopEST(control);
     ompl::binding::control::initPlannersSyclop_SyclopRRT(control);
-    ompl::binding::control::initSpaces_DiscreteControlSpace(control);
     ompl::binding::control::initSpaces_RealVectorControlSpace(control);
 
     nb::module_ util = m.def_submodule("util");

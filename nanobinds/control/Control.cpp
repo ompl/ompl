@@ -8,14 +8,13 @@
 namespace nb = nanobind;
 namespace oc = ompl::control;
 
-void ompl::binding::control::init_Control(nb::module_& m)
+void ompl::binding::control::init_Control(nb::module_ &m)
 {
     nb::class_<ompl::control::Control>(m, "Control");
     nb::class_<ompl::control::CompoundControl, ompl::control::Control>(m, "CompoundControl")
         .def(nb::init<>())
-        .def("__getitem__", [](oc::CompoundControl &cc, unsigned int idx) -> oc::Control* {
-                return cc[idx]; 
-            }, nb::rv_policy::reference_internal,
-            "Return the pointer to the i-th sub-control in this compound control.");
-        // TODO: Expose the components member variable
+        .def(
+            "__getitem__", [](oc::CompoundControl &cc, unsigned int idx) -> oc::Control * { return cc[idx]; },
+            nb::rv_policy::reference_internal, "Return the pointer to the i-th sub-control in this compound control.");
+    // TODO: Expose the components member variable
 }

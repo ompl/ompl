@@ -6,7 +6,7 @@
 namespace nb = nanobind;
 namespace om = ompl;
 
-void ompl::binding::util::init_Console(nb::module_& m)
+void ompl::binding::util::init_Console(nb::module_ &m)
 {
     // Bind the LogLevel enum
     nb::enum_<om::msg::LogLevel>(m, "LogLevel")
@@ -21,20 +21,20 @@ void ompl::binding::util::init_Console(nb::module_& m)
 
     // Bind OutputHandler base class
     nb::class_<om::msg::OutputHandler>(m, "OutputHandler")
-        .def("log", &om::msg::OutputHandler::log,
-             nb::arg("text"), nb::arg("level"), nb::arg("filename"), nb::arg("line"));
+        .def("log", &om::msg::OutputHandler::log, nb::arg("text"), nb::arg("level"), nb::arg("filename"),
+             nb::arg("line"));
 
     // Bind OutputHandlerSTD
     nb::class_<om::msg::OutputHandlerSTD, om::msg::OutputHandler>(m, "OutputHandlerSTD")
         .def(nb::init<>())
-        .def("log", &om::msg::OutputHandlerSTD::log,
-             nb::arg("text"), nb::arg("level"), nb::arg("filename"), nb::arg("line"));
+        .def("log", &om::msg::OutputHandlerSTD::log, nb::arg("text"), nb::arg("level"), nb::arg("filename"),
+             nb::arg("line"));
 
     // Bind OutputHandlerFile
     nb::class_<om::msg::OutputHandlerFile, om::msg::OutputHandler>(m, "OutputHandlerFile")
-        .def(nb::init<const char*>(), nb::arg("filename"))
-        .def("log", &om::msg::OutputHandlerFile::log,
-             nb::arg("text"), nb::arg("level"), nb::arg("filename"), nb::arg("line"));
+        .def(nb::init<const char *>(), nb::arg("filename"))
+        .def("log", &om::msg::OutputHandlerFile::log, nb::arg("text"), nb::arg("level"), nb::arg("filename"),
+             nb::arg("line"));
 
     // Bind logging control functions
     m.def("setLogLevel", &om::msg::setLogLevel, nb::arg("level"));
@@ -45,34 +45,22 @@ void ompl::binding::util::init_Console(nb::module_& m)
     m.def("getOutputHandler", &om::msg::getOutputHandler, nb::rv_policy::reference);
 
     // Bind logging macros as functions
-    m.def("OMPL_ERROR",
-          [](const std::string &msg) {
-              om::msg::log(__FILE__, __LINE__, om::msg::LOG_ERROR, "%s", msg.c_str());
-          },
-          nb::arg("message"));
-    m.def("OMPL_WARN",
-          [](const std::string &msg) {
-              om::msg::log(__FILE__, __LINE__, om::msg::LOG_WARN, "%s", msg.c_str());
-          },
-          nb::arg("message"));
-    m.def("OMPL_INFORM",
-          [](const std::string &msg) {
-              om::msg::log(__FILE__, __LINE__, om::msg::LOG_INFO, "%s", msg.c_str());
-          },
-          nb::arg("message"));
-    m.def("OMPL_DEBUG",
-          [](const std::string &msg) {
-              om::msg::log(__FILE__, __LINE__, om::msg::LOG_DEBUG, "%s", msg.c_str());
-          },
-          nb::arg("message"));
-    m.def("OMPL_DEVMSG1",
-          [](const std::string &msg) {
-              om::msg::log(__FILE__, __LINE__, om::msg::LOG_DEV1, "%s", msg.c_str());
-          },
-          nb::arg("message"));
-    m.def("OMPL_DEVMSG2",
-          [](const std::string &msg) {
-              om::msg::log(__FILE__, __LINE__, om::msg::LOG_DEV2, "%s", msg.c_str());
-          },
-          nb::arg("message"));
+    m.def(
+        "OMPL_ERROR", [](const std::string &msg)
+        { om::msg::log(__FILE__, __LINE__, om::msg::LOG_ERROR, "%s", msg.c_str()); }, nb::arg("message"));
+    m.def(
+        "OMPL_WARN", [](const std::string &msg)
+        { om::msg::log(__FILE__, __LINE__, om::msg::LOG_WARN, "%s", msg.c_str()); }, nb::arg("message"));
+    m.def(
+        "OMPL_INFORM", [](const std::string &msg)
+        { om::msg::log(__FILE__, __LINE__, om::msg::LOG_INFO, "%s", msg.c_str()); }, nb::arg("message"));
+    m.def(
+        "OMPL_DEBUG", [](const std::string &msg)
+        { om::msg::log(__FILE__, __LINE__, om::msg::LOG_DEBUG, "%s", msg.c_str()); }, nb::arg("message"));
+    m.def(
+        "OMPL_DEVMSG1", [](const std::string &msg)
+        { om::msg::log(__FILE__, __LINE__, om::msg::LOG_DEV1, "%s", msg.c_str()); }, nb::arg("message"));
+    m.def(
+        "OMPL_DEVMSG2", [](const std::string &msg)
+        { om::msg::log(__FILE__, __LINE__, om::msg::LOG_DEV2, "%s", msg.c_str()); }, nb::arg("message"));
 }

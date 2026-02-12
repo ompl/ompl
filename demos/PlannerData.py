@@ -44,17 +44,9 @@ except ImportError:
     print('Failed to import viser.  PlannerData will not be visualized')
     viser_available = False
 
-try:
-    from ompl import base as ob
-    from ompl import geometric as og
-except ImportError:
-    # if the ompl module is not in the PYTHONPATH assume it is installed in a
-    # subdirectory of the parent directory called "py-bindings."
-    from os.path import abspath, dirname, join
-    import sys
-    sys.path.insert(0, join(dirname(dirname(abspath(__file__))), 'py-bindings'))
-    from ompl import base as ob
-    from ompl import geometric as og
+from ompl import base as ob
+from ompl import geometric as og
+
 
 
 # Create a narrow passage between y=[-3,3].  Only a 6x6x6 cube will be valid, centered at origin

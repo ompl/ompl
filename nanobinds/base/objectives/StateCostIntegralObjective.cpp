@@ -22,10 +22,12 @@ void ompl::binding::base::initObjectives_StateCostIntegralObjective(nb::module_ 
             nb::gil_scoped_acquire gil;
             using Ret = ob::Cost;
             nb::object self = nb::find(this);
-            if (self.is_valid()) {
+            if (self.is_valid())
+            {
                 nb::object cls = self.attr("__class__");
                 nb::dict cls_dict(cls.attr("__dict__"));
-                if (cls_dict.contains("stateCost")) {
+                if (cls_dict.contains("stateCost"))
+                {
                     return nb::cast<Ret>(self.attr("stateCost")(s));
                 }
             }
@@ -37,10 +39,12 @@ void ompl::binding::base::initObjectives_StateCostIntegralObjective(nb::module_ 
             nb::gil_scoped_acquire gil;
             using Ret = ob::Cost;
             nb::object self = nb::find(this);
-            if (self.is_valid()) {
+            if (self.is_valid())
+            {
                 nb::object cls = self.attr("__class__");
                 nb::dict cls_dict(cls.attr("__dict__"));
-                if (cls_dict.contains("motionCost")) {
+                if (cls_dict.contains("motionCost"))
+                {
                     return nb::cast<Ret>(self.attr("motionCost")(s1, s2));
                 }
             }
@@ -52,10 +56,12 @@ void ompl::binding::base::initObjectives_StateCostIntegralObjective(nb::module_ 
             nb::gil_scoped_acquire gil;
             using Ret = ob::Cost;
             nb::object self = nb::find(this);
-            if (self.is_valid()) {
+            if (self.is_valid())
+            {
                 nb::object cls = self.attr("__class__");
                 nb::dict cls_dict(cls.attr("__dict__"));
-                if (cls_dict.contains("motionCostBestEstimate")) {
+                if (cls_dict.contains("motionCostBestEstimate"))
+                {
                     return nb::cast<Ret>(self.attr("motionCostBestEstimate")(s1, s2));
                 }
             }
@@ -63,7 +69,8 @@ void ompl::binding::base::initObjectives_StateCostIntegralObjective(nb::module_ 
         }
     };
 
-    nb::class_<ob::StateCostIntegralObjective, ob::OptimizationObjective, PyStateCostIntegralObjective /* <-- trampoline */>(m, "StateCostIntegralObjective")
+    nb::class_<ob::StateCostIntegralObjective, ob::OptimizationObjective,
+               PyStateCostIntegralObjective /* <-- trampoline */>(m, "StateCostIntegralObjective")
         .def(nb::init<const ob::SpaceInformationPtr &, bool>(), nb::arg("si"), nb::arg("enableMotionCostInterpolation"))
         .def("isMotionCostInterpolationEnabled", &ob::StateCostIntegralObjective::isMotionCostInterpolationEnabled);
 }

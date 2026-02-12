@@ -14,68 +14,85 @@
 
 namespace nb = nanobind;
 
-
-// Helper to get dict pointer safely
-static PyObject **get_dict_ptr(PyObject *obj) {
+static PyObject **get_dict_ptr(PyObject *obj)
+{
     return _PyObject_GetDictPtr(obj);
 }
 
-int space_information_tp_traverse(PyObject *self, visitproc visit, void *arg) {
+int space_information_tp_traverse(PyObject *self, visitproc visit, void *arg)
+{
     Py_VISIT(Py_TYPE(self));
-    if (!nb::inst_ready(self)) return 0;
+    if (!nb::inst_ready(self))
+        return 0;
 
     // 1. Visit __dict__ (handles references stored in Python attributes)
     PyObject **dictptr = get_dict_ptr(self);
-    if (dictptr && *dictptr) {
+    if (dictptr && *dictptr)
+    {
         Py_VISIT(*dictptr);
     }
 
-    try {
+    try
+    {
         auto *si = nb::inst_ptr<ompl::base::SpaceInformation>(self);
-        if (si) {
+        if (si)
+        {
             auto svc = si->getStateValidityChecker();
-            if (svc) {
+            if (svc)
+            {
                 // 2. Try to visit C++ child via nb::find (works for Python Classes)
                 nb::handle h = nb::find(svc);
-                if (h.is_valid()) {
-                     Py_VISIT(h.ptr());
-                } else if (dictptr && *dictptr) {
-                     // 3. If nb::find failed (Lambda), visit the proxy in __dict__ explicitely
-                     // to account for the C++ reference (since Lambda + std::function = 2 refs).
-                     PyObject *item = PyDict_GetItemString(*dictptr, "_svc");
-                     if (item) {
-                         Py_VISIT(item);
-                     }
+                if (h.is_valid())
+                {
+                    Py_VISIT(h.ptr());
+                }
+                else if (dictptr && *dictptr)
+                {
+                    // 3. If nb::find failed (Lambda), visit the proxy in __dict__ explicitely
+                    // to account for the C++ reference (since Lambda + std::function = 2 refs).
+                    PyObject *item = PyDict_GetItemString(*dictptr, "_svc");
+                    if (item)
+                    {
+                        Py_VISIT(item);
+                    }
                 }
             }
         }
-    } catch (...) {}
+    }
+    catch (...)
+    {
+    }
     return 0;
 }
 
-int space_information_tp_clear(PyObject *self) {
+int space_information_tp_clear(PyObject *self)
+{
     // 1. Clear __dict__
     PyObject **dictptr = get_dict_ptr(self);
-    if (dictptr && *dictptr) {
+    if (dictptr && *dictptr)
+    {
         Py_CLEAR(*dictptr);
     }
     // 2. Break C++ Cycle
-    try {
+    try
+    {
         auto *si = nb::inst_ptr<ompl::base::SpaceInformation>(self);
-        if (si) {
+        if (si)
+        {
             si->setStateValidityChecker(ompl::base::StateValidityCheckerPtr(nullptr));
         }
-    } catch (...) {}
+    }
+    catch (...)
+    {
+    }
     return 0;
 }
 
-PyType_Slot space_information_slots[] = {
-    { Py_tp_traverse, (void *) space_information_tp_traverse },
-    { Py_tp_clear, (void *) space_information_tp_clear },
-    { 0, 0 }
-};
+PyType_Slot space_information_slots[] = {{Py_tp_traverse, (void *)space_information_tp_traverse},
+                                         {Py_tp_clear, (void *)space_information_tp_clear},
+                                         {0, 0}};
 
-void ompl::binding::base::init_SpaceInformation(nb::module_& m)
+void ompl::binding::base::init_SpaceInformation(nb::module_ &m)
 {
     nb::class_<ompl::base::SpaceInformation>(m, "SpaceInformation", nb::type_slots(space_information_slots), nb::dynamic_attr())
         .def(nb::init<ompl::base::StateSpacePtr>())
@@ -138,9 +155,7 @@ void ompl::binding::base::init_SpaceInformation(nb::module_& m)
 
         .def("checkMotion", nb::overload_cast<const ompl::base::State*, const ompl::base::State*>(&ompl::base::SpaceInformation::checkMotion, nb::const_))
         
-        // TODO: this function has compile error
-        // .def("checkMotion", nb::overload_cast<const ompl::base::State*, const ompl::base::State*, std::pair<ompl::base::State*, double>&>(&ompl::base::SpaceInformation::checkMotion, nb::const_))
-        .def("checkMotion", nb::overload_cast<const std::vector<ompl::base::State*>&, unsigned int, unsigned int&>(&ompl::base::SpaceInformation::checkMotion, nb::const_))
+       .def("checkMotion", nb::overload_cast<const std::vector<ompl::base::State*>&, unsigned int, unsigned int&>(&ompl::base::SpaceInformation::checkMotion, nb::const_))
         .def("checkMotion", nb::overload_cast<const std::vector<ompl::base::State*>&, unsigned int>(&ompl::base::SpaceInformation::checkMotion, nb::const_))
 
         .def("getMotionStates", &ompl::base::SpaceInformation::getMotionStates)
@@ -156,11 +171,18 @@ void ompl::binding::base::init_SpaceInformation(nb::module_& m)
             si.printSettings(oss);
             return oss.str();
         })
-        // Virtual method: printProperties
-        .def("printProperties", [](const ompl::base::SpaceInformation &si) { si.printProperties(std::cout); })
+        .def("__repr__",
+             [](const ompl::base::SpaceInformation &si)
+             {
+                 std::ostringstream oss;
+                 si.printSettings(oss);
+                 return oss.str();
+             })
+    // Virtual method: printProperties
+    .def("printProperties", [](const ompl::base::SpaceInformation &si) { si.printProperties(std::cout); })
         .def("params", nb::overload_cast<>(&ompl::base::SpaceInformation::params, nb::const_))
         .def("setup", &ompl::base::SpaceInformation::setup)
         .def("isSetup", &ompl::base::SpaceInformation::isSetup);
-        // Protected method: setMotionValidator
-        // .def("setDefaultMotionValidator", &ompl::base::SpaceInformation::setDefaultMotionValidator);
+    // Protected method: setMotionValidator
+    // .def("setDefaultMotionValidator", &ompl::base::SpaceInformation::setDefaultMotionValidator);
 }

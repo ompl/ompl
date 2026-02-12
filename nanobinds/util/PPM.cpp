@@ -7,13 +7,13 @@
 
 namespace nb = nanobind;
 
-void ompl::binding::util::init_PPM(nb::module_& m)
+void ompl::binding::util::init_PPM(nb::module_ &m)
 {
     nb::class_<ompl::PPM::Color>(m, "Color")
         .def(nb::init<>())
-        .def_rw("red",   &ompl::PPM::Color::red)
+        .def_rw("red", &ompl::PPM::Color::red)
         .def_rw("green", &ompl::PPM::Color::green)
-        .def_rw("blue",  &ompl::PPM::Color::blue);
+        .def_rw("blue", &ompl::PPM::Color::blue);
 
     nb::class_<ompl::PPM>(m, "PPM")
         .def(nb::init<>())
@@ -23,10 +23,7 @@ void ompl::binding::util::init_PPM(nb::module_& m)
         .def("getHeight", &ompl::PPM::getHeight)
         .def("setWidth", &ompl::PPM::setWidth)
         .def("setHeight", &ompl::PPM::setHeight)
-        .def("getPixel",
-             [](const ompl::PPM &self, int row, int col) -> const ompl::PPM::Color& {
-                 return self.getPixel(row, col);
-             },
-             nb::arg("row"), nb::arg("col"),
-             nb::rv_policy::reference_internal);
+        .def(
+            "getPixel", [](const ompl::PPM &self, int row, int col) -> const ompl::PPM::Color &
+            { return self.getPixel(row, col); }, nb::arg("row"), nb::arg("col"), nb::rv_policy::reference_internal);
 }

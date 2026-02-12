@@ -18,82 +18,105 @@ namespace nb = nanobind;
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
-struct SimpleSetupPublicist : public og::SimpleSetup {
+struct SimpleSetupPublicist : public og::SimpleSetup
+{
     using og::SimpleSetup::configured_;
 };
 
 void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m);
 // Helper dictionary access
-static PyObject **get_dict_ptr(PyObject *obj) {
+static PyObject **get_dict_ptr(PyObject *obj)
+{
     return _PyObject_GetDictPtr(obj);
 }
 
-int simple_setup_geometric_tp_traverse(PyObject *self, visitproc visit, void *arg) {
+int simple_setup_geometric_tp_traverse(PyObject *self, visitproc visit, void *arg)
+{
     Py_VISIT(Py_TYPE(self));
-    if (!nb::inst_ready(self)) return 0;
+    if (!nb::inst_ready(self))
+        return 0;
 
     // 1. Visit __dict__
     PyObject **dictptr = get_dict_ptr(self);
-    if (dictptr && *dictptr) {
+    if (dictptr && *dictptr)
+    {
         Py_VISIT(*dictptr);
     }
 
-    try {
+    try
+    {
         auto *ss = nb::inst_ptr<og::SimpleSetup>(self);
-        if (ss) {
+        if (ss)
+        {
             // Visit SpaceInformation
             auto si = ss->getSpaceInformation();
-            if (si) {
-                 nb::handle h = nb::find(si);
-                 if (h.is_valid()) Py_VISIT(h.ptr());
+            if (si)
+            {
+                nb::handle h = nb::find(si);
+                if (h.is_valid())
+                    Py_VISIT(h.ptr());
             }
             // Visit ProblemDefinition
             auto pdef = ss->getProblemDefinition();
-            if (pdef) {
-                 nb::handle h = nb::find(pdef);
-                 if (h.is_valid()) Py_VISIT(h.ptr());
+            if (pdef)
+            {
+                nb::handle h = nb::find(pdef);
+                if (h.is_valid())
+                    Py_VISIT(h.ptr());
             }
             // Visit Planner
             auto planner = ss->getPlanner();
-            if (planner) {
-                 nb::handle h = nb::find(planner);
-                 if (h.is_valid()) Py_VISIT(h.ptr());
+            if (planner)
+            {
+                nb::handle h = nb::find(planner);
+                if (h.is_valid())
+                    Py_VISIT(h.ptr());
             }
             // Visit Callbacks stored in dict (if nb::find fails for them)
-            if (dictptr && *dictptr) {
+            if (dictptr && *dictptr)
+            {
                 PyObject *svc = PyDict_GetItemString(*dictptr, "_svc");
-                if (svc) Py_VISIT(svc);
+                if (svc)
+                    Py_VISIT(svc);
             }
         }
-    } catch (...) {}
+    }
+    catch (...)
+    {
+    }
     return 0;
 }
 
-int simple_setup_geometric_tp_clear(PyObject *self) {
+int simple_setup_geometric_tp_clear(PyObject *self)
+{
     // 1. Clear __dict__
     PyObject **dictptr = get_dict_ptr(self);
-    if (dictptr && *dictptr) {
+    if (dictptr && *dictptr)
+    {
         Py_CLEAR(*dictptr);
     }
     // 2. Break C++ Cycle
-    try {
+    try
+    {
         auto *ss = nb::inst_ptr<og::SimpleSetup>(self);
-        if (ss) {
-             ss->setStateValidityChecker(ompl::base::StateValidityCheckerPtr(nullptr));
+        if (ss)
+        {
+            ss->setStateValidityChecker(ompl::base::StateValidityCheckerPtr(nullptr));
         }
-    } catch (...) {}
+    }
+    catch (...)
+    {
+    }
     return 0;
 }
 
-PyType_Slot simple_setup_geometric_slots[] = {
-    { Py_tp_traverse, (void *) simple_setup_geometric_tp_traverse },
-    { Py_tp_clear, (void *) simple_setup_geometric_tp_clear },
-    { 0, 0 }
-};
+PyType_Slot simple_setup_geometric_slots[] = {{Py_tp_traverse, (void *)simple_setup_geometric_tp_traverse},
+                                              {Py_tp_clear, (void *)simple_setup_geometric_tp_clear},
+                                              {0, 0}};
 
 void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m)
 {
-nb::class_<og::SimpleSetup>(m, "SimpleSetup", nb::type_slots(simple_setup_geometric_slots), nb::dynamic_attr())
+    nb::class_<og::SimpleSetup>(m, "SimpleSetup", nb::type_slots(simple_setup_geometric_slots), nb::dynamic_attr())
      // Constructors
      .def(nb::init<const ob::SpaceInformationPtr &>(),
           nb::arg("si"))
@@ -262,6 +285,12 @@ nb::class_<og::SimpleSetup>(m, "SimpleSetup", nb::type_slots(simple_setup_geomet
      
      // print
      .def("print",
+          [](const og::SimpleSetup &self) {
+               std::ostringstream oss;
+               self.print(oss);
+               return oss.str();
+          })
+     .def("__repr__",
           [](const og::SimpleSetup &self) {
                std::ostringstream oss;
                self.print(oss);

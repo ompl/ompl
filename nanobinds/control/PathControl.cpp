@@ -30,11 +30,14 @@ void ompl::binding::control::init_PathControl(nb::module_ &m)
 
         // print() returns void, so let's wrap it returning a string
         .def("print", [](const oc::PathControl &pc) { pc.print(std::cout); })
-
-        .def("printAsMatrix",
+        .def("__repr__",
              [](const oc::PathControl &pc)
-             {pc.printAsMatrix(std::cout);
+             {
+                 std::ostringstream oss;
+                 pc.printAsMatrix(oss);
+                 return oss.str();
              })
+        .def("printAsMatrix", [](const oc::PathControl &pc) { pc.printAsMatrix(std::cout); })
 
         // asGeometric() returns a geometric::PathGeometric by value
         // We can return that by value or copy. The default is fine.

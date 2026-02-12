@@ -7,9 +7,8 @@ namespace nb = nanobind;
 namespace oc = ompl::control;
 namespace ob = ompl::base;
 
-void ompl::binding::control::initPlannersSyclop_SyclopEST(nb::module_& m)
+void ompl::binding::control::initPlannersSyclop_SyclopEST(nb::module_ &m)
 {
-    // TAG [oc::SyclopEST][Planner]
     nb::class_<oc::SyclopEST, oc::Syclop>(m, "SyclopEST")
         .def(nb::init<const oc::SpaceInformationPtr &, const oc::DecompositionPtr &>());
 }

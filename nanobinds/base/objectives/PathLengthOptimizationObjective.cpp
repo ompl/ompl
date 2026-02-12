@@ -23,7 +23,7 @@ void ompl::binding::base::initObjectives_PathLengthOptimizationObjective(nb::mod
         }
 
         // Optional override
-        ob::Cost motionCost(const ob::State *s1, const ob::State* s2) const override
+        ob::Cost motionCost(const ob::State *s1, const ob::State *s2) const override
         {
             NB_OVERRIDE(motionCost, s1, s2);
         }
@@ -41,6 +41,7 @@ void ompl::binding::base::initObjectives_PathLengthOptimizationObjective(nb::mod
         }
     };
 
-    nb::class_<ob::PathLengthOptimizationObjective, ob::OptimizationObjective, PyPathLengthOptimizationObjective /* <-- trampoline */>(m, "PathLengthOptimizationObjective")
+    nb::class_<ob::PathLengthOptimizationObjective, ob::OptimizationObjective,
+               PyPathLengthOptimizationObjective /* <-- trampoline */>(m, "PathLengthOptimizationObjective")
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"));
 }

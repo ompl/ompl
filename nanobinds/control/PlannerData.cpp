@@ -6,13 +6,8 @@ namespace nb = nanobind;
 namespace oc = ompl::control;
 namespace ob = ompl::base;
 
-void ompl::binding::control::init_PlannerData(nb::module_& m)
+void ompl::binding::control::init_PlannerData(nb::module_ &m)
 {
-    // TODO [oc::PlannerDataEdgeControl][IMPLEMENT]
-    nb::class_<oc::PlannerDataEdgeControl>(m, "PlannerDataEdgeControl")
-        ;
-    // TODO [oc::PlannerData][IMPLEMENT]
-    nb::class_<oc::PlannerData>(m, "PlannerData")
-        ;
+    nb::class_<oc::PlannerDataEdgeControl>(m, "PlannerDataEdgeControl");
+    nb::class_<oc::PlannerData>(m, "PlannerData");
 }
-

@@ -44,7 +44,7 @@ void ompl::binding::base::initGoals_GoalSampleableRegion(nb::module_ &m)
         .def("setThreshold", &ob::GoalRegion::setThreshold, nb::arg("threshold"))
 
         // optional override in Python
-        .def("couldSample", &ob::GoalSampleableRegion::couldSample, "Return true if you could sample another goal.")
+        .def("couldSample", &ob::GoalSampleableRegion::couldSample)
 
         // from GoalRegion / Goal
         .def("isSatisfied", nb::overload_cast<const ob::State *>(&ob::Goal::isSatisfied, nb::const_))
@@ -55,5 +55,12 @@ void ompl::binding::base::initGoals_GoalSampleableRegion(nb::module_ &m)
                  bool ok = g.isSatisfied(st, &d);
                  return std::make_pair(ok, d);
              })
-        .def("print", [](const ob::Goal &g) { g.print(std::cout); });
+        .def("print", [](const ob::Goal &g) { g.print(std::cout); })
+        .def("__repr__",
+             [](const ob::Goal &g)
+             {
+                 std::ostringstream oss;
+                 g.print(oss);
+                 return oss.str();
+             });
 }

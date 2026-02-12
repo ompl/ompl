@@ -8,11 +8,11 @@
 namespace nb = nanobind;
 namespace ob = ompl::base;
 
-void ompl::binding::base::initSamplers_ObstacleBasedValidStateSampler(nb::module_& m)
+void ompl::binding::base::initSamplers_ObstacleBasedValidStateSampler(nb::module_ &m)
 {
     nb::class_<ob::ObstacleBasedValidStateSampler, ob::ValidStateSampler>(m, "ObstacleBasedValidStateSampler")
         .def(nb::init<const ob::SpaceInformation *>(), nb::arg("si"))
         .def("sample", &ob::ObstacleBasedValidStateSampler::sample, nb::arg("state"))
-        .def("sampleNear", &ob::ObstacleBasedValidStateSampler::sampleNear, nb::arg("state"), nb::arg("near"), nb::arg("distance"));
+        .def("sampleNear", &ob::ObstacleBasedValidStateSampler::sampleNear, nb::arg("state"), nb::arg("near"),
+             nb::arg("distance"));
 }
-

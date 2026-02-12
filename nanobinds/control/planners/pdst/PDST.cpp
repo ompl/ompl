@@ -6,8 +6,7 @@ namespace nb = nanobind;
 namespace oc = ompl::control;
 namespace ob = ompl::base;
 
-void ompl::binding::control::initPlannersPdst_PDST(nb::module_& m)
+void ompl::binding::control::initPlannersPdst_PDST(nb::module_ &m)
 {
-    nb::class_<oc::PDST, ob::Planner>(m, "PDST")
-        ;
+    nb::class_<oc::PDST, ob::Planner>(m, "PDST");
 }

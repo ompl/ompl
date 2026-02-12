@@ -37,15 +37,9 @@
 # Author: Luis G. Torres, Mark Moll, Weihang Guo
 
 import sys
-
-try:
-    from ompl import util as ou
-    from ompl import base as ob
-    from ompl import geometric as og
-except ImportError:
-    print("Error: ompl module not found")
-    exit(1)
-
+from ompl import util as ou
+from ompl import base as ob
+from ompl import geometric as og
 from math import sqrt
 import argparse
 

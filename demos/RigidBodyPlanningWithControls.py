@@ -38,13 +38,8 @@
 
 from math import sin, cos
 from functools import partial
-
-try:
-    from ompl import base as ob
-    from ompl import control as oc
-except ImportError:
-    print("Error: ompl module not found")
-    exit(1)
+from ompl import base as ob
+from ompl import control as oc
 
 ## @cond IGNORE
 # a decomposition is only needed for SyclopRRT and SyclopEST
