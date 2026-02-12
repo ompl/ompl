@@ -10,6 +10,8 @@
 *.so
 *.so.*
 *.swp
+*.db
+*.console
 bin/
 build/
 lib/
