@@ -21,10 +21,15 @@ void ompl::binding::base::init_PlannerStatus(nb::module_ &m)
             .def("__bool__", [](const ompl::base::PlannerStatus &self) -> bool { return static_cast<bool>(self); })
             .def("__int__", [](const ompl::base::PlannerStatus &self) -> int
                  { return static_cast<ompl::base::PlannerStatus::StatusType>(self); })
-            .def("__eq__", [](const ompl::base::PlannerStatus &self, const ompl::base::PlannerStatus::StatusType &other) -> bool
+            .def("__eq__",
+                 [](const ompl::base::PlannerStatus &self, const ompl::base::PlannerStatus::StatusType &other) -> bool
                  { return static_cast<ompl::base::PlannerStatus::StatusType>(self) == other; })
-            .def("__eq__", [](const ompl::base::PlannerStatus &self, const ompl::base::PlannerStatus &other) -> bool
-                 { return static_cast<ompl::base::PlannerStatus::StatusType>(self) == static_cast<ompl::base::PlannerStatus::StatusType>(other); })
+            .def("__eq__",
+                 [](const ompl::base::PlannerStatus &self, const ompl::base::PlannerStatus &other) -> bool
+                 {
+                     return static_cast<ompl::base::PlannerStatus::StatusType>(self) ==
+                            static_cast<ompl::base::PlannerStatus::StatusType>(other);
+                 })
             .def("__repr__", [](const ompl::base::PlannerStatus &self) { return self.asString(); });
 
     nb::enum_<ompl::base::PlannerStatus::StatusType>(ps, "PlannerStatusType")

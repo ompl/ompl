@@ -5,7 +5,7 @@
 
 namespace nb = nanobind;
 
-void ompl::binding::util::init_RandomNumbers(nb::module_& m)
+void ompl::binding::util::init_RandomNumbers(nb::module_ &m)
 {
     nb::class_<ompl::RNG>(m, "RNG")
         .def(nb::init<>())
@@ -19,16 +19,20 @@ void ompl::binding::util::init_RandomNumbers(nb::module_& m)
         .def("halfNormalReal", &ompl::RNG::halfNormalReal, nb::arg("r_min"), nb::arg("r_max"), nb::arg("focus") = 3.0)
         .def("halfNormalInt", &ompl::RNG::halfNormalInt, nb::arg("r_min"), nb::arg("r_max"), nb::arg("focus") = 3.0)
         // quaternion and eulerRPY take raw arrays - wrap them to return vectors
-        .def("quaternion", [](ompl::RNG &rng) {
-            std::vector<double> q(4);
-            rng.quaternion(q.data());
-            return q;
-        })
-        .def("eulerRPY", [](ompl::RNG &rng) {
-            std::vector<double> rpy(3);
-            rng.eulerRPY(rpy.data());
-            return rpy;
-        })
+        .def("quaternion",
+             [](ompl::RNG &rng)
+             {
+                 std::vector<double> q(4);
+                 rng.quaternion(q.data());
+                 return q;
+             })
+        .def("eulerRPY",
+             [](ompl::RNG &rng)
+             {
+                 std::vector<double> rpy(3);
+                 rng.eulerRPY(rpy.data());
+                 return rpy;
+             })
         .def("uniformNormalVector", &ompl::RNG::uniformNormalVector, nb::arg("v"))
         .def("uniformInBall", &ompl::RNG::uniformInBall, nb::arg("r"), nb::arg("v"))
         .def("setLocalSeed", &ompl::RNG::setLocalSeed, nb::arg("localSeed"))
@@ -36,4 +40,3 @@ void ompl::binding::util::init_RandomNumbers(nb::module_& m)
         .def_static("getSeed", &ompl::RNG::getSeed)
         .def_static("setSeed", &ompl::RNG::setSeed, nb::arg("seed"));
 }
-

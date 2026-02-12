@@ -28,11 +28,13 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
         .def("checkValidity", &ompl::base::PlannerInputStates::checkValidity)
 
         // State iteration
-        .def("nextStart", &ompl::base::PlannerInputStates::nextStart,nb::rv_policy::reference_internal)
-        .def("nextGoal", nb::overload_cast<>(&ompl::base::PlannerInputStates::nextGoal), nb::rv_policy::reference_internal)
+        .def("nextStart", &ompl::base::PlannerInputStates::nextStart, nb::rv_policy::reference_internal)
+        .def("nextGoal", nb::overload_cast<>(&ompl::base::PlannerInputStates::nextGoal),
+             nb::rv_policy::reference_internal)
         .def("nextGoal",
              nb::overload_cast<const ompl::base::PlannerTerminationCondition &>(
-                 &ompl::base::PlannerInputStates::nextGoal), nb::rv_policy::reference_internal)
+                 &ompl::base::PlannerInputStates::nextGoal),
+             nb::rv_policy::reference_internal)
 
         // State availability checks
         .def("haveMoreStartStates", &ompl::base::PlannerInputStates::haveMoreStartStates)
@@ -41,7 +43,7 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
         // State counting
         .def("getSeenStartStatesCount", &ompl::base::PlannerInputStates::getSeenStartStatesCount)
         .def("getSampledGoalsCount", &ompl::base::PlannerInputStates::getSampledGoalsCount);
-        struct PyPlanner : ob::Planner
+    struct PyPlanner : ob::Planner
     {
         // We declare an NB_TRAMPOLINE for 8 override slots (the number of virtual methods we plan to override).
         NB_TRAMPOLINE(ob::Planner, 8);
@@ -93,10 +95,10 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
         // Constructors
         .def(nb::init<ob::SpaceInformationPtr, std::string>())
         .def("getSpaceInformation", [](ob::Planner &p) -> ob::SpaceInformationPtr { return p.getSpaceInformation(); })
-        .def("getProblemDefinition", static_cast<ob::ProblemDefinitionPtr &(ob::Planner::*)()>(&ob::Planner::getProblemDefinition))
+        .def("getProblemDefinition",
+             static_cast<ob::ProblemDefinitionPtr &(ob::Planner::*)()>(&ob::Planner::getProblemDefinition))
         .def("setProblemDefinition", &ob::Planner::setProblemDefinition, nb::arg("pdef"))
-        .def ("getPlannerInputStates", &ob::Planner::getPlannerInputStates,
-              nb::rv_policy::reference_internal)
+        .def("getPlannerInputStates", &ob::Planner::getPlannerInputStates, nb::rv_policy::reference_internal)
         .def(
             "solve", [](ob::Planner &pl, double solveTime) { return pl.solve(solveTime); }, nb::arg("solveTime"))
         .def(

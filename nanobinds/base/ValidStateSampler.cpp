@@ -10,9 +10,7 @@
 namespace nb = nanobind;
 namespace ob = ompl::base;
 
-
-
-void ompl::binding::base::init_ValidStateSampler(nb::module_& m)
+void ompl::binding::base::init_ValidStateSampler(nb::module_ &m)
 {
     // Trampoline class for Python subclassing
     struct PyValidStateSampler : ob::ValidStateSampler
@@ -29,7 +27,7 @@ void ompl::binding::base::init_ValidStateSampler(nb::module_& m)
             NB_OVERRIDE_PURE(sampleNear, state, near, distance);
         }
     };
-    
+
     nb::class_<ob::ValidStateSampler, PyValidStateSampler /* <-- trampoline */>(m, "ValidStateSampler")
         .def(nb::init<const ob::SpaceInformation *>(), nb::arg("si"))
         .def("getName", &ob::ValidStateSampler::getName)

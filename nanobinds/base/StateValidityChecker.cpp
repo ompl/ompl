@@ -8,7 +8,7 @@
 namespace nb = nanobind;
 namespace ob = ompl::base;
 
-void ompl::binding::base::init_StateValidityChecker(nb::module_& m)
+void ompl::binding::base::init_StateValidityChecker(nb::module_ &m)
 {
     // Trampoline for StateValidityChecker to allow Python subclassing
     struct PyStateValidityChecker : ob::StateValidityChecker
@@ -41,8 +41,7 @@ void ompl::binding::base::init_StateValidityChecker(nb::module_& m)
         }
 
         // Virtual with default implementation
-        double clearance(const ob::State *state, ob::State *validState,
-                         bool &validStateAvailable) const override
+        double clearance(const ob::State *state, ob::State *validState, bool &validStateAvailable) const override
         {
             NB_OVERRIDE(clearance, state, validState, validStateAvailable);
         }
@@ -51,11 +50,13 @@ void ompl::binding::base::init_StateValidityChecker(nb::module_& m)
     nb::class_<ob::StateValidityChecker, PyStateValidityChecker>(m, "StateValidityChecker")
         .def(nb::init<ob::SpaceInformation *>(), nb::arg("si"))
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
-        .def("isValid", static_cast<bool (ob::StateValidityChecker::*)(const ob::State *) const>(
-                            &ob::StateValidityChecker::isValid),
+        .def("isValid",
+             static_cast<bool (ob::StateValidityChecker::*)(const ob::State *) const>(
+                 &ob::StateValidityChecker::isValid),
              nb::arg("state"))
-        .def("clearance", static_cast<double (ob::StateValidityChecker::*)(const ob::State *) const>(
-                              &ob::StateValidityChecker::clearance),
+        .def("clearance",
+             static_cast<double (ob::StateValidityChecker::*)(const ob::State *) const>(
+                 &ob::StateValidityChecker::clearance),
              nb::arg("state"))
         .def("getSpecs", &ob::StateValidityChecker::getSpecs);
 

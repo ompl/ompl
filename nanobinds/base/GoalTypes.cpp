@@ -6,8 +6,6 @@ namespace nb = nanobind;
 
 void ompl::binding::base::init_GoalTypes(nb::module_ &m)
 {
-
-    // TODO [ompl::base::GoalType][TEST]
     nb::enum_<ompl::base::GoalType>(m, "GoalType")
         .value("GOAL_ANY", ompl::base::GOAL_ANY)
         .value("GOAL_REGION", ompl::base::GOAL_REGION)

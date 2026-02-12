@@ -64,8 +64,7 @@ void ompl::binding::base::init_StateSpace(nb::module_ &m)
              nb::overload_cast<ob::State *, const ob::StateSpace::SubstateLocation &>(
                  &ob::StateSpace::getSubstateAtLocation, nb::const_),
              nb::arg("state"), nb::arg("loc"), nb::rv_policy::reference_internal)
-        .def("getSubstateLocationsByName",
-             &ob::StateSpace::getSubstateLocationsByName,
+        .def("getSubstateLocationsByName", &ob::StateSpace::getSubstateLocationsByName,
              nb::rv_policy::reference_internal)
         .def("getCommonSubspaces",
              nb::overload_cast<const ob::StateSpacePtr &, std::vector<std::string> &>(

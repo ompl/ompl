@@ -6,9 +6,7 @@ namespace nb = nanobind;
 namespace oc = ompl::control;
 namespace ob = ompl::base;
 
-void ompl::binding::control::initPlannersSyclop_Syclop(nb::module_& m)
+void ompl::binding::control::initPlannersSyclop_Syclop(nb::module_ &m)
 {
-    // TODO [oc::Syclop][IMPLEMENT]
-    nb::class_<oc::Syclop, ob::Planner>(m, "Syclop")
-        ;
+    nb::class_<oc::Syclop, ob::Planner>(m, "Syclop");
 }

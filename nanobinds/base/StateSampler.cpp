@@ -7,7 +7,7 @@
 
 namespace nb = nanobind;
 
-void ompl::binding::base::init_StateSampler(nb::module_& m)
+void ompl::binding::base::init_StateSampler(nb::module_ &m)
 {
     struct PyStateSampler : ompl::base::StateSampler
     {
@@ -42,7 +42,8 @@ void ompl::binding::base::init_StateSampler(nb::module_& m)
         .def("sampleUniformNear", &ompl::base::CompoundStateSampler::sampleUniformNear)
         .def("sampleGaussian", &ompl::base::CompoundStateSampler::sampleGaussian);
     nb::class_<ompl::base::SubspaceStateSampler, ompl::base::StateSampler>(m, "SubspaceStateSampler")
-        .def(nb::init<const ompl::base::StateSpace *, const ompl::base::StateSpace *, double>(), nb::arg("space"), nb::arg("subspace"), nb::arg("weight"),
+        .def(nb::init<const ompl::base::StateSpace *, const ompl::base::StateSpace *, double>(), nb::arg("space"),
+             nb::arg("subspace"), nb::arg("weight"),
              "Construct a SubspaceStateSampler for the given state space and subspace.")
         .def("sampleUniform", &ompl::base::SubspaceStateSampler::sampleUniform)
         .def("sampleUniformNear", &ompl::base::SubspaceStateSampler::sampleUniformNear)

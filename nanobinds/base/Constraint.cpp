@@ -54,25 +54,18 @@ void ompl::binding::base::init_Constraint(nb::module_ &m)
         // .def("jacobian", &ob::Constraint::jacobian, nb::arg("x"), nb::arg("out"))
         .def("project", nb::overload_cast<Eigen::Ref<Eigen::VectorXd>>(&ob::Constraint::project, nb::const_),
              nb::arg("x"))
-        .def("project", nb::overload_cast<ob::State*>(&ob::Constraint::project, nb::const_),
+        .def("project", nb::overload_cast<ob::State *>(&ob::Constraint::project, nb::const_), nb::arg("x"))
+        .def("distance",
+             nb::overload_cast<const Eigen::Ref<const Eigen::VectorXd> &>(&ob::Constraint::distance, nb::const_),
              nb::arg("x"))
-        .def("distance", nb::overload_cast<const Eigen::Ref<const Eigen::VectorXd>&>(&ob::Constraint::distance, nb::const_),
+        .def("distance", nb::overload_cast<const ob::State *>(&ob::Constraint::distance, nb::const_), nb::arg("x"))
+        .def("isSatisfied",
+             nb::overload_cast<const Eigen::Ref<const Eigen::VectorXd> &>(&ob::Constraint::isSatisfied, nb::const_),
              nb::arg("x"))
-        .def("distance", nb::overload_cast<const ob::State*>(&ob::Constraint::distance, nb::const_),
-             nb::arg("x"))
-        .def("isSatisfied", nb::overload_cast<const Eigen::Ref<const Eigen::VectorXd>&>(&ob::Constraint::isSatisfied, nb::const_),
-             nb::arg("x"))
-        .def("isSatisfied", nb::overload_cast<const ob::State*>(&ob::Constraint::isSatisfied, nb::const_),
-             nb::arg("x"))
-        ;
+        .def("isSatisfied", nb::overload_cast<const ob::State *>(&ob::Constraint::isSatisfied, nb::const_),
+             nb::arg("x"));
 
     // bind ConstraintIntersection (inherits Constraint)
     nb::class_<ob::ConstraintIntersection, ob::Constraint>(m, "ConstraintIntersection")
         .def(nb::init<unsigned int, std::vector<ob::ConstraintPtr>>(), nb::arg("ambientDim"), nb::arg("constraints"));
-
-    // bind ConstraintObjective (inherits OptimizationObjective)
-    // nb::class_<ob::ConstraintObjective, ob::OptimizationObjective>(m, "ConstraintObjective")
-    //     .def(nb::init<ob::ConstraintPtr, ob::SpaceInformationPtr>(),
-    //          nb::arg("constraint"),
-    //          nb::arg("si"));
 }

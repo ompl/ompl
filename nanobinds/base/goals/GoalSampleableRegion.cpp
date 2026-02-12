@@ -44,7 +44,7 @@ void ompl::binding::base::initGoals_GoalSampleableRegion(nb::module_ &m)
         .def("setThreshold", &ob::GoalRegion::setThreshold, nb::arg("threshold"))
 
         // optional override in Python
-        .def("couldSample", &ob::GoalSampleableRegion::couldSample, "Return true if you could sample another goal.")
+        .def("couldSample", &ob::GoalSampleableRegion::couldSample)
 
         // from GoalRegion / Goal
         .def("isSatisfied", nb::overload_cast<const ob::State *>(&ob::Goal::isSatisfied, nb::const_))

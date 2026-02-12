@@ -7,11 +7,8 @@ namespace nb = nanobind;
 namespace oc = ompl::control;
 namespace ob = ompl::base;
 
-void ompl::binding::control::initPlannersEst_EST(nb::module_& m)
+void ompl::binding::control::initPlannersEst_EST(nb::module_ &m)
 {
-    // TODO [oc::EST][TEST]
-    // TODO [oc::EST][MISSING]
-    // TAG [oc::EST][Planner]
     nb::class_<ompl::control::EST, ob::Planner>(m, "EST")
         .def(nb::init<const oc::SpaceInformationPtr &>(), nb::arg("si"))
         .def("solve", &oc::EST::solve, nb::arg("terminationCondition"));

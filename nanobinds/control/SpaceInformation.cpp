@@ -18,76 +18,101 @@ namespace ob = ompl::base;
 namespace oc = ompl::control;
 
 // Helper dictionary access
-static PyObject **get_dict_ptr(PyObject *obj) {
+static PyObject **get_dict_ptr(PyObject *obj)
+{
     return _PyObject_GetDictPtr(obj);
 }
 
-int control_space_information_tp_traverse(PyObject *self, visitproc visit, void *arg) {
+int control_space_information_tp_traverse(PyObject *self, visitproc visit, void *arg)
+{
     Py_VISIT(Py_TYPE(self));
-    if (!nb::inst_ready(self)) return 0;
+    if (!nb::inst_ready(self))
+        return 0;
 
     // 1. Visit __dict__
     PyObject **dictptr = get_dict_ptr(self);
-    if (dictptr && *dictptr) {
+    if (dictptr && *dictptr)
+    {
         Py_VISIT(*dictptr);
     }
 
-    try {
+    try
+    {
         auto *si = nb::inst_ptr<oc::SpaceInformation>(self);
-        if (si) {
+        if (si)
+        {
             // Visit Propagator
             auto prop = si->getStatePropagator();
-            if (prop) {
+            if (prop)
+            {
                 nb::handle h = nb::find(prop);
-                if (h.is_valid()) {
+                if (h.is_valid())
+                {
                     Py_VISIT(h.ptr());
-                } else if (dictptr && *dictptr) {
+                }
+                else if (dictptr && *dictptr)
+                {
                     PyObject *item = PyDict_GetItemString(*dictptr, "_prop");
-                    if (item) Py_VISIT(item);
+                    if (item)
+                        Py_VISIT(item);
                 }
             }
             // Visit SVC (Base)
             auto svc = si->getStateValidityChecker();
-            if (svc) {
+            if (svc)
+            {
                 nb::handle h = nb::find(svc);
-                if (h.is_valid()) {
+                if (h.is_valid())
+                {
                     Py_VISIT(h.ptr());
-                } else if (dictptr && *dictptr) {
+                }
+                else if (dictptr && *dictptr)
+                {
                     PyObject *item = PyDict_GetItemString(*dictptr, "_svc");
-                    if (item) Py_VISIT(item);
+                    if (item)
+                        Py_VISIT(item);
                 }
             }
         }
-    } catch (...) {}
+    }
+    catch (...)
+    {
+    }
     return 0;
 }
 
-int control_space_information_tp_clear(PyObject *self) {
+int control_space_information_tp_clear(PyObject *self)
+{
     // 1. Clear __dict__
     PyObject **dictptr = get_dict_ptr(self);
-    if (dictptr && *dictptr) {
+    if (dictptr && *dictptr)
+    {
         Py_CLEAR(*dictptr);
     }
     // 2. Break C++ Cycle
-    try {
+    try
+    {
         auto *si = nb::inst_ptr<oc::SpaceInformation>(self);
-        if (si) {
+        if (si)
+        {
             si->setStatePropagator(oc::StatePropagatorPtr(nullptr));
             si->setStateValidityChecker(ob::StateValidityCheckerPtr(nullptr));
         }
-    } catch (...) {}
+    }
+    catch (...)
+    {
+    }
     return 0;
 }
 
-PyType_Slot control_space_information_slots[] = {
-    { Py_tp_traverse, (void *) control_space_information_tp_traverse },
-    { Py_tp_clear, (void *) control_space_information_tp_clear },
-    { 0, 0 }
-};
+PyType_Slot control_space_information_slots[] = {{Py_tp_traverse, (void *)control_space_information_tp_traverse},
+                                                 {Py_tp_clear, (void *)control_space_information_tp_clear},
+                                                 {0, 0}};
 
 void ompl::binding::control::init_SpaceInformation(nb::module_ &m)
 {
-    nb::class_<oc::SpaceInformation, ob::SpaceInformation>(m, "SpaceInformation", nb::type_slots(control_space_information_slots), nb::dynamic_attr())
+    nb::class_<oc::SpaceInformation, ob::SpaceInformation>(
+        m, "SpaceInformation", nb::type_slots(control_space_information_slots), nb::dynamic_attr())
         //
         // Constructor
         //
@@ -104,9 +129,8 @@ void ompl::binding::control::init_SpaceInformation(nb::module_ &m)
 
         // printControl
         .def(
-            "printControl",
-            [](const oc::SpaceInformation &si, const oc::Control *ctrl) { si.printControl(ctrl, std::cout); },
-            nb::arg("control"))
+            "printControl", [](const oc::SpaceInformation &si, const oc::Control *ctrl)
+            { si.printControl(ctrl, std::cout); }, nb::arg("control"))
 
         // equalControls, nullControl
         .def("equalControls", &oc::SpaceInformation::equalControls, nb::arg("control1"), nb::arg("control2"))
@@ -116,7 +140,8 @@ void ompl::binding::control::init_SpaceInformation(nb::module_ &m)
         .def("allocControlSampler", &oc::SpaceInformation::allocControlSampler)
 
         // setMinMaxControlDuration, etc.
-        .def("setMinMaxControlDuration", &oc::SpaceInformation::setMinMaxControlDuration, nb::arg("minSteps"), nb::arg("maxSteps"))
+        .def("setMinMaxControlDuration", &oc::SpaceInformation::setMinMaxControlDuration, nb::arg("minSteps"),
+             nb::arg("maxSteps"))
         .def("setMinControlDuration", &oc::SpaceInformation::setMinControlDuration, nb::arg("minSteps"))
         .def("setMaxControlDuration", &oc::SpaceInformation::setMaxControlDuration, nb::arg("maxSteps"))
         .def("getMinControlDuration", &oc::SpaceInformation::getMinControlDuration)
@@ -124,27 +149,34 @@ void ompl::binding::control::init_SpaceInformation(nb::module_ &m)
 
         // Directed control sampler
         .def("allocDirectedControlSampler", &oc::SpaceInformation::allocDirectedControlSampler)
-        .def("setDirectedControlSamplerAllocator", &oc::SpaceInformation::setDirectedControlSamplerAllocator, nb::arg("dcsa") )
+        .def("setDirectedControlSamplerAllocator", &oc::SpaceInformation::setDirectedControlSamplerAllocator,
+             nb::arg("dcsa"))
         .def("clearDirectedSamplerAllocator", &oc::SpaceInformation::clearDirectedSamplerAllocator)
 
         // StatePropagator
         .def("getStatePropagator", &oc::SpaceInformation::getStatePropagator)
 
         // setStatePropagator
-        .def("setStatePropagator",
-            [](oc::SpaceInformation &si, const ompl::control::StatePropagatorFn &sp) {
+        .def(
+            "setStatePropagator",
+            [](oc::SpaceInformation &si, const ompl::control::StatePropagatorFn &sp)
+            {
                 si.setStatePropagator(sp);
                 nb::object self = nb::find(nb::cast(&si));
-                if (self.is_valid()) nb::setattr(self, "_prop", nb::cast(sp));
+                if (self.is_valid())
+                    nb::setattr(self, "_prop", nb::cast(sp));
             },
-             nb::arg("sp"))
-        .def("setStatePropagator",
-            [](oc::SpaceInformation &si, const oc::StatePropagatorPtr &sp) {
+            nb::arg("sp"))
+        .def(
+            "setStatePropagator",
+            [](oc::SpaceInformation &si, const oc::StatePropagatorPtr &sp)
+            {
                 si.setStatePropagator(sp);
                 nb::object self = nb::find(nb::cast(&si));
-                if (self.is_valid()) nb::setattr(self, "_prop", nb::cast(sp));
+                if (self.is_valid())
+                    nb::setattr(self, "_prop", nb::cast(sp));
             },
-             nb::arg("sp"))
+            nb::arg("sp"))
 
         // setPropagationStepSize, getPropagationStepSize
         .def("setPropagationStepSize", &oc::SpaceInformation::setPropagationStepSize, nb::arg("stepSize"))
@@ -184,8 +216,7 @@ void ompl::binding::control::init_SpaceInformation(nb::module_ &m)
             nb::arg("start"), nb::arg("control"), nb::arg("steps"), nb::arg("alloc") = true)
 
         // printSettings override
-        .def(
-            "printSettings", [](const oc::SpaceInformation &si) { si.printSettings(std::cout); })
+        .def("printSettings", [](const oc::SpaceInformation &si) { si.printSettings(std::cout); })
 
         // setup override
         .def("setup", &oc::SpaceInformation::setup);

@@ -52,7 +52,7 @@ void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
         }
 
         // Pure virtual function
-        ob::Cost motionCost(const ob::State *s1, const ob::State* s2) const override
+        ob::Cost motionCost(const ob::State *s1, const ob::State *s2) const override
         {
             NB_OVERRIDE_PURE(motionCost, s1, s2);
         }
@@ -130,7 +130,6 @@ void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
         }
     };
 
-    // TODO [ob::OptimizationObjective][TEST]
     nb::class_<ob::OptimizationObjective, PyOptimizationObjective /* <-- trampoline */>(m, "OptimizationObjective")
         // constructor
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
@@ -143,23 +142,25 @@ void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
         // setters
         .def("setCostThreshold", &ob::OptimizationObjective::setCostThreshold, nb::arg("cost"))
         .def("setCostToGoHeuristic", &ob::OptimizationObjective::setCostToGoHeuristic, nb::arg("costToGoFn"))
-        .def("__str__", [](const ob::OptimizationObjective &obj) { 
-            std::ostringstream oss;
-            obj.print(oss);
-            return oss.str();
-        });
+        .def("__str__",
+             [](const ob::OptimizationObjective &obj)
+             {
+                 std::ostringstream oss;
+                 obj.print(oss);
+                 return oss.str();
+             });
 
     // MultiOptimizationObjective - combines multiple objectives with weights
     nb::class_<ob::MultiOptimizationObjective, ob::OptimizationObjective>(m, "MultiOptimizationObjective")
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
-        .def("addObjective", &ob::MultiOptimizationObjective::addObjective,
-             nb::arg("objective"), nb::arg("weight") = 1.0)
+        .def("addObjective", &ob::MultiOptimizationObjective::addObjective, nb::arg("objective"),
+             nb::arg("weight") = 1.0)
         .def("getObjectiveCount", &ob::MultiOptimizationObjective::getObjectiveCount)
         .def("getObjective", &ob::MultiOptimizationObjective::getObjective, nb::arg("idx"),
              nb::rv_policy::reference_internal)
         .def("getObjectiveWeight", &ob::MultiOptimizationObjective::getObjectiveWeight, nb::arg("idx"))
-        .def("setObjectiveWeight", &ob::MultiOptimizationObjective::setObjectiveWeight,
-             nb::arg("idx"), nb::arg("weight"))
+        .def("setObjectiveWeight", &ob::MultiOptimizationObjective::setObjectiveWeight, nb::arg("idx"),
+             nb::arg("weight"))
         .def("lock", &ob::MultiOptimizationObjective::lock)
         .def("isLocked", &ob::MultiOptimizationObjective::isLocked);
 }

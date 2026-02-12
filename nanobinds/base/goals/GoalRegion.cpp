@@ -22,23 +22,13 @@ void ompl::binding::base::initGoals_GoalRegion(nb::module_ &m)
         }
     };
 
-    nb::class_<ob::GoalRegion, ob::Goal,
-               PyGoalRegion /* <-- trampoline */>(m, "GoalRegion")
-        .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"),
-             "Construct a GoalRegion helper for a workspace region")
-        // both overloads of isSatisfied
+    nb::class_<ob::GoalRegion, ob::Goal, PyGoalRegion /* <-- trampoline */>(m, "GoalRegion")
+        .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
         .def("isSatisfied", nb::overload_cast<const ob::State *>(&ob::GoalRegion::isSatisfied, nb::const_),
-             nb::arg("state"), "Check if a state satisfies the goal region")
+             nb::arg("state"))
         .def("isSatisfied", nb::overload_cast<const ob::State *, double *>(&ob::GoalRegion::isSatisfied, nb::const_),
-             nb::arg("state"), nb::arg("distance"), "Check if a state satisfies the goal region, and return distance")
-        .def("setThreshold", &ob::GoalRegion::setThreshold, nb::arg("threshold"), "Set the goal‐region threshold")
-        .def("getThreshold", &ob::GoalRegion::getThreshold, "Get the goal‐region threshold")
-        // friendly print() returning a string
-        .def(
-            "print",
-            [](const ob::GoalRegion &self)
-            {
-                self.print(std::cout);
-            },
-            "Return a string representation of this GoalRegion");
+             nb::arg("state"), nb::arg("distance"))
+        .def("setThreshold", &ob::GoalRegion::setThreshold, nb::arg("threshold"))
+        .def("getThreshold", &ob::GoalRegion::getThreshold)
+        .def("print", [](const ob::GoalRegion &self) { self.print(std::cout); });
 }
