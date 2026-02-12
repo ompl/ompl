@@ -290,6 +290,18 @@ void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m)
                self.print(oss);
                return oss.str();
           })
+     .def("__str__",
+          [](const og::SimpleSetup &self) {
+               std::ostringstream oss;
+               self.print(oss);
+               return oss.str();
+          })
+     .def("__repr__",
+          [](const og::SimpleSetup &self) {
+               std::ostringstream oss;
+               self.print(oss);
+               return oss.str();
+          })
      
      // setup
      .def("setup",

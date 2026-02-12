@@ -32,7 +32,21 @@ void ompl::binding::base::init_ProjectionEvaluator(nb::module_ &m)
              nb::overload_cast<unsigned int, unsigned int>(&ompl::base::ProjectionMatrix::computeRandom),
              nb::arg("from"), nb::arg("to"))
         .def("project", &ompl::base::ProjectionMatrix::project, nb::arg("from"), nb::arg("to"))
-        .def("print", [](const ompl::base::ProjectionMatrix &pm) { pm.print(std::cout); });
+        .def("print", [](const ompl::base::ProjectionMatrix &pm) { pm.print(std::cout); })
+        .def("__str__",
+             [](const ompl::base::ProjectionMatrix &pm)
+             {
+                 std::ostringstream oss;
+                 pm.print(oss);
+                 return oss.str();
+             })
+        .def("__repr__",
+             [](const ompl::base::ProjectionMatrix &pm)
+             {
+                 std::ostringstream oss;
+                 pm.print(oss);
+                 return oss.str();
+             });
 
     struct PyProjectionEvaluator : ompl::base::ProjectionEvaluator
     {
