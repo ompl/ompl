@@ -16,13 +16,6 @@ void ompl::binding::base::initGoals_GoalSpace(nb::module_ &m)
         .def("maxSampleCount", &ob::GoalSpace::maxSampleCount)
         .def("distanceGoal", &ob::GoalSpace::distanceGoal, nb::arg("state"))
         .def("print", [](const ob::GoalSpace &self) { self.print(std::cout); })
-        .def("__str__",
-             [](const ob::GoalSpace &self)
-             {
-                 std::ostringstream oss;
-                 self.print(oss);
-                 return oss.str();
-             })
         .def("__repr__",
              [](const ob::GoalSpace &self)
              {

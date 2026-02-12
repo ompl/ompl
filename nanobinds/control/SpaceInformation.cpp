@@ -217,13 +217,6 @@ void ompl::binding::control::init_SpaceInformation(nb::module_ &m)
 
         // printSettings override
         .def("printSettings", [](const oc::SpaceInformation &si) { si.printSettings(std::cout); })
-        .def("__str__",
-             [](const oc::SpaceInformation &si)
-             {
-                 std::ostringstream oss;
-                 si.printSettings(oss);
-                 return oss.str();
-             })
         .def("__repr__",
              [](const oc::SpaceInformation &si)
              {

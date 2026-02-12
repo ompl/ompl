@@ -31,13 +31,6 @@ void ompl::binding::base::initGoals_GoalRegion(nb::module_ &m)
         .def("setThreshold", &ob::GoalRegion::setThreshold, nb::arg("threshold"))
         .def("getThreshold", &ob::GoalRegion::getThreshold)
         .def("print", [](const ob::GoalRegion &self) { self.print(std::cout); })
-        .def("__str__",
-             [](const ob::GoalRegion &self)
-             {
-                 std::ostringstream oss;
-                 self.print(oss);
-                 return oss.str();
-             })
         .def("__repr__",
              [](const ob::GoalRegion &self)
              {

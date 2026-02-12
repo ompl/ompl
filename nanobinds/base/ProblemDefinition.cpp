@@ -139,11 +139,6 @@ void ompl::binding::base::init_ProblemDefinition(nb::module_ &m)
         .def("print", [](const ompl::base::ProblemDefinition &pd) {
             pd.print(std::cout);
         })
-        .def("__str__", [](const ompl::base::ProblemDefinition &pd) {
-            std::ostringstream oss;
-            pd.print(oss);
-            return oss.str();
-        })
         .def("__repr__", [](const ompl::base::ProblemDefinition &pd) {
             std::ostringstream oss;
             pd.print(oss);

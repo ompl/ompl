@@ -52,13 +52,6 @@ void ompl::binding::base::init_StateSpace(nb::module_ &m)
             "printState", [](const ob::StateSpace &ss, const ob::State *s) { ss.printState(s, std::cout); },
             nb::arg("state"))
         .def("printSettings", [](const ob::StateSpace &ss) { ss.printSettings(std::cout); })
-        .def("__str__",
-             [](const ob::StateSpace &ss)
-             {
-                 std::ostringstream oss;
-                 ss.printSettings(oss);
-                 return oss.str();
-             })
         .def("__repr__",
              [](const ob::StateSpace &ss)
              {

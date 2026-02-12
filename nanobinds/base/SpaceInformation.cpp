@@ -171,13 +171,6 @@ void ompl::binding::base::init_SpaceInformation(nb::module_ &m)
             si.printSettings(oss);
             return oss.str();
         })
-        .def("__str__",
-             [](const ompl::base::SpaceInformation &si)
-             {
-                 std::ostringstream oss;
-                 si.printSettings(oss);
-                 return oss.str();
-             })
         .def("__repr__",
              [](const ompl::base::SpaceInformation &si)
              {
