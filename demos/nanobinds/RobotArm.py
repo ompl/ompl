@@ -147,6 +147,7 @@ def main():
     is_playing = False
 
 
+
     def get_obstacles():
         obs_pos = np.array(sphere_handle.position, dtype=float)
         return {"sphere0": {"position": obs_pos, "radius": 0.10}}
@@ -158,6 +159,10 @@ def main():
         nonlocal path, path_i, is_playing
         start = START_CONFIG if START_CONFIG is not None else q_current
         goal = GOAL_CONFIG
+
+        cc = CollisionChecker(robot_coll, plane_coll, robot)
+        lower = np.array(robot.joints.lower_limits, dtype=float)
+        upper = np.array(robot.joints.upper_limits, dtype=float)
         
         if goal is None:
             print("Please set a goal configuration first using 'Set goal configuration'.")
@@ -166,7 +171,10 @@ def main():
         print("Solving...")
         obs_dict = get_obstacles()
         
-        solved, waypoints, msg = planner.plan(
+        solved, waypoints, msg = plan(
+            cc,
+            lower,
+            upper,
             start_config=start,
             goal_config=goal,
             timeout=2.0,
@@ -200,10 +208,6 @@ def main():
     collision_handle = server.gui.add_checkbox("Robot in collision?", False, disabled=True)
     
     cc = CollisionChecker(robot_coll, plane_coll, robot)
-    lower = np.array(robot.joints.lower_limits, dtype=float)
-    upper = np.array(robot.joints.upper_limits, dtype=float)
-
-    planner = MotionPlanner(cc,lower,upper, dim=6)
 
     # Main Loop
     while True:
@@ -302,12 +306,12 @@ class CollisionChecker():
 
         for world_coll in world_list:
             world_dist = self.robot_coll.compute_world_collision_distance(self.robot, q, world_coll)
-            if float(jnp.min(world_dist)) <= -1e-2:
+            if float(np.min(world_dist)) <= -1e-2:
                 print("world collision")
                 return False
         
         self_dist = self.robot_coll.compute_self_collision_distance(self.robot, q)
-        if float(jnp.min(self_dist)) <= -5e-2:
+        if float(np.min(self_dist)) <= -5e-2:
             print("self collision")
             return False
         return True 
@@ -316,77 +320,67 @@ class CollisionChecker():
 # ============================================================================
 # Motion Planner
 # ============================================================================
-
-class MotionPlanner():
-
-    def __init__(self, collision_checker: CollisionChecker, lower_limits, upper_limits, dim):
-        self.collision_checker = collision_checker
-        self.dim = dim
-        self.lower_limits = np.array(lower_limits, dtype=float)
-        self.upper_limits = np.array(upper_limits, dtype=float)
-
-
-    def plan(self, start_config: np.ndarray, goal_config: np.ndarray, 
-            timeout: float, obstacles: dict = None) -> tuple:
-        """
-        Plan a path from start to goal using RRTConnect.
-        
-        Args:
-            start_config: Start joint configuration
-            goal_config: Goal joint configuration
-            timeout: Planning timeout in seconds
-            obstacles: Dict of obstacles - {obs_id: {'position': np.ndarray, 'radius': float}}
-        """
-
-        start_config = np.asarray(start_config, dtype=float)
-        goal_config = np.asarray(goal_config, dtype=float).reshape(-1)
-
-        if start_config.shape[0] != self.dim or goal_config.shape[0] != self.dim:
-            return False, None, f"Config must be shape ({self.dim},), got {start_config.shape}, {goal_config.shape}"
-        
-        self.collision_checker.set_obs(obstacles)
-        
-        space = ob.RealVectorStateSpace(self.dim)
-        bounds = ob.RealVectorBounds(self.dim)
-        for i in range(self.dim):
-            bounds.setLow(i, float(self.lower_limits[i]))
-            bounds.setHigh(i, float(self.upper_limits[i]))
-        space.setBounds(bounds)
-        
-        ss = og.SimpleSetup(space)
-
-        def _is_valid(state):
-            q = np.array([state[i] for i in range(self.dim)], dtype=float)
-            return bool(self.collision_checker.is_state_valid(q))
-
-        ss.setStateValidityChecker(_is_valid)
-
-
-        start = space.allocState()
-        goal = space.allocState()
-        for i in range(self.dim):
-            start[i] = start_config[i]
-            goal[i] = goal_config[i]
-        
-        si = ss.getSpaceInformation()
-        ss.setStartAndGoalStates(start, goal)
-        ss.setPlanner(og.RRTConnect(si))
-        solved = ss.solve(timeout)
-        
-        if solved:
-            ss.simplifySolution()
-            path = ss.getSolutionPath()
-            path.interpolate(int(50*path.length()))
-            
-            waypoints = []
-            for i in range(path.getStateCount()):
-                state = path.getState(i)
-                waypoints.append(np.array([state[j] for j in range(self.dim)]))
-            
-            return True, waypoints, f"Path found with {len(waypoints)} waypoints!"
-        
-        return False, None, "No solution found within the time limit."
+def plan( collision_checker,lower_limits, upper_limits,start_config: np.ndarray, goal_config: np.ndarray, 
+        timeout: float, dim: int, obstacles: dict = None) -> tuple:
+    """
+    Plan a path from start to goal using RRTConnect.
     
+    Args:
+        start_config: Start joint configuration
+        goal_config: Goal joint configuration
+        timeout: Planning timeout in seconds
+        obstacles: Dict of obstacles - {obs_id: {'position': np.ndarray, 'radius': float}}
+    """
+
+    start_config = np.asarray(start_config, dtype=float)
+    goal_config = np.asarray(goal_config, dtype=float).reshape(-1)
+
+    if start_config.shape[0] != dim or goal_config.shape[0] != dim:
+        return False, None, f"Config must be shape ({dim},), got {start_config.shape}, {goal_config.shape}"
+    
+    collision_checker.set_obs(obstacles)
+    
+    space = ob.RealVectorStateSpace(dim)
+    bounds = ob.RealVectorBounds(dim)
+    for i in range(dim):
+        bounds.setLow(i, float(lower_limits[i]))
+        bounds.setHigh(i, float(upper_limits[i]))
+    space.setBounds(bounds)
+    
+    ss = og.SimpleSetup(space)
+
+    def _is_valid(state):
+        q = np.array([state[i] for i in range(dim)], dtype=float)
+        return bool(collision_checker.is_state_valid(q))
+
+    ss.setStateValidityChecker(_is_valid)
+
+
+    start = space.allocState()
+    goal = space.allocState()
+    for i in range(dim):
+        start[i] = start_config[i]
+        goal[i] = goal_config[i]
+    
+    si = ss.getSpaceInformation()
+    ss.setStartAndGoalStates(start, goal)
+    ss.setPlanner(og.RRTConnect(si))
+    solved = ss.solve(timeout)
+    
+    if solved:
+        ss.simplifySolution()
+        path = ss.getSolutionPath()
+        path.interpolate(int(50*path.length()))
+        
+        waypoints = []
+        for i in range(path.getStateCount()):
+            state = path.getState(i)
+            waypoints.append(np.array([state[j] for j in range(self.dim)]))
+        
+        return True, waypoints, f"Path found with {len(waypoints)} waypoints!"
+    
+    return False, None, "No solution found within the time limit."
+
 class PyrokiHelper(): 
     def __init__(self):
         pass
