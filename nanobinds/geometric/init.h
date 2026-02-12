@@ -18,7 +18,6 @@ namespace ompl::binding::geometric
     void initPlannersKpiece_LBKPIECE1(nanobind::module_ &m);
     void initPlannersKpiece_Discretization(nanobind::module_ &m);
     void init_PathGeometric(nanobind::module_ &m);
-    void init_PathHybridization(nanobind::module_ &m);
     void init_PathSimplifier(nanobind::module_ &m);
     void init_SimpleSetup(nanobind::module_ &m);
 }  // namespace ompl::binding::geometric
