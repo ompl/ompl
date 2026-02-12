@@ -13,7 +13,6 @@ namespace ompl::binding::control
     void init_SimpleSetup(nanobind::module_ &m);
     void init_SpaceInformation(nanobind::module_ &m);
     void init_StatePropagator(nanobind::module_ &m);
-    void init_SteeredControlSampler(nanobind::module_ &m);
     void initPlannersEst_EST(nanobind::module_ &m);
     void initPlannersKpiece_KPIECE1(nanobind::module_ &m);
     void initPlannersPdst_PDST(nanobind::module_ &m);

@@ -99,7 +99,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::control::init_SimpleSetup(control);
     ompl::binding::control::init_SpaceInformation(control);
     ompl::binding::control::init_StatePropagator(control);
-    ompl::binding::control::init_SteeredControlSampler(control);
     ompl::binding::control::initPlannersEst_EST(control);
     ompl::binding::control::initPlannersKpiece_KPIECE1(control);
     ompl::binding::control::initPlannersPdst_PDST(control);
