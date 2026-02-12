@@ -55,5 +55,12 @@ void ompl::binding::base::initGoals_GoalSampleableRegion(nb::module_ &m)
                  bool ok = g.isSatisfied(st, &d);
                  return std::make_pair(ok, d);
              })
-        .def("print", [](const ob::Goal &g) { g.print(std::cout); });
+        .def("print", [](const ob::Goal &g) { g.print(std::cout); })
+        .def("__repr__",
+             [](const ob::Goal &g)
+             {
+                 std::ostringstream oss;
+                 g.print(oss);
+                 return oss.str();
+             });
 }

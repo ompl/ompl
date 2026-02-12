@@ -13,6 +13,13 @@ void ompl::binding::base::initGoals_GoalState(nb::module_ &m)
         .def("maxSampleCount", &ob::GoalState::maxSampleCount)
         .def("distanceGoal", &ob::GoalState::distanceGoal, nb::arg("state"))
         .def("print", [](const ob::GoalState &self) { self.print(std::cout); })
+        .def("__repr__",
+             [](const ob::GoalState &self)
+             {
+                 std::ostringstream oss;
+                 self.print(oss);
+                 return oss.str();
+             })
         .def("setState", nb::overload_cast<const ob::State *>(&ob::GoalState::setState), nb::arg("state"))
         .def("getState", nb::overload_cast<>(&ob::GoalState::getState, nb::const_), nb::rv_policy::reference_internal)
         .def("getState", nb::overload_cast<>(&ob::GoalState::getState));

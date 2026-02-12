@@ -171,8 +171,15 @@ void ompl::binding::base::init_SpaceInformation(nb::module_ &m)
             si.printSettings(oss);
             return oss.str();
         })
-        // Virtual method: printProperties
-        .def("printProperties", [](const ompl::base::SpaceInformation &si) { si.printProperties(std::cout); })
+        .def("__repr__",
+             [](const ompl::base::SpaceInformation &si)
+             {
+                 std::ostringstream oss;
+                 si.printSettings(oss);
+                 return oss.str();
+             })
+    // Virtual method: printProperties
+    .def("printProperties", [](const ompl::base::SpaceInformation &si) { si.printProperties(std::cout); })
         .def("params", nb::overload_cast<>(&ompl::base::SpaceInformation::params, nb::const_))
         .def("setup", &ompl::base::SpaceInformation::setup)
         .def("isSetup", &ompl::base::SpaceInformation::isSetup);

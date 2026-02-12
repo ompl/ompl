@@ -142,7 +142,7 @@ void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
         // setters
         .def("setCostThreshold", &ob::OptimizationObjective::setCostThreshold, nb::arg("cost"))
         .def("setCostToGoHeuristic", &ob::OptimizationObjective::setCostToGoHeuristic, nb::arg("costToGoFn"))
-        .def("__str__",
+        .def("__repr__",
              [](const ob::OptimizationObjective &obj)
              {
                  std::ostringstream oss;

@@ -281,6 +281,13 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
                  ss.print(oss);
                  return oss.str();
              })
+        .def("__repr__",
+             [](const oc::SimpleSetup &ss)
+             {
+                 std::ostringstream oss;
+                 ss.print(oss);
+                 return oss.str();
+             })
 
         // setup
         .def("setup", &oc::SimpleSetup::setup);
