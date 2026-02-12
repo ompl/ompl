@@ -7,6 +7,7 @@ import termios
 import tty
 import select
 import numpy as np
+from pathlib import Path
 import vamp
 import viser
 from viser.extras import ViserUrdf
@@ -16,6 +17,20 @@ from scipy.spatial.transform import Rotation
 
 
 class ViserVisualizer:
+    # Joint mappings for robots that use subset of URDF joints
+    JOINT_MAPPINGS = {
+        'fetch': [
+            'torso_lift_joint',
+            'shoulder_pan_joint',
+            'shoulder_lift_joint',
+            'upperarm_roll_joint',
+            'elbow_flex_joint',
+            'forearm_roll_joint',
+            'wrist_flex_joint',
+            'wrist_roll_joint',
+            'head_pan_joint',
+        ]
+    }
     
     def __init__(self, robot_name: str, port: Optional[int] = None):
         """Initialize the visualizer
@@ -37,6 +52,9 @@ class ViserVisualizer:
         self.robot = getattr(vamp, robot_name)
         self.dimension = self.robot.dimension()
         
+        # Setup joint mapping for this robot
+        self.joint_mapping = self.JOINT_MAPPINGS.get(robot_name, None)
+        
         if port is not None:
             self.server = viser.ViserServer(port=port)
         else:
@@ -45,12 +63,34 @@ class ViserVisualizer:
         # Load robot URDF from robot_descriptions
         description_name = f"{robot_name}_description"
         try:
-            self.robot_urdf = load_robot_description(description_name)
+            if description_name == "ur5_description": # load from vamp to have correct urdf + gripper
+                import yourdfpy
+                vamp_folder = Path(vamp.__file__).parent.parent.parent
+                ur5_urdf_file = vamp_folder / 'resources' / 'ur5' / 'ur5.urdf'
+                mesh_dir = vamp_folder / 'resources' / 'ur5'
+                
+                def package_aware_handler(fname):
+                    """Resolve package:// URIs by stripping prefix and joining with mesh_dir"""
+                    if fname.startswith('package://'):
+                        fname = fname[len('package://'):]
+                    resolved = Path(mesh_dir) / fname
+                    return str(resolved)
+                
+                self.robot_urdf = yourdfpy.URDF.load(str(ur5_urdf_file), 
+                                                     filename_handler=package_aware_handler,
+                                                     mesh_dir=mesh_dir,
+                                                     load_meshes=True, 
+                                                     load_collision_meshes=True)
+            else:
+                self.robot_urdf = load_robot_description(description_name)
         except Exception as e:
             raise ValueError(
                 f"Could not load URDF for '{description_name}'. "
                 f"Make sure robot_descriptions has this robot. Error: {e}"
             )
+            # /home/ef55/robotics/ompl_work/ompl/external/vamp/src/vamp/resources/ur5/ur5.urdf
+            # /home/ef55/robotics/ompl_work/ompl/external/vamp/resources/ur5/ur5.urdf
+            
         
         self.urdf_vis = ViserUrdf(self.server, self.robot_urdf, root_node_name=f"/{robot_name}")
         
@@ -217,6 +257,38 @@ class ViserVisualizer:
         """
         self.server.scene.add_grid("/grid", width=width, height=height, cell_size=cell_size)
     
+    def _map_plan_config_to_urdf(self, plan_config: List[float]) -> List[float]:
+        """Map planning configuration to full URDF configuration
+        
+        For robots like fetch that use a subset of joints in planning, this method
+        maps the planning DOFs to the correct positions in the full URDF configuration.
+        
+        Args:
+            plan_config: Configuration from planner (e.g., 9 DOFs for fetch)
+            
+        Returns:
+            Full URDF configuration with all joints
+        """
+        if self.joint_mapping is None:
+            # No mapping needed, use config as-is
+            return plan_config
+        
+        # Get all joint names from URDF
+        all_joints = [joint.name for joint in self.robot_urdf.actuated_joints]
+        n_total_joints = len(all_joints)
+        
+        # Create full configuration with zeros (neutral positions)
+        full_config = [0.0] * n_total_joints
+        
+        # Map planning joints to their positions in URDF
+        for planning_idx, joint_name in enumerate(self.joint_mapping):
+            if joint_name in all_joints:
+                urdf_idx = all_joints.index(joint_name)
+                if planning_idx < len(plan_config):
+                    full_config[urdf_idx] = plan_config[planning_idx]
+        
+        return full_config
+    
     def visualize_trajectory(self, trajectory: np.ndarray):
         """Visualize a robot trajectory with interactive controls
         
@@ -257,7 +329,10 @@ class ViserVisualizer:
         
         # Update robot configuration
         slider_idx = min(self._slider.value, len(self._trajectory) - 1)
-        config = self._trajectory[slider_idx].tolist()
+        plan_config = self._trajectory[slider_idx].tolist()
+        
+        # Map planning config to full URDF config (e.g., 9 DOF to 24 DOF for fetch)
+        config = self._map_plan_config_to_urdf(plan_config)
         
         # Some robots might need extra gripper DOF for visualization
         try:
@@ -288,7 +363,9 @@ class ViserVisualizer:
         
         for i in range(len(self._trajectory)):
             self._slider.value = i
-            config = self._trajectory[i].tolist()
+            plan_config = self._trajectory[i].tolist()
+            # Map planning config to full URDF config (e.g., 9 DOF to 24 DOF for fetch)
+            config = self._map_plan_config_to_urdf(plan_config)
             try:
                 self.urdf_vis.update_cfg(config)
             except:
@@ -316,38 +393,56 @@ class ViserVisualizer:
         stop_flag = threading.Event()
         
         def wait_for_key():
-            fd = sys.stdin.fileno()
-            old_settings = termios.tcgetattr(fd)
+            try:
+                fd = sys.stdin.fileno()
+                old_settings = termios.tcgetattr(fd)
+            except:
+                # Not a TTY, skip key handling
+                return
+            
             try:
                 tty.setraw(fd)
                 while not stop_flag.is_set():
-                    if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
-                        char = sys.stdin.read(1)
-                        pressed_key[0] = char
-                        if key == 'any' or char == key:
-                            stop_flag.set()
-                            break
+                    try:
+                        if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+                            char = sys.stdin.read(1)
+                            pressed_key[0] = char
+                            if key == 'any' or char == key:
+                                stop_flag.set()
+                                break
+                    except:
+                        break
                     time.sleep(0.01)
+            except Exception as e:
+                print(f"Key listener error: {e}")
             finally:
-                termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+                try:
+                    termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+                except:
+                    pass
         
         # Start thread to wait for key
         key_thread = threading.Thread(target=wait_for_key, daemon=True)
         key_thread.start()
         
         # Run visualization loop until key is pressed
-        while not stop_flag.is_set():
-            for i in range(len(self._trajectory)):
-                if stop_flag.is_set():
-                    break
-                self._slider.value = i
-                config = self._trajectory[i].tolist()
-                try:
-                    self.urdf_vis.update_cfg(config)
-                except:
-                    config.append(0.0)
-                    self.urdf_vis.update_cfg(config)
-                time.sleep(dt)
+        try:
+            while not stop_flag.is_set():
+                for i in range(len(self._trajectory)):
+                    if stop_flag.is_set():
+                        break
+                    self._slider.value = i
+                    plan_config = self._trajectory[i].tolist()
+                    # Map planning config to full URDF config (e.g., 9 DOF to 24 DOF for fetch)
+                    config = self._map_plan_config_to_urdf(plan_config)
+                    try:
+                        self.urdf_vis.update_cfg(config)
+                    except:
+                        config.append(0.0)
+                        self.urdf_vis.update_cfg(config)
+                    time.sleep(dt)
+        finally:
+            stop_flag.set()
         
         print(f"\nVisualization stopped. Key pressed: {pressed_key[0]}")
         return pressed_key[0]
