@@ -7,6 +7,7 @@ import pandas as pd
 from typing import Union, List
 from functools import partial
 import sys
+import subprocess
 import numpy as np
 
 from fire import Fire
@@ -67,7 +68,18 @@ def main(
     planner_class = planner_map[planner.lower()]
     vamp_folder = Path(__file__).parent.parent.parent.parent / 'external' / 'vamp'
     problems_dir = vamp_folder / 'resources' / robot
-    with open(problems_dir / dataset, 'rb') as f:
+    pickle_path = problems_dir / dataset
+    
+    # Check if pickle file exists, generate if not
+    if not pickle_path.exists():
+        print(f"Pickle file not found at {pickle_path}, generating from tar.bz2...")
+        script_path = vamp_folder / 'resources' / 'problem_tar_to_pkl_json.py'
+        result = subprocess.run([sys.executable, str(script_path), f'--robot={robot}'], check=True)
+        if result.returncode != 0:
+            raise RuntimeError(f"Failed to generate pickle file using {script_path}")
+        print(f"Successfully generated pickle file")
+    
+    with open(pickle_path, 'rb') as f:
         problems = pickle.load(f)
 
     problem_names = list(problems['problems'].keys())
