@@ -54,218 +54,61 @@ from ompl import base as ob
 from ompl import geometric as og
 from robot_descriptions.loaders.yourdfpy import load_robot_description
 
-# ============================================================================
-# Configuration
-# ============================================================================
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-VAMP_DIR = os.path.join(SCRIPT_DIR, "../../external/vamp")
-
-DEFAULT_CONFIG = np.array([-np.pi/2, -np.pi/2, np.pi/2, -np.pi/2, -np.pi/2, 0.0])
-BASE_POS = np.array([0.0, 0.0, 0.0], dtype=float)
-
+# The Default configuration of the robot in the GUI
+DEFAULT_CONFIG = np.array([0.0, -np.pi/2, np.pi/2, -np.pi/2, -np.pi/2, 0.0])
+DIM = 6
 START_CONFIG: np.array = None
 GOAL_CONFIG: np.array = None
 
-# Store the current robot configuration as the global GOAL configuration
-def _set_goal_config(current_config, goal_vis: ViserUrdf):
-    global GOAL_CONFIG
-    goal_vis.update_cfg(current_config)
-    goal_vis.show_visual = True
-    GOAL_CONFIG = current_config.copy()
+def plan(collision_checker, lower_limits: np.ndarray, upper_limits: np.ndarray,start_config: np.ndarray, goal_config: np.ndarray, 
+        timeout: float, dim: int, obstacles: dict = None) -> tuple[ob.PlannerStatus, list[np.ndarray]]:
 
-# Store the current robot configuration as the global START configuration
-def _set_start_config(current_config, start_vis: ViserUrdf):
-    global START_CONFIG 
-    start_vis.update_cfg(current_config)
-    start_vis.show_visual = True
-    START_CONFIG = current_config.copy()
-
-def main():
-    urdf = load_robot_description("ur5_description")
-    target_link_name = "tool0"
-    robot = pk.Robot.from_urdf(urdf)
-
-    sphere_json_path = Path(__file__).parent.parent / "resources" / "ur5" / "ur5_spheres.json"
-    print(sphere_json_path)
-    with open(sphere_json_path, "r") as f:
-        sphere_decomposition = json.load(f)
-
-    # Create both collision models.
-    robot_coll= RobotCollision.from_sphere_decomposition(
-        sphere_decomposition=sphere_decomposition,
-        urdf=urdf,
-    )
-
-    # Create a plane that ur5 stands upon
-    plane_coll = HalfSpace.from_point_and_normal(
-    np.array([0.0, 0.0, -0.15]), np.array([0.0, 0.0, 1.0])
-    )   
-
-    # Create a movable sphere obstacle
-    sphere_obs = Sphere.from_center_and_radius(np.array([0.0, 0.0, 0.0]), 0.10)
-
-    # Setting up a visualizer
-    server = viser.ViserServer()
-    server.scene.add_grid("/ground", width=2, height=2, cell_size=0.1)
-    urdf_vis = ViserUrdf(server, urdf, root_node_name="/robot")
-
-    # Create interactive controller for IK target.
-    ik_target_handle = server.scene.add_transform_controls(
-        "/ik_target", scale=0.2, position=(0.3, 0.0, 0.5), wxyz=(0, 0, 1, 0)
-    )
-
-    # Create interactive controller and mesh for the sphere obstacle.
-    sphere_handle = server.scene.add_transform_controls(
-        "/obstacle", scale=0.2, position=(0.4, 0.3, 0.4)
-    )
-
-    # Current configuration of the robot
-    q_current = DEFAULT_CONFIG.copy()
-    urdf_vis.update_cfg(q_current)
-
-    goal_config_vis = ViserUrdf(server, urdf, root_node_name="/robot_goal", mesh_color_override=(0,255,0,0.5))
-    goal_config_vis.show_visual = False
-    set_goal_btn = server.gui.add_button("Set goal configuration")
-
-    # Button logic for saving current q as goal config
-    def on_goal_click(_):
-        _set_goal_config(q_current, goal_config_vis)
-    set_goal_btn.on_click(on_goal_click)
-
-    start_config_vis = ViserUrdf(server, urdf, root_node_name="/robot_start", mesh_color_override=(255,0,0,0.5))
-    start_config_vis.show_visual = False
-    set_start_btn = server.gui.add_button("Set start configuration")
-
-    # Button logic for saving current q as start config
-    def on_start_click(_):
-        _set_start_config(q_current, start_config_vis)
-    set_start_btn.on_click(on_start_click)
-
-    # State variables
-    path = None
-    path_i = 0
-    is_playing = False
-
-
-
-    def get_obstacles():
-        obs_pos = np.array(sphere_handle.position, dtype=float)
-        return {"sphere0": {"position": obs_pos, "radius": 0.10}}
-
-    solve_btn = server.gui.add_button("Solve")
-
-     # Button logic for solving
-    def on_solve_click(_):
-        nonlocal path, path_i, is_playing
-        start = START_CONFIG if START_CONFIG is not None else q_current
-        goal = GOAL_CONFIG
-
-        cc = CollisionChecker(robot_coll, plane_coll, robot)
-        lower = np.array(robot.joints.lower_limits, dtype=float)
-        upper = np.array(robot.joints.upper_limits, dtype=float)
-        
-        if goal is None:
-            print("Please set a goal configuration first using 'Set goal configuration'.")
-            return
-            
-        print("Solving...")
-        obs_dict = get_obstacles()
-        
-        solved, waypoints, msg = plan(
-            cc,
-            lower,
-            upper,
-            start_config=start,
-            goal_config=goal,
-            timeout=2.0,
-            obstacles=obs_dict,
-        )
-        print(msg)
-        
-        if solved:
-            path = waypoints
-            path_i = 0
-            is_playing = True # Auto-play heavily implied by "should execute the animation"
-
-    solve_btn.on_click(on_solve_click)
-
-    play_or_pause_btn = server.gui.add_button("Play/Pause")
-    def on_play_or_pause_click(_):
-        nonlocal is_playing
-        if path is None:
-            print("No path to play. Click 'Solve' first.")
-            return
-        is_playing = not is_playing
-        print(f"Animation {'Resumed' if is_playing else 'Paused'}")
-        
-    play_or_pause_btn.on_click(on_play_or_pause_click)
-
-    # Make obstacles visible to the user.
-    server.scene.add_mesh_trimesh("/obstacle/mesh", mesh=sphere_obs.to_trimesh())
-
-    # Shows the current status
-    timing_handle = server.gui.add_number("Elapsed (ms)", 0.001, disabled=True)
-    collision_handle = server.gui.add_checkbox("Robot in collision?", False, disabled=True)
+    # Robot's configuration space
+    space = ob.RealVectorStateSpace(dim)
     
-    cc = CollisionChecker(robot_coll, plane_coll, robot)
+    # Set the bounds of the configuration space
+    bounds = ob.RealVectorBounds(dim)
+    for i in range(dim):
+        bounds.setLow(i, lower_limits[i])
+        bounds.setHigh(i, upper_limits[i])
+    space.setBounds(bounds)
+    
+    # Create a simple setup object
+    ss = og.SimpleSetup(space)
 
-    # Main Loop
-    while True:
-        t0 = time.time()
+    # Set obstacles and collision checker
+    collision_checker.set_obs(obstacles)
+    def _is_valid(state) -> bool:
+        q = np.array([state[i] for i in range(dim)])
+        return collision_checker.is_state_valid(q)
+    ss.setStateValidityChecker(_is_valid)
 
-        # 1) Update obstacles
-        obs_dict = get_obstacles()
-        cc.set_obs(obs_dict)
+    # Set start and goal states
+    start = space.allocState()
+    goal = space.allocState()
+    start[0:dim] = start_config
+    goal[0:dim] = goal_config
+    ss.setStartAndGoalStates(start, goal)
+
+    # Create a planner. Here we use RRTConnect.
+    ss.setPlanner(og.RRTConnect(ss.getSpaceInformation()))
+
+    # Solve the problem
+    solved: ob.PlannerStatus = ss.solve(timeout)
+    
+    if solved == ob.PlannerStatus.EXACT_SOLUTION:
+        ss.simplifySolution()
+        path = ss.getSolutionPath()
+        path.interpolate(int(50*path.length()))
         
-        # 2) Visualize collision status
-        # Note: We check q_current collision
-        collision_handle.value = (not cc.is_state_valid(q_current))
-
-        # 3) Determine Robot State (Animation vs IK)
-        if is_playing and path is not None:
-             # Animation Mode
-             if path_i < len(path):
-                 q_current = path[path_i]
-                 path_i += 1
-             elif path_i == len(path):
-                q_current = path[0]
-                path_i = 1
-             else:
-                 is_playing = False # Stop at end
-                 print("Animation Finished.")
-        else:
-             # Interactive / IK Mode
-             # Allows user to drag the robot ghost to set start/goal
-             try:
-                world_coll_list = cc.global_obs_list()
-                target_pos = np.array(ik_target_handle.position, dtype=float)
-                target_wxyz = np.array(ik_target_handle.wxyz, dtype=float)
-                
-                # Check workspace validity (basic sphere check)
-                if np.linalg.norm(target_pos - BASE_POS) < 1.0: # Rough workspace check
-                    ik_result = PyrokiHelper.solve_ik_with_collision(
-                        robot=robot,
-                        coll=robot_coll,
-                        world_coll_list=world_coll_list,
-                        target_link_name=target_link_name, 
-                        target_position=target_pos,
-                        target_wxyz=target_wxyz,
-                    )
-                    q_current = np.array(ik_result, dtype=float)
-             except Exception as e:
-                # IK failed, keep current q_current
-                pass
+        waypoints = []
+        for i in range(path.getStateCount()):
+            state = path.getState(i)
+            waypoints.append(np.array(state[0:dim]))
         
-        # 4) Update Visualizer
-        urdf_vis.update_cfg(q_current)
+        return solved, waypoints
+    return solved, None
 
-        # 5) Timing
-        timing_handle.value = (time.time() - t0) * 1000.0
-        time.sleep(0.01)
-
-# ============================================================================
-# CollisionChecker
-# ============================================================================
 
 class CollisionChecker():
 
@@ -273,23 +116,18 @@ class CollisionChecker():
         self.robot_coll = robot_coll
         self.plane_coll = plane_coll
         self.robot: pk.Robot = robot  
-        self.obstacles = {}
+        self.world_list = []
     
     def set_obs(self, obstacle_dict :dict):
-        self.obstacles = obstacle_dict or {}
-
-    def global_obs_list(self):
-        world = [self.plane_coll]
-
-        for _, obs in self.obstacles.items():
-            world.append(
+        self.world_list = []
+        for _, obs in obstacle_dict.items():
+            self.world_list.append(
                 Sphere.from_center_and_radius(
                     np.asarray(obs["position"], dtype=np.float32),
                     float(obs["radius"]),
                 )
             )
-        return world
-
+        self.world_list.append(self.plane_coll)
 
     def is_state_valid(self, q: np.ndarray) -> bool:
         """
@@ -302,85 +140,20 @@ class CollisionChecker():
             True if collision-free, False otherwise.
         """
         q = np.asarray(q, dtype=np.float32)
-        world_list = self.global_obs_list()
 
-        for world_coll in world_list:
+        for world_coll in self.world_list:
             world_dist = self.robot_coll.compute_world_collision_distance(self.robot, q, world_coll)
             if float(np.min(world_dist)) <= -1e-2:
-                print("world collision")
                 return False
         
         self_dist = self.robot_coll.compute_self_collision_distance(self.robot, q)
         if float(np.min(self_dist)) <= -5e-2:
-            print("self collision")
             return False
         return True 
 
-
-# ============================================================================
-# Motion Planner
-# ============================================================================
-def plan( collision_checker,lower_limits, upper_limits,start_config: np.ndarray, goal_config: np.ndarray, 
-        timeout: float, dim: int, obstacles: dict = None) -> tuple:
-    """
-    Plan a path from start to goal using RRTConnect.
-    
-    Args:
-        start_config: Start joint configuration
-        goal_config: Goal joint configuration
-        timeout: Planning timeout in seconds
-        obstacles: Dict of obstacles - {obs_id: {'position': np.ndarray, 'radius': float}}
-    """
-
-    start_config = np.asarray(start_config, dtype=float)
-    goal_config = np.asarray(goal_config, dtype=float).reshape(-1)
-
-    if start_config.shape[0] != dim or goal_config.shape[0] != dim:
-        return False, None, f"Config must be shape ({dim},), got {start_config.shape}, {goal_config.shape}"
-    
-    collision_checker.set_obs(obstacles)
-    
-    space = ob.RealVectorStateSpace(dim)
-    bounds = ob.RealVectorBounds(dim)
-    for i in range(dim):
-        bounds.setLow(i, float(lower_limits[i]))
-        bounds.setHigh(i, float(upper_limits[i]))
-    space.setBounds(bounds)
-    
-    ss = og.SimpleSetup(space)
-
-    def _is_valid(state):
-        q = np.array([state[i] for i in range(dim)], dtype=float)
-        return bool(collision_checker.is_state_valid(q))
-
-    ss.setStateValidityChecker(_is_valid)
-
-
-    start = space.allocState()
-    goal = space.allocState()
-    for i in range(dim):
-        start[i] = start_config[i]
-        goal[i] = goal_config[i]
-    
-    si = ss.getSpaceInformation()
-    ss.setStartAndGoalStates(start, goal)
-    ss.setPlanner(og.RRTConnect(si))
-    solved = ss.solve(timeout)
-    
-    if solved:
-        ss.simplifySolution()
-        path = ss.getSolutionPath()
-        path.interpolate(int(50*path.length()))
-        
-        waypoints = []
-        for i in range(path.getStateCount()):
-            state = path.getState(i)
-            waypoints.append(np.array([state[j] for j in range(self.dim)]))
-        
-        return True, waypoints, f"Path found with {len(waypoints)} waypoints!"
-    
-    return False, None, "No solution found within the time limit."
-
+# The PyrokiHelper class is used to solve the IK problem in the visualization part. 
+# It is not used in the OMPL planning.
+# Reference: https://github.com/chungmin99/pyroki/blob/main/examples/pyroki_snippets/_solve_ik_with_collision.py
 class PyrokiHelper(): 
     def __init__(self):
         pass
@@ -479,6 +252,190 @@ class PyrokiHelper():
             .solve(verbose=False, linear_solver="dense_cholesky")
         )
         return sol[joint_var]
+
+
+# Callback function for setting the goal configuration
+def _set_goal_config(current_config, goal_vis: ViserUrdf):
+    global GOAL_CONFIG
+    goal_vis.update_cfg(current_config)
+    goal_vis.show_visual = True
+    GOAL_CONFIG = current_config.copy()
+
+# Callback function for setting the start configuration
+def _set_start_config(current_config, start_vis: ViserUrdf):
+    global START_CONFIG 
+    start_vis.update_cfg(current_config)
+    start_vis.show_visual = True
+    START_CONFIG = current_config.copy()
+    
+def main():
+    urdf = load_robot_description("ur5_description")
+    target_link_name = "tool0"
+    robot = pk.Robot.from_urdf(urdf)
+
+    sphere_json_path = Path(__file__).parent.parent / "resources" / "ur5" / "ur5_spheres.json"
+    print(sphere_json_path)
+    with open(sphere_json_path, "r") as f:
+        sphere_decomposition = json.load(f)
+
+    # Create both collision models.
+    robot_coll= RobotCollision.from_sphere_decomposition(
+        sphere_decomposition=sphere_decomposition,
+        urdf=urdf,
+    )
+
+    # Create a plane that ur5 stands upon
+    plane_coll = HalfSpace.from_point_and_normal(
+    np.array([0.0, 0.0, -0.15]), np.array([0.0, 0.0, 1.0])
+    )   
+
+    # Create a movable sphere obstacle
+    sphere_obs = Sphere.from_center_and_radius(np.array([0.0, 0.0, 0.0]), 0.10)
+
+    # Setting up a visualizer
+    server = viser.ViserServer()
+    server.scene.add_grid("/ground", width=2, height=2, cell_size=0.1)
+    urdf_vis = ViserUrdf(server, urdf, root_node_name="/robot")
+
+    # Create interactive controller for IK target.
+    ik_target_handle = server.scene.add_transform_controls(
+        "/ik_target", scale=0.2, position=(0.3, 0.0, 0.5), wxyz=(0, 0, 1, 0)
+    )
+
+    # Create interactive controller and mesh for the sphere obstacle.
+    sphere_handle = server.scene.add_transform_controls(
+        "/obstacle", scale=0.2, position=(0.4, 0.3, 0.4)
+    )
+
+    def get_obstacles():
+        obs_pos = np.array(sphere_handle.position, dtype=float)
+        return {"sphere0": {"position": obs_pos, "radius": 0.10}}
+    # Current configuration of the robot
+    q_current = DEFAULT_CONFIG.copy()
+    urdf_vis.update_cfg(q_current)
+
+    start_config_vis = ViserUrdf(server, urdf, root_node_name="/robot_start", mesh_color_override=(255,0,0,0.5))
+    start_config_vis.show_visual = False
+    set_start_btn = server.gui.add_button("Set start configuration")
+
+    # Button logic for saving current q as start config
+    def on_start_click(_):
+        _set_start_config(q_current, start_config_vis)
+    set_start_btn.on_click(on_start_click)
+
+    goal_config_vis = ViserUrdf(server, urdf, root_node_name="/robot_goal", mesh_color_override=(0,255,0,0.5))
+    goal_config_vis.show_visual = False
+    set_goal_btn = server.gui.add_button("Set goal configuration")
+
+    # Button logic for saving current q as goal config
+    def on_goal_click(_):
+        _set_goal_config(q_current, goal_config_vis)
+    set_goal_btn.on_click(on_goal_click)
+
+    # State variables
+    path = None
+    path_i = 0
+    is_playing = False
+
+    solve_btn = server.gui.add_button("Solve")
+
+     # Button logic for solving
+    def on_solve_click(_):
+        nonlocal path, path_i, is_playing
+        start = START_CONFIG if START_CONFIG is not None else q_current
+        goal = GOAL_CONFIG
+
+        cc = CollisionChecker(robot_coll, plane_coll, robot)
+        lower = np.array(robot.joints.lower_limits, dtype=float)
+        upper = np.array(robot.joints.upper_limits, dtype=float)
+        
+        if goal is None:
+            print("Please set a goal configuration first using 'Set goal configuration'.")
+            return
+            
+        print("Solving...")
+        obs_dict = get_obstacles()
+        
+        solved, waypoints = plan(
+            cc,
+            lower,
+            upper,
+            start_config=start,
+            goal_config=goal,
+            timeout=2.0,
+            dim=DIM,
+            obstacles=obs_dict,
+        )
+        
+        if solved:
+            path = waypoints
+            path_i = 0
+            is_playing = True # Auto-play heavily implied by "should execute the animation"
+
+    solve_btn.on_click(on_solve_click)
+
+    play_or_pause_btn = server.gui.add_button("Play/Pause")
+    def on_play_or_pause_click(_):
+        nonlocal is_playing
+        if path is None:
+            print("No path to play. Click 'Solve' first.")
+            return
+        is_playing = not is_playing
+        print(f"Animation {'Resumed' if is_playing else 'Paused'}")
+        
+    play_or_pause_btn.on_click(on_play_or_pause_click)
+
+    # Make obstacles visible to the user.
+    server.scene.add_mesh_trimesh("/obstacle/mesh", mesh=sphere_obs.to_trimesh())
+
+    # Shows the current status
+    collision_handle = server.gui.add_checkbox("Robot in collision?", False, disabled=True)
+    
+    cc = CollisionChecker(robot_coll, plane_coll, robot)
+
+    # Main Loop
+    while True:
+        t0 = time.time()
+
+        # 1) Update obstacles
+        cc.set_obs(get_obstacles())
+        
+        # 2) Visualize collision status
+        # Note: We check q_current collision
+        collision_handle.value = (not cc.is_state_valid(q_current))
+
+        # 3) Determine Robot State (Animation vs IK)
+        if is_playing and path is not None:
+             # Animation Mode
+             if path_i < len(path):
+                 q_current = path[path_i]
+                 path_i += 1
+             elif path_i == len(path):
+                q_current = path[0]
+                path_i = 1
+             else:
+                 is_playing = False # Stop at end
+                 print("Animation Finished.")
+        else:
+             try:
+                world_coll_list = cc.world_list
+                target_pos = np.array(ik_target_handle.position, dtype=float)
+                target_wxyz = np.array(ik_target_handle.wxyz, dtype=float)
+                
+                ik_result = PyrokiHelper.solve_ik_with_collision(
+                    robot=robot,
+                    coll=robot_coll,
+                    world_coll_list=world_coll_list,
+                    target_link_name=target_link_name, 
+                    target_position=target_pos,
+                    target_wxyz=target_wxyz,
+                )
+                q_current = np.array(ik_result, dtype=float)
+             except Exception as e:
+                pass
+        
+        # 4) Update Visualizer
+        urdf_vis.update_cfg(q_current)
 
 if __name__ == "__main__":
     main()
