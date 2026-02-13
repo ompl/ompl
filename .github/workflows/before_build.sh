@@ -4,7 +4,6 @@ set -eux
 
 # Dependency versions.
 yaml_cpp_version="0.8.0"
-castxml_version="0.6.11" # version specifier for Linux only
 boost_version="1.87.0"
 
 # Collect some information about the build target.
@@ -44,28 +43,14 @@ install_boost() {
     popd
 }
 
-install_castxml() {
-    curl -L "https://github.com/CastXML/CastXML/archive/refs/tags/v${castxml_version}.tar.gz" | tar xz
-
-    clang_resource_dir=$(clang -print-resource-dir)
-
-    pushd "CastXML-${castxml_version}"
-    mkdir -p build
-    cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCLANG_RESOURCE_DIR="${clang_resource_dir}"
-    cmake --build build --parallel
-    cmake --install build
-    popd
-}
-
 
 # Work inside a temporary directory.
 cd "$(mktemp -d -t 'ompl-wheels.XXX')"
 
 if [ "${build_os}" == "Linux" ]; then
-    # Install yaml-cpp and CastXML dependencies from source, since the manylinux
+    # Install yaml-cpp dependency from source, since the manylinux
     # container doesn't have prebuilt versions in the repos.
     install_yaml_cpp
-    install_castxml
 
     # Install the latest Boost, because it has to be linked to the exact version of
     # Python for which we are building the wheel.
