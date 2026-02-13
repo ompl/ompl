@@ -9,7 +9,7 @@ if [ "${build_os}" == "Linux" ]; then
     # Install base dependencies
     yum -y install \
         sudo \
-        eigen3-devel \
+        eigen3-devel
         
     if [ "${arch}" == "aarch64" ]; then
         yum -y install gcc gcc-c++ libstdc++-devel
