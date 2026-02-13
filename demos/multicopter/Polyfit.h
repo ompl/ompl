@@ -20,7 +20,7 @@
 Eigen::VectorXd polyfit_Eigen(std::vector<double> x, const Eigen::VectorXd& y, int degree) {
     // Construct the Vandermonde matrix using Eigen's Map for vector initialization
     Eigen::MatrixXd A = Eigen::MatrixXd::NullaryExpr(x.size(), degree + 1,
-                     [&x, &degree](Eigen::Index i, Eigen::Index j) { return std::pow(x[i], j); });
+                     [&x](Eigen::Index i, Eigen::Index j) { return std::pow(x[i], j); });
     // Solve the least-squares problem
     return A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(y);
 }

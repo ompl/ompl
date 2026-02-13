@@ -1,6 +1,7 @@
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+include(FeatureSummary)
 
 # force <boost/functional.hpp> to avoid deprecated use of
 # std::unary_function and std::binary_function

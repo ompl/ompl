@@ -259,14 +259,10 @@ base::PlannerStatus ompl::control::HyRRT::constructSolution(Motion *last_motion)
     double finalDistance = dist_;
     Motion *solution = last_motion;
 
-    int pathSize = 0;
-
     // Construct the path from the goal to the start by following the parent pointers
     while (solution != nullptr)
     {
         mpath.push_back(solution);
-        if (solution->solutionPair != nullptr)               // A jump motion does not contain an edge
-            pathSize += solution->solutionPair->size() + 1;  // +1 for the end state
         solution = solution->parent;
     }
 
