@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eux
+set -ex
 
 # Dependency versions.
 yaml_cpp_version="0.8.0"

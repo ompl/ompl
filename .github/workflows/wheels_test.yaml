@@ -29,6 +29,10 @@ jobs:
           pybuilds: cp3{10,11,12,13}-macosx_arm64
           arch: arm64
           id: macos_arm64
+#        - os: windows-latest
+#          pybuilds: cp3{10,11,12,13}-win_amd64
+#          arch: x86_64
+#          id: windows_x86_64
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -42,11 +46,15 @@ jobs:
         env:
           CIBW_BEFORE_ALL_LINUX: "bash .github/workflows/before_all.sh && bash .github/workflows/before_build.sh"
           CIBW_BEFORE_ALL_MACOS: "bash .github/workflows/before_all.sh && bash .github/workflows/before_build.sh"
+          CIBW_BEFORE_BUILD_WINDOWS: "powershell .github/workflows/before_build_windows.ps1"
           CIBW_ARCHS_MACOS: ${{ matrix.arch }}
           OMPL_BUILD_ARCH: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.pybuilds }}
           CIBW_SKIP: "cp*-manylinux_i686 cp*-musllinux* cp*-win32"
           CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET="15.0"
+          CIBW_ENVIRONMENT_WINDOWS: >
+            VCPKG_DEFAULT_TRIPLET=x64-windows
+            CMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
           CIBW_TEST_REQUIRES: "pytest"
           CIBW_TEST_COMMAND: "pytest {project}/pytests"
       - uses: actions/upload-artifact@v4

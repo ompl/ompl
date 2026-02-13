@@ -8,11 +8,20 @@ arch="$(uname -m)"
 if [ "${build_os}" == "Linux" ]; then
     # Install base dependencies
     yum -y install \
-        sudo \
-        eigen3-devel
-        
+        sudo
+
     if [ "${arch}" == "aarch64" ]; then
-        yum -y install gcc gcc-c++ libstdc++-devel
+        yum install -y wget
+        EIGEN_VERSION=3.4.0
+        wget https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.tar.gz
+        tar -xzf eigen-${EIGEN_VERSION}.tar.gz
+        cd eigen-${EIGEN_VERSION}
+        mkdir build && cd build
+        cmake ..
+        make install
+    else
+        yum -y install \
+            eigen3-devel
     fi
 
 elif [ "${build_os}" == "Darwin" ]; then

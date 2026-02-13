@@ -17,13 +17,13 @@ endif()
 target_link_libraries(_ompl PRIVATE ompl::ompl)
 target_compile_options(_ompl PRIVATE -Wno-unused-parameter)
 
-# Set RPATH so the module can find libompl.so at runtime during development
-set_target_properties(_ompl PROPERTIES
-    BUILD_RPATH "$<TARGET_FILE_DIR:ompl>"
-    INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib"
-)
-
-file(COPY ompl DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+# Set RPATH so the module can find libompl.so
+if(UNIX)
+    set_target_properties(_ompl PROPERTIES
+        BUILD_RPATH "$ORIGIN"
+        INSTALL_RPATH "$ORIGIN"
+    )
+endif()
 
 # ---------------------------------------------------------------------
 # Generate type stubs for the single module
@@ -54,10 +54,15 @@ add_custom_command(
     COMMENT "Post-processing .pyi stubs to use 'import ompl as _ompl'"
 )
 
-install(TARGETS _ompl DESTINATION ompl)
+# install module
+install(TARGETS _ompl LIBRARY DESTINATION ompl)
+# install ompl shared lib
+install(TARGETS ompl LIBRARY DESTINATION ompl)
+# install python stubs
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl
         DESTINATION ompl
         FILES_MATCHING PATTERN "*.pyi")
+# install module hierarchy
 install(FILES 
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/__init__.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/base.py
