@@ -10,9 +10,7 @@ if [ "${build_os}" == "Linux" ]; then
     yum -y install \
         sudo \
         eigen3-devel \
-        llvm-devel-18.* \
-        clang-devel-18.*
-
+        
     if [ "${arch}" == "aarch64" ]; then
         yum -y install gcc gcc-c++ libstdc++-devel
     fi
