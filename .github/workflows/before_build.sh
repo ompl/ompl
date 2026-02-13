@@ -27,17 +27,10 @@ install_boost() {
     curl -L "https://archives.boost.io/release/${boost_version}/source/boost_${boost_version//./_}.tar.bz2" | tar xj
     pushd "boost_${boost_version//./_}"
 
-    # Tell boost-python the exact Python install to use, since we may have
-    # multiple on the host system.
-    python_include_path=$(python3 -c "from sysconfig import get_paths as gp; print(gp()['include'])")
-    echo "using python : ${python_version} : : ${python_include_path} ;" > "$HOME/user-config.jam"
-    pip3 install numpy
-
     ./bootstrap.sh
     sudo ./b2 "${b2_args[@]}" \
         --with-serialization \
         --with-program_options \
-        --with-python \
         install
 
     popd
