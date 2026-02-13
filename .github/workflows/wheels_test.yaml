@@ -40,8 +40,8 @@ jobs:
         with:
           package-dir: nanobinds
         env:
-          CIBW_BEFORE_ALL_LINUX: "bash .github/workflows/before_all.sh"
-          CIBW_BEFORE_ALL_MACOS: "bash .github/workflows/before_all.sh"
+          CIBW_BEFORE_ALL_LINUX: "bash .github/workflows/before_all.sh && bash .github/workflows/before_build.sh"
+          CIBW_BEFORE_ALL_MACOS: "bash .github/workflows/before_all.sh && bash .github/workflows/before_build.sh"
           CIBW_ARCHS_MACOS: ${{ matrix.arch }}
           OMPL_BUILD_ARCH: ${{ matrix.arch }}
           CIBW_BUILD: ${{ matrix.pybuilds }}
