@@ -18,7 +18,7 @@ target_link_libraries(_ompl PRIVATE ompl::ompl)
 target_compile_options(_ompl PRIVATE -Wno-unused-parameter)
 
 # Set RPATH so the module can find libompl.so
-if(UNIX)
+if(UNIX AND NOT APPLE)
     set_target_properties(_ompl PROPERTIES
         BUILD_RPATH "$ORIGIN"
         INSTALL_RPATH "$ORIGIN"
