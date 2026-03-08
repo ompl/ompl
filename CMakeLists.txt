@@ -21,7 +21,7 @@ add_feature_info(OMPL_BUILD_PYTHON_BINDINGS "${OMPL_BUILD_PYTHON_BINDINGS}" "Whe
 if (MSVC)
     option(OMPL_BUILD_SHARED "Build OMPL as a shared library" OFF)
 else()
-    option(OMPL_BUILD_SHARED "Build OMPL as a shared library" OFF)
+    option(OMPL_BUILD_SHARED "Build OMPL as a shared library" ON)
 endif()
 add_feature_info(OMPL_BUILD_SHARED "${OMPL_BUILD_SHARED}" "Whether to build OMPL as a shared library (default is ON for non-Windows, OFF for Windows).")
 
