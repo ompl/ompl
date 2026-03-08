@@ -25,6 +25,23 @@ If you use OMPL in your research, we kindly ask you to include the following cit
 \endhtmlonly
 </ul>
 
+If you use the OMPL Python bindings, then we kindly ask you to include the following citation in your publications:
+<ul>
+<li> Weihang Guo, Theodoros Tyrovouzis, and Lydia E. Kavraki, Python Bindings for a Large C++ Robotics Library: The Case of OMPL, _2026 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE, 2026. 
+\htmlonly
+<br><div class="btn-group btn-group-xs">
+  <a class="btn btn-primary" href="https://arxiv.org/abs/2603.04668"> pdf </a>
+  <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#guo2026ompl-python"> bibtex </button>
+</div>
+<div class="modal fade" tabindex="-1" id="guo2026ompl-python"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h4 class="modal-title">BibTeX</h4><button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button></div><div class="modal-body"><pre>@inproceedings{guo2026ompl-python,
+    Author = {Weihang Guo and Theodoros Tyrovouzis and Lydia E. Kavraki},
+    Title = {Python Bindings for a Large C++ Robotics Library: The Case of OMPL},
+    Booktitle = {IEEE International Conference on Robotics and Automation (ICRA)},
+    Year = {2026}
+}</pre></div></div></div></div>
+\endhtmlonly
+</ul>
+
 If you use the OMPL [benchmarking facilities](benchmark.html) or [Planner Arena](http://plannerarena.org), then we kindly ask you to include the following citation in your publications:
 <ul>
 <li> Mark Moll, Ioan A. Șucan, Lydia E. Kavraki, Benchmarking Motion Planning Algorithms: An Extensible Infrastructure for Analysis and Visualization, _IEEE Robotics & Automation Magazine,_ 22(3):96--102, September 2015.
