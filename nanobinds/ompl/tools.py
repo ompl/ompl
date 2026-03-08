@@ -2,6 +2,7 @@ from ._ompl.tools import *
 
 # Import benchmark statistics functions
 from ._benchmark_statistics import (
+    plottingEnabled,
     readLogValue,
     readOptionalLogValue,
     readRequiredLogValue,

@@ -65,4 +65,5 @@ install(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/control.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/util.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/tools.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/ompl/_benchmark_statistics.py
         DESTINATION ompl)
