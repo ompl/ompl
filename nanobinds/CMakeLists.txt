@@ -66,9 +66,3 @@ install(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/util.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/tools.py
         DESTINATION ompl)
-
-# Install benchmark statistics as a private module
-install(FILES ${CMAKE_SOURCE_DIR}/scripts/ompl_benchmark_statistics.py
-        DESTINATION ompl
-        RENAME _benchmark_statistics.py)
-# install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
