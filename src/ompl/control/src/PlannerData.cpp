@@ -91,14 +91,16 @@ bool ompl::control::PlannerData::removeEdge(const ompl::base::PlannerDataVertex 
     if (index1 == INVALID_INDEX || index2 == INVALID_INDEX)
         return false;
 
-    // Before deleting the edge, free the control associated with it, if it was decoupled
-    auto &edge = static_cast<PlannerDataEdgeControl &>(getEdge(index1, index2));
-    auto *ctrl = const_cast<Control *>(edge.getControl());
-    auto it = decoupledControls_.find(ctrl);
-    if (it != decoupledControls_.end())
-    {
-        siC_->freeControl(*it);
-        decoupledControls_.erase(it);
+    // Before deleting the edge, free any control associated with it, if it was decoupled
+    auto *edge = dynamic_cast<PlannerDataEdgeControl *>( &getEdge(index1, index2) );
+    if ( edge != nullptr ) {
+        auto *ctrl = const_cast<Control *>(edge->getControl());
+        auto it = decoupledControls_.find(ctrl);
+        if (it != decoupledControls_.end())
+        {
+            siC_->freeControl(*it);
+            decoupledControls_.erase(it);
+        }
     }
 
     return ompl::base::PlannerData::removeEdge(index1, index2);
