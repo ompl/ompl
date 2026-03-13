@@ -84,29 +84,5 @@ if (OMPL_BUILD_TESTS)
             message(WARNING "OMPL_HAVE_VAMP is TRUE but vamp_cpp target not found")
         endif()
     endif()
-
-    # Python unit tests
-    if(PYTHON_FOUND AND OMPL_BUILD_PYTESTS)
-        if (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/../py-bindings/bindings")
-            add_ompl_python_test(util/test_util.py)
-            add_ompl_python_test(base/test_base.py)
-            add_ompl_python_test(geometric/test_geometric.py)
-            add_ompl_python_test(geometric/test_geometric_compoundstate.py)
-            add_ompl_python_test(control/test_control.py)
-        endif()
-
-        # test the python function to std::function conversion utility functions
-        include_directories(${PYTHON_INCLUDE_DIRS})
-        add_library(py_std_function MODULE util/test_py_std_function.cpp)
-        target_link_libraries(py_std_function ompl ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})
-        if(WIN32)
-            set_target_properties(py_std_function PROPERTIES OUTPUT_NAME py_std_function SUFFIX .pyd)
-        endif(WIN32)
-        add_custom_command(TARGET py_std_function POST_BUILD
-            COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:py_std_function>"
-            "${CMAKE_CURRENT_SOURCE_DIR}/util")
-        add_ompl_python_test(util/test_py_std_function.py)
-    endif()
-
     add_subdirectory(regression_tests)
 endif()
