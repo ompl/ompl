@@ -12,6 +12,9 @@ name = "ompl"
 dynamic = ["version"]
 requires-python = ">=3.9"
 
+[project.scripts]
+ompl_benchmark_statistics = "ompl.ompl_benchmark_statistics:main"
+
 [project.optional-dependencies]
 examples = [
     "viser",
