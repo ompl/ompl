@@ -71,7 +71,7 @@ def test_prm_star():
     assert solution_path is not None
 
 if __name__ == "__main__":
-    test_rrt()
-    test_rrt_connect()
+    # test_rrt()
+    # test_rrt_connect()
     test_prm()
-    test_prm_star()
+    # test_prm_star()
