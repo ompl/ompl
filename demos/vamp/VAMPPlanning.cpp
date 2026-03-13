@@ -1,4 +1,4 @@
-// demos/vamp/rrtc_planning.cpp
+// demos/vamp/VAMPPlanning.cpp
 #include <iostream>
 #include <vector>
 #include <array>
