@@ -68,9 +68,3 @@ else()
         target_link_libraries(ompl PRIVATE psapi ws2_32)
     endif()
 endif()
-
-if (OMPL_BUILD_SHARED)
-    add_custom_command(TARGET ompl POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:ompl>"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../py-bindings/ompl/util/libompl${CMAKE_SHARED_LIBRARY_SUFFIX}")
-endif (OMPL_BUILD_SHARED)
