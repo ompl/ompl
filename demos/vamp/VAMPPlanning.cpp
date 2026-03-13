@@ -10,6 +10,7 @@
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/geometric/SimpleSetup.h>
 
 // VAMP integration headers
 #include <ompl/vamp/Utils.h>
@@ -80,8 +81,12 @@ int main()
     }
 
     space->setBounds(bounds);
-    // Create space information with VAMP validators
-    auto si = std::make_shared<ob::SpaceInformation>(space);
+    // Create simple setup
+    og::SimpleSetup ss(space);
+
+    // Instead of creating space information, get from ss
+    auto si = ss.getSpaceInformation();
+
     si->setStateValidityChecker(
         std::make_shared<ompl::vamp::VampStateValidityChecker<Robot>>(si, env));
     si->setMotionValidator(
@@ -101,18 +106,16 @@ int main()
         goal[i] = goal_config[i];
     }
 
-    // Setup problem definition
-    auto pdef = std::make_shared<ob::ProblemDefinition>(si);
-    pdef->setStartAndGoalStates(start, goal);
-
     // Create RRTConnect planner
     auto planner = std::make_shared<og::RRTConnect>(si);
-    planner->setProblemDefinition(pdef);
-    planner->setup();
+    ss.setPlanner(planner);
+
+    // Setup problem definition
+    ss.setStartAndGoalStates(start, goal);
 
     // Solve with 5 second timeout
     auto start_time = std::chrono::steady_clock::now();
-    ob::PlannerStatus status = planner->solve(ob::timedPlannerTerminationCondition(5.0));
+    ob::PlannerStatus status = ss.solve(ob::timedPlannerTerminationCondition(5.0));
     auto end_time = std::chrono::steady_clock::now();
     
     auto duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
@@ -123,9 +126,9 @@ int main()
     {
         std::cout << "Found solution!" << std::endl;
         
-        auto path = pdef->getSolutionPath()->as<og::PathGeometric>();
-        std::cout << "Path has " << path->getStateCount() << " states" << std::endl;
-        path->print(std::cout);
+        auto path = ss.getSolutionPath();
+        std::cout << "Path has " << path.getStateCount() << " states" << std::endl;
+        path.print(std::cout);
     }
     else
     {
