@@ -7,6 +7,19 @@ nanobind_add_module(_ompl
     ${PY_OMPL_SOURCES}
 )
 
+# set default python install prefix
+if(NOT OMPL_PYTHON_INSTALL_PREFIX AND NOT SKBUILD)
+    set(OMPL_PYTHON_INSTALL_PREFIX "${Python_SITEARCH}" CACHE STRING
+        "Path to directory where OMPL python module will be installed")
+endif()
+message(STATUS "OMPL Python module install location: ${OMPL_PYTHON_INSTALL_PREFIX}")
+if(OMPL_PYTHON_INSTALL_PREFIX)
+    set(OMPL_PYTHON_INSTALL_DIR "${OMPL_PYTHON_INSTALL_PREFIX}/ompl")
+else()
+    # For scikit-build / wheel builds, relative path
+    set(OMPL_PYTHON_INSTALL_DIR "ompl")
+endif()
+
 if (DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY)
     set_target_properties(_ompl PROPERTIES LIBRARY_OUTPUT_DIRECTORY
         "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/ompl")
@@ -55,12 +68,12 @@ add_custom_command(
 )
 
 # install module
-install(TARGETS _ompl LIBRARY DESTINATION ompl)
+install(TARGETS _ompl LIBRARY DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
 # install ompl shared lib
-install(TARGETS ompl LIBRARY DESTINATION ompl)
+install(TARGETS ompl DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
 # install python stubs
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl
-        DESTINATION ompl
+        DESTINATION ${OMPL_PYTHON_INSTALL_DIR}
         FILES_MATCHING PATTERN "*.pyi")
 # install module hierarchy
 install(FILES 
@@ -71,4 +84,9 @@ install(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/util.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/tools.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/_benchmark_statistics.py
-        DESTINATION ompl)
+        DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
+if(SKBUILD)
+    install(FILES 
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/ompl_benchmark_statistics.py
+            DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
+endif()

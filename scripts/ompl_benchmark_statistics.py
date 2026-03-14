@@ -47,7 +47,7 @@ from ompl.tools import (
     plottingEnabled
 )
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(
         description='Process benchmark logs and create an SQLite3 database.')
     parser.add_argument('-d', '--database', default='benchmark.db', \
@@ -82,3 +82,6 @@ if __name__ == '__main__':
 
     if args.mysql:
         saveAsMysql(args.database)
+
+if __name__ == '__main__':
+    main()

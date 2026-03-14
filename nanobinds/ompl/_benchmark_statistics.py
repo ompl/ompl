@@ -575,5 +575,3 @@ def computeViews(dbname, moveitformat):
 
     conn.commit()
     c.close()
-
-if __name__ == '__main__':
