@@ -14,32 +14,6 @@ namespace ompl::vamp
 {
     namespace ob = ompl::base;
 
-    /// Get OMPL RealVectorBounds from Robot scaling parameters
-    template <typename Robot>
-    inline auto get_robot_bounds() -> ob::RealVectorBounds
-    {
-        using Configuration = typename Robot::Configuration;
-
-        std::array<float, Robot::dimension> zeros{};
-        std::array<float, Robot::dimension> ones{};
-        std::fill(ones.begin(), ones.end(), 1.0f);
-
-        auto zero_v = Configuration(zeros);
-        auto one_v = Configuration(ones);
-
-        Robot::scale_configuration(zero_v);
-        Robot::scale_configuration(one_v);
-
-        ob::RealVectorBounds bounds(Robot::dimension);
-        for (std::size_t i = 0; i < Robot::dimension; ++i)
-        {
-            bounds.setLow(i, zero_v[{i, 0}]);
-            bounds.setHigh(i, one_v[{i, 0}]);
-        }
-
-        return bounds;
-    }
-
     //==========================================================================
     // VAMP State Validity Checker for OMPL
     //==========================================================================
