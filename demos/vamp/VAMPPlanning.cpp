@@ -71,14 +71,12 @@ int main()
     // Create simple setup
     og::SimpleSetup ss(space);
 
-    // Instead of creating space information, get from ss
     auto si = ss.getSpaceInformation();
 
     si->setStateValidityChecker(
         std::make_shared<ompl::vamp::VampStateValidityChecker<Robot>>(si, env));
     si->setMotionValidator(
         std::make_shared<ompl::vamp::VampMotionValidator<Robot>>(si, env));
-    si->setup();
 
     // Define start and goal configurations (Panda 7 DOF)
     ob::ScopedState<> start(space);
@@ -93,7 +91,7 @@ int main()
         goal[i] = goal_config[i];
     }
 
-    // Create RRTConnect planner
+    // Create RRTConnect planner (optional, a default will be automatically chosen otherwise)  
     auto planner = std::make_shared<og::RRTConnect>(si);
     ss.setPlanner(planner);
 
