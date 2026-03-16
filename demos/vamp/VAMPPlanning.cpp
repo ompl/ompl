@@ -16,6 +16,7 @@
 #include <ompl/vamp/Utils.h>
 #include <ompl/vamp/VampStateValidityChecker.h>
 #include <ompl/vamp/VampMotionValidator.h>
+#include <ompl/vamp/VampStateSpace.h>
 
 #include <vamp/collision/factory.hh>
 #include <vamp/robots/panda.hh>
@@ -60,27 +61,13 @@ int main()
     // Convert to vectorized environment for SIMD collision checking
     Environment env(env_float);
 
-    // Create state space
-    auto space = std::make_shared<ob::RealVectorStateSpace>(Robot::dimension);
-    // Get bounds from VAMP Robot information, scale 0/1 config to min/max
-    static constexpr std::array<float, Robot::dimension> zeros = {0., 0., 0., 0., 0., 0., 0.};
-    static constexpr std::array<float, Robot::dimension> ones = {1., 1., 1., 1., 1., 1., 1.};
+    auto space = std::make_shared<ompl::vamp::VampStateSpace<Robot>>();
 
-    auto zero_v = Robot::Configuration(zeros);
-    auto one_v = Robot::Configuration(ones);
-
-    Robot::scale_configuration(zero_v);
-    Robot::scale_configuration(one_v);
-    std::cout << "Zero config: " << zero_v << std::endl;
-    std::cout << "One config: " << one_v << std::endl;
-    ob::RealVectorBounds bounds(Robot::dimension);
-    for (auto i = 0U; i < Robot::dimension; ++i)
-    {
-        bounds.setLow(i, zero_v[{0, i}]);
-        bounds.setHigh(i, one_v[{0, i}]);
+    std::cout << "Robot bounds:" << std::endl;
+    for (std::size_t i = 0; i < Robot::dimension; ++i){
+        std::cout << i << ": " << space->getBounds().low[i] << " to " << space->getBounds().high[i] << std::endl;
     }
 
-    space->setBounds(bounds);
     // Create simple setup
     og::SimpleSetup ss(space);
 
