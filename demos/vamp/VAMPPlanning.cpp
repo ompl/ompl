@@ -61,8 +61,10 @@ int main()
     // Convert to vectorized environment for SIMD collision checking
     Environment env(env_float);
 
+    // Create state space
     auto space = std::make_shared<ompl::vamp::VampStateSpace<Robot>>();
 
+    // Prints state space bounds (joint limits)
     std::cout << "Robot bounds:" << std::endl;
     for (std::size_t i = 0; i < Robot::dimension; ++i){
         std::cout << i << ": " << space->getBounds().low[i] << " to " << space->getBounds().high[i] << std::endl;
@@ -73,6 +75,7 @@ int main()
 
     auto si = ss.getSpaceInformation();
 
+    // Sets state validity checker and motion validator, using SIMD-accelerated methods from VAMP
     si->setStateValidityChecker(
         std::make_shared<ompl::vamp::VampStateValidityChecker<Robot>>(si, env));
     si->setMotionValidator(
@@ -110,7 +113,6 @@ int main()
     if (status == ob::PlannerStatus::EXACT_SOLUTION)
     {
         std::cout << "Found solution!" << std::endl;
-        
         auto path = ss.getSolutionPath();
         std::cout << "Path has " << path.getStateCount() << " states" << std::endl;
         path.print(std::cout);
