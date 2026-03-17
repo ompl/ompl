@@ -99,7 +99,8 @@ def planOnce(
         print(f"Generated path with {path.getStateCount()} states")
         
         if visualize:
-            visualizer = ViserVisualizer(robot_name="panda", 
+            visualizer = ViserVisualizer(robot_name="panda",
+                                        robot_dimension=dimension,
                                         port=8080)
             for sphere in spheres:
                 visualizer.add_sphere(sphere, radius, color=(0.8, 0.4, 0.2))
