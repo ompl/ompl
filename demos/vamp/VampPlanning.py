@@ -102,7 +102,7 @@ def planOnce(
             visualizer = ViserVisualizer(robot_name="panda", 
                                         port=8080)
             for sphere in spheres:
-                visualizer.add_sphere(sphere, radius)
+                visualizer.add_sphere(sphere, radius, color=(0.8, 0.4, 0.2))
             
             path.interpolate(50)
             states = path.getStates()
