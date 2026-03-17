@@ -1,4 +1,4 @@
-"""Viser visualization class for VAMP robot trajectory visualization"""
+"""Viser helper class for robot trajectory visualization with OMPL"""
 
 import time
 import threading
@@ -8,7 +8,6 @@ import tty
 import select
 import numpy as np
 from pathlib import Path
-import vamp
 import viser
 from viser.extras import ViserUrdf
 from robot_descriptions.loaders.yourdfpy import load_robot_description
@@ -32,25 +31,17 @@ class ViserVisualizer:
         ]
     }
     
-    def __init__(self, robot_name: str, port: Optional[int] = None):
+    def __init__(self, robot_name: str, robot_dimension : int, port: Optional[int] = None):
         """Initialize the visualizer
         
         Args:
-            robot_name: Name of the robot (must be available in vamp, e.g., 'panda', 'ur5', 'fetch')
+            robot_name: Name of the robot
+            robot_dimension: Number of degrees of freedom for the robot
             port: Optional port number for viser server (default: 8080)
         
         """
         self.robot_name = robot_name
-        
-        if not hasattr(vamp, robot_name):
-            available_robots = [attr for attr in dir(vamp) if not attr.startswith('_')]
-            raise ValueError(
-                f"Robot '{robot_name}' not found in vamp. "
-                f"Available robots: {available_robots}"
-            )
-        
-        self.robot = getattr(vamp, robot_name)
-        self.dimension = self.robot.dimension()
+        self.dimension = robot_dimension
         
         # Setup joint mapping for this robot
         self.joint_mapping = self.JOINT_MAPPINGS.get(robot_name, None)
@@ -63,8 +54,10 @@ class ViserVisualizer:
         # Load robot URDF from robot_descriptions
         description_name = f"{robot_name}_description"
         try:
-            if description_name == "ur5_description": # load from vamp to have correct urdf + gripper
+            # VAMP uses ur5 with a Roboriq gripper, URDF is loaded from the repository
+            if description_name == "ur5_description":
                 import yourdfpy
+                import vamp
                 vamp_folder = Path(vamp.__file__).parent.parent.parent
                 ur5_urdf_file = vamp_folder / 'resources' / 'ur5' / 'ur5.urdf'
                 mesh_dir = vamp_folder / 'resources' / 'ur5'
@@ -82,15 +75,13 @@ class ViserVisualizer:
                                                      load_meshes=True, 
                                                      load_collision_meshes=True)
             else:
+                # URDF loaded from robot_descriptions
                 self.robot_urdf = load_robot_description(description_name)
         except Exception as e:
             raise ValueError(
                 f"Could not load URDF for '{description_name}'. "
                 f"Make sure robot_descriptions has this robot. Error: {e}"
             )
-            # /home/ef55/robotics/ompl_work/ompl/external/vamp/src/vamp/resources/ur5/ur5.urdf
-            # /home/ef55/robotics/ompl_work/ompl/external/vamp/resources/ur5/ur5.urdf
-            
         
         self.urdf_vis = ViserUrdf(self.server, self.robot_urdf, root_node_name=f"/{robot_name}")
         
@@ -131,7 +122,6 @@ class ViserVisualizer:
                 radius = obj["radius"] + padding
                 self.add_sphere(position=position, radius=radius, color=color, name=f"/sphere_{obj['name']}")
         
-        # Used in vamp mbm evaluate, check evaluate_mbm.py on vamp/scripts
         is_box_problem = problem_data.get("problem") == "box"
         
         # Load cylinders (or as boxes if is_box_problem)
