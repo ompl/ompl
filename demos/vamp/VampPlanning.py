@@ -113,10 +113,8 @@ def planOnce(
             
 
 
-def planBenchmark(variation: float = 0.01, radius: float = 0.2, n_trials: int = 100, visualize: bool = False):
+def planBenchmark(variation: float = 0.01, radius: float = 0.2, n_trials: int = 100):
     
-    if visualize:
-        print("Benchmark results are not visualized")
     # Create VAMP spherized environment
     spheres = [np.array(sphere) for sphere in problem]
     random.shuffle(spheres)
@@ -189,7 +187,7 @@ def main(
     ):
 
     if benchmark:
-        planBenchmark(variation, radius, n_trials, visualize)
+        planBenchmark(variation, radius, n_trials)
     else: 
         planOnce(variation, radius, visualize)
    
