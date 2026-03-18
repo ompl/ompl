@@ -90,9 +90,6 @@ if (OMPL_BUILD_DEMOS)
         target_include_directories(demo_VAMPPlanning PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vamp)
         target_link_libraries(demo_VAMPPlanning PRIVATE vamp_cpp)
 
-        add_ompl_demo(demo_VAMPCagePlanningBenchmark vamp/VAMPCagePlanningBenchmark.cpp)
-        target_include_directories(demo_VAMPCagePlanningBenchmark PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vamp)
-        target_link_libraries(demo_VAMPCagePlanningBenchmark PRIVATE vamp_cpp)
     endif()
     
 endif(OMPL_BUILD_DEMOS)
