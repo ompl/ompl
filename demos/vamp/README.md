@@ -10,11 +10,10 @@ Install the required dependencies:
 pip install requirements.txt
 ```
 
-Install planner arena:
+Go to your `ompl` directory and install the latest VAMP version:
 ```bash
-git clone https://github.com/ompl/plannerarena
-cd plannerarena
-pip install -e .
+cd external/vamp
+pip install .
 ```
 
 ### Geometric Planning
