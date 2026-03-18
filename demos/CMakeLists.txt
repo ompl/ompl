@@ -89,6 +89,9 @@ if (OMPL_BUILD_DEMOS)
         target_include_directories(demo_VAMPPlanning PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vamp)
         target_link_libraries(demo_VAMPPlanning PRIVATE vamp_cpp)
 
+        add_ompl_demo(demo_VAMPMotionBenchmaker vamp/MotionBenchmakerDemoMain.cpp vamp/MotionBenchmakerDemo.cpp)
+        target_include_directories(demo_VAMPMotionBenchmaker PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vamp)
+        target_link_libraries(demo_VAMPMotionBenchmaker PRIVATE vamp_cpp)
     endif()
     
 endif(OMPL_BUILD_DEMOS)
