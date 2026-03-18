@@ -8,12 +8,18 @@
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/fmt/FMT.h>
 #include <ompl/geometric/planners/prm/PRM.h>
+#include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/geometric/planners/rrt/RRT.h>
+#include <ompl/geometric/planners/kpiece/KPIECE1.h>
+#include <ompl/geometric/planners/kpiece/LBKPIECE1.h>
 #include <ompl/vamp/VampStateValidityChecker.h>
 #include <ompl/vamp/VampMotionValidator.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/vamp/VampStateSpace.h>
 #include <vamp/robots/panda.hh>
 #include <vamp/vector.hh>
+#include <ompl/tools/benchmark/Benchmark.h>
+
 
 #include <iostream>
 #include <iomanip>
@@ -24,6 +30,8 @@
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
+namespace ot = ompl::tools;
+
 
 MotionBenchmakerDemo::MotionBenchmakerDemo(const std::string& robotName,
                                           const std::string& problemFile,
@@ -94,7 +102,16 @@ std::shared_ptr<ompl::base::Planner> MotionBenchmakerDemo::createPlanner(
         planner = std::make_shared<og::FMT>(si);
     } else if (plannerName_ == "PRM" || plannerName_ == "prm") {
         planner = std::make_shared<og::PRM>(si);
-    } else {
+    }
+     else if (plannerName_ == "KPIECE1" || plannerName_ == "kpiece1") {
+        planner = std::make_shared<og::KPIECE1>(si);
+    }
+    else if (plannerName_ == "RRT" || plannerName_ == "rrt") {
+        planner = std::make_shared<og::RRT>(si);
+    } else if (plannerName_ == "LBKPIECE1" || plannerName_ == "lbkpiece1") {
+        planner = std::make_shared<og::LBKPIECE1>(si);
+    }
+    else {
         std::cerr << "Unknown planner '" << plannerName_ << "', using RRTConnect" << std::endl;
         planner = std::make_shared<og::RRTConnect>(si);
     }
@@ -261,18 +278,18 @@ bool MotionBenchmakerDemo::setupProblem(
 }
 
 
-PlanningResult MotionBenchmakerDemo::solveProblem(
+PlanningResult MotionBenchmakerDemo::solveInstance(
     const std::string& problemName,
     const boost::property_tree::ptree& problemData,
     double timeoutSeconds)
 {
     PlanningResult result;
-    ss_ = std::make_shared<ompl::geometric::SimpleSetup>(space_);
+    ss_ = std::make_shared<og::SimpleSetup>(space_);
     if (!setupProblem(problemName, problemData)) {
         return result;
     }
     auto space_info = ss_->getSpaceInformation();
-    // Set planner using the configurable planner name
+    // Setup benchmarking
     auto planner = createPlanner(space_info);
     ss_->setPlanner(planner);
 
@@ -301,12 +318,44 @@ PlanningResult MotionBenchmakerDemo::solveProblem(
     result.planningIterations = plannerData.numVertices();
 
     // Clean up environment reference
-    current_env_.reset();
     ss_.reset();
     
 
     return result;
 }
+
+PlanningResult MotionBenchmakerDemo::benchmarkInstance(
+    const std::string& problemName,
+    const boost::property_tree::ptree& problemData,
+    unsigned int benchmarkTrials,
+    double timeoutSeconds)
+{
+    PlanningResult result;
+    ss_ = std::make_shared<og::SimpleSetup>(space_);
+    if (!setupProblem(problemName, problemData)) {
+        return result;
+    }
+    auto space_info = ss_->getSpaceInformation();
+    // setup benchmark
+    double memoryLimit = 4096;
+
+    std::string benchmarkName = "MBM-" + problemName;
+    ot::Benchmark b(*ss_, benchmarkName);
+    ot::Benchmark::Request request(timeoutSeconds, memoryLimit, benchmarkTrials);
+
+    b.addPlanner(std::make_shared<og::RRTConnect>(space_info));
+    b.addPlanner(std::make_shared<og::RRT>(space_info));
+    b.addPlanner(std::make_shared<og::KPIECE1>(space_info));    
+    b.addPlanner(std::make_shared<og::LBKPIECE1>(space_info));
+
+    b.benchmark(request);
+    b.saveResultsToFile("vamp_mbm_benchmark.log");
+    result.solved = true;
+    ss_.reset();
+    
+    return result;
+}
+
 
 std::vector<PlanningResult> MotionBenchmakerDemo::benchmarkProblem(
     const std::string& problemName,
@@ -329,13 +378,14 @@ std::vector<PlanningResult> MotionBenchmakerDemo::benchmarkProblem(
         std::cout.flush();
 
         if (benchmarkTrials == 0) {
-            auto result = solveProblem(problemName, instances[i], timeoutSeconds);
+            auto result = solveInstance(problemName, instances[i], timeoutSeconds);
             allResults.push_back(result);
         } 
-        // else {
-        //     auto result = benchmarkProblem(problemName, instances[i], timeoutSeconds);
-        //     allResults.push_back(result);
-        // }
+        else {
+            auto result = benchmarkInstance(problemName, instances[i], benchmarkTrials, timeoutSeconds);
+            allResults.push_back(result);
+            break;
+        }
     }
 
     return allResults;
@@ -350,9 +400,9 @@ std::map<std::string, std::vector<PlanningResult>> MotionBenchmakerDemo::benchma
 
     for (const auto& problemName : problemNames_) {
 
-        // if (problemName != "bookshelf_thin") {
-        //     continue;
-        // }
+        if (problemName == "bookshelf_thin") {
+            continue;
+        }
 
         auto results = benchmarkProblem(problemName, benchmarkTrials, timeoutSeconds);
         allResults[problemName] = results;
@@ -368,6 +418,7 @@ std::map<std::string, std::vector<PlanningResult>> MotionBenchmakerDemo::benchma
                 std::cout << "    Failed: " << failures << "/" << results.size() << std::endl;
             }
         }
+
     }
 
     return allResults;

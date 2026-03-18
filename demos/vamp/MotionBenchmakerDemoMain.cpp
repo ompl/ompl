@@ -92,8 +92,13 @@ int main(int argc, char** argv)
         auto results = benchmarker.benchmarkAll(benchmarkTrials, timeoutSeconds, true);
 
         // Print statistics for each problem
-        for (const auto& [problemName, problemResults] : results) {
-            MotionBenchmakerDemo::printStatistics(problemName, problemResults);
+        if (benchmarkTrials > 0) {
+            std::cout << "Benchmark Results Saved, use python script to transfer to .db" << std::endl;
+        }
+        else{
+            for (const auto& [problemName, problemResults] : results) {
+                MotionBenchmakerDemo::printStatistics(problemName, problemResults);
+            }
         }
 
     } catch (const std::exception& e) {
