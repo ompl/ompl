@@ -91,8 +91,6 @@ private:
     std::map<std::string, std::vector<boost::property_tree::ptree>> problems_;
     std::shared_ptr<ompl::base::StateSpace> space_;
     std::shared_ptr<ompl::geometric::SimpleSetup> ss_;
-    // Store environment as shared_ptr to ensure it lives as long as the validators need it
-    std::shared_ptr<vamp::collision::Environment<vamp::FloatVector<vamp::FloatVectorWidth>>> current_env_;
 
     /**
      * @brief Load problems from a JSON file (MBM format).
@@ -115,9 +113,17 @@ private:
     /**
      * @brief Run a single planning trial on a problem.
      */
-    PlanningResult solveProblem(const std::string& problemName,
+    PlanningResult solveInstance(const std::string& problemName,
                                const boost::property_tree::ptree& problemData,
                                double timeoutSeconds);
+    /**
+     * @brief Benchmark an instance using OMPL's benchmark.
+     */
+    PlanningResult benchmarkInstance(
+                                const std::string& problemName,
+                                const boost::property_tree::ptree& problemData,
+                                unsigned int benchmarkTrials,
+                                double timeoutSeconds);
 
     /**
      * @brief Create an OMPL planner instance by name.
