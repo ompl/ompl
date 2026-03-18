@@ -89,15 +89,16 @@ if (OMPL_BUILD_DEMOS)
         add_ompl_demo(demo_VAMPPlanning vamp/VAMPPlanning.cpp)
         target_include_directories(demo_VAMPPlanning PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vamp)
         target_link_libraries(demo_VAMPPlanning PRIVATE vamp_cpp)
-
     endif()
     
 endif(OMPL_BUILD_DEMOS)
 
-file(GLOB OMPL_DEMO_CXX_FILES "*.cpp")
-install(FILES ${OMPL_DEMO_CXX_FILES}
-    DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
-    COMPONENT ompl)
-install(DIRECTORY constraint Koules multilevel PlanarManipulator VFRRT
-    DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
-    COMPONENT ompl)
+if(NOT SKBUILD)
+    file(GLOB OMPL_DEMO_CXX_FILES "*.cpp")
+    install(FILES ${OMPL_DEMO_CXX_FILES}
+        DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
+        COMPONENT ompl)
+    install(DIRECTORY constraint Koules multilevel PlanarManipulator VFRRT
+        DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
+        COMPONENT ompl)
+endif()

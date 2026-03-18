@@ -15,6 +15,7 @@ def create_simple_setup():
 
     # 2) Create a trivial validity checker that always returns True.
     def is_valid(state):
+        time.sleep(0.001)
         return True
 
     si = ob.SpaceInformation(space)

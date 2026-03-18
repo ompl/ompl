@@ -1,7 +1,9 @@
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/config.h")
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/config.h"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ompl"
-    COMPONENT ompl)
+if(NOT SKBUILD)
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/config.h"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/ompl"
+        COMPONENT ompl)
+endif()
 
 file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp
   geometric/*.cpp control/*.cpp multilevel/*.cpp tools/*.cpp)
@@ -53,10 +55,14 @@ target_link_libraries(ompl
     PRIVATE
         "$<$<BOOL:${OMPL_HAVE_SPOT}>:Spot::Spot>")
 
-set_target_properties(ompl PROPERTIES VERSION "${PROJECT_VERSION}")
+if(NOT SKBUILD)
+    set_target_properties(ompl PROPERTIES VERSION "${PROJECT_VERSION}")
+endif()
 
 if (OMPL_BUILD_SHARED)
-    set_target_properties(ompl PROPERTIES SOVERSION "${OMPL_ABI_VERSION}")
+    if(NOT SKBUILD)
+        set_target_properties(ompl PROPERTIES SOVERSION "${OMPL_ABI_VERSION}")
+    endif()
     if (MINGW)
         target_link_libraries(ompl PRIVATE psapi ws2_32)
         set_target_properties(ompl PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
@@ -68,9 +74,3 @@ else()
         target_link_libraries(ompl PRIVATE psapi ws2_32)
     endif()
 endif()
-
-if (OMPL_BUILD_SHARED)
-    add_custom_command(TARGET ompl POST_BUILD
-        COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:ompl>"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../../py-bindings/ompl/util/libompl${CMAKE_SHARED_LIBRARY_SUFFIX}")
-endif (OMPL_BUILD_SHARED)

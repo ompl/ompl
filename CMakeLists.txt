@@ -14,8 +14,9 @@ add_feature_info(OMPL_BUILD_VAMP "${OMPL_BUILD_VAMP}" "Whether to build VAMP sub
 option(VAMP_PORTABLE_BUILD "Build VAMP with portable SIMD settings for distribution (package maintainers)" OFF)
 add_feature_info(VAMP_PORTABLE_BUILD "${VAMP_PORTABLE_BUILD}" "Whether to build VAMP with portable SIMD settings for distribution (package maintainers).")
 
-option(OMPL_BUILD_PYTHON_BINDINGS "Build OMPL Python bindings" OFF)
+option(OMPL_BUILD_PYTHON_BINDINGS "Build OMPL Python bindings" ON)
 add_feature_info(OMPL_BUILD_PYTHON_BINDINGS "${OMPL_BUILD_PYTHON_BINDINGS}" "Whether to build OMPL Python bindings.")
+set(OMPL_PYTHON_INSTALL_PREFIX "" CACHE PATH "Install location for OMPL Python module (defaults to current python environment)")
 
 # default to building shared libs except Windows
 if (MSVC)
@@ -68,7 +69,16 @@ add_subdirectory(src)
 # VAMP submodule integration
 if(OMPL_BUILD_VAMP)
     include(CMakeModules/VampConfig.cmake)
+    # For python wheel builds, we don't install VAMP files
+    if(SKBUILD)
+        set(CMAKE_SKIP_INSTALL_RULES ON)
+    endif()
     configure_vamp()
+    if(SKBUILD)
+        set(CMAKE_SKIP_INSTALL_RULES OFF)
+        # Top level install requires this file so we add a dummy one
+        file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/external/vamp/cmake_install.cmake" "# skipped for SKBUILD")
+    endif()
     message(STATUS "VAMP integration enabled via OMPL_BUILD_VAMP=ON")
 else()
     set(OMPL_HAVE_VAMP FALSE CACHE BOOL "Whether VAMP integration is available" FORCE)
@@ -90,84 +100,87 @@ add_subdirectory(demos)
 add_subdirectory(scripts)
 add_subdirectory(doc)
 
-if(NOT MSVC)
-    target_link_flags(ompl)
-    set(PKG_NAME "ompl")
-    set(PKG_DESC "The Open Motion Planning Library")
-    set(PKG_EXTERNAL_DEPS "Eigen3::Eigen ${ompl_PKG_DEPS}")
-    set(PKG_OMPL_LIBS "-lompl ${ompl_LINK_FLAGS}")
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc.in"
-                   "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc" @ONLY)
-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc"
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+## Packaging and Installation. Does not apply to python wheel builds with scikit-build
+if(NOT SKBUILD)
+    if(NOT MSVC)
+        target_link_flags(ompl)
+        set(PKG_NAME "ompl")
+        set(PKG_DESC "The Open Motion Planning Library")
+        set(PKG_EXTERNAL_DEPS "Eigen3::Eigen ${ompl_PKG_DEPS}")
+        set(PKG_OMPL_LIBS "-lompl ${ompl_LINK_FLAGS}")
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc.in"
+                       "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc" @ONLY)
+        install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc"
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+            COMPONENT ompl)
+    endif()
+
+    set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+    include(CMakePackageConfigHelpers)
+    set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR})
+    set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
+    configure_package_config_file(omplConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
+        PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
+        NO_CHECK_REQUIRED_COMPONENTS_MACRO)
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMajorVersion)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
         COMPONENT ompl)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
+        COMPONENT ompl
+        FILES_MATCHING PATTERN "Find*.cmake")
+    install(TARGETS ompl
+        EXPORT omplExport
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        COMPONENT ompl)
+    install(EXPORT omplExport
+        NAMESPACE ompl::
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake)
+    export(EXPORT omplExport
+        FILE "${CMAKE_CURRENT_BINARY_DIR}/omplExport.cmake")
+
+    # script to install ompl on Ubuntu
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/install-ompl-ubuntu.sh.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/install-ompl-ubuntu.sh" @ONLY)
+
+    # uninstall target
+    configure_file(
+      "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+      IMMEDIATE @ONLY)
+    add_custom_target(uninstall
+      COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+
+    include(CPackSettings)
+
+    # install catkin package.xml (needed for ROS installation)
+    install(FILES package.xml
+        DESTINATION share/${PROJECT_NAME})
+
+    # Allows Colcon to find non-Ament packages when using workspace underlays
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/share/ament_index/resource_index/packages/${PROJECT_NAME} "")
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/ament_index/resource_index/packages/${PROJECT_NAME} DESTINATION share/ament_index/resource_index/packages)
+
+    set_package_properties(PkgConfig PROPERTIES
+        URL "https://www.freedesktop.org/wiki/Software/pkg-config/"
+        PURPOSE "Used to find (compilation flags for) dependencies.")
+        
+    # Add VAMP to feature summary
+    set_package_properties(VAMP PROPERTIES
+        URL "https://github.com/KavrakiLab/vamp"
+        PURPOSE "VAMP (Vector Accelerated Motion Planning)")
+
+    feature_summary(DESCRIPTION INCLUDE_QUIET_PACKAGES WHAT ALL)
+
+    # Create targets for building docker images
+    # See CMakeModules/OMPLUtils.cmake and scripts/docker for details
+    add_docker_target(ompl)
+    add_docker_target(plannerarena scripts)
 endif()
-
-set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
-include(CMakePackageConfigHelpers)
-set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR})
-set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
-configure_package_config_file(omplConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
-    PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
-    NO_CHECK_REQUIRED_COMPONENTS_MACRO)
-write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/omplConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/omplConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
-    COMPONENT ompl)
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake
-    COMPONENT ompl
-    FILES_MATCHING PATTERN "Find*.cmake")
-install(TARGETS ompl
-    EXPORT omplExport
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT ompl)
-install(EXPORT omplExport
-    NAMESPACE ompl::
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake)
-export(EXPORT omplExport
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/omplExport.cmake")
-
-# script to install ompl on Ubuntu
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/install-ompl-ubuntu.sh.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/install-ompl-ubuntu.sh" @ONLY)
-
-# uninstall target
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-  IMMEDIATE @ONLY)
-add_custom_target(uninstall
-  COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
-
-include(CPackSettings)
-
-# install catkin package.xml (needed for ROS installation)
-install(FILES package.xml
-    DESTINATION share/${PROJECT_NAME})
-
-# Allows Colcon to find non-Ament packages when using workspace underlays
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/share/ament_index/resource_index/packages/${PROJECT_NAME} "")
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/ament_index/resource_index/packages/${PROJECT_NAME} DESTINATION share/ament_index/resource_index/packages)
-
-set_package_properties(PkgConfig PROPERTIES
-    URL "https://www.freedesktop.org/wiki/Software/pkg-config/"
-    PURPOSE "Used to find (compilation flags for) dependencies.")
-    
-# Add VAMP to feature summary
-set_package_properties(VAMP PROPERTIES
-    URL "https://github.com/KavrakiLab/vamp"
-    PURPOSE "VAMP (Vector Accelerated Motion Planning)")
-
-feature_summary(DESCRIPTION INCLUDE_QUIET_PACKAGES WHAT ALL)
-
-# Create targets for building docker images
-# See CMakeModules/OMPLUtils.cmake and scripts/docker for details
-add_docker_target(ompl)
-add_docker_target(plannerarena scripts)
