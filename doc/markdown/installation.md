@@ -21,23 +21,12 @@
     <h2>Ubuntu</h2>
     <nav>
     <div class="nav nav-tabs" role="tablist">
-      <a class="nav-item nav-link active" data-toggle="tab" href="#ubuntusource" aria-controls="ubuntusource" role="tab">From source</a>
-      <a class="nav-item nav-link" data-toggle="tab" href="#ubuntubinary" aria-controls="ubuntubinary" role="tab" data-toggle="tab">Binary</a>
+      <a class="nav-item nav-link active" data-toggle="tab" href="#ubuntubinary" aria-controls="ubuntubinary" role="tab" data-toggle="tab">Binary</a>
       <a class="nav-item nav-link" data-toggle="tab" href="#ubunturos" aria-controls="ubunturos" role="tab" data-toggle="tab">ROS</a>
     </div>
     </nav>
     <div class="tab-content">
-      <div role="tabpanel" class="tab-pane fade show active" id="ubuntusource">
-        <a href="install-ompl-ubuntu.sh">Download the OMPL installation script</a>. First, make the script executable:
-        <pre class="fragment">chmod u+x install-ompl-ubuntu.sh</pre>
-        Next, there are several ways to run this script:
-         <ul>
-           <li><code>./install-ompl-ubuntu.sh</code> will install the latest release of OMPL without Python bindings</li>
-           <li><code>./install-ompl-ubuntu.sh --python</code> will install the latest release of OMPL with Python bindings</li>
-          </ul>
-         The script downloads and installs OMPL and all dependencies via <code>apt-get</code> &amp; <code>pip</code> and from source. It will ask for your password to install things. The script has been tested on vanilla installs of 16.04 (Xenial) and higher. The Python binding generation requires a lot of RAM; having 6GB or more available is recommended.
-      </div>
-      <div role="tabpanel" class="tab-pane fade" id="ubuntubinary">
+      <div role="tabpanel" class="tab-pane fade show active" id="ubuntubinary">
         Simply type:
         <pre class="fragment">apt-get install libompl-dev ompl-demos</pre>
         Note that this package does not include Python bindings.
@@ -66,7 +55,7 @@ sudo apt-get install ros-`rosversion -d`-ompl</pre>
   <div class="tab-pane fade" id="linux" role="tabpanel" aria-labelledby="linux-tab">
     <h2>Linux (generic)</h2>
     <p>OMPL requires <a href="https://www.boost.org">Boost</a> (version 1.68 or higher), <a href="https://www.cmake.org">CMake</a> (version 3.12 or higher), <a href="http://eigen.tuxfamily.org">Eigen</a> (version 3.3 or higher), and <a href="https://github.com/jbeder/yaml-cpp">yaml-cpp</a> (for parsing YAML configuration files, required for VAMP demos).
-    To be able to generate python bindings you need to install the <a href="https://www.python.org">Python</a> library and header files and <a href="installPyPlusPlus.html">Py++</a>.
+    To be able to generate python bindings you need to install the <a href="https://www.python.org">Python</a> library and header files.
     Finally, you need a C++17 compiler (g++-7 or newer).</p>
     <p><strong>Note:</strong> OMPL includes VAMP (Vector-Accelerated Motion Planning) by default, which requires <code>git</code> for submodule initialization.</p>
     <p>Once the dependencies are installed, OMPL can then be compiled like so:</p>
