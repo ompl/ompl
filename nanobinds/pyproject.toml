@@ -36,7 +36,7 @@ metadata.version.regex = '''(?i)project\s*\(\s*\w+\s+VERSION\s+(?P<value>[\d.]+)
 source-dir = ".." 
 args = [
     "-DOMPL_BUILD_PYTHON_BINDINGS=ON",
-    "-DOMPL_REGISTRATION=OFF",
     "-DOMPL_BUILD_DEMOS=OFF",
     "-DOMPL_BUILD_TESTS=OFF",
+    "-DVAMP_PORTABLE_BUILD=ON",
 ]
