@@ -18,8 +18,8 @@
 #include <ompl/vamp/VampStateSpace.h>
 #include <vamp/robots/panda.hh>
 #include <vamp/vector.hh>
+#include <vamp/collision/factory.hh>
 #include <ompl/tools/benchmark/Benchmark.h>
-
 
 #include <iostream>
 #include <iomanip>
