@@ -45,6 +45,6 @@ endif()
 
 # man files should not be installed inside python module
 if(NOT SKBUILD)
-    install(FILES man/ompl_benchmark_statistics.1 man/plannerarena.1
+    install(FILES man/ompl_benchmark_statistics.1
         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 COMPONENT ompl)
 endif()

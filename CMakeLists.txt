@@ -180,5 +180,4 @@ if(NOT SKBUILD)
     # Create targets for building docker images
     # See CMakeModules/OMPLUtils.cmake and scripts/docker for details
     add_docker_target(ompl)
-    add_docker_target(plannerarena scripts)
 endif()
