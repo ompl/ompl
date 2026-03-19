@@ -44,7 +44,6 @@ from ompl.tools import (
     computeViews,
     plotStatistics,
     saveAsMysql,
-    plottingEnabled
 )
 
 def main():
@@ -56,9 +55,6 @@ def main():
         help='Append data to database (as opposed to overwriting an existing database)')
     parser.add_argument('-v', '--view', action='store_true', default=False, \
         help='Compute the views for best planner configurations')
-    if plottingEnabled:
-        parser.add_argument('-p', '--plot', action='store_true', default=False, \
-            help='Create a PDF of plots')
     parser.add_argument('-m', '--mysql', action='store_true', default=False, \
         help='Save SQLite3 database as a MySQL dump file')
     parser.add_argument('--moveit', action='store_true', default=False, \
@@ -76,9 +72,6 @@ def main():
 
     if args.view:
         computeViews(args.database, args.moveit)
-
-    if plottingEnabled and args.plot:
-        plotStatistics(args.database)
 
     if args.mysql:
         saveAsMysql(args.database)
