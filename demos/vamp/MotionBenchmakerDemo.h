@@ -7,7 +7,6 @@
 #include <memory>
 #include <chrono>
 
-#include "VampEnvironment.h"
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/Planner.h>
 #include <ompl/geometric/SimpleSetup.h>
