@@ -12,6 +12,7 @@
 #include <ompl/base/Planner.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <boost/property_tree/ptree.hpp>
+#include <vamp/collision/environment.hh>
 
 /**
  * @brief Results from a single planning trial.
@@ -91,6 +92,10 @@ private:
     std::map<std::string, std::vector<boost::property_tree::ptree>> problems_;
     std::shared_ptr<ompl::base::StateSpace> space_;
     std::shared_ptr<ompl::geometric::SimpleSetup> ss_;
+    
+    // Environment for collision checking
+    using Environment = vamp::collision::Environment<vamp::FloatVector<vamp::FloatVectorWidth>>;
+    std::shared_ptr<Environment> currentEnv_;
 
     /**
      * @brief Load problems from a JSON file (MBM format).
