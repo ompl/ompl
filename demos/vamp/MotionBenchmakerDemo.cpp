@@ -130,19 +130,16 @@ bool MotionBenchmakerDemo::setupProblem(
         return false;
     }
 
-    // Create VampEnvironment from property tree
+    // Build environment from problem data
     vamp::collision::Environment<float> env_float;
-    
     bool is_box = problemName == "box" ? true : false;
-
+    
     // Load spheres
     if (problemData.find("sphere") != problemData.not_found()) {
-        std::cout << "Loading " << problemData.get_child("sphere").size() << " spheres" << std::endl;
         for (const auto& sphereEntry : problemData.get_child("sphere")) {
             const auto& s = sphereEntry.second;
             std::array<float, 3> center;
             size_t i = 0;
-            // Try both "center" and "position" keys
             const auto& posChild = (s.find("center") != s.not_found()) ? 
                 s.get_child("center") : s.get_child("position");
             for (const auto& coord : posChild) {
@@ -156,12 +153,10 @@ bool MotionBenchmakerDemo::setupProblem(
     
     // Load cylinders (convert to capsules)
     if (problemData.find("cylinder") != problemData.not_found()) {
-        std::cout << "Loading " << problemData.get_child("cylinder").size() << " cylinders" << std::endl;
         for (const auto& cylEntry : problemData.get_child("cylinder")) {
             const auto& c = cylEntry.second;
             std::array<float, 3> center, orientation;
             size_t i = 0;
-            // Try both "center" and "position" keys
             const auto& posChild = (c.find("center") != c.not_found()) ? 
                 c.get_child("center") : c.get_child("position");
             for (const auto& coord : posChild) {
@@ -187,12 +182,10 @@ bool MotionBenchmakerDemo::setupProblem(
     
     // Load boxes
     if (problemData.find("box") != problemData.not_found()) {
-        std::cout << "Loading " << problemData.get_child("box").size() << " boxes" << std::endl;
         for (const auto& boxEntry : problemData.get_child("box")) {
             const auto& b = boxEntry.second;
             std::array<float, 3> center, orientation, halfExtents;
             size_t i = 0;
-            // Try both "center" and "position" keys
             const auto& posChild = (b.find("center") != b.not_found()) ? 
                 b.get_child("center") : b.get_child("position");
             for (const auto& coord : posChild) {
@@ -212,16 +205,16 @@ bool MotionBenchmakerDemo::setupProblem(
     }
 
     using Environment = vamp::collision::Environment<vamp::FloatVector<vamp::FloatVectorWidth>>;
+    currentEnv_ = std::make_shared<Environment>(env_float);
 
-    auto env = std::make_shared<Environment>(env_float);
-    auto space_info = ss_->getSpaceInformation();
     using Robot = vamp::robots::Panda;
+    auto space_info = ss_->getSpaceInformation();
 
-    // Add VAMP-based validators using the environment we just created
+    // Add VAMP-based validators using the environment
     space_info->setStateValidityChecker(
-        std::make_shared<ompl::vamp::VampStateValidityChecker<Robot>>(space_info, *env));
+        std::make_shared<ompl::vamp::VampStateValidityChecker<Robot>>(space_info, *currentEnv_));
     space_info->setMotionValidator(
-        std::make_shared<ompl::vamp::VampMotionValidator<Robot>>(space_info, *env));
+        std::make_shared<ompl::vamp::VampMotionValidator<Robot>>(space_info, *currentEnv_));
 
     // Set start and goal configurations
     ob::ScopedState<> start(space_);
@@ -233,9 +226,10 @@ bool MotionBenchmakerDemo::setupProblem(
         for (const auto& val : problemData.get_child("start")) {
             startVec.push_back(std::stod(val.second.data()));
         }
-        for (size_t i = 0; i < startVec.size() && i < space_->getDimension(); ++i) {
-            start[i] = startVec[i];
-        }
+    }
+    
+    for (size_t i = 0; i < startVec.size() && i < space_->getDimension(); ++i) {
+        start[i] = startVec[i];
     }
 
     // Get goal configuration
@@ -260,17 +254,17 @@ bool MotionBenchmakerDemo::setupProblem(
     }
 
     // print start vs goal
-    std::cout << "Start: ";
-    for (size_t i = 0; i < startVec.size(); ++i) {
-        std::cout << start[i] << " ";
-    }
-    std::cout << std::endl;
+    // std::cout << "Start: ";
+    // for (size_t i = 0; i < startVec.size(); ++i) {
+    //     std::cout << start[i] << " ";
+    // }
+    // std::cout << std::endl;
 
-    std::cout << "Goal: ";
-    for (size_t i = 0; i < goalVec.size(); ++i) {
-        std::cout << goal[i] << " ";
-    }
-    std::cout << std::endl;
+    // std::cout << "Goal: ";
+    // for (size_t i = 0; i < goalVec.size(); ++i) {
+    //     std::cout << goal[i] << " ";
+    // }
+    // std::cout << std::endl;
 
     // Set the start and goal states
     ss_->setStartAndGoalStates(start, goal);
@@ -285,15 +279,18 @@ PlanningResult MotionBenchmakerDemo::solveInstance(
 {
     PlanningResult result;
     ss_ = std::make_shared<og::SimpleSetup>(space_);
+    
+    auto space_info = ss_->getSpaceInformation();
+    
     if (!setupProblem(problemName, problemData)) {
         return result;
     }
-    auto space_info = ss_->getSpaceInformation();
+    space_info = ss_->getSpaceInformation();
     // Setup benchmarking
     auto planner = createPlanner(space_info);
     ss_->setPlanner(planner);
 
-    // Time the planning
+    // Plan
     auto startTime = std::chrono::steady_clock::now();
     ob::PlannerStatus status = ss_->solve(
         ob::timedPlannerTerminationCondition(timeoutSeconds)
@@ -317,10 +314,9 @@ PlanningResult MotionBenchmakerDemo::solveInstance(
     ss_->getPlanner()->getPlannerData(plannerData);
     result.planningIterations = plannerData.numVertices();
 
-    // Clean up environment reference
+    // Clean up
     ss_.reset();
     
-
     return result;
 }
 
@@ -332,6 +328,7 @@ PlanningResult MotionBenchmakerDemo::benchmarkInstance(
 {
     PlanningResult result;
     ss_ = std::make_shared<og::SimpleSetup>(space_);
+    
     if (!setupProblem(problemName, problemData)) {
         return result;
     }
@@ -400,9 +397,9 @@ std::map<std::string, std::vector<PlanningResult>> MotionBenchmakerDemo::benchma
 
     for (const auto& problemName : problemNames_) {
 
-        if (problemName == "bookshelf_thin") {
-            continue;
-        }
+        // if (problemName != "table_under_pick") {
+        //     continue;
+        // }
 
         auto results = benchmarkProblem(problemName, benchmarkTrials, timeoutSeconds);
         allResults[problemName] = results;
