@@ -4,8 +4,6 @@ set(PROJECT_VERSION 2.0.0-beta)
 set(OMPL_ABI_VERSION 19)
 include(FeatureSummary)
 
-option(OMPL_REGISTRATION "Enable one-time registration of OMPL" ON)
-add_feature_info(OMPL_REGISTRATION "${OMPL_REGISTRATION}" "Whether to enable one-time registration of OMPL.")
 # VAMP build options
 option(VAMP_BUILD_PYTHON_BINDINGS "Build VAMP Python bindings (requires OMPL_BUILD_VAMP=ON)" OFF)
 add_feature_info(VAMP_BUILD_PYTHON_BINDINGS "${VAMP_BUILD_PYTHON_BINDINGS}" "Whether to build VAMP Python bindings.")
