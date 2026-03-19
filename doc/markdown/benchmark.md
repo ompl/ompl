@@ -116,18 +116,12 @@ Once the C++ code computing the results has been executed, a log file is generat
 ompl/scripts/ompl_benchmark_statistics.py logfile.log -d mydatabase.db
 ~~~
 
-This will generate a SQLite database containing the parsed data. If no database name is specified, the named is assumed to be benchmark.db. Once this database is generated, we can visualize the results. The recommended way is to upload the database to [Planner Arena](http://plannerarena.org) and navigate through the different plots. Planner Arena can also be run locally with the `plannerarena` script (requires R to be installed). Alternatively, you can also produce some basic plots with `ompl_benchmark_statistics.py` like so:
-
-~~~{.sh}
-ompl/scripts/ompl_benchmark_statistics.py -d mydatabase.db -p boxplot.pdf
-~~~
-
-This will generate a series of plots, one for each of the attributes described below, showing the results for each planner. [Below](#benchmark_sample_results) we have included some sample benchmark results.
+This will generate a SQLite database containing the parsed data. If no database name is specified, the named is assumed to be benchmark.db. Once this database is generated, we can visualize the results. The recommended way is to upload the database to [Planner Arena](http://plannerarena.org) and navigate through the different plots. Planner Arena can also be run locally with the `plannerarena` script (requires R to be installed). Planner Arena will generate a series of plots, one for each of the attributes described below, showing the results for each planner. [Below](#benchmark_sample_results) we have included some sample benchmark results.
 
 If you would like to process the data in different ways, you can generate a dump file that you can load in a MySQL database:
 
 ~~~{.sh}
-ompl/scripts/ompl_benchmark_statistics.py -d mydatabase.db -m mydump.sql
+ompl/scripts/ompl_benchmark_statistics.py -d mydatabase.db -m # generates mydump.sql
 ~~~
 
 For more details on how to use the benchmark script, see:
