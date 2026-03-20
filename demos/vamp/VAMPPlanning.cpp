@@ -201,10 +201,6 @@ void planBenchmark(int runCount = 100){
         goal[i] = goal_config[i];
     }
 
-    // Create RRTConnect planner
-    auto planner = std::make_shared<og::RRTConnect>(si);
-    ss.setPlanner(planner);
-
     // Setup problem definition
     ss.setStartAndGoalStates(start, goal);
 
