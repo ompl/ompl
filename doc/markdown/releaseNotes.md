@@ -1,17 +1,22 @@
 # Release Notes {#releaseNotes}
 
-## OMPL 2.0.0beta (TBD)
+## OMPL 2.0.0 (TBD)
 
-- **NEW: VAMP Integration** 🚀
+- Completely rewritten Python bindings.
+  - Enabled by default if Python is detected at build time.
+  - Prebuilt OMPL Python modules can now be installed via `pip install ompl`.
+- VAMP Integration
   - Added [VAMP (Vector-Accelerated Motion Planning)](https://github.com/KavrakiLab/vamp) as an optional high-performance backend for collision checking and motion validation
   - VAMP leverages SIMD instructions to accelerate forward kinematics and collision detection, achieving planning speeds up to 25 kHz
-  - Features vectorized collision checking that processes multiple robot configurations simultaneously using AVX2/NEON instructions
-  - Includes comprehensive demo (`vampdemo`) showcasing integration with popular robots (Panda, UR5, Fetch, Baxter)
-  - Build option `OMPL_BUILD_VAMP=ON` enables VAMP integration as a git submodule
-  - Supports both portable builds (`VAMP_PORTABLE_BUILD=ON`) for distribution and native builds for maximum performance
-  - Compatible with existing OMPL planners as a drop-in acceleration layer for motion validation
-- New kinodynamic planner: HySST, and adaptation of the SST planner for hybrid systems.
-- New state space: ThrochoidStateSpace, an SE(2)-like state space where distance and interpolation is defined for Dubins vehicles subject to constant drift. This is useful in planning for aerial/underwater drones subject to constant wind/current.
+  - C++ and Python demos show usage with common robots (Panda, UR5, Fetch, Baxter)
+- New geometric planners:
+  - AORRTC: Asymptotically Optimal RRT-Connect
+  - BLIT*: Bidirectional Lazy Informed Trees
+  - TRRT*, ATRRT: asymptotically optimal version of T-RRT and an anytime (optimal) version of T-RRT, respectively
+- New kinodynamic planner: HySST, an adaptation of the SST planner for hybrid systems.
+- New state space: ThrochoidStateSpace, an SE(2)-like state space where distance and interpolation is defined for Dubins vehicles subject to constant drift. This is useful in planning for aerial/maritime drones subject to constant wind/current.
+- Planner Arena has been completely rewritten in Python. It is now [distributed separately](https://github.com/ompl/plannerarena) and can be installed via `pip install plannerarena`.
+- OMPL.app has been deprecated. New demos show how to use OMPL with real robots and visualize the results, eliminating the need for OMPL.app.
 - Bug fixes.
 
 ## OMPL 1.7.0 (March 24, 2025)
