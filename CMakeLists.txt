@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
 project(ompl VERSION 2.0.0 LANGUAGES CXX)
-set(PROJECT_VERSION 2.0.0-beta)
 set(OMPL_ABI_VERSION 19)
 include(FeatureSummary)
 
