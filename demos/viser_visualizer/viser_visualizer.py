@@ -110,13 +110,13 @@ class ViserVisualizer:
         self.server.initial_camera.look_at = np.array(target, dtype=np.float64)
     
     def load_mbm_environment(self, problem_data: Dict[str, Any], ignore_names: List[str] = [], 
-                             color=(0.8, 0.4, 0.2), padding: float = 0.0):
+                             color=(0.8, 0.4, 0.2, 0.7), padding: float = 0.0):
         """Load environment from MBM problem format
         
         Args:
             problem_data: Dictionary containing 'sphere', 'cylinder', 'box' keys with obstacle data
             ignore_names: List of obstacle names to ignore
-            color: RGB color tuple (0-1 range) for obstacles
+            color: RGBA color tuple (0-1 range) for obstacles
             padding: Additional padding to add to obstacle sizes
         """
         # Helper function to convert euler angles to quaternion and create rotation matrix
@@ -210,13 +210,13 @@ class ViserVisualizer:
             config.append(gripper_dof)
             self.urdf_vis.update_cfg(config)
     
-    def add_sphere(self, position: np.ndarray, radius: float, color=(1, 0, 0), name: Optional[str] = None):
+    def add_sphere(self, position: np.ndarray, radius: float, color=(1, 0, 0, 0.75), name: Optional[str] = None):
         """Add a sphere obstacle to the scene
         
         Args:
             position: 3D position [x, y, z]
             radius: Sphere radius
-            color: RGB color tuple (0-1 range)
+            color: RGBA color tuple (0-1 range)
             name: Optional name for the sphere (auto-generated if not provided)
         """
         if name is None:
@@ -226,18 +226,19 @@ class ViserVisualizer:
             name=name,
             position=tuple(position),
             radius=radius,
-            color=color
+            color=color[:3] if len(color) == 4 else color,
+            opacity=color[3] if len(color) == 4 else 1.0
         )
     
     def add_box(self, position: np.ndarray, half_extents: List[float], 
-                rotation_matrix: Optional[np.ndarray] = None, color=(0.8, 0.4, 0.2), name: Optional[str] = None):
+                rotation_matrix: Optional[np.ndarray] = None, color=(0.8, 0.4, 0.2, 0.75), name: Optional[str] = None):
         """Add a box obstacle to the scene
         
         Args:
             position: 3D position [x, y, z]
             half_extents: Half extents [x, y, z] (full size will be 2x these values)
             rotation_matrix: 3x3 rotation matrix (identity if None)
-            color: RGB color tuple (0-1 range)
+            color: RGBA color tuple (0-1 range)
             name: Optional name for the box (auto-generated if not provided)
         """
         if name is None:
@@ -250,17 +251,18 @@ class ViserVisualizer:
             rotation_matrix = np.eye(3)
         
         wxyz = self._rotation_to_wxyz(rotation_matrix)
-        
+
         self.server.scene.add_box(
             name=name,
             dimensions=tuple(full_extents),
             position=tuple(position),
             wxyz=tuple(wxyz),
-            color=color
+            color=color[:3] if len(color) == 4 else color,
+            opacity=color[3] if len(color) == 4 else 1.0
         )
     
     def add_cylinder(self, position: np.ndarray, radius: float, length: float,
-                    rotation_matrix: Optional[np.ndarray] = None, color=(0.8, 0.4, 0.2), name: Optional[str] = None):
+                    rotation_matrix: Optional[np.ndarray] = None, color=(0.8, 0.4, 0.2, 0.75), name: Optional[str] = None):
         """Add a cylinder obstacle to the scene
         
         Args:
@@ -268,7 +270,7 @@ class ViserVisualizer:
             radius: Cylinder radius
             length: Cylinder length (height)
             rotation_matrix: 3x3 rotation matrix (identity if None)
-            color: RGB color tuple (0-1 range)
+            color: RGBA color tuple (0-1 range)
             name: Optional name for the cylinder (auto-generated if not provided)
         """
         if name is None:
@@ -285,7 +287,8 @@ class ViserVisualizer:
             height=length,
             position=tuple(position),
             wxyz=tuple(wxyz),
-            color=color
+            color=color[:3] if len(color) == 4 else color,
+            opacity=color[3] if len(color) == 4 else 1.0
         )
     
     def add_grid(self, width: float = 2.0, height: float = 2.0, cell_size: float = 0.1):
@@ -327,6 +330,11 @@ class ViserVisualizer:
                 urdf_idx = all_joints.index(joint_name)
                 if planning_idx < len(plan_config):
                     full_config[urdf_idx] = plan_config[planning_idx]
+        
+        # if fetch, open gripper
+        if self.robot_name == "fetch":
+            full_config[-1] = 0.035
+            full_config[-2] = 0.035
         
         return full_config
     
