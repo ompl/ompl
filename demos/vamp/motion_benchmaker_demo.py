@@ -122,8 +122,10 @@ def main(
         failures = []
         invalids = []
         print(f"Evaluating {robot} on {name}: ")
-        for i, data in tqdm(enumerate(pset)):
+        progress_bar = tqdm(total=len(pset), desc=f"Processing {name}")
+        for i, data in enumerate(pset):
             total_problems += 1
+            progress_bar.update(1)
 
             if not data['valid']:
                 invalids.append(i)
