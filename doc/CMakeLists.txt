@@ -18,6 +18,7 @@ if(DOXYGEN_FOUND AND NOT CMAKE_VERSION VERSION_LESS 3.9)
         "${CMAKE_BINARY_DIR}/doc/CForest.md")
 
     include(DoxygenSettings)
+    set(DOXYGEN_EXCLUDE_PATTERNS "*/deprecated/*")
     doxygen_add_docs(ompl_doc
         "${CMAKE_CURRENT_SOURCE_DIR}/markdown"
         "${CMAKE_CURRENT_SOURCE_DIR}/../demos"
