@@ -30,3 +30,17 @@ Visualize the robot, environment and planned trajectory at `localhost:8080`:
 ```bash
 python3 vamp/VampPlanning.py --visualize
 ```
+
+### Motion Benchmaker Dataset
+
+A script solving the 700 problems from 7 different problem sets on the MotionBenchmaker dataset. It supports Panda, UR5 and Fetch robots, changing the robot argument to `panda`, `ur5` or `fetch`. The VAMP submodule at `external/vamp` is required. To run:
+
+```bash
+python motion_benchmaker_demo.py --robot panda --visualize
+```
+
+To run a benchmark with multiple planners, on one of the problems for each set:
+
+```bash
+python motion_benchmaker_demo.py --robot panda --benchmark --n-trials <n_trials>
+```
