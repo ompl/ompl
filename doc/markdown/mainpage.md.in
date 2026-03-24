@@ -151,8 +151,6 @@
       <li>Learn how to integrate your own code with <a href="buildSystem.html">OMPL's build system</a>.</li>
       <li><a href="integration.html">Learn more about how OMPL is integrated within other systems</a> (such as
         <a href="https://moveit.ai">MoveIt</a> and <a href="http://coppeliarobotics.com">CoppeliaSim</a>).</li>
-      <li>If interested in using Python, make sure to read <a href="python.html">the documentation for the Python
-          bindings</a>.</li>
     </ul>
   </div>
   <div class="col-lg-4 col-md-12">
