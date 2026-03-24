@@ -57,11 +57,6 @@ jobs:
           vcpkgTriplet: 'x64-windows'
           vcpkgArguments: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-system boost-test eigen3 flann yaml-cpp'
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-
     - name: Build & Test (Linux, macOS)
       if: runner.os != 'Windows'
       uses: ashutoshvarma/action-cmake-build@master
