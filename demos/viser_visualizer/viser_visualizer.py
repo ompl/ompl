@@ -422,7 +422,7 @@ class ViserVisualizer:
             print("No trajectory loaded. Call visualize_trajectory() first.")
             return None
         
-        print(f"Visualization running. Press {key if key != 'any' else 'any key'} to stop...")
+        print(f"Visualization running. Press {key if key != 'any' else 'any key'} to stop or click play button...")
         
         pressed_key = [None]
         stop_flag = threading.Event()
@@ -461,14 +461,43 @@ class ViserVisualizer:
         key_thread.start()
         
         # Run visualization loop until key is pressed
+        # The play button controls auto-advancement of the slider
         try:
+            frame_idx = 0
+            last_playing_state = False
+            last_slider_value = 0
+            
             while not stop_flag.is_set():
-                for i in range(len(self._trajectory)):
-                    if stop_flag.is_set():
-                        break
-                    self._slider.value = i
-                    self._update_robot_config(i, gripper_dof=0.0)
-                    time.sleep(dt)
+                # Check if playing state just changed from False to True
+                if self._playing is not None:
+                    current_playing_state = self._playing.value
+                    if current_playing_state and not last_playing_state:
+                        # Playing just activated, capture current slider position
+                        if self._slider is not None:
+                            frame_idx = self._slider.value
+                    last_playing_state = current_playing_state
+                
+                current_slider_value = self._slider.value if self._slider is not None else frame_idx
+                if current_slider_value != last_slider_value:
+                    # User moved the slider, sync frame_idx to it
+                    frame_idx = current_slider_value
+                last_slider_value = current_slider_value
+                
+                # If playing is checked, auto-advance the slider
+                if self._playing is not None and self._playing.value:
+                    if self._slider is not None:
+                        self._slider.value = frame_idx
+                    frame_idx = (frame_idx + 1) % len(self._trajectory)
+                
+                # Always update robot position based on current slider value
+                if self._slider is not None:
+                    current_idx = self._slider.value
+                else:
+                    current_idx = frame_idx
+                
+                self._update_robot_config(current_idx, gripper_dof=0.0)
+                
+                time.sleep(dt)
         finally:
             stop_flag.set()
         
