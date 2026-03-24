@@ -37,6 +37,7 @@ def main(
     filter_cull: bool = True,              # Cull pointcloud around robot by maximum distance
     planning_time: float = 1.0,            # Planning time limit in seconds
     benchmark: int = 0,                   # Run OMPL benchmark for n trials instead of 700 problems
+    n_trials: int = 100,                   # Number of trials for benchmarking
     **kwargs,
     ):
 
@@ -111,13 +112,13 @@ def main(
         vis = ViserVisualizer(robot_name=robot, robot_dimension=dimension)
         vis.add_grid()
     
-    if benchmark > 0:    
+    if benchmark:    
         # Create benchmark output directory with timestamp
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         benchmark_dir = Path("benchmarks") / f"benchmark_{timestamp}"
         benchmark_dir.mkdir(parents=True, exist_ok=True)
         
-        print(f"Benchmarking {robot} on first problem of each type with {benchmark} trials...")
+        print(f"Benchmarking {robot} on first problem of each type with {n_trials} trials...")
         print(f"Results will be saved to: {benchmark_dir}")
         
         # Set this to x plans to do
@@ -204,7 +205,7 @@ def main(
                 ss.setStartAndGoalStates(start, goal)
                 
                 # Benchmark
-                if benchmark > 0:
+                if benchmark:
                     benchmark_name = f"{robot}_{name}_benchmark"
                     ompl_benchmark = ot.Benchmark(ss, benchmark_name)
             
@@ -215,10 +216,10 @@ def main(
                     req = ot.Request()
                     req.maxTime = planning_time
                     req.maxMem = 1000.0
-                    req.runCount = benchmark
+                    req.runCount = n_trials
                     req.displayProgress = True
                     
-                    print(f"  Running benchmark with {benchmark} trials...")
+                    print(f"  Running benchmark with {n_trials} trials...")
                     ompl_benchmark.benchmark(req)
                     
                     # Save results
