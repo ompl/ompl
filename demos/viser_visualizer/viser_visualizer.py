@@ -19,15 +19,14 @@ class ViserVisualizer:
     # Joint mappings for robots that use subset of URDF joints
     JOINT_MAPPINGS = {
         'fetch': [
-            'torso_lift_joint',
-            'shoulder_pan_joint',
-            'shoulder_lift_joint',
-            'upperarm_roll_joint',
-            'elbow_flex_joint',
-            'forearm_roll_joint',
-            'wrist_flex_joint',
-            'wrist_roll_joint',
-            'head_pan_joint',
+            "torso_lift_joint",
+            "shoulder_pan_joint",
+            "shoulder_lift_joint",
+            "upperarm_roll_joint",
+            "elbow_flex_joint",
+            "forearm_roll_joint",
+            "wrist_flex_joint",
+            "wrist_roll_joint"
         ]
     }
     
@@ -99,6 +98,16 @@ class ViserVisualizer:
         self._slider = None
         self._playing = None
         self._start_time = None
+        
+    def set_camera(self, position, target):
+        """Set the camera position and target
+        
+        Args:
+            position: Camera position as array [x, y, z]
+            target: Camera look-at target as array [x, y, z]
+        """
+        self.server.initial_camera.position = np.array(position, dtype=np.float64)
+        self.server.initial_camera.look_at = np.array(target, dtype=np.float64)
     
     def load_mbm_environment(self, problem_data: Dict[str, Any], ignore_names: List[str] = [], 
                              color=(0.8, 0.4, 0.2), padding: float = 0.0):
