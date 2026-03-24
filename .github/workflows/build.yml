@@ -57,6 +57,11 @@ jobs:
           vcpkgTriplet: 'x64-windows'
           vcpkgArguments: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-system boost-test eigen3 flann yaml-cpp'
 
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+
     - name: Build & Test (Linux, macOS)
       if: runner.os != 'Windows'
       uses: ashutoshvarma/action-cmake-build@master
@@ -73,6 +78,7 @@ jobs:
         cd tests/cmake_export
         cmake -B build -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install
         cmake --build build
+
     - name: Build & Test (Windows)
       if: runner.os == 'Windows'
       uses: ashutoshvarma/action-cmake-build@master
@@ -84,26 +90,17 @@ jobs:
         ctest-options: --output-on-failure
         install-build: true
 
-    - name: Debug install tree
-      run: |
-        echo "Listing install/python:"
-        ls -R ${{ runner.workspace }}/install/python || true
-
-    - name: Install Python test dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest
-
     - name: Run Python tests (python install dir)
       env:
         PYTHONPATH: ${{ runner.workspace }}/install/python
       run: |
         pytest pytests -v
-    - name: Install nanobind package (scikit-build)
+
+    - name: Install python wheel (scikit-build)
       working-directory: nanobinds
       run: |
         pip install .
 
-    - name: Run Python tests (scikit-build package)
+    - name: Run Python tests (scikit-build)
       run: |
         pytest pytests -v
