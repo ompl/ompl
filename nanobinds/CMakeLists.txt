@@ -30,8 +30,13 @@ endif()
 target_link_libraries(_ompl PRIVATE ompl::ompl)
 target_compile_options(_ompl PRIVATE -Wno-unused-parameter)
 
-# Set RPATH so the module can find libompl.so
-if(UNIX AND NOT APPLE)
+# Set RPATH so the module can find libompl.dylib/libompl.so
+if(APPLE)
+    set_target_properties(_ompl PROPERTIES
+        BUILD_RPATH "@loader_path"
+        INSTALL_RPATH "@loader_path"
+    )
+elseif(UNIX)
     set_target_properties(_ompl PROPERTIES
         BUILD_RPATH "$ORIGIN"
         INSTALL_RPATH "$ORIGIN"
