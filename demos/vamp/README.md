@@ -10,12 +10,6 @@ Install the required dependencies:
 pip install requirements.txt
 ```
 
-Go to your `ompl` directory and install the latest VAMP version:
-```bash
-cd external/vamp
-pip install .
-```
-
 ### Geometric Planning
 
 A simple script is provided to demonstrate the usage of VAMP with OMPL using Python bindings. Run the script from the `demos` subdirectory:
