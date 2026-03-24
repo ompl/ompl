@@ -7,6 +7,7 @@ import pandas as pd
 from typing import Union, List
 from functools import partial
 import sys
+from datetime import datetime
 import subprocess
 import numpy as np
 
@@ -15,6 +16,8 @@ import vamp
 from vamp import pointcloud as vpc
 from ompl import base as ob
 from ompl import geometric as og
+from ompl import tools as ot
+
 from vamp_state_space import VampStateSpace, VampMotionValidator, VampStateValidityChecker
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -33,6 +36,7 @@ def main(
     filter_radius: float = 0.02,           # Filter radius for pointcloud filtering
     filter_cull: bool = True,              # Cull pointcloud around robot by maximum distance
     planning_time: float = 1.0,            # Planning time limit in seconds
+    benchmark: int = 0,                   # Run OMPL benchmark for n trials instead of 700 problems
     **kwargs,
     ):
 
@@ -106,7 +110,24 @@ def main(
     if visualize:
         vis = ViserVisualizer(robot_name=robot, robot_dimension=dimension)
         vis.add_grid()
-
+    
+    if benchmark > 0:    
+        # Create benchmark output directory with timestamp
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        benchmark_dir = Path("benchmarks") / f"benchmark_{timestamp}"
+        benchmark_dir.mkdir(parents=True, exist_ok=True)
+        
+        print(f"Benchmarking {robot} on first problem of each type with {benchmark} trials...")
+        print(f"Results will be saved to: {benchmark_dir}")
+        
+        # Set this to x plans to do
+        planner_constructors = {
+            'rrtc': og.RRTConnect,
+            'rrt': og.RRT,
+            'kpiece1': og.KPIECE1,
+            'lbkpiece1': og.LBKPIECE1,
+        }
+        
     tick = time.perf_counter()
     results = []
     
@@ -125,6 +146,7 @@ def main(
         progress_bar = tqdm(total=len(pset), desc=f"Processing {name}")
         for i, data in enumerate(pset):
             total_problems += 1
+            skip_pset = False
             progress_bar.update(1)
 
             if not data['valid']:
@@ -181,7 +203,38 @@ def main(
                 
                 ss.setStartAndGoalStates(start, goal)
                 
-                # Plan
+                # Benchmark
+                if benchmark > 0:
+                    benchmark_name = f"{robot}_{name}_benchmark"
+                    ompl_benchmark = ot.Benchmark(ss, benchmark_name)
+            
+                    for planner_name, planner_constructor in planner_constructors.items():
+                        ompl_benchmark.addPlanner(planner_constructor(si))
+                    
+                    # Configure benchmark request
+                    req = ot.Request()
+                    req.maxTime = planning_time
+                    req.maxMem = 1000.0
+                    req.runCount = benchmark
+                    req.displayProgress = True
+                    
+                    print(f"  Running benchmark with {benchmark} trials...")
+                    ompl_benchmark.benchmark(req)
+                    
+                    # Save results
+                    log_file = str(benchmark_dir / f"{benchmark_name}.log")
+                    db_file = str(benchmark_dir / f"{benchmark_name}.db")
+                    
+                    ompl_benchmark.saveResultsToFile(log_file)
+                    print(f"  Saved log to: {log_file}")
+                    
+                    # Convert log to database
+                    ot.readBenchmarkLog(db_file, [log_file], moveitformat=False)
+                    print(f"  Saved database to: {db_file}")
+                    # only run one per problem
+                    skip_pset = True
+                    break
+                # Single Plan
                 planning_start = time.perf_counter()
                 result = ss.solve(planning_time)
                 planning_elapsed = time.perf_counter() - planning_start
@@ -249,9 +302,12 @@ def main(
                         print(f"Skipping to next problem set...")
                         skip_to_next_problem_set = True
                         break 
+            
+            if skip_pset:
+                break
         
+        progress_bar.close()
         
-
         failed_problems += len(failures)
 
         if print_failures:
@@ -260,7 +316,12 @@ def main(
 
             if failures:
                 print(f"  Failed on {failures}")
-
+                
+    
+    if benchmark > 0:
+        print(f"All benchmarks saved in {benchmark_dir}")
+        exit(0)
+    
     tock = time.perf_counter()
 
     df = pd.DataFrame.from_dict(results)
