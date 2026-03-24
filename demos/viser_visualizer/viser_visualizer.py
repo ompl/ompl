@@ -204,11 +204,7 @@ class ViserVisualizer:
         plan_config = self._trajectory[idx].tolist()
         config = self._map_plan_config_to_urdf(plan_config)
         
-        try:
-            self.urdf_vis.update_cfg(config)
-        except:
-            config.append(gripper_dof)
-            self.urdf_vis.update_cfg(config)
+        self.urdf_vis.update_cfg(config)
     
     def add_sphere(self, position: np.ndarray, radius: float, color=(1, 0, 0, 0.75), name: Optional[str] = None):
         """Add a sphere obstacle to the scene
@@ -313,11 +309,18 @@ class ViserVisualizer:
         Returns:
             Full URDF configuration with all joints
         """
+        
+        if self.robot_name == "panda":
+            # append gripper
+            plan_config.append(0.05)
+            return plan_config
+        
         if self.joint_mapping is None:
             # No mapping needed, use config as-is
             return plan_config
         
         # Get all joint names from URDF
+        
         all_joints = [joint.name for joint in self.robot_urdf.actuated_joints]
         n_total_joints = len(all_joints)
         
