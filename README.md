@@ -34,7 +34,7 @@ Once dependencies are installed, you can build OMPL on Linux, macOS,
 and MS Windows. Go to the top-level directory of OMPL and type the
 following commands:
 
-    git submodule update --init --recursive  # for VAMP integration
+    git submodule update --init --recursive 
     mkdir -p build/Release
     cd build/Release
     cmake ../..
@@ -42,7 +42,7 @@ following commands:
 
 To install the Python bindings, go to the top-level directory of OMPL and type the following commands:
 ```
-git submodule update --init --recursive  # for VAMP integration
+git submodule update --init --recursive
 cd nanobinds
 pip install . 
 ```
