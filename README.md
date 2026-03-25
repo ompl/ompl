@@ -20,7 +20,6 @@ OMPL has the following required dependencies:
 * [Boost](https://www.boost.org) (version 1.68 or higher)
 * [CMake](https://www.cmake.org) (version 3.12 or higher)
 * [Eigen](http://eigen.tuxfamily.org) (version 3.3 or higher)
-* [yaml-cpp](https://github.com/jbeder/yaml-cpp) - Used for parsing YAML configuration files, required for VAMP demos
 
 The following dependencies are optional:
 
@@ -29,6 +28,7 @@ The following dependencies are optional:
   https://ompl.kavrakilab.org/core)
 * [Flann](https://github.com/flann-lib/flann/tree/1.9.2) (FLANN can be used for nearest neighbor queries by OMPL)
 * [Spot](http://spot.lrde.epita.fr) (Used for constructing finite automata from LTL formulae.)
+* [yaml-cpp](https://github.com/jbeder/yaml-cpp) (Used for reading and writing YAML world descriptions in the PlanarManipulator demos)
 
 Once dependencies are installed, you can build OMPL on Linux, macOS,
 and MS Windows. Go to the top-level directory of OMPL and type the
