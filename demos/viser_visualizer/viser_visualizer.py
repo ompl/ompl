@@ -289,6 +289,25 @@ class ViserVisualizer:
         """
         self.server.scene.add_grid("/grid", width=width, height=height, cell_size=cell_size)
     
+    def add_point_cloud(
+        self,
+        points: np.ndarray,
+        color: Optional[np.ndarray] = None,
+        point_size: float = 0.01,
+    ):
+        """Add a point cloud to the scene
+
+        Args:
+            points: Array of shape (N, 3) containing point coordinates
+            color: Optional array of shape (N, 3) containing RGB colors for each point
+        """
+        if color is None:
+            color = np.ones((points.shape[0], 3)) * np.array([1, 0, 0])
+
+        self.server.scene.add_point_cloud(
+            "/point_cloud", points=points, colors=color, point_size=point_size
+        )
+
     def _map_plan_config_to_urdf(self, plan_config: List[float]) -> List[float]:
         """Map planning configuration to full URDF configuration
         
