@@ -40,7 +40,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.23.2
         with:
-          package-dir: nanobinds
+          package-dir: py-bindings
         env:
           CIBW_BEFORE_ALL_LINUX: "bash .github/workflows/before_all.sh && bash .github/workflows/before_build.sh"
           CIBW_BEFORE_ALL_MACOS: "bash .github/workflows/before_all.sh && bash .github/workflows/before_build.sh"

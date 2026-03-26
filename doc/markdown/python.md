@@ -83,7 +83,7 @@ Many of the python demo and test programs are direct ports of the corresponding 
 
 The Python bindings are subdivided into modules, to reflect the main namespaces: ompl::base, ompl::control, and ompl::geometric. The code in the ompl/src/ompl/util directory is available in a submodule as well. Whenever you change the API to OMPL, you will need to update the Python bindings. Updating the bindings is a two-step process. First, the code for the modules needs to be generated. Second, the code needs to be compiled into binary Python modules.
 
-Two options are offered for generating the python bindings. For the simplest one, you can switch your current directory to the `ompl/nanobinds` folder and run `pip install .`, which will install the module to your currently active python environment.
+Two options are offered for generating the python bindings. For the simplest one, you can switch your current directory to the `ompl/py-bindings` folder and run `pip install .`, which will install the module to your currently active python environment.
 
 Alternatively, you can install the module at an external location by specifying the `OMPL_PYTHON_INSTALL_PREFIX` cmake variable and run cmake build as usual. In that case, you will need to set your PYTHONPATH environment variable to the same path so that python can find the module
 
