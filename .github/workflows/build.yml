@@ -94,7 +94,7 @@ jobs:
       env:
         PYTHONPATH: ${{ runner.workspace }}/install/python
       run: |
-        pytest pytests -v
+        pytest tests/pytests --ignore=tests/pytests/deprecated
 
     - name: Install python wheel (scikit-build)
       working-directory: nanobinds
@@ -103,4 +103,4 @@ jobs:
 
     - name: Run Python tests (scikit-build)
       run: |
-        pytest pytests -v
+        pytest tests/pytests --ignore=tests/pytests/deprecated
