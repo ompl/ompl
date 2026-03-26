@@ -26,7 +26,7 @@ if(DOXYGEN_FOUND AND NOT CMAKE_VERSION VERSION_LESS 3.9)
         "${CMAKE_BINARY_DIR}/doc"
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
     add_custom_command(TARGET ompl_doc POST_BUILD
-        COMMAND cp -r images ieee-ram-2012-ompl.pdf "${CMAKE_BINARY_DIR}/install-ompl-ubuntu.sh" "${DOXYGEN_HTML_OUTPUT}"
+        COMMAND cp -r images ieee-ram-2012-ompl.pdf "${DOXYGEN_HTML_OUTPUT}"
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
     # use latexmk to create the OMPL primer PDF

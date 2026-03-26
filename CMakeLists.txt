@@ -143,10 +143,6 @@ if(NOT SKBUILD)
     export(EXPORT omplExport
         FILE "${CMAKE_CURRENT_BINARY_DIR}/omplExport.cmake")
 
-    # script to install ompl on Ubuntu
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/install-ompl-ubuntu.sh.in"
-      "${CMAKE_CURRENT_BINARY_DIR}/install-ompl-ubuntu.sh" @ONLY)
-
     # uninstall target
     configure_file(
       "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in"
