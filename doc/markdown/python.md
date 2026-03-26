@@ -77,15 +77,15 @@ if __name__ == "__main__":
 
 Many of the python demo and test programs are direct ports of the corresponding C++ programs. If you compare these programs, the sometimes subtle differences will become more obvious. In the python programs you will notice that we can create python classes that derive from C++ classes and pass instances of such classes to C++ functions. Similarly, we can create python functions (such as state validity checkers or propagate functions) that can be called by C++ code.
 
-## (Re)generating the Python bindings {#updating_python_bindings}
+## Updating the Python bindings {#updating_python_bindings}
 
 \attention See also the tutorial [Creating Python bindings for a new planner](pybindingsPlanner.html)
 
-The Python bindings are subdivided into modules, to reflect the main namespaces: ompl::base, ompl::control, and ompl::geometric. The code in the ompl/src/ompl/util directory is available in a submodule as well. Whenever you change the API to OMPL, you will need to update the Python bindings. Updating the bindings is a two-step process. First, the code for the modules needs to be generated. Second, the code needs to be compiled into binary Python modules.
+The Python bindings are subdivided into modules, to reflect the main namespaces: ompl::base, ompl::control, and ompl::geometric. The code in the ompl/src/ompl/util directory is available in a submodule as well. Whenever you change the API to OMPL, the python binding code in `ompl/py-bindings` needs to be updated and rebuilt to reflect that as well.
 
-Two options are offered for generating the python bindings. For the simplest one, you can switch your current directory to the `ompl/py-bindings` folder and run `pip install .`, which will install the module to your currently active python environment.
+Two options are offered for generating the python module. For the simplest one, you can switch your current directory to the `ompl/py-bindings` folder and run `pip install .`, which will install the module to your currently active python environment.
 
-Alternatively, you can install the module at an external location by specifying the `OMPL_PYTHON_INSTALL_PREFIX` cmake variable and run cmake build as usual. In that case, you will need to set your PYTHONPATH environment variable to the same path so that python can find the module
+Alternatively, you can install the module at an external location by specifying the `OMPL_PYTHON_INSTALL_PREFIX` cmake variable and run cmake build and install as usual. In that case, you will need to set your PYTHONPATH environment variable to the same path so that python can find the module
 
 ## Usage of the Python bindings: Good practices {#py_good_practices}
 

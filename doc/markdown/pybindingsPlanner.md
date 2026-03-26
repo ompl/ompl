@@ -3,7 +3,7 @@
 It is often convenient to test a planner by using a minimal Python program that defines a simple motion planning problem of interest. Also, making your planner available in Python increases its reach among users. In both cases you need to create Python bindings for your planner. At a high level, the steps are:
 
 - [Add bindings for your planner](#pybinding)
-- [Optionally, provide hints for planner parameter ranges that can then be used to create the appropriate controls in the OMPL.app GUI.](#params)
+- [Optionally, provide hints for planner parameter ranges that can be used.](#params)
 
 \attention
 Pay extra care when binding multithreaded planners. See [Python bindings good practices](python.html#py_good_practices) for details.
