@@ -11,7 +11,7 @@
     <li class="nav-item"><a class="nav-link" id="osx-tab" data-toggle="pill" href="#osx" role="tab" aria-controls="macos" aria-selected="false">macOS</a></li>
     <li class="nav-item"><a class="nav-link" id="windows-tab" data-toggle="pill" href="#windows" role="tab" aria-controls="windows" aria-selected="false">MS Windows</a></li>
     <li class="nav-item"><a class="nav-link" id="cmake-fetch-tab" data-toggle="pill" href="#cmakefetch" role="tab" aria-controls="cmakefetch" aria-selected="false">CMake Fetchcontent</a></li>
-    <li class="nav-item"><a class="nav-link" id="python-wheels-tab" data-toggle="pill" href="#pythonwheels" role="tab" aria-controls="Python Wheels" aria-selected="false">Python Wheeels</a></li>
+    <li class="nav-item"><a class="nav-link" id="python-tab" data-toggle="pill" href="#python" role="tab" aria-controls="Python" aria-selected="false">Python</a></li>
   </ul>
 </div>
 
@@ -29,7 +29,7 @@
       <div role="tabpanel" class="tab-pane fade show active" id="ubuntubinary">
         Simply type:
         <pre class="fragment">apt-get install libompl-dev ompl-demos</pre>
-        Note that this package does not include Python bindings.
+        Note that this package does not include Python bindings at this time.
       </div>
       <div role="tabpanel" class="tab-pane fade" id="ubunturos">
         Debian packages for OMPL are also found in ROS distributions. Note that these packages do not include Python bindings. To install the ROS version of OMPL you need to add the ROS repository to your list of sources (you have probably have done this already if you are using ROS):
@@ -48,7 +48,7 @@ sudo apt-get install ros-`rosversion -d`-ompl</pre>
     <h2>Fedora</h2>
     Simply type:
     <pre class="fragment">sudo yum install ompl</pre>
-    Note that this package does not include Python bindings.
+    Note that this package does not include Python bindings at this time.
   </div>
 
   <!-- Linux (generic) -->
@@ -64,10 +64,9 @@ sudo apt-get install ros-`rosversion -d`-ompl</pre>
 mkdir -p build/Release
 cd build/Release
 cmake ../..</pre></li>
-    <li>Optionally, generate the Python bindings with <code>make -j 4 update_bindings</code>. The Python binding generation requires a lot of RAM; having 6GB or more available is recommended.</li>
-    <li>Compile OMPL by typing <code>make -j 4</code>.</li>
+    <li>Compile OMPL by typing <code>make -j `nproc`</code>.</li>
     <li>Optionally, run the test programs by typing <code>make test</code>.</li>
-    <li>Optionally, generate the documentation (i.e., a local copy of this web site) by typing <code>make doc</code> (requires <a href="http://www.doxygen.org">Doxygen</a> and <a href="http://www.graphviz.org">Graphviz</a> to be installed).</li>
+    <li>Optionally, generate the documentation (i.e., a local copy of this web site) by typing <code>make ompl_doc</code> (requires <a href="http://www.doxygen.org">Doxygen</a> and <a href="http://www.graphviz.org">Graphviz</a> to be installed).</li>
     </ul>
     <p>The build system includes a <a href="buildOptions.html">number of options</a> that you can enable or disable.</p>
   </div>
@@ -91,20 +90,16 @@ cmake ../..</pre></li>
 mkdir -p build/Release
 cd build/Release
 cmake ../..</pre></li>
-        <li>Optionally, generate the Python bindings with <code>make -j 4 update_bindings</code>.</li>
         <li>Compile OMPL by typing <code>make -j 4</code>.</li>
         </ul>
       </div>
       <div role="tabpanel" class="tab-pane fade" id="osxhomebrew">
         Install <a href="https://brew.sh">Homebrew</a> and type:
         <pre class="fragment">brew install ompl</pre>
-        Note that the <a href="https://formulae.brew.sh/formula/ompl">Homebrew formula</a> does not include Python bindings. You could install all the dependencies for OMPL and the Python bindings and build OMPL from source:
-        <pre class="fragment">brew install eigen castxml numpy boost-python3 pypy3 flann yaml-cpp</pre>
+        Note that the <a href="https://formulae.brew.sh/formula/ompl">Homebrew formula</a> does not include Python bindings at this time.
         <p><strong>Note:</strong> OMPL includes VAMP (Vector-Accelerated Motion Planning) by default, which requires <code>git</code> for submodule initialization.</p>
         <p>When building from source, initialize git submodules for VAMP:</p>
         <pre class="fragment">git submodule update --init --recursive</pre>
-        Make sure to use Homebrew's python3 in that case by calling <code>cmake</code> like so:
-        <pre class="fragment">cmake -DPYTHON_EXEC=/usr/local/bin/python3 ...</pre>
       </div>
     </div>
   </div>
@@ -140,15 +135,11 @@ target_link_libraries(main PRIVATE ompl::ompl)
     <p><strong>Note:</strong> The <code>GIT_SUBMODULES_RECURSE ON</code> option ensures that VAMP submodules are automatically initialized.</p>
   </div>
 
-  <div class="tab-pane fade" id="pythonwheels" role="tabpanel" aria-labelledby="python-wheels-tab">
+  <div class="tab-pane fade" id="python" role="tabpanel" aria-labelledby="python-tab">
 
-  <h2>Python Wheels</h2>
-  There are pre-built binary wheels for Python versions 3.10, 3.11, and 3.12. Download the right zip file for you OS and architecture:
-
-  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-ubuntu-latest-x86_64.zip"> Ubuntu 24.04 x86_64 </a> </li>
-  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-ubuntu-24.04-arm-aarch64.zip"> Ubuntu 24.04 aarch64 </a> </li>
-  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-macos-15-arm64.zip"> MacOS 15 </a> </li>
-  <li> <a href="https://github.com/ompl/ompl/releases/download/1.7.0/wheels-macos-13-x86_64.zip"> MacOS 13 </a> </li>
+  <h2>Python</h2>
+  There are pre-built OMPL modules for Python versions 3.10, 3.11, 3.12, and 3.13. They are available for Linux and macOS. You can install the OMPL Python module with, e.g., `pip`:
+  <pre class="fragment">pip install ompl</pre>
   </div>
 </div>
 \endhtmlonly
