@@ -97,7 +97,7 @@ jobs:
         pytest tests/pytests --ignore=tests/pytests/deprecated
 
     - name: Install python wheel (scikit-build)
-      working-directory: nanobinds
+      working-directory: py-bindings
       run: |
         pip install .
 

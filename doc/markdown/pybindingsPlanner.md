@@ -10,7 +10,7 @@ Pay extra care when binding multithreaded planners. See [Python bindings good pr
 
 ## Add bindings for your planner {#pybinding}
 
-The bindings folder follows a similar structure to the `src` folder. For a new planner binding, create a new file under the bindings folder hierarchy at the same location as your planner implementation would be. In that file, write the binding code for your planner. You can follow the existing planner bindings as an example, as well as refer to the [Nanobind documentation](https://nanobind.readthedocs.io). Finally, call your newly added function in `ompl/nanobinds/python.cpp` and rebuild the bindings.
+The bindings folder follows a similar structure to the `src` folder. For a new planner binding, create a new file under the bindings folder hierarchy at the same location as your planner implementation would be. In that file, write the binding code for your planner. You can follow the existing planner bindings as an example, as well as refer to the [Nanobind documentation](https://nanobind.readthedocs.io). Finally, call your newly added function in `ompl/py-bindings/python.cpp` and rebuild the bindings.
 
 ## Planner parameters {#params}
 
