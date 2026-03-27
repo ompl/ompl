@@ -62,14 +62,12 @@ def planWithSimpleSetup():
     sampler = ss.getStateSpace().allocDefaultStateSampler()
     start = ss.getStateSpace().allocState()
     # we can pick a random start state...
-    # Since we do not have scoped state in Nanobind, we do not have random() function
     sampler.sampleUniform(start)
     # ... or set specific values
     start.setX(.5)
 
     goal = ss.getStateSpace().allocState()
     # we can pick a random goal state...
-    # Since we do not have scoped state in Nanobind, we do not have random() function
     sampler.sampleUniform(goal)
     # ... or set specific values
     goal.setX(-.5)

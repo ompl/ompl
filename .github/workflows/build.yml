@@ -14,19 +14,15 @@ jobs:
       matrix:
         include:
         - os: ubuntu-latest
-          pybuilds: cp3{10,11,12,13}-manylinux_x86_64
           arch: x86_64
           id: linux_x86_64
         - os: ubuntu-24.04-arm
-          pybuilds: cp3{10,11,12,13}-manylinux_aarch64
           arch: aarch64
           id: linux_arm64
         - os: macos-15-intel
-          pybuilds: cp3{10,11,12,13}-macosx_x86_64
           arch: x86_64
           id: macos_x86
         - os: macos-15
-          pybuilds: cp3{10,11,12,13}-macosx_arm64
           arch: arm64
           id: macos_arm64
 
@@ -61,13 +57,18 @@ jobs:
           vcpkgTriplet: 'x64-windows'
           vcpkgArguments: 'boost-dynamic-bitset boost-filesystem boost-graph boost-odeint boost-program-options boost-serialization boost-system boost-test eigen3 flann yaml-cpp'
 
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+
     - name: Build & Test (Linux, macOS)
       if: runner.os != 'Windows'
       uses: ashutoshvarma/action-cmake-build@master
       with:
         build-dir: ${{ runner.workspace }}/build
         build-type: Release
-        configure-options: -DOMPL_BUILD_DEMOS=OFF -DVAMP_PORTABLE_BUILD=ON -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python
+        configure-options: -DOMPL_BUILD_DEMOS=OFF -DVAMP_PORTABLE_BUILD=ON -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_PREFIX=${{ runner.workspace }}/install/python
         run-test: true
         ctest-options: --output-on-failure
         install-build: true
@@ -77,13 +78,29 @@ jobs:
         cd tests/cmake_export
         cmake -B build -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install
         cmake --build build
+
     - name: Build & Test (Windows)
       if: runner.os == 'Windows'
       uses: ashutoshvarma/action-cmake-build@master
       with:
         build-dir: ${{ runner.workspace }}/build
         build-type: Release
-        configure-options: -DOMPL_BUILD_DEMOS=OFF -DVAMP_PORTABLE_BUILD=ON -DMACHINE_SPEED_FACTOR=5.0 -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_DIR=${{ runner.workspace }}/install/python -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/ompl/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_GENERATOR_PLATFORM=x64
+        configure-options: -DOMPL_BUILD_DEMOS=OFF -DVAMP_PORTABLE_BUILD=ON -DMACHINE_SPEED_FACTOR=5.0 -DCMAKE_INSTALL_PREFIX=${{ runner.workspace }}/install -DOMPL_PYTHON_INSTALL_PREFIX=${{ runner.workspace }}/install/python -DCMAKE_TOOLCHAIN_FILE=${{ runner.workspace }}/ompl/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_GENERATOR_PLATFORM=x64
         run-test: true
         ctest-options: --output-on-failure
         install-build: true
+
+    - name: Run Python tests (python install dir)
+      env:
+        PYTHONPATH: ${{ runner.workspace }}/install/python
+      run: |
+        pytest tests/pytests --ignore=tests/pytests/deprecated
+
+    - name: Install python wheel (scikit-build)
+      working-directory: py-bindings
+      run: |
+        pip install .
+
+    - name: Run Python tests (scikit-build)
+      run: |
+        pytest tests/pytests --ignore=tests/pytests/deprecated
