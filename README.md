@@ -38,11 +38,11 @@ following commands:
     mkdir -p build/Release
     cd build/Release
     cmake ../..
-    make -j 4 # replace "4" with the number of cores on your machine
+    make -j <num_cores> # replace <num_cores> with the number of cores on your machine
 
 To install the Python bindings, go to the top-level directory of OMPL and type the following commands:
 ```
 git submodule update --init --recursive
-cd nanobinds
+cd py-bindings
 pip install . 
 ```
