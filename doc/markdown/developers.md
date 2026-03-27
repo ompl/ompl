@@ -12,12 +12,14 @@ A breakdown of all contributions by commits can be found on GitHub for the [OMPL
 - Stephen Butler, Rice University
 - Kyle Cesare, independent
 - Beck Chen, Rice University
+- Joris Chomarat, Hexagon Robotics
 - [Sachin Chitta](http://www.sachinchitta.org), SRI International (now at AutoDesk)
 - [Ashley Clark](http://web.stanford.edu/group/arl/people/ashley-clark), Steve Rock's [Aerospace Robotics Lab](http://web.stanford.edu/group/arl), Stanford University
 - [Dave Coleman](http://davetcoleman.com/), Nikolaus Correll's [group](http://correll.cs.colorado.edu/), University of Colorado Boulder (now at [PickNik Robotics](https://picknik.ai))
 - [Neil Dantam](http://www.neil.dantam.name), Rice University (now at Colorado School of Mines)
 - [Andrew Dobson](http://www.pracsyslab.org/dobson), Kostas Bekris' [Physics-aware Research for Autonomous Computational SYStems group](http://www.pracsyslab.org), Rutgers University
 - Gaël Écorchard, Czech Technical University in Prague
+- Emiliano Flores, Rice University
 - Ryan Friedman, Aerovironment, Inc.
 - Elizabeth Fudge, Rice University
 - [Jonathan Gammell](https://robotic-esp.com/gammell/), Queen's University, Canada
@@ -25,6 +27,7 @@ A breakdown of all contributions by commits can be found on GitHub for the [OMPL
 - [Javier V Gomez](http://jvgomez.github.io), Universidad Carlos III de Madrid (now at Meta)
 - Michael Görner, University of Hamburg
 - Francesco Grothe, TU Berlin
+- Weihang Guo, Rice University
 - Valentin Hartmann, University of Stuttgart
 - Florian Hauer, Georgia Tech
 - Wolfgang Hönig, Technical University Berlin
@@ -43,7 +46,6 @@ A breakdown of all contributions by commits can be found on GitHub for the [OMPL
 - Johnny Nunez, University of Barcelona
 - [Andreas Orthey](http://aorthey.de), Realtime Robotics
 - Luigi Palmieri, Robert Bosch GmbH
-- Sahruday Reddy Patti, Rice University
 - Scott Paulin, University of Canterbury, New Zealand
 - [Alejandro Perez](http://people.csail.mit.edu/aperez/www), Seth Teller's [Robotics, Vision, and Sensor Networks Group](http://rvsn.csail.mit.edu), MIT
 - Louis Petit, University of Sherbrooke
@@ -57,7 +59,10 @@ A breakdown of all contributions by commits can be found on GitHub for the [OMPL
 - Sonny Tarbouriech, University of Sherbrooke
 - Wil Thomason, Rice University (now at RAI Institute)
 - [Luis Torres](http://luis.web.unc.edu), Ron Alterovitz' [Computational Robotics Group](http://robotics.cs.unc.edu), University of North Carolina at Chapel Hill (now at Google)
+- Theodoros Tyrovouzis, Rice University
 - Jafar Uruç, Humanoid
 - [Caleb Voss](http://calebvoss.com), Rice University (now at OpenText)
 - Bryce Willey, Rice University (now at [Realtime Robotics](https://rtr.ai))
+- Yi Wang, University of New Hampshire
+- Tyler Wilson, 
 - Beverly Xu, UCSD

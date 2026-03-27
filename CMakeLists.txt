@@ -1,11 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 project(ompl VERSION 2.0.0 LANGUAGES CXX)
-set(PROJECT_VERSION 2.0.0-beta)
 set(OMPL_ABI_VERSION 19)
 include(FeatureSummary)
 
-option(OMPL_REGISTRATION "Enable one-time registration of OMPL" ON)
-add_feature_info(OMPL_REGISTRATION "${OMPL_REGISTRATION}" "Whether to enable one-time registration of OMPL.")
 # VAMP build options
 option(VAMP_BUILD_PYTHON_BINDINGS "Build VAMP Python bindings (requires OMPL_BUILD_VAMP=ON)" OFF)
 add_feature_info(VAMP_BUILD_PYTHON_BINDINGS "${VAMP_BUILD_PYTHON_BINDINGS}" "Whether to build VAMP Python bindings.")
@@ -87,7 +84,7 @@ endif()
 
 if(OMPL_BUILD_PYTHON_BINDINGS)
     if(OMPL_HAVE_NANOBIND)
-        add_subdirectory(nanobinds)
+        add_subdirectory(py-bindings)
     else()
         message(WARNING "OMPL_BUILD_PYTHON_BINDINGS is ON but Nanobind is not found. Use git submodule update --init --recursive to initialize the Nanobind submodule.")
     endif()
@@ -146,10 +143,6 @@ if(NOT SKBUILD)
     export(EXPORT omplExport
         FILE "${CMAKE_CURRENT_BINARY_DIR}/omplExport.cmake")
 
-    # script to install ompl on Ubuntu
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/install-ompl-ubuntu.sh.in"
-      "${CMAKE_CURRENT_BINARY_DIR}/install-ompl-ubuntu.sh" @ONLY)
-
     # uninstall target
     configure_file(
       "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in"
@@ -182,5 +175,4 @@ if(NOT SKBUILD)
     # Create targets for building docker images
     # See CMakeModules/OMPLUtils.cmake and scripts/docker for details
     add_docker_target(ompl)
-    add_docker_target(plannerarena scripts)
 endif()

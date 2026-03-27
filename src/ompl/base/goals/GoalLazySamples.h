@@ -59,13 +59,12 @@ namespace ompl
          sampling to happen in a separate thread, and the number of
          goals may increase, as the planner is running, in a
          thread-safe manner.
-
+         
          \todo The Python bindings for GoalLazySamples class are still broken.
          The OMPL C++ code creates a new thread from which you should be able
          to call a python Goal sampling function. Acquiring the right threads
          and locks and messing around with the Python Global Interpreter Lock
-         (GIL) is very tricky. See ompl/py-bindings/generate_bindings.py for
-         an initial attempt to make this work.
+         (GIL) is very tricky.
          */
         class GoalLazySamples : public GoalStates
         {

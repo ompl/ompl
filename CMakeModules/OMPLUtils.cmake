@@ -10,7 +10,7 @@ endmacro(add_ompl_test)
 
 macro(add_ompl_python_test test_file)
   get_filename_component(test_name "${test_file}" NAME)
-  add_test(${test_name} "${PYTHON_EXEC}" "${CMAKE_CURRENT_SOURCE_DIR}/${test_file}" "-v")
+  add_test(${test_name} "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/${test_file}" "-v")
 endmacro(add_ompl_python_test)
 
 # Computes the link flags and package dependencies for a list of targets. This command:
