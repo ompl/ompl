@@ -282,7 +282,7 @@ def main(
                     vis.add_grid()
                     
                     # Load environment obstacles
-                    vis.load_mbm_environment(data, padding=0.0)
+                    vis.load_mbm_environment(data, padding=0.0, color=(0.8, 0.4, 0.2, 0.75))
                     
                     # Convert path to numpy array
                     simplified_path.interpolate(50)
