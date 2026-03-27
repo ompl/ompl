@@ -3,12 +3,6 @@ The Open Motion Planning Library (OMPL)
 
 **OMPL** is a free sampling-based motion planning library with **VAMP integration** for high-performance collision checking using SIMD acceleration.
 
-Continuous Integration Status
------------------------------
-
-[![Build](https://github.com/ompl/ompl/actions/workflows/build.yml/badge.svg?branch=pr-github-actions)](https://github.com/ompl/ompl/actions/workflows/build.yml)
-[![Format](https://github.com/ompl/ompl/actions/workflows/format.yml/badge.svg?branch=pr-github-actions)](https://github.com/ompl/ompl/actions/workflows/format.yml?branch=pr-github-actions)
-
 Installation
 ------------
 
