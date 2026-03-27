@@ -215,10 +215,10 @@ def planBenchmark(
     req.displayProgress = True
     benchmark.benchmark(req)
 
-    log_file = "vamp_cage_planning_benchmark_cpp.log"
+    log_file = "vamp_cage_planning_benchmark_python.log"
     benchmark.saveResultsToFile(log_file)
-    db_path = "benchmark.db"
-    ot.readBenchmarkLog(db_path, [log_file], moveitformat=False)
+    db_path = "vamp_cage_planning_benchmark_python.db"
+    ot.readBenchmarkLog(db_path, [log_file], moveitformat=False)  
     print(f"Database saved to {db_path}")
 
     try:

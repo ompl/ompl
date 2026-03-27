@@ -124,7 +124,7 @@ def main(
         # Set this to x plans to do
         planner_constructors = [
             og.RRTConnect,
-            og.RRT,
+            # og.RRT,
             og.KPIECE1,
             og.LBKPIECE1,
         ]
@@ -206,7 +206,7 @@ def main(
                 
                 # Benchmark
                 if benchmark:
-                    benchmark_name = f"{robot}_{name}_benchmark"
+                    benchmark_name = f"{robot}_{name}"
                     ompl_benchmark = ot.Benchmark(ss, benchmark_name)
             
                     for planner_constructor in planner_constructors:
@@ -223,8 +223,9 @@ def main(
                     ompl_benchmark.benchmark(req)
                     
                     # Save results
-                    log_file = str(benchmark_dir / f"{benchmark_name}.log")
-                    db_file = str(benchmark_dir / f"{benchmark_name}.db")
+                    file = str(f"vamp_mbm_python")
+                    log_file = file + ".log"
+                    db_file = file + ".db"
                     
                     ompl_benchmark.saveResultsToFile(log_file)
                     print(f"  Saved log to: {log_file}")

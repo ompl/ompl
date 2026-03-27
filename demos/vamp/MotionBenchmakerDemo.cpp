@@ -335,7 +335,7 @@ PlanningResult MotionBenchmakerDemo::benchmarkInstance(
     // setup benchmark
     double memoryLimit = 4096;
 
-    std::string benchmarkName = "MBM-" + problemName;
+    std::string benchmarkName = robotName_ + "_" + problemName;
     ot::Benchmark b(*ss_, benchmarkName);
     ot::Benchmark::Request request(timeoutSeconds, memoryLimit, benchmarkTrials);
 
@@ -345,7 +345,7 @@ PlanningResult MotionBenchmakerDemo::benchmarkInstance(
     b.addPlanner(std::make_shared<og::LBKPIECE1>(space_info));
 
     b.benchmark(request);
-    b.saveResultsToFile("vamp_mbm_benchmark.log");
+    b.saveResultsToFile("vamp_mbm_cpp.log");
     result.solved = true;
     ss_.reset();
     
