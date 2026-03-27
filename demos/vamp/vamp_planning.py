@@ -194,13 +194,8 @@ def main(
     if benchmark:
         planBenchmark(variation, radius, n_trials)
     else: 
-<<<<<<<< HEAD:demos/vamp/VampCagePlanningBenchmark.py
-        planOnce(variation, radius)
 
-========
-        planOnce(variation, radius, visualize)
-   
-        
->>>>>>>> main:demos/vamp/vamp_planning.py
+        planOnce(variation, radius, visualize)  
+
 if __name__ == "__main__":
     Fire(main)
