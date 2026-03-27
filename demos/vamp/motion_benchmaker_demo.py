@@ -122,12 +122,12 @@ def main(
         print(f"Results will be saved to: {benchmark_dir}")
         
         # Set this to x plans to do
-        planner_constructors = {
-            'rrtc': og.RRTConnect,
-            'rrt': og.RRT,
-            'kpiece1': og.KPIECE1,
-            'lbkpiece1': og.LBKPIECE1,
-        }
+        planner_constructors = [
+            og.RRTConnect,
+            og.RRT,
+            og.KPIECE1,
+            og.LBKPIECE1,
+        ]
         
     tick = time.perf_counter()
     results = []
@@ -209,7 +209,7 @@ def main(
                     benchmark_name = f"{robot}_{name}_benchmark"
                     ompl_benchmark = ot.Benchmark(ss, benchmark_name)
             
-                    for planner_name, planner_constructor in planner_constructors.items():
+                    for planner_constructor in planner_constructors:
                         ompl_benchmark.addPlanner(planner_constructor(si))
                     
                     # Configure benchmark request
