@@ -1,7 +1,11 @@
 The Open Motion Planning Library (OMPL)
 =======================================
 
-**OMPL** is a free sampling-based motion planning library with **VAMP integration** for high-performance collision checking using SIMD acceleration.
+**OMPL** is an open source sampling-based motion planning library
+
+- Over 40 sampling-based planning algorithms (RRT-Connect, PRM, KPIECE, RRT*, and **many more**) across more than 20 state spaces (SE(3), Euclidean space, and others)
+- Easily extensible to custom planners in both Python and C++
+- SIMD-accelerated planning with VAMP for **millisecond planning** in both Python and C++
 
 Installation
 ------------
