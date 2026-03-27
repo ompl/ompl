@@ -22,7 +22,7 @@ RUN apt-get update && \
     wget
 COPY . /ompl
 WORKDIR /ompl
-RUN ls -lsa && git submodule update --init --recursive && \
+RUN git submodule update --init --recursive && \
     cmake \
     -G Ninja \
     -B build \
