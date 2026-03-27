@@ -64,7 +64,7 @@ sudo apt-get install ros-`rosversion -d`-ompl</pre>
 mkdir -p build/Release
 cd build/Release
 cmake ../..</pre></li>
-    <li>Compile OMPL by typing <code>make -j `nproc`</code>.</li>
+    <li>Compile OMPL by typing <code>make -j $(nproc)</code>.</li>
     <li>Optionally, run the test programs by typing <code>make test</code>.</li>
     <li>Optionally, generate the documentation (i.e., a local copy of this web site) by typing <code>make ompl_doc</code> (requires <a href="http://www.doxygen.org">Doxygen</a> and <a href="http://www.graphviz.org">Graphviz</a> to be installed).</li>
     </ul>
@@ -138,7 +138,7 @@ target_link_libraries(main PRIVATE ompl::ompl)
   <div class="tab-pane fade" id="python" role="tabpanel" aria-labelledby="python-tab">
 
   <h2>Python</h2>
-  There are pre-built OMPL modules for Python versions 3.10, 3.11, 3.12, and 3.13. They are available for Linux and macOS. You can install the OMPL Python module with, e.g., `pip`:
+  There are pre-built OMPL modules for several Python versions. They are available for Linux and macOS. You can install the OMPL Python module with, e.g., `pip`:
   <pre class="fragment">pip install ompl</pre>
   </div>
 </div>
