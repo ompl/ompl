@@ -19,8 +19,8 @@
 struct PlanningResult
 {
     bool solved = false;
-    std::chrono::nanoseconds planningTime{0};
-    std::chrono::nanoseconds simplificationTime{0};
+    double planningTime = 0.0;
+    double simplificationTime = 0.0;
     unsigned int planningIterations = 0;
     unsigned int pathVertices = 0;
     double pathCost = 0.0;

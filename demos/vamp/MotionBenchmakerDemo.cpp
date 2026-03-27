@@ -297,9 +297,8 @@ PlanningResult MotionBenchmakerDemo::solveInstance(
     );
     auto endTime = std::chrono::steady_clock::now();
 
-    result.planningTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        endTime - startTime
-    );
+    result.planningTime = ss_->getLastPlanComputationTime();
+    result.simplificationTime = ss_->getLastSimplificationTime();
 
     if (status == ob::PlannerStatus::EXACT_SOLUTION ||
         status == ob::PlannerStatus::APPROXIMATE_SOLUTION) {
@@ -439,7 +438,7 @@ void MotionBenchmakerDemo::printStatistics(const std::string& problemName,
     for (const auto& result : results) {
         if (result.solved) {
             successes++;
-            planningTimes.push_back(result.planningTime.count() / 1e9);  // Convert to seconds
+            planningTimes.push_back(result.planningTime);  // Convert to seconds
             pathCosts.push_back(result.pathCost);
             iterations.push_back(result.planningIterations);
             vertices.push_back(result.pathVertices);
