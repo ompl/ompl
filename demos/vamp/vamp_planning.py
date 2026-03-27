@@ -147,12 +147,17 @@ def planBenchmark(variation: float = 0.01, radius: float = 0.2, n_trials: int = 
     goal[0:dimension] = b
     ss.setStartAndGoalStates(start, goal)
     
+    planners = [
+        og.RRTConnect(si),
+        og.RRT(si),
+        og.KPIECE1(si),
+        og.LBKPIECE1(si)
+    ]
+    
     # Create Benchmark
     benchmark = ot.Benchmark(ss, "Vamp Cage Planning Benchmark")
-    benchmark.addPlanner(og.RRTConnect(si))
-    benchmark.addPlanner(og.RRT(si))
-    benchmark.addPlanner(og.KPIECE1(si))
-    benchmark.addPlanner(og.LBKPIECE1(si))
+    for planner in planners:
+        benchmark.addPlanner(planner)
 
     # Setup Benchmark
     req = ot.Request()
