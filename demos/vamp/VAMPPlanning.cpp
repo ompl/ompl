@@ -141,24 +141,6 @@ void planBenchmark(int runCount = 100){
     // Build a simple sphere obstacle environment
     vamp::collision::Environment<float> env_float;
     
-    // Add some sphere obstacles
-    std::vector<std::array<float, 3>> obstacles = {
-        {0.55, 0, 0.25},
-        {0.35, 0.35, 0.25},
-        {0, 0.55, 0.25},
-        {-0.55, 0, 0.25},
-        {-0.35, -0.35, 0.25},
-        {0, -0.55, 0.25},
-        {0.35, -0.35, 0.25},
-        {0.35, 0.35, 0.8},
-        {0, 0.55, 0.8},
-        {-0.35, 0.35, 0.8},
-        {-0.55, 0, 0.8},
-        {-0.35, -0.35, 0.8},
-        {0, -0.55, 0.8},
-        {0.35, -0.35, 0.8},
-    };
-    
     constexpr float radius = 0.2f;
     for (const auto& obs : obstacles)
     {
