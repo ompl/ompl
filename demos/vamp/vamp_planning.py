@@ -167,10 +167,9 @@ def planBenchmark(variation: float = 0.01, radius: float = 0.2, n_trials: int = 
     req.displayProgress = True
     benchmark.benchmark(req)
 
-    log_file = "benchmark.log"
+    log_file = "vamp_cage_planning_benchmark_python.log"
     benchmark.saveResultsToFile(log_file)
-    # db_path = os.path.join(temp_dir, "benchmark.db")
-    db_path = "benchmark.db"
+    db_path = "vamp_cage_planning_benchmark_python.db"
     ot.readBenchmarkLog(db_path, [log_file], moveitformat=False)  
     print(f"Database saved to {db_path}")
     
@@ -194,8 +193,8 @@ def main(
     if benchmark:
         planBenchmark(variation, radius, n_trials)
     else: 
-        planOnce(variation, radius, visualize)
-   
-        
+
+        planOnce(variation, radius, visualize)  
+
 if __name__ == "__main__":
     Fire(main)

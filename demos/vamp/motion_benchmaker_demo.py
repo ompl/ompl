@@ -117,6 +117,7 @@ def main(
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         benchmark_dir = Path("benchmarks") / f"benchmark_{timestamp}"
         benchmark_dir.mkdir(parents=True, exist_ok=True)
+        filename = "vamp_mbm_python"
         
         print(f"Benchmarking {robot} on first problem of each type with {n_trials} trials...")
         print(f"Results will be saved to: {benchmark_dir}")
@@ -124,9 +125,10 @@ def main(
         # Set this to x plans to do
         planner_constructors = [
             og.RRTConnect,
-            og.RRT,
-            og.KPIECE1,
             og.LBKPIECE1,
+            og.PRM,
+            # og.BITstar,
+            og.KPIECE1,
         ]
         
     tick = time.perf_counter()
@@ -206,7 +208,7 @@ def main(
                 
                 # Benchmark
                 if benchmark:
-                    benchmark_name = f"{robot}_{name}_benchmark"
+                    benchmark_name = f"{robot}_{name}"
                     ompl_benchmark = ot.Benchmark(ss, benchmark_name)
             
                     for planner_constructor in planner_constructors:
@@ -223,9 +225,10 @@ def main(
                     ompl_benchmark.benchmark(req)
                     
                     # Save results
-                    log_file = str(benchmark_dir / f"{benchmark_name}.log")
-                    db_file = str(benchmark_dir / f"{benchmark_name}.db")
                     
+                    log_file = str(benchmark_dir / f"{filename}.log")
+                    db_file = str(benchmark_dir / f"{filename}.db")
+
                     ompl_benchmark.saveResultsToFile(log_file)
                     print(f"  Saved log to: {log_file}")
                     
@@ -235,6 +238,7 @@ def main(
                     # only run one per problem
                     skip_pset = True
                     break
+                
                 # Single Plan
                 planning_start = time.perf_counter()
                 result = ss.solve(planning_time)

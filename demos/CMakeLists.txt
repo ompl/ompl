@@ -14,7 +14,7 @@ if (OMPL_BUILD_DEMOS)
             Boost::program_options)
     endmacro(add_ompl_demo)
 
-
+    
     add_ompl_demo(demo_SSTPinballPlanning SSTPinballPlanning.cpp)
     add_ompl_demo(demo_PinballPlanning PinballPlanning.cpp)
     add_ompl_demo(demo_BouncingBallPlanning BouncingBallPlanning.cpp)    
@@ -89,6 +89,10 @@ if (OMPL_BUILD_DEMOS)
         add_ompl_demo(demo_VAMPPlanning vamp/VAMPPlanning.cpp)
         target_include_directories(demo_VAMPPlanning PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vamp)
         target_link_libraries(demo_VAMPPlanning PRIVATE vamp_cpp)
+
+        add_ompl_demo(demo_VAMPMotionBenchmaker vamp/MotionBenchmakerDemoMain.cpp vamp/MotionBenchmakerDemo.cpp)
+        target_include_directories(demo_VAMPMotionBenchmaker PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vamp)
+        target_link_libraries(demo_VAMPMotionBenchmaker PRIVATE vamp_cpp)
     endif()
     
 endif(OMPL_BUILD_DEMOS)
