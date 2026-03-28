@@ -9,7 +9,7 @@ nanobind_add_module(_ompl
 
 # set default python install prefix
 if(NOT OMPL_PYTHON_INSTALL_PREFIX AND NOT SKBUILD)
-    set(OMPL_PYTHON_INSTALL_PREFIX "${Python_SITEARCH}" CACHE STRING
+    set(OMPL_PYTHON_INSTALL_PREFIX "${Python_SITEARCH}" CACHE PATH
         "Path to directory where OMPL python module will be installed")
 endif()
 message(STATUS "OMPL Python module install location: ${OMPL_PYTHON_INSTALL_PREFIX}")

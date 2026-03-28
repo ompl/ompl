@@ -13,7 +13,6 @@ add_feature_info(VAMP_PORTABLE_BUILD "${VAMP_PORTABLE_BUILD}" "Whether to build 
 
 option(OMPL_BUILD_PYTHON_BINDINGS "Build OMPL Python bindings" ON)
 add_feature_info(OMPL_BUILD_PYTHON_BINDINGS "${OMPL_BUILD_PYTHON_BINDINGS}" "Whether to build OMPL Python bindings.")
-set(OMPL_PYTHON_INSTALL_PREFIX "" CACHE PATH "Install location for OMPL Python module (defaults to current python environment)")
 
 # default to building shared libs except Windows
 if (MSVC)
