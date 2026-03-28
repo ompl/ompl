@@ -22,8 +22,7 @@ RUN apt-get update && \
     wget
 COPY . /ompl
 WORKDIR /ompl
-RUN git submodule update --init --recursive && \
-    cmake \
+RUN cmake \
     -G Ninja \
     -B build \
     -DVAMP_PORTABLE_BUILD=ON \
