@@ -138,7 +138,7 @@ div.textblock li>a, div.textblock li>a:hover, div.textblock li>a:visited
     line-height: 1.5;
     border-radius: .2rem;
     }
-.contents a:visited.btn-primary { color: #fff; }
+.contents a.btn-primary, .contents a:visited.btn-primary { color: #fff; }
 .contents a.btn-primary small, .contents a:visited.btn-primary small { color: #ccc; }
 span.lineno { border-right-color: #034170; }
 .navpath li { line-height: 32px; }
