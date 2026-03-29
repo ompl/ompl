@@ -7,6 +7,10 @@ The Open Motion Planning Library (OMPL)
 - Easily extensible to custom planners in both Python and C++
 - SIMD-accelerated planning with VAMP for **millisecond planning** in both Python and C++
 
+[![Build](https://github.com/ompl/ompl/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/ompl/ompl/actions/workflows/build.yml)
+[![Format](https://github.com/ompl/ompl/actions/workflows/format.yml/badge.svg?branch=main)](https://github.com/ompl/ompl/actions/workflows/format.yml)
+[![PyPI](https://img.shields.io/pypi/v/ompl)](https://pypi.org/project/ompl/)
+
 Installation
 ------------
 
