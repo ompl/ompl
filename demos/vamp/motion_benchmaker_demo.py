@@ -285,7 +285,22 @@ def main(
                     # Load environment obstacles
                     if pointcloud:
                         original_pc = np.array(original_pc)
-                        colors = np.tile(np.array([[0.1, 0.1, 0.6]]), (len(original_pc), 1))
+                        z_values = original_pc[:, 2]
+                        z_min, z_max = z_values.min(), z_values.max()
+                        z_range = z_max - z_min
+                        
+                        # Define color range: start at 20% and end at 80% of z-range
+                        color_start = z_min + 0.2 * z_range
+                        color_end = z_min + 1.0 * z_range
+                        
+                        # Clamp and normalize z values to [0, 1] within the color range
+                        z_normalized = np.clip((z_values - color_start) / (color_end - color_start), 0, 1)
+                        
+                        # Smooth rainbow colormap: red -> yellow -> green -> cyan -> blue
+                        colors = np.zeros((len(original_pc), 3))
+                        colors[:, 0] = np.maximum(0, 1 - 2 * np.abs(z_normalized - 0.25))  # Red
+                        colors[:, 1] = np.maximum(0, 1 - 2 * np.abs(z_normalized - 0.5))   # Green
+                        colors[:, 2] = np.maximum(0, 1 - 2 * np.abs(z_normalized - 0.75))  # Blue
                         vis.add_point_cloud(original_pc, color=colors, point_size=0.01)
                     else:
                         vis.load_mbm_environment(data, padding=0.0, color=(0.8, 0.4, 0.2, 0.75))
@@ -300,7 +315,7 @@ def main(
                     vis.visualize_trajectory(trajectory)
                     
                     print(f"\nVisualizing problem {name} [{i}] - Press any key to continue, 'q' to disable viz, 'w' to skip to next problem set")
-                    key = vis.play_until_key_pressed(key='any', dt=0.05)
+                    key = vis.play_until_key_pressed(key='any', dt=1/60)
                     
                     if key == 'q':
                         print("Visualization disabled for remaining problems")
