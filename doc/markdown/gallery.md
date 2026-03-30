@@ -1,13 +1,13 @@
 # Gallery {#gallery}
 
-## VAMP Ultra-fast Planning
+## Ultra-fast Motion Planning
 
-OMPL supports State-Of-The-Art CPU-hardware accelerated planning using [VAMP](https://github.com/kavrakilab/vamp), solving problems for high-dimensional robots in microseconds. 
+OMPL supports State-Of-The-Art hardware accelerated planning through [VAMP](https://github.com/kavrakilab/vamp), solving problems for high-dimensional robots in microseconds. 
 
 \htmlonly
 <div class="row justify-content-center">
   <div class="col-md-8 col-sm-10">
-    <img src="images/ompl-vamp-mbm.gif" width="100%" alt="VAMP ultra-fast planning demonstration">
+    <img src="images/gallery/ompl-vamp-mbm.gif" width="100%" alt="VAMP ultra-fast planning demonstration on the MotionBenchmaker Dataset">
   </div>
 </div>
 \endhtmlonly
@@ -32,7 +32,7 @@ OMPL, through [VAMP and CAPT](http://github.com/kavrakilab/vamp), supports plann
 \htmlonly
 <div class="row justify-content-center">
   <div class="col-md-6 col-sm-6">
-    <img src="images/ompl-vamp-mbm.gif" width="100%" alt="Point cloud planning demonstration">
+    <img src="images/gallery/ompl-capt-comparison.gif" width="100%" alt="Point cloud planning demonstration">
   </div>
   <div class="col-md-6 col-sm-6">
     <img src="images/frontpage/capt_demo.gif" width="100%" alt="Real-robot point cloud planning deployment">
