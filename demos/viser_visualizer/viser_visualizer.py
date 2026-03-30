@@ -56,8 +56,7 @@ class ViserVisualizer:
             # VAMP uses ur5 with a Roboriq gripper, URDF is loaded from the repository
             if description_name == "ur5_description":
                 import yourdfpy
-                import vamp
-                vamp_folder = Path(vamp.__file__).parent.parent.parent
+                vamp_folder = Path(__file__).parent.parent.parent / 'external' / 'vamp'
                 ur5_urdf_file = vamp_folder / 'resources' / 'ur5' / 'ur5.urdf'
                 mesh_dir = vamp_folder / 'resources' / 'ur5'
                 
@@ -163,6 +162,25 @@ class ViserVisualizer:
                 half_extents = [h + padding/2 for h in obj["half_extents"]]
                 self.add_box(position=position, half_extents=half_extents, 
                            rotation_matrix=rotation_matrix, color=color, name=f"/box_{obj['name']}")
+                
+    def add_point_cloud(
+        self,
+        points: np.ndarray,
+        color: Optional[np.ndarray] = None,
+        point_size: float = 0.01,
+    ):
+        """Add a point cloud to the scene
+
+        Args:
+            points: Array of shape (N, 3) containing point coordinates
+            color: Optional array of shape (N, 3) containing RGB colors for each point
+        """
+        if color is None:
+            color = np.ones((points.shape[0], 3)) * np.array([1, 0, 0])
+
+        self.server.scene.add_point_cloud(
+            "/point_cloud", points=points, colors=color, point_size=point_size
+        )
     
     def _generate_name(self, prefix: str) -> str:
         """Generate a unique name based on existing objects with the same prefix

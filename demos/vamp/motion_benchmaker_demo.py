@@ -110,7 +110,7 @@ def main(
     skip_to_next_problem_set = False
     if visualize:
         vis = ViserVisualizer(robot_name=robot, robot_dimension=dimension)
-        vis.add_grid()
+        # vis.add_grid()
     
     if benchmark:    
         # Create benchmark output directory with timestamp
@@ -279,13 +279,18 @@ def main(
                         continue
                     # Clear previous visualization
                     vis.reset()
-                    vis.add_grid()
+                    # vis.add_grid()
                     
                     # Load environment obstacles
-                    vis.load_mbm_environment(data, padding=0.0, color=(0.8, 0.4, 0.2, 0.75))
+                    if pointcloud:
+                        original_pc = np.array(original_pc)
+                        colors = np.tile(np.array([[0.1, 0.1, 0.6]]), (len(original_pc), 1))
+                        vis.add_point_cloud(original_pc, color=colors, point_size=0.01)
+                    else:
+                        vis.load_mbm_environment(data, padding=0.0, color=(0.8, 0.4, 0.2, 0.75))
                     
                     # Convert path to numpy array
-                    simplified_path.interpolate(50)
+                    simplified_path.interpolate(150)
                     states = simplified_path.getStates()
                     trajectory = np.array([list(state[0:dimension]) for state in states])
                     # interpolate
