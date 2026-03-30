@@ -1,5 +1,17 @@
 # Gallery {#gallery}
 
+## VAMP Ultra-fast Planning
+
+OMPL supports State-Of-The-Art CPU-hardware accelerated planning using [VAMP](https://github.com/kavrakilab/vamp), solving problems for high-dimensional robots in microseconds. 
+
+\htmlonly
+<div class="row justify-content-center">
+  <div class="col-md-8 col-sm-10">
+    <img src="images/ompl-vamp-mbm.gif" width="100%" alt="VAMP ultra-fast planning demonstration">
+  </div>
+</div>
+\endhtmlonly
+
 ## MoveIt
 
 A 2021 highlight reel for [MoveIt](https://moveit.ai), the [ROS](https://www.ros.org) package that provides a high-level interface to OMPL and other motion planning packages.
