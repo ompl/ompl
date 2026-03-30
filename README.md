@@ -9,7 +9,13 @@ The Open Motion Planning Library (OMPL)
 
 [![Build](https://github.com/ompl/ompl/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/ompl/ompl/actions/workflows/build.yml)
 [![Format](https://github.com/ompl/ompl/actions/workflows/format.yml/badge.svg?branch=main)](https://github.com/ompl/ompl/actions/workflows/format.yml)
-[![PyPI](https://img.shields.io/pypi/v/ompl)](https://pypi.org/project/ompl/)
+[![PyPI](https://img.shields.io/pypi/v/ompl?color=orange)](https://pypi.org/project/ompl/)
+
+[![Paper](https://img.shields.io/badge/RA--M-OMPL-blue)](https://dx.doi.org/10.1109/MRA.2012.2205651)
+[![Paper](https://img.shields.io/badge/ICRA-OMPL_Python-blue)](https://arxiv.org/abs/2603.04668)
+[![Paper](https://img.shields.io/badge/RA--M-Benchmarking-blue)](https://dx.doi.org/10.1109/MRA.2015.2448276)
+[![Paper](https://img.shields.io/badge/IJRR-Constrained_Planning-blue)](https://dx.doi.org/10.1177/0278364919868530)
+[![Paper](https://img.shields.io/badge/ICRA-VAMP-blue)](https://dx.doi.org/10.1109/ICRA57147.2024.10611190)
 
 Installation
 ------------
