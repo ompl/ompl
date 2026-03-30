@@ -1,0 +1,37 @@
+Steps to release a new version:
+* update doc/markdown/releaseNotes.md; enter date, features
+* update version number in package.xml and CMakeLists.txt `package(...)` command if needed (see also last step)
+* git checkout main && git pull && git submodule update --recursive --init
+* git clean -fd
+* cmake -S . -B /tmp/build -DCMAKE_INSTALL_PREFIX=/tmp/ompl -DOMPL_PYTHON_INSTALL_PREFIX=/tmp/ompl/python
+* cmake --build /tmp/build -t install -t test
+  - Check that the right files are installed
+  - Check that this works:
+        env PYTHONPATH=/tmp/ompl/python python3 -c "from ompl import *"
+    Ideally, we could also run:
+        env PYTHONPATH=/tmp/ompl/python python3 /tmp/ompl/share/ompl/demos/some_demo.py
+    but python demo code is not installed
+* run a couple of C++ & Python demos
+* cmake --build /tmp/build -t docker-ompl
+    - docker tag ompl:x.y.z kavrakilab/ompl:x.y.z
+      docker push kavrakilab/ompl:x.y.z
+* update plannerarena if needed; pull new docker images on plannerarena.org and restart web service
+* cmake --build /tmp/build -t package_source, since github tagged release doesn't include vamp submodule
+* cmake --build /tmp/build -t website to update web site repo (assumed to exist in ${HOME}/src/ompl.github.io)
+    - open ~/src/ompl.github.io/index.html in a browser and check that everything looks sane
+* If new blog posts have been added since last release:
+    "jekyll build" in the ompl blog repo, copy content in _site/* to ${HOME}/src/ompl.github.io
+* commit and push ${HOME}/src/ompl.github.io
+* tag ompl and ompl.github.io with version number x.y.z
+* update ompl in various package managers (contact maintainers, create an issue or PR):
+    - https://repology.org/project/ompl/versions
+    - Debian: https://packages.debian.org/search?keywords=libompl-dev
+    - ROS: https://github.com/ros-gbp/ompl-release
+    - Macports: https://github.com/macports/macports-ports/tree/master/science/ompl
+    - HomeBrew: https://github.com/Homebrew/homebrew-core/blob/master/Formula/o/ompl.rb
+    - vcpkg: https://github.com/microsoft/vcpkg/tree/master/ports/ompl
+* push changes to ompl repos on github. Create release, include release notes, attach ompl-Source-x.y.z.tar.gz (output of `cmake --build /tmp/build -t package_source`)
+* update version on https://en.wikipedia.org/wiki/OMPL
+* announce on ompl-users@lists.sourceforge.net, robot-motion@mit.edu, robotics worldwide
+* after release update version in top-level CMakeLists.txt for next release
+    - also increment ABI version in top-level CMakeLists.txt when needed (if previously existing API has changed)
