@@ -289,12 +289,8 @@ def main(
                         z_min, z_max = z_values.min(), z_values.max()
                         z_range = z_max - z_min
                         
-                        # Define color range: start at 20% and end at 80% of z-range
-                        color_start = z_min + 0.2 * z_range
-                        color_end = z_min + 1.0 * z_range
-                        
                         # Clamp and normalize z values to [0, 1] within the color range
-                        z_normalized = np.clip((z_values - color_start) / (color_end - color_start), 0, 1)
+                        z_normalized = np.clip((z_values - z_min) / (z_max - z_min), 0, 1)
                         
                         # Smooth rainbow colormap: red -> yellow -> green -> cyan -> blue
                         colors = np.zeros((len(original_pc), 3))
