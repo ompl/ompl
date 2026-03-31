@@ -5,6 +5,9 @@ macro(add_ompl_test test_name)
     Boost::program_options
     Boost::serialization
     Boost::unit_test_framework)
+  if(DEFINED MACHINE_SPEED_FACTOR)
+    target_compile_definitions(${test_name} PRIVATE MACHINE_SPEED_FACTOR=${MACHINE_SPEED_FACTOR})
+  endif()
   add_test(NAME ${test_name} COMMAND $<TARGET_FILE:${test_name}>)
 endmacro(add_ompl_test)
 
