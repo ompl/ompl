@@ -110,13 +110,13 @@ class ViserVisualizer:
         self.server.initial_camera.look_at = np.array(target, dtype=np.float64)
     
     def load_mbm_environment(self, problem_data: Dict[str, Any], ignore_names: List[str] = [], 
-                             color=(0.8, 0.4, 0.2), padding: float = 0.0):
+                             color=(0.8, 0.4, 0.2, 0.7), padding: float = 0.0):
         """Load environment from MBM problem format
         
         Args:
             problem_data: Dictionary containing 'sphere', 'cylinder', 'box' keys with obstacle data
             ignore_names: List of obstacle names to ignore
-            color: RGB color tuple (0-1 range) for obstacles
+            color: RGBA color tuple (0-1 range) for obstacles
             padding: Additional padding to add to obstacle sizes
         """
         # Helper function to convert euler angles to quaternion and create rotation matrix
@@ -204,19 +204,15 @@ class ViserVisualizer:
         plan_config = self._trajectory[idx].tolist()
         config = self._map_plan_config_to_urdf(plan_config)
         
-        try:
-            self.urdf_vis.update_cfg(config)
-        except:
-            config.append(gripper_dof)
-            self.urdf_vis.update_cfg(config)
+        self.urdf_vis.update_cfg(config)
     
-    def add_sphere(self, position: np.ndarray, radius: float, color=(1, 0, 0), name: Optional[str] = None):
+    def add_sphere(self, position: np.ndarray, radius: float, color=(1, 0, 0, 0.75), name: Optional[str] = None):
         """Add a sphere obstacle to the scene
         
         Args:
             position: 3D position [x, y, z]
             radius: Sphere radius
-            color: RGB color tuple (0-1 range)
+            color: RGBA color tuple (0-1 range)
             name: Optional name for the sphere (auto-generated if not provided)
         """
         if name is None:
@@ -226,18 +222,19 @@ class ViserVisualizer:
             name=name,
             position=tuple(position),
             radius=radius,
-            color=color
+            color=color[:3] if len(color) == 4 else color,
+            opacity=color[3] if len(color) == 4 else 1.0
         )
     
     def add_box(self, position: np.ndarray, half_extents: List[float], 
-                rotation_matrix: Optional[np.ndarray] = None, color=(0.8, 0.4, 0.2), name: Optional[str] = None):
+                rotation_matrix: Optional[np.ndarray] = None, color=(0.8, 0.4, 0.2, 0.75), name: Optional[str] = None):
         """Add a box obstacle to the scene
         
         Args:
             position: 3D position [x, y, z]
             half_extents: Half extents [x, y, z] (full size will be 2x these values)
             rotation_matrix: 3x3 rotation matrix (identity if None)
-            color: RGB color tuple (0-1 range)
+            color: RGBA color tuple (0-1 range)
             name: Optional name for the box (auto-generated if not provided)
         """
         if name is None:
@@ -250,17 +247,18 @@ class ViserVisualizer:
             rotation_matrix = np.eye(3)
         
         wxyz = self._rotation_to_wxyz(rotation_matrix)
-        
+
         self.server.scene.add_box(
             name=name,
             dimensions=tuple(full_extents),
             position=tuple(position),
             wxyz=tuple(wxyz),
-            color=color
+            color=color[:3] if len(color) == 4 else color,
+            opacity=color[3] if len(color) == 4 else 1.0
         )
     
     def add_cylinder(self, position: np.ndarray, radius: float, length: float,
-                    rotation_matrix: Optional[np.ndarray] = None, color=(0.8, 0.4, 0.2), name: Optional[str] = None):
+                    rotation_matrix: Optional[np.ndarray] = None, color=(0.8, 0.4, 0.2, 0.75), name: Optional[str] = None):
         """Add a cylinder obstacle to the scene
         
         Args:
@@ -268,7 +266,7 @@ class ViserVisualizer:
             radius: Cylinder radius
             length: Cylinder length (height)
             rotation_matrix: 3x3 rotation matrix (identity if None)
-            color: RGB color tuple (0-1 range)
+            color: RGBA color tuple (0-1 range)
             name: Optional name for the cylinder (auto-generated if not provided)
         """
         if name is None:
@@ -285,7 +283,8 @@ class ViserVisualizer:
             height=length,
             position=tuple(position),
             wxyz=tuple(wxyz),
-            color=color
+            color=color[:3] if len(color) == 4 else color,
+            opacity=color[3] if len(color) == 4 else 1.0
         )
     
     def add_grid(self, width: float = 2.0, height: float = 2.0, cell_size: float = 0.1):
@@ -310,11 +309,18 @@ class ViserVisualizer:
         Returns:
             Full URDF configuration with all joints
         """
+        
+        if self.robot_name == "panda":
+            # append gripper
+            plan_config.append(0.05)
+            return plan_config
+        
         if self.joint_mapping is None:
             # No mapping needed, use config as-is
             return plan_config
         
         # Get all joint names from URDF
+        
         all_joints = [joint.name for joint in self.robot_urdf.actuated_joints]
         n_total_joints = len(all_joints)
         
@@ -327,6 +333,11 @@ class ViserVisualizer:
                 urdf_idx = all_joints.index(joint_name)
                 if planning_idx < len(plan_config):
                     full_config[urdf_idx] = plan_config[planning_idx]
+        
+        # if fetch, open gripper
+        if self.robot_name == "fetch":
+            full_config[-1] = 0.035
+            full_config[-2] = 0.035
         
         return full_config
     
@@ -414,7 +425,7 @@ class ViserVisualizer:
             print("No trajectory loaded. Call visualize_trajectory() first.")
             return None
         
-        print(f"Visualization running. Press {key if key != 'any' else 'any key'} to stop...")
+        print(f"Visualization running. Press {key if key != 'any' else 'any key'} to stop or click play button...")
         
         pressed_key = [None]
         stop_flag = threading.Event()
@@ -453,14 +464,43 @@ class ViserVisualizer:
         key_thread.start()
         
         # Run visualization loop until key is pressed
+        # The play button controls auto-advancement of the slider
         try:
+            frame_idx = 0
+            last_playing_state = False
+            last_slider_value = 0
+            
             while not stop_flag.is_set():
-                for i in range(len(self._trajectory)):
-                    if stop_flag.is_set():
-                        break
-                    self._slider.value = i
-                    self._update_robot_config(i, gripper_dof=0.0)
-                    time.sleep(dt)
+                # Check if playing state just changed from False to True
+                if self._playing is not None:
+                    current_playing_state = self._playing.value
+                    if current_playing_state and not last_playing_state:
+                        # Playing just activated, capture current slider position
+                        if self._slider is not None:
+                            frame_idx = self._slider.value
+                    last_playing_state = current_playing_state
+                
+                current_slider_value = self._slider.value if self._slider is not None else frame_idx
+                if current_slider_value != last_slider_value:
+                    # User moved the slider, sync frame_idx to it
+                    frame_idx = current_slider_value
+                last_slider_value = current_slider_value
+                
+                # If playing is checked, auto-advance the slider
+                if self._playing is not None and self._playing.value:
+                    if self._slider is not None:
+                        self._slider.value = frame_idx
+                    frame_idx = (frame_idx + 1) % len(self._trajectory)
+                
+                # Always update robot position based on current slider value
+                if self._slider is not None:
+                    current_idx = self._slider.value
+                else:
+                    current_idx = frame_idx
+                
+                self._update_robot_config(current_idx, gripper_dof=0.0)
+                
+                time.sleep(dt)
         finally:
             stop_flag.set()
         

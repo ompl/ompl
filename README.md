@@ -51,6 +51,5 @@ following commands:
 To install the Python bindings, go to the top-level directory of OMPL and type the following commands:
 ```
 git submodule update --init --recursive
-cd py-bindings
-pip install . 
+pip install ./py-bindings
 ```

@@ -53,6 +53,10 @@ set_package_properties(yaml-cpp PROPERTIES
 find_package(yaml-cpp CONFIG QUIET)
 if (yaml-cpp_FOUND)
     set(OMPL_HAVE_YAMLCPP 1)
+    # for compatibility with old versions of yaml-cpp
+    if (NOT TARGET yaml-cpp::yaml-cpp)
+        add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
+    endif()
 else ()
     set(OMPL_HAVE_YAMLCPP 0)
 endif()
