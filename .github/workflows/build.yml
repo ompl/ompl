@@ -97,9 +97,8 @@ jobs:
         pytest tests/pytests --ignore=tests/pytests/deprecated
 
     - name: Install python wheel (scikit-build)
-      working-directory: py-bindings
       run: |
-        pip install .
+        pip install ./py-bindings
 
     - name: Run Python tests (scikit-build)
       run: |
