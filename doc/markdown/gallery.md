@@ -1,15 +1,13 @@
 # Gallery {#gallery}
 
-## MoveIt
+## Ultra-fast Motion Planning
 
-A 2021 highlight reel for [MoveIt](https://moveit.ai), the [ROS](https://www.ros.org) package that provides a high-level interface to OMPL and other motion planning packages.
+OMPL supports State-Of-The-Art hardware accelerated planning through [VAMP](https://github.com/kavrakilab/vamp), solving problems for high-dimensional robots in microseconds. 
 
 \htmlonly
 <div class="row justify-content-center">
   <div class="col-md-8 col-sm-10">
-    <div class="embed-responsive embed-responsive-16by9">
-      <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/7KvF7Dj7bz0"></iframe>
-    </div>
+    <img src="images/gallery/ompl-vamp-mbm.gif" width="100%" alt="VAMP ultra-fast planning demonstration on the MotionBenchmaker Dataset">
   </div>
 </div>
 \endhtmlonly
@@ -23,6 +21,34 @@ OMPL has support for [motion planning subject to hard constraints](constrainedPl
   <div class="col-md-8 col-sm-10">
     <div class="embed-responsive embed-responsive-4by3">
       <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/261052837?title=0&amp;byline=0&amp;portrait=0&amp;color=ffffff&amp;autoplay=1&amp;loop=1"></iframe>
+    </div>
+  </div>
+</div>
+\endhtmlonly
+
+## Planning with Point Clouds
+OMPL, through [VAMP and CAPT](http://github.com/kavrakilab/vamp), supports planning with point clouds for use with real-world robots and sensors. The examples below shows planning for a 7-DOF manipulator, comparing primitive-based environments with pointcloud representations and a real-robot deployment. 
+
+\htmlonly
+<div class="row justify-content-center">
+  <div class="col-md-6 col-sm-6">
+    <img src="images/gallery/ompl-capt-comparison.gif" width="100%" alt="Point cloud planning demonstration">
+  </div>
+  <div class="col-md-6 col-sm-6">
+    <img src="images/frontpage/capt_demo.gif" width="100%" alt="Real-robot point cloud planning deployment">
+  </div>
+</div>
+\endhtmlonly
+
+## MoveIt
+
+A 2021 highlight reel for [MoveIt](https://moveit.ai), the [ROS](https://www.ros.org) package that provides a high-level interface to OMPL and other motion planning packages.
+
+\htmlonly
+<div class="row justify-content-center">
+  <div class="col-md-8 col-sm-10">
+    <div class="embed-responsive embed-responsive-16by9">
+      <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/7KvF7Dj7bz0"></iframe>
     </div>
   </div>
 </div>

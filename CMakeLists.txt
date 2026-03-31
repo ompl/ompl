@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
 project(ompl VERSION 2.0.0 LANGUAGES CXX)
-set(PROJECT_VERSION 2.0.0-beta)
 set(OMPL_ABI_VERSION 19)
 include(FeatureSummary)
 
@@ -14,7 +13,6 @@ add_feature_info(VAMP_PORTABLE_BUILD "${VAMP_PORTABLE_BUILD}" "Whether to build 
 
 option(OMPL_BUILD_PYTHON_BINDINGS "Build OMPL Python bindings" ON)
 add_feature_info(OMPL_BUILD_PYTHON_BINDINGS "${OMPL_BUILD_PYTHON_BINDINGS}" "Whether to build OMPL Python bindings.")
-set(OMPL_PYTHON_INSTALL_PREFIX "" CACHE PATH "Install location for OMPL Python module (defaults to current python environment)")
 
 # default to building shared libs except Windows
 if (MSVC)
@@ -85,7 +83,7 @@ endif()
 
 if(OMPL_BUILD_PYTHON_BINDINGS)
     if(OMPL_HAVE_NANOBIND)
-        add_subdirectory(nanobinds)
+        add_subdirectory(py-bindings)
     else()
         message(WARNING "OMPL_BUILD_PYTHON_BINDINGS is ON but Nanobind is not found. Use git submodule update --init --recursive to initialize the Nanobind submodule.")
     endif()
@@ -143,10 +141,6 @@ if(NOT SKBUILD)
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ompl/cmake)
     export(EXPORT omplExport
         FILE "${CMAKE_CURRENT_BINARY_DIR}/omplExport.cmake")
-
-    # script to install ompl on Ubuntu
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/install-ompl-ubuntu.sh.in"
-      "${CMAKE_CURRENT_BINARY_DIR}/install-ompl-ubuntu.sh" @ONLY)
 
     # uninstall target
     configure_file(
