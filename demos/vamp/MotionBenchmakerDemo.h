@@ -33,10 +33,10 @@ class MotionBenchmakerDemo
 {
 public:
     /**
-     * @brief Initialize with a robot type and YAML problem file.
+     * @brief Initialize with a robot type and JSON problem file.
      *
      * @param robotName The VAMP robot name (e.g., "panda")
-     * @param problemFile Path to the YAML file containing problem definitions
+     * @param problemFile Path to the JSON file containing problem definitions
      * @param plannerName The OMPL planner to use (e.g., "RRTConnect", "RRTstar")
      */
     MotionBenchmakerDemo(const std::string& robotName,
@@ -99,8 +99,6 @@ private:
     /**
      * @brief Load problems from a JSON file (MBM format).
      */
-    void loadProblemsFromYAML(const std::string& filename);
-
     void loadProblemsFromJSON(const std::string& filename);
 
     /**
