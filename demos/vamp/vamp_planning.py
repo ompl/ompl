@@ -71,6 +71,7 @@ def create_environment(
     point_cloud = None
 
     if use_point_cloud:
+        # Sample points on the surface of each obstacle sphere to form a point cloud
         point_cloud = np.vstack(
             [
                 vamp.pointcloud.sphere_sample_surface(center, radius, points_per_sphere, 0.0)
@@ -78,8 +79,13 @@ def create_environment(
             ]
         ).astype(np.float32)
 
+        # r_min, r_max: smallest and largest collision sphere radii on the robot
         r_min, r_max = vamp.panda.min_max_radii()
+        # filter_pointcloud(cloud, radius, leaf_size, origin, lower_bound, upper_bound, sort)
+        #   - Filters and organizes the point cloud for efficient collision checking
         filtered_point_cloud_list, elapsed_ns = vamp.filter_pointcloud(point_cloud, r_min, 2, (0,0,0), (-2,-2,-2), (2,2,2), True)
+        # add_pointcloud(cloud, r_min, r_max, padding)
+        #   - padding: extra clearance added around each point
         n_added = env.add_pointcloud(filtered_point_cloud_list, r_min, r_max, 0.01)
     else:
         for sphere in spheres_copy:
