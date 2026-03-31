@@ -54,7 +54,7 @@ references:
     title: "Benchmarking Motion Planning Algorithms: An Extensible Infrastructure for Analysis and Visualization"
     issue: 3
     volume: 22
-    year: 2025
+    year: 2015
     scope: "Reference for OMPL's benchmarking capabilities and Planner Arena"
   - type: article
     authors:
@@ -95,6 +95,20 @@ references:
     title: "Motions in Microseconds via Vectorized Sampling-Based Planning"
     year: 2024
     scope: "Reference for VAMP"
+  - type: conference-paper
+    authors:
+    - family-names: "Guo"
+      given-names: "Weihang"
+    - family-names: "Tyrovouzis"
+      given-names: "Theodoros"
+    - family-names: "Kavraki"
+      given-names: "Lydia E."
+      orcid: https://orcid.org/0000-0003-0699-8038
+    conference:
+      name: "IEEE International Conference on Robotics and Automation (ICRA)"
+    title: "Python Bindings for a Large C++ Robotics Library: The Case of OMPL"
+    year: 2026
+    scope: "Reference for OMPL Python bindings"
 preferred-citation:
   type: article
   authors:

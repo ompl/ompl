@@ -58,26 +58,25 @@ if (OMPL_BUILD_DEMOS)
 
     add_ompl_demo(demo_SpaceTimePlanning SpaceTimePlanning.cpp)
 
-    # yaml-cpp is now a required dependency and target alias is handled in main CMakeLists.txt
-    if (OMPL_HAVE_YAMLCPP)
-        add_ompl_demo(demo_MulticopterPlanning 
-                    multicopter/MulticopterPlanning.cpp
-                    multicopter/Quartic.cpp)
+    add_ompl_demo(demo_MulticopterPlanning
+                multicopter/MulticopterPlanning.cpp
+                multicopter/Quartic.cpp)
 
+    if (OMPL_HAVE_YAMLCPP)
         add_ompl_demo(demo_PlanarManipulator
             PlanarManipulator/PlanarManipulatorDemo.cpp
             PlanarManipulator/PlanarManipulator.cpp
             PlanarManipulator/PolyWorld.cpp
         )
         target_link_libraries(demo_PlanarManipulator PRIVATE yaml-cpp::yaml-cpp)
+        
+        add_ompl_demo(demo_MultiLevelPlanarManipulator
+            multilevel/MultiLevelPlanarManipulatorDemo.cpp
+            PlanarManipulator/PlanarManipulator.cpp
+            PlanarManipulator/PolyWorld.cpp
+        )
+        target_link_libraries(demo_MultiLevelPlanarManipulator PRIVATE yaml-cpp::yaml-cpp)
     endif()
-    
-    add_ompl_demo(demo_MultiLevelPlanarManipulator
-        multilevel/MultiLevelPlanarManipulatorDemo.cpp
-        PlanarManipulator/PlanarManipulator.cpp
-        PlanarManipulator/PolyWorld.cpp
-    )
-    target_link_libraries(demo_MultiLevelPlanarManipulator PRIVATE yaml-cpp::yaml-cpp)
 
     if (OMPL_EXTENSION_TRIANGLE)
         add_ompl_demo(demo_TriangulationDemo TriangulationDemo.cpp)
