@@ -1,10 +1,10 @@
-# Motion Planning with VAMP {#vampPlanningTutorial}
+# Motion Planning for Realistic Robot Arms with VAMP {#vampPlanningTutorial}
 
 [TOC]
 
 This tutorial shows how to use [VAMP](https://github.com/KavrakiLab/vamp) (Vector-Accelerated Motion Planning) with OMPL for robot motion planning. VAMP provides SIMD-accelerated collision checking and forward kinematics, processing multiple robot configurations simultaneously using vectorized instructions. By plugging VAMP into OMPL's planning framework, you get the flexibility of OMPL's planner library with the speed of VAMP's collision checking.
 
-VAMP ships with built-in support for several robots including the Franka Panda, UR5, and Fetch. In this tutorial we will plan for a 7-DOF Panda arm navigating around sphere obstacles.
+VAMP ships with built-in support for several robots including the Franka Panda, UR5, and Fetch. In this tutorial we will plan for a 7-DOF Panda arm navigating around sphere obstacles. In this tutorial we use the Python bindings for OMPL. There is also a pure C++ version of this demo; see [VAMPPlanning.cpp](VAMPPlanning_8cpp_source.html).
 
 <div class="row justify-content-center"><div class="col-md-8 col-sm-8"><img src="images/vamp_sphere_cage.gif" class="img-fluid"><br><b>The Panda arm inside a cage of 14 sphere obstacles.</b></div></div>
 
@@ -53,14 +53,14 @@ Next, we implement a state validity checker that delegates to VAMP's `robot.vali
 
 ~~~{.py}
 class VampStateValidityChecker(ob.StateValidityChecker):
-    def __init__(self, si, env, robot):
+    def __init__(self, si: ob.SpaceInformation, env: vamp.Environment, robot: vamp.robot):
         super().__init__(si)
         self.env = env
         self.robot = robot
         self.dimension = robot.dimension()
 
-    def isValid(self, s):
-        config = s[0:self.dimension]
+    def isValid(self, state: ob.State) -> bool:
+        config = state[0:self.dimension]
         return self.robot.validate(config, self.env)
 ~~~
 
@@ -72,13 +72,13 @@ Finally, we implement a motion validator that checks whether an entire straight-
 
 ~~~{.py}
 class VampMotionValidator(ob.MotionValidator):
-    def __init__(self, si, env, robot):
+    def __init__(self, si: ob.SpaceInformation, env: vamp.Environment, robot: vamp.robot):
         super().__init__(si)
         self.env = env
         self.robot = robot
         self.dimension = robot.dimension()
 
-    def checkMotion(self, s1, s2):
+    def checkMotion(self, s1: ob.State, s2: ob.State) -> bool:
         config1 = s1[0:self.dimension]
         config2 = s2[0:self.dimension]
         return self.robot.validate_motion(config1, config2, self.env)
