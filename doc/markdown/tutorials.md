@@ -16,6 +16,7 @@ Below we include a number of tutorials we believe are useful for understanding h
 
 ## Intermediate
 
+- [Motion planning with VAMP](vampPlanningTutorial.html)
 - [Generic instructions for setting up a planning context](genericPlanning.html)
 - [Implementing new state spaces](implementingStateSpaces.html)
 - [Representing goals](goalRepresentation.html)
