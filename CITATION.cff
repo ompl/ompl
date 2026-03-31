@@ -54,7 +54,7 @@ references:
     title: "Benchmarking Motion Planning Algorithms: An Extensible Infrastructure for Analysis and Visualization"
     issue: 3
     volume: 22
-    year: 2025
+    year: 2015
     scope: "Reference for OMPL's benchmarking capabilities and Planner Arena"
   - type: article
     authors:
