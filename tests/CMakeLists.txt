@@ -69,9 +69,11 @@ if (OMPL_BUILD_TESTS)
 
     # Test VAMP integration
     if(OMPL_HAVE_VAMP)
-        add_ompl_test(test_vamp_integration util/test_vamp_integration.cpp)
+        add_ompl_test(test_vamp_integration vamp/test_vamp_integration.cpp)
+        add_ompl_test(test_vamp_planning vamp/vamp_test.cpp)
         if(TARGET vamp_cpp)
             target_link_libraries(test_vamp_integration vamp_cpp)
+            target_link_libraries(test_vamp_planning vamp_cpp)
             
             # Apply VAMP SIMD flags to the test to ensure SIMD functionality works
             if(DEFINED VAMP_SIMD_FLAGS)
