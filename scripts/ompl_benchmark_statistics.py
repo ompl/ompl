@@ -42,7 +42,6 @@ from pathlib import Path
 from ompl.tools import (
     readBenchmarkLog,
     computeViews,
-    plotStatistics,
     saveAsMysql,
 )
 
