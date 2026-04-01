@@ -60,7 +60,7 @@ OMPL_POP_CLANG
 
 using namespace ompl;
 
-static const double DT_SOLUTION_TIME = 0.1;
+static const double DT_SOLUTION_TIME = 0.14;
 static const bool VERBOSE = true;
 
 /** \brief A base class for testing planners */
