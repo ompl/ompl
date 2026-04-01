@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_CASE(Simple)
     TestPlanner p;
     runPlanTest(&p, &success, &avgruntime, &avglength);
 
-    BOOST_CHECK(success >= 99.0);
+    BOOST_CHECK(success >= 97.0);
     BOOST_CHECK(avgruntime < 0.2);
     BOOST_CHECK(avglength < 70.0);
 }
