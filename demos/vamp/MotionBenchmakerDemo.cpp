@@ -169,7 +169,7 @@ bool MotionBenchmakerDemo::setupProblem(
             float radius = c.get<float>("radius");
             float length = c.get<float>("length");
             if (is_box) {
-                std::array<float, 3> halfExtents = {radius, radius, length / 2.0};
+                std::array<float, 3> halfExtents = {radius, radius, length / 2.0f};
                 env_float.cuboids.emplace_back(
                     vamp::collision::factory::cuboid::array(center, orientation, halfExtents));
             } 
@@ -291,11 +291,9 @@ PlanningResult MotionBenchmakerDemo::solveInstance(
     ss_->setPlanner(planner);
 
     // Plan
-    auto startTime = std::chrono::steady_clock::now();
     ob::PlannerStatus status = ss_->solve(
         ob::timedPlannerTerminationCondition(timeoutSeconds)
     );
-    auto endTime = std::chrono::steady_clock::now();
 
     result.planningTime = ss_->getLastPlanComputationTime();
     result.simplificationTime = ss_->getLastSimplificationTime();
@@ -477,4 +475,3 @@ void MotionBenchmakerDemo::printStatistics(const std::string& problemName,
     }
     std::cout << std::endl;
 }
-
