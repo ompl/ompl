@@ -333,14 +333,14 @@ PlanningResult MotionBenchmakerDemo::benchmarkInstance(
     }
     auto space_info = ss_->getSpaceInformation();
     // setup benchmark
-    double memoryLimit = 4096;
+    double memoryLimit = 1000;
 
     std::string benchmarkName = robotName_ + "_" + problemName;
     ot::Benchmark b(*ss_, benchmarkName);
     ot::Benchmark::Request request(timeoutSeconds, memoryLimit, benchmarkTrials);
 
     b.addPlanner(std::make_shared<og::RRTConnect>(space_info));
-    b.addPlanner(std::make_shared<og::RRT>(space_info));
+    b.addPlanner(std::make_shared<og::PRM>(space_info));
     b.addPlanner(std::make_shared<og::KPIECE1>(space_info));    
     b.addPlanner(std::make_shared<og::LBKPIECE1>(space_info));
 
