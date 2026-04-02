@@ -124,7 +124,7 @@ def main(
         # Set this to x plans to do
         planner_constructors = [
             og.RRTConnect,
-            # og.RRT,
+            og.PRM,
             og.KPIECE1,
             og.LBKPIECE1,
         ]
