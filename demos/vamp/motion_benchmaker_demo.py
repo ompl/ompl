@@ -206,9 +206,12 @@ def main(
                 
                 # Benchmark
                 if benchmark:
-                    benchmark_name = f"{robot}_{name}"
+                    benchmark_name = "motion_bench_maker"
                     ompl_benchmark = ot.Benchmark(ss, benchmark_name)
-            
+                    ompl_benchmark.addExperimentParameter("robot", "TEXT", robot)
+                    ompl_benchmark.addExperimentParameter("environment", "TEXT", name)
+                    ompl_benchmark.addExperimentParameter("representation", "TEXT", "pointcloud" if pointcloud else "mesh")
+                    
                     for planner_constructor in planner_constructors:
                         ompl_benchmark.addPlanner(planner_constructor(si))
                     
@@ -224,8 +227,8 @@ def main(
                     
                     # Save results
                     file = str(f"vamp_mbm_python")
-                    log_file = file + ".log"
-                    db_file = file + ".db"
+                    log_file = str(benchmark_dir / (file + ".log"))
+                    db_file = str(benchmark_dir / (file + ".db"))
                     
                     ompl_benchmark.saveResultsToFile(log_file)
                     print(f"  Saved log to: {log_file}")
