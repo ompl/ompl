@@ -105,7 +105,7 @@ def planOnce(
             for sphere in spheres:
                 visualizer.add_sphere(sphere, radius, color=(0.8, 0.4, 0.2))
             
-            path.interpolate(50)
+            path.interpolate(int(path.getStateCount() * 15))
             states = path.getStates()
             trajectory = np.array([list(state[0:dimension]) for state in states])
             visualizer.visualize_trajectory(trajectory)
