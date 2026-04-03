@@ -127,6 +127,7 @@ def main(
             og.PRM,
             og.KPIECE1,
             og.LBKPIECE1,
+            og.RRT,
         ]
         
     tick = time.perf_counter()
@@ -206,8 +207,7 @@ def main(
                 
                 # Benchmark
                 if benchmark:
-                    benchmark_name = "motion_bench_maker"
-                    ompl_benchmark = ot.Benchmark(ss, benchmark_name)
+                    ompl_benchmark = ot.Benchmark(ss, "motion_benchmaker")
                     ompl_benchmark.addExperimentParameter("robot", "TEXT", robot)
                     ompl_benchmark.addExperimentParameter("environment", "TEXT", name)
                     ompl_benchmark.addExperimentParameter("representation", "TEXT", "pointcloud" if pointcloud else "mesh")
@@ -226,7 +226,7 @@ def main(
                     ompl_benchmark.benchmark(req)
                     
                     # Save results
-                    file = str(f"vamp_mbm_python")
+                    file = str(f"{robot}_{name}_benchmark")
                     log_file = str(benchmark_dir / (file + ".log"))
                     db_file = str(benchmark_dir / (file + ".db"))
                     
