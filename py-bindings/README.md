@@ -7,6 +7,10 @@ The Python bindings mirror OMPL’s C++ API. For detailed usage, refer to:
 - The [C++ OMPL documentation](https://ompl.kavrakilab.org/)  
 - The sample scripts in the `pyexamples/` directory  
 
+## Prerequisites
+
+Generating Python bindings requires a **C++11-compatible compiler**, as [CastXML](https://github.com/CastXML/CastXML) (used for binding generation) depends on C++11.
+
 ## How is Nanobind organized?
 
 We use **Nanobind** to generate Python bindings for OMPL. For every OMPL header, there is a corresponding binding file in the `bindings/` directory, organized into subfolders that mirror OMPL’s module structure. For example, all bindings for `ompl::base` live under `bindings/base`.

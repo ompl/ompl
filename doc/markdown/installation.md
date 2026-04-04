@@ -41,6 +41,7 @@ sudo apt-get install ros-`rosversion -d`-ompl</pre>
         Please see <a href="https://moveit.ai">MoveIt</a> for further information.
       </div>
     </div>
+    <p><strong>Note:</strong> Generating Python bindings from source requires a C++11-compatible compiler, as <a href="https://github.com/CastXML/CastXML">CastXML</a> (used for binding generation) depends on C++11.</p>
   </div>
 
   <!-- Fedora -->
