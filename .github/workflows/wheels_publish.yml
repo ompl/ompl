@@ -11,8 +11,14 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment: pypi
+    permissions:
+      actions: read
+      contents: read
 
     steps:
+      - name: Print run id
+        run: echo "RUN_ID=${{ github.event.inputs.run_id }}"
+
       - name: Set up Python
         uses: actions/setup-python@v6
 
