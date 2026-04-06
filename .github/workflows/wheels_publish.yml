@@ -1,0 +1,35 @@
+name: Publish to PyPI
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Run ID of the build workflow to fetch artifacts from"
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v6
+
+      - name: Download artifacts from build workflow
+        uses: actions/download-artifact@v6
+        with:
+          run-id: ${{ github.event.inputs.run_id }}
+          path: dist
+          pattern: wheels-*
+          merge-multiple: true
+
+      - name: Show downloaded files (debug)
+        run: ls -R dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}
