@@ -22,11 +22,14 @@ namespace ompl::vamp
         Robot::scale_configuration(zero_v);
         Robot::scale_configuration(one_v);
 
+        auto zero_arr = zero_v.to_array();
+        auto one_arr = one_v.to_array();
+
         ob::RealVectorBounds bounds(Robot::dimension);
         for (auto i = 0U; i < Robot::dimension; ++i)
         {
-            bounds.setLow(i, zero_v[{0, i}]);
-            bounds.setHigh(i, one_v[{0, i}]);
+            bounds.setLow(i, zero_arr[i]);
+            bounds.setHigh(i, one_arr[i]);
         }
 
         return bounds;
