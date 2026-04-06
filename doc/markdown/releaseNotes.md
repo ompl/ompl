@@ -1,6 +1,6 @@
 # Release Notes {#releaseNotes}
 
-## OMPL 2.0.0 (TBD)
+## OMPL 2.0.0 (April 6, 2026)
 
 - Completely rewritten Python bindings.
   - Enabled by default if Python is detected at build time.
