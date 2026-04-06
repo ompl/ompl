@@ -53,7 +53,7 @@ This will run a benchmark for `<number_of_trials>` trials on one problem for eac
 Use the provided Python script to analyze the generated `.log` files from the benchmark runs:
 
 ```bash
-python <ompl_directory>/scripts/ompl_benchmark_statistics.py <generated_log_filename>.log -d <generated_log_filename>.db
+python <ompl_directory>/scripts/ompl_benchmark_statistics.py -d <generated_log_filename>.db <generated_log_filename>.log [<generated_log_filename2>.log ...]
 ```
 
 These can be uploaded to [PlannerArena](https://planner-arena.kavrakilab.rice.edu/) for visualization
