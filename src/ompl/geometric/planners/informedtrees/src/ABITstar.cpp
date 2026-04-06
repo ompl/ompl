@@ -60,7 +60,8 @@ namespace ompl
                                           &ABITstar::getInitialInflationFactor, "1.0:0.01:1000000.0");
             Planner::declareParam<double>("inflation_scaling_parameter", this, &ABITstar::setInflationScalingParameter,
                                           &ABITstar::getInflationScalingParameter, "1.0:0.01:1000000.0");
-            Planner::declareParam<double>("truncation_scaling_parameter", this, &ABITstar::setTruncationScalingParameter,
+            Planner::declareParam<double>("truncation_scaling_parameter", this,
+                                          &ABITstar::setTruncationScalingParameter,
                                           &ABITstar::getTruncationScalingParameter, "1.0:0.01:1000000.0");
         }
 

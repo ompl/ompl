@@ -43,6 +43,7 @@ from ompl import geometric as og
 from math import sqrt
 import argparse
 
+
 ## @cond IGNORE
 # Our "collision checker". For this demo, our robot's state space
 # lies in [0,1]x[0,1], with a circular obstacle of radius 0.25
@@ -63,7 +64,7 @@ class ValidityChecker(ob.StateValidityChecker):
 
         # Distance formula between two points, offset by the circle's
         # radius
-        return sqrt((x-0.5)*(x-0.5) + (y-0.5)*(y-0.5)) - 0.25
+        return sqrt((x - 0.5) * (x - 0.5) + (y - 0.5) * (y - 0.5)) - 0.25
 
 
 ## Returns a structure representing the optimization objective to use
@@ -73,6 +74,7 @@ class ValidityChecker(ob.StateValidityChecker):
 def getPathLengthObjective(si):
     return ob.PathLengthOptimizationObjective(si)
 
+
 ## Returns an optimization objective which attempts to minimize path
 #  length that is satisfied when a path of length shorter than 1.51
 #  is found.
@@ -80,6 +82,7 @@ def getThresholdPathLengthObj(si):
     obj = ob.PathLengthOptimizationObjective(si)
     obj.setCostThreshold(ob.Cost(1.51))
     return obj
+
 
 ## Defines an optimization objective which attempts to steer the
 #  robot away from obstacles. To formulate this objective as a
@@ -104,13 +107,16 @@ class ClearanceObjective(ob.StateCostIntegralObjective):
     # reciprocal of its clearance, so that as state clearance
     # increases, the state cost decreases.
     def stateCost(self, s):
-        return ob.Cost(1 / (self.si_.getStateValidityChecker().clearance(s) +
-                            sys.float_info.min))
+        return ob.Cost(
+            1 / (self.si_.getStateValidityChecker().clearance(s) + sys.float_info.min)
+        )
+
 
 ## Return an optimization objective which attempts to steer the robot
 #  away from obstacles.
 def getClearanceObjective(si):
     return ClearanceObjective(si)
+
 
 ## Create an optimization objective which attempts to optimize both
 #  path length and clearance. We do this by defining our individual
@@ -132,6 +138,7 @@ def getBalancedObjective1(si):
     opt.addObjective(clearObj, 1.0)
 
     return opt
+
 
 ## Create an optimization objective equivalent to the one returned by
 #  getBalancedObjective1(), but use an alternate syntax.
@@ -185,8 +192,9 @@ def allocateObjective(si, objectiveType):
     elif objectiveType.lower() == "weightedlengthandclearancecombo":
         return getBalancedObjective1(si)
     else:
-        ou.OMPL_ERROR("Optimization-objective is not implemented in allocation function.")
-
+        ou.OMPL_ERROR(
+            "Optimization-objective is not implemented in allocation function."
+        )
 
 
 def plan(runTime, plannerType, objectiveType, fname):
@@ -241,40 +249,81 @@ def plan(runTime, plannerType, objectiveType, fname):
 
     if solved:
         # Output the length of the path found
-        print('{0} found solution of path length {1:.4f} with an optimization ' \
-            'objective value of {2:.4f}'.format( \
-            optimizingPlanner.getName(), \
-            pdef.getSolutionPath().length(), \
-            pdef.getSolutionPath().cost(pdef.getOptimizationObjective()).value()))
+        print(
+            "{0} found solution of path length {1:.4f} with an optimization "
+            "objective value of {2:.4f}".format(
+                optimizingPlanner.getName(),
+                pdef.getSolutionPath().length(),
+                pdef.getSolutionPath().cost(pdef.getOptimizationObjective()).value(),
+            )
+        )
 
         # If a filename was specified, output the path as a matrix to
         # that file for visualization
         if fname:
-            with open(fname, 'w') as outFile:
+            with open(fname, "w") as outFile:
                 outFile.write(pdef.getSolutionPath().printAsMatrix())
     else:
         print("No solution found.")
 
+
 if __name__ == "__main__":
     # Create an argument parser
-    parser = argparse.ArgumentParser(description='Optimal motion planning demo program.')
+    parser = argparse.ArgumentParser(
+        description="Optimal motion planning demo program."
+    )
 
     # Add a filename argument
-    parser.add_argument('-t', '--runtime', type=float, default=1.0, help=\
-        '(Optional) Specify the runtime in seconds. Defaults to 1 and must be greater than 0.')
-    parser.add_argument('-p', '--planner', default='RRTstar', \
-        choices=['AORRTC', 'BFMTstar', 'BITstar', 'FMTstar', 'InformedRRTstar', 'PRMstar', 'RRTstar', \
-        'SORRTstar'], \
-        help='(Optional) Specify the optimal planner to use, defaults to RRTstar if not given.')
-    parser.add_argument('-o', '--objective', default='PathLength', \
-        choices=['PathClearance', 'PathLength', 'ThresholdPathLength', \
-        'WeightedLengthAndClearanceCombo'], \
-        help='(Optional) Specify the optimization objective, defaults to PathLength if not given.')
-    parser.add_argument('-f', '--file', default=None, \
-        help='(Optional) Specify an output path for the found solution path.')
-    parser.add_argument('-i', '--info', type=int, default=0, choices=[0, 1, 2], \
-        help='(Optional) Set the OMPL log level. 0 for WARN, 1 for INFO, 2 for DEBUG.' \
-        ' Defaults to WARN.')
+    parser.add_argument(
+        "-t",
+        "--runtime",
+        type=float,
+        default=1.0,
+        help="(Optional) Specify the runtime in seconds. Defaults to 1 and must be greater than 0.",
+    )
+    parser.add_argument(
+        "-p",
+        "--planner",
+        default="RRTstar",
+        choices=[
+            "AORRTC",
+            "BFMTstar",
+            "BITstar",
+            "FMTstar",
+            "InformedRRTstar",
+            "PRMstar",
+            "RRTstar",
+            "SORRTstar",
+        ],
+        help="(Optional) Specify the optimal planner to use, defaults to RRTstar if not given.",
+    )
+    parser.add_argument(
+        "-o",
+        "--objective",
+        default="PathLength",
+        choices=[
+            "PathClearance",
+            "PathLength",
+            "ThresholdPathLength",
+            "WeightedLengthAndClearanceCombo",
+        ],
+        help="(Optional) Specify the optimization objective, defaults to PathLength if not given.",
+    )
+    parser.add_argument(
+        "-f",
+        "--file",
+        default=None,
+        help="(Optional) Specify an output path for the found solution path.",
+    )
+    parser.add_argument(
+        "-i",
+        "--info",
+        type=int,
+        default=0,
+        choices=[0, 1, 2],
+        help="(Optional) Set the OMPL log level. 0 for WARN, 1 for INFO, 2 for DEBUG."
+        " Defaults to WARN.",
+    )
 
     # Parse the arguments
     args = parser.parse_args()
@@ -282,8 +331,9 @@ if __name__ == "__main__":
     # Check that time is positive
     if args.runtime <= 0:
         raise argparse.ArgumentTypeError(
-            "argument -t/--runtime: invalid choice: %r (choose a positive number greater than 0)" \
-            % (args.runtime,))
+            "argument -t/--runtime: invalid choice: %r (choose a positive number greater than 0)"
+            % (args.runtime,)
+        )
 
     # Set the log level
     if args.info == 0:

@@ -207,6 +207,6 @@ namespace ompl
             /** \brief States data for display to console  */
             ExperienceStats stats_;
         };
-    }
-}
+    }  // namespace tools
+}  // namespace ompl
 #endif

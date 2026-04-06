@@ -132,9 +132,8 @@ namespace ompl
                 assert(vertex);
 
                 // Find the child that is to be removed.
-                const auto it = std::find_if(children_.begin(), children_.end(), [&vertex](const auto &child) {
-                    return child->getId() == vertex->getId();
-                });
+                const auto it = std::find_if(children_.begin(), children_.end(), [&vertex](const auto &child)
+                                             { return child->getId() == vertex->getId(); });
 
                 // If the provided vertex is not a child, this is a bug.
                 assert(it != children_.end());
@@ -176,9 +175,8 @@ namespace ompl
 
             void Vertex::updateParent(const std::shared_ptr<Vertex> &vertex)
             {
-                assert(std::find_if(children_.begin(), children_.end(), [&vertex](const auto &child) {
-                           return vertex->getId() == child->getId();
-                       }) == children_.end());
+                assert(std::find_if(children_.begin(), children_.end(), [&vertex](const auto &child)
+                                    { return vertex->getId() == child->getId(); }) == children_.end());
 
                 // If we already have a parent, update its children.
                 if (auto parent = parent_.lock())

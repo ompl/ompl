@@ -45,8 +45,7 @@ using namespace boost::math::double_constants;
 
 void ompl::base::SO2StateSampler::sampleUniform(State *state)
 {
-    state->as<SO2StateSpace::StateType>()->value =
-        rng_.uniformReal(-pi, pi);
+    state->as<SO2StateSpace::StateType>()->value = rng_.uniformReal(-pi, pi);
 }
 
 void ompl::base::SO2StateSampler::sampleUniformNear(State *state, const State *near, const double distance)
@@ -89,8 +88,7 @@ void ompl::base::SO2StateSpace::enforceBounds(State *state) const
 
 bool ompl::base::SO2StateSpace::satisfiesBounds(const State *state) const
 {
-    return (state->as<StateType>()->value < pi) &&
-           (state->as<StateType>()->value >= -pi);
+    return (state->as<StateType>()->value < pi) && (state->as<StateType>()->value >= -pi);
 }
 
 void ompl::base::SO2StateSpace::copyState(State *destination, const State *source) const

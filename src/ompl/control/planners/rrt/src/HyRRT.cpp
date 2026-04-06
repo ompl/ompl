@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the University of Santa Cruz nor the names of 
+ *   * Neither the name of the University of Santa Cruz nor the names of
  *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -53,7 +53,8 @@ ompl::control::HyRRT::HyRRT(const control::SpaceInformationPtr &si_) : base::Pla
     siC_ = si_.get();
 }
 
-ompl::control::HyRRT::~HyRRT() {
+ompl::control::HyRRT::~HyRRT()
+{
     freeMemory();
 }
 
@@ -340,7 +341,7 @@ void ompl::control::HyRRT::freeMemory(void)
                 si_->freeState(motion->state);
             if (motion->control)
                 siC_->freeControl(motion->control);
-            if (motion->solutionPair) 
+            if (motion->solutionPair)
             {
                 for (base::State *state : *motion->solutionPair)
                     si_->freeState(state);

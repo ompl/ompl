@@ -15,4 +15,3 @@ void ompl::binding::geometric::initPlannersRrt_SORRTstar(nb::module_ &m)
     nb::class_<og::SORRTstar, og::InformedRRTstar>(m, "SORRTstar")
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"));
 }
-

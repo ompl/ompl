@@ -128,7 +128,7 @@ namespace ompl
              * space. */
             Eigen::Vector3f toVector(const State *state) const;
         };
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 
 #endif

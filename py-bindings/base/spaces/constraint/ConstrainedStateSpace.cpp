@@ -61,22 +61,23 @@ void ompl::binding::base::initSpacesConstraint_ConstrainedStateSpace(nb::module_
              nb::arg("s1"), nb::arg("s2"));
 
     // TODO [ob::ConstrainedStateSpace::StateType][TEST]
-    nb::class_<ompl::base::ConstrainedStateSpace::StateType, ompl::base::WrapperStateSpace::StateType>(m, "ConstrainedStateSpaceStateType")
-        .def("copy",
-         [](ob::ConstrainedStateSpace::StateType &st,
-            const std::vector<double> &vec)
-         {
-             Eigen::VectorXd v = Eigen::Map<const Eigen::VectorXd>(vec.data(),
-                                                                   vec.size());
-             st.copy(v);
-         },
-         nb::arg("other"))
-         .def("__getitem__", [](const ob::ConstrainedStateSpace::StateType &st, unsigned int i) {
-             return st[i];
-         }, nb::arg("i"));
+    nb::class_<ompl::base::ConstrainedStateSpace::StateType, ompl::base::WrapperStateSpace::StateType>(
+        m, "ConstrainedStateSpaceStateType")
+        .def(
+            "copy",
+            [](ob::ConstrainedStateSpace::StateType &st, const std::vector<double> &vec)
+            {
+                Eigen::VectorXd v = Eigen::Map<const Eigen::VectorXd>(vec.data(), vec.size());
+                st.copy(v);
+            },
+            nb::arg("other"))
+        .def(
+            "__getitem__", [](const ob::ConstrainedStateSpace::StateType &st, unsigned int i) { return st[i]; },
+            nb::arg("i"));
 
     // TODO [ob::ConstrainedStateSpace][TEST]
-    nb::class_<ob::ConstrainedStateSpace, ob::WrapperStateSpace, PyConstrainedStateSpace /* <-- trampoline */>(m, "ConstrainedStateSpace")
+    nb::class_<ob::ConstrainedStateSpace, ob::WrapperStateSpace, PyConstrainedStateSpace /* <-- trampoline */>(
+        m, "ConstrainedStateSpace")
         .def(nb::init<const ob::StateSpacePtr &, const ob::ConstraintPtr &>(), nb::arg("ambientSpace"),
              nb::arg("constraint"))
         .def("setSpaceInformation", &ob::ConstrainedStateSpace::setSpaceInformation, nb::arg("si"))

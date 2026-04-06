@@ -33,21 +33,22 @@ void ompl::binding::tools::initBenchmark_Benchmark(nb::module_ &m)
     // explicit std::map base removed to avoid conflict with default type casters
     nb::class_<ot::Benchmark::RunProperties>(m, "RunProperties")
         .def(nb::init<>())
-        .def("__getitem__", [](const ot::Benchmark::RunProperties &p, const std::string &key) {
-             auto it = p.find(key);
-             if (it == p.end()) throw nb::key_error();
-             return it->second;
-        })
-        .def("__setitem__", [](ot::Benchmark::RunProperties &p, const std::string &key, const std::string &val) {
-             p[key] = val;
-        })
+        .def("__getitem__",
+             [](const ot::Benchmark::RunProperties &p, const std::string &key)
+             {
+                 auto it = p.find(key);
+                 if (it == p.end())
+                     throw nb::key_error();
+                 return it->second;
+             })
+        .def("__setitem__",
+             [](ot::Benchmark::RunProperties &p, const std::string &key, const std::string &val) { p[key] = val; })
         .def("__len__", &ot::Benchmark::RunProperties::size)
-        .def("__contains__", [](const ot::Benchmark::RunProperties &p, const std::string &key) {
-             return p.find(key) != p.end();
-        })
-        .def("to_dict", [](const ot::Benchmark::RunProperties &p) -> std::map<std::string, std::string> {
-             return p;
-        }, "Convert to a Python dictionary copy.");
+        .def("__contains__",
+             [](const ot::Benchmark::RunProperties &p, const std::string &key) { return p.find(key) != p.end(); })
+        .def(
+            "to_dict", [](const ot::Benchmark::RunProperties &p) -> std::map<std::string, std::string> { return p; },
+            "Convert to a Python dictionary copy.");
 
     // Bind PlannerExperiment struct
     nb::class_<ot::Benchmark::PlannerExperiment>(m, "PlannerExperiment")
@@ -77,14 +78,9 @@ void ompl::binding::tools::initBenchmark_Benchmark(nb::module_ &m)
 
     // Bind Request struct
     nb::class_<ot::Benchmark::Request>(m, "Request")
-        .def(nb::init<double, double, unsigned int, double, bool, bool, bool>(),
-             nb::arg("maxTime") = 5.0,
-             nb::arg("maxMem") = 4096.0,
-             nb::arg("runCount") = 100,
-             nb::arg("timeBetweenUpdates") = 0.05,
-             nb::arg("displayProgress") = true,
-             nb::arg("saveConsoleOutput") = true,
-             nb::arg("simplify") = true)
+        .def(nb::init<double, double, unsigned int, double, bool, bool, bool>(), nb::arg("maxTime") = 5.0,
+             nb::arg("maxMem") = 4096.0, nb::arg("runCount") = 100, nb::arg("timeBetweenUpdates") = 0.05,
+             nb::arg("displayProgress") = true, nb::arg("saveConsoleOutput") = true, nb::arg("simplify") = true)
         .def_rw("maxTime", &ot::Benchmark::Request::maxTime)
         .def_rw("maxMem", &ot::Benchmark::Request::maxMem)
         .def_rw("runCount", &ot::Benchmark::Request::runCount)
@@ -96,22 +92,18 @@ void ompl::binding::tools::initBenchmark_Benchmark(nb::module_ &m)
     // Bind Benchmark class
     nb::class_<ot::Benchmark>(m, "Benchmark")
         // Constructors
-        .def(nb::init<og::SimpleSetup &, const std::string &>(),
-             nb::arg("setup"), nb::arg("name") = std::string())
-        .def(nb::init<oc::SimpleSetup &, const std::string &>(),
-             nb::arg("setup"), nb::arg("name") = std::string())
+        .def(nb::init<og::SimpleSetup &, const std::string &>(), nb::arg("setup"), nb::arg("name") = std::string())
+        .def(nb::init<oc::SimpleSetup &, const std::string &>(), nb::arg("setup"), nb::arg("name") = std::string())
 
         // Experiment parameter methods
-        .def("addExperimentParameter", &ot::Benchmark::addExperimentParameter,
-             nb::arg("name"), nb::arg("type"), nb::arg("value"))
-        .def("getExperimentParameters", &ot::Benchmark::getExperimentParameters,
-             nb::rv_policy::reference_internal)
+        .def("addExperimentParameter", &ot::Benchmark::addExperimentParameter, nb::arg("name"), nb::arg("type"),
+             nb::arg("value"))
+        .def("getExperimentParameters", &ot::Benchmark::getExperimentParameters, nb::rv_policy::reference_internal)
         .def("numExperimentParameters", &ot::Benchmark::numExperimentParameters)
 
         // Experiment name methods
         .def("setExperimentName", &ot::Benchmark::setExperimentName, nb::arg("name"))
-        .def("getExperimentName", &ot::Benchmark::getExperimentName,
-             nb::rv_policy::reference_internal)
+        .def("getExperimentName", &ot::Benchmark::getExperimentName, nb::rv_policy::reference_internal)
 
         // Planner management methods
         .def("addPlanner", &ot::Benchmark::addPlanner, nb::arg("planner"))
@@ -128,21 +120,14 @@ void ompl::binding::tools::initBenchmark_Benchmark(nb::module_ &m)
 
         // Status and data access
         .def("getStatus", &ot::Benchmark::getStatus, nb::rv_policy::reference_internal)
-        .def("getRecordedExperimentData", &ot::Benchmark::getRecordedExperimentData,
-             nb::rv_policy::reference_internal)
+        .def("getRecordedExperimentData", &ot::Benchmark::getRecordedExperimentData, nb::rv_policy::reference_internal)
 
         // Save results methods
-        .def("saveResultsToStream", 
-             [](const ot::Benchmark &self) {
-                 return self.saveResultsToStream(std::cout);
-             },
-             "Save the results of the benchmark to stdout.")
-        .def("saveResultsToFile", 
-             nb::overload_cast<const char *>(&ot::Benchmark::saveResultsToFile, nb::const_),
-             nb::arg("filename"),
-             "Save the results of the benchmark to a file.")
-        .def("saveResultsToFile",
-             nb::overload_cast<>(&ot::Benchmark::saveResultsToFile, nb::const_),
+        .def(
+            "saveResultsToStream", [](const ot::Benchmark &self) { return self.saveResultsToStream(std::cout); },
+            "Save the results of the benchmark to stdout.")
+        .def("saveResultsToFile", nb::overload_cast<const char *>(&ot::Benchmark::saveResultsToFile, nb::const_),
+             nb::arg("filename"), "Save the results of the benchmark to a file.")
+        .def("saveResultsToFile", nb::overload_cast<>(&ot::Benchmark::saveResultsToFile, nb::const_),
              "Save the results of the benchmark to a file with auto-generated name.");
 }
-

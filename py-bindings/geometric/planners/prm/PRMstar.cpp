@@ -9,11 +9,8 @@ namespace nb = nanobind;
 using namespace ompl::geometric;
 using namespace ompl::base;
 
-void ompl::binding::geometric::initPlannersPrm_PRMstar(nb::module_& m)
+void ompl::binding::geometric::initPlannersPrm_PRMstar(nb::module_ &m)
 {
     // TAG [og::PRMstar][Planner]
-    nb::class_<PRMstar, PRM>(m, "PRMstar")
-        .def(nb::init<const SpaceInformationPtr&>(),
-             nb::arg("si"));
+    nb::class_<PRMstar, PRM>(m, "PRMstar").def(nb::init<const SpaceInformationPtr &>(), nb::arg("si"));
 }
-

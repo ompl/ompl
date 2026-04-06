@@ -56,4 +56,3 @@ void ompl::binding::geometric::initPlannersKpiece_Discretization(nb::module_ &m)
         // Free memory
         .def("freeMemory", &PyDiscretization::freeMemory);
 }
-

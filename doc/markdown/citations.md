@@ -27,7 +27,7 @@ If you use OMPL in your research, we kindly ask you to include the following cit
 
 If you use the OMPL Python bindings, then we kindly ask you to include the following citation in your publications:
 <ul>
-<li> Weihang Guo, Theodoros Tyrovouzis, and Lydia E. Kavraki, Python Bindings for a Large C++ Robotics Library: The Case of OMPL, _2026 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE, 2026. 
+<li> Weihang Guo, Theodoros Tyrovouzis, and Lydia E. Kavraki, Python Bindings for a Large C++ Robotics Library: The Case of OMPL, _2026 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE, 2026.
 \htmlonly
 <br><div class="btn-group btn-group-xs">
   <a class="btn btn-primary" href="https://arxiv.org/abs/2603.04668"> pdf </a>

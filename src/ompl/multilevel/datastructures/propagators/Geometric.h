@@ -18,7 +18,7 @@ namespace ompl
 
             virtual bool steer(const Configuration *from, const Configuration *to, Configuration *result) override;
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 #endif

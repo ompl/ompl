@@ -33,7 +33,7 @@ metadata.version.input = "../CMakeLists.txt"
 metadata.version.regex = '''(?i)project\s*\(\s*\w+\s+VERSION\s+(?P<value>[\d.]+)'''
 
 [tool.scikit-build.cmake]
-source-dir = ".." 
+source-dir = ".."
 args = [
     "-DOMPL_BUILD_PYTHON_BINDINGS=ON",
     "-DOMPL_BUILD_DEMOS=OFF",

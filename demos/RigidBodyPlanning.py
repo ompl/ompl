@@ -39,11 +39,13 @@
 from ompl import base as ob
 from ompl import geometric as og
 
+
 def isStateValid(state):
     # Some arbitrary condition on the state (note that thanks to
     # dynamic type checking we can just call getX() and do not need
     # to convert state to an SE2State.)
-    return state.getX() < .6
+    return state.getX() < 0.6
+
 
 def planWithSimpleSetup():
     # create an SE2 state space
@@ -64,13 +66,13 @@ def planWithSimpleSetup():
     # we can pick a random start state...
     sampler.sampleUniform(start)
     # ... or set specific values
-    start.setX(.5)
+    start.setX(0.5)
 
     goal = ss.getStateSpace().allocState()
     # we can pick a random goal state...
     sampler.sampleUniform(goal)
     # ... or set specific values
-    goal.setX(-.5)
+    goal.setX(-0.5)
 
     ss.setStartAndGoalStates(start, goal)
 

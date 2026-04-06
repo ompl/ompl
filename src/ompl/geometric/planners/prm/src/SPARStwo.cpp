@@ -715,8 +715,8 @@ void ompl::geometric::SPARStwo::distanceCheck(Vertex rep, const base::State *q, 
             }
             else  // We know both of these points exist, so we can check some distances
                 if (si_->distance(q, d.pointB_) < si_->distance(d.pointA_, d.pointB_))
-                // Distance with the new point is good, so set it.
-                d.setFirst(q, s, si_);
+                    // Distance with the new point is good, so set it.
+                    d.setFirst(q, s, si_);
         }
     }
     else  // SECOND points represent r (the guy discovered through sampling)

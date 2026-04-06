@@ -3,14 +3,19 @@ import tempfile
 import os
 from ompl import util
 
+
 def test_set_get_log_level():
     # Save original log level
     original_level = util.getLogLevel()
 
     # Test setting each log level
-    for level in [util.LogLevel.LOG_DEBUG, util.LogLevel.LOG_INFO,
-                  util.LogLevel.LOG_WARN, util.LogLevel.LOG_ERROR,
-                  util.LogLevel.LOG_NONE]:
+    for level in [
+        util.LogLevel.LOG_DEBUG,
+        util.LogLevel.LOG_INFO,
+        util.LogLevel.LOG_WARN,
+        util.LogLevel.LOG_ERROR,
+        util.LogLevel.LOG_NONE,
+    ]:
         util.setLogLevel(level)
         assert util.getLogLevel() == level
 
@@ -39,7 +44,7 @@ def test_output_handler_std():
 
 def test_output_handler_file():
     # Create a temporary file for logging
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.log') as f:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".log") as f:
         temp_path = f.name
 
     try:
@@ -52,7 +57,7 @@ def test_output_handler_file():
 
         # Verify the file was created and contains content
         assert os.path.exists(temp_path)
-        with open(temp_path, 'r') as f:
+        with open(temp_path, "r") as f:
             content = f.read()
             assert "File log test" in content
     finally:
@@ -111,4 +116,3 @@ def test_log_level_filtering():
 
     # Restore original log level
     util.setLogLevel(original_level)
-

@@ -4,9 +4,11 @@ from ompl import base as ob
 from ompl import control as oc
 import pytest
 
+
 def isStateValid(spaceInformation, state):
     # perform collision checking or check if other constraints are satisfied
     return spaceInformation.satisfiesBounds(state)
+
 
 def propagate(temp1, control, duration, state):
     # For demonstration, intentionally messing up the partial usage
@@ -15,10 +17,11 @@ def propagate(temp1, control, duration, state):
     state.setY(temp1.getY() + control[0] * duration * (temp1.getYaw()))
     state.setYaw(temp1.getYaw() + control[1] * duration)
 
+
 def test_control_no_planner():
     # 1) Construct the SE2 state space
     space = ob.SE2StateSpace()
-    
+
     # set R^2 bounds
     bounds = ob.RealVectorBounds(2)
     bounds.setLow(-1)
@@ -42,7 +45,7 @@ def test_control_no_planner():
     # 5) Provide a state validity checker as a lambda
     # This partial-lambda structure ensures the argument signature matches (State*) -> bool
     ss.setStateValidityChecker(lambda s: isStateValid(ss.getSpaceInformation(), s))
-    
+
     # 6) Provide a state propagator
     ss.setStatePropagator(propagate)
 
@@ -71,12 +74,14 @@ def test_control_no_planner():
 
     del ss
     import gc
+
     gc.collect()
+
 
 def test_control_rrt():
     # 1) Construct the SE2 state space
     space = ob.SE2StateSpace()
-    
+
     # set R^2 bounds
     bounds = ob.RealVectorBounds(2)
     bounds.setLow(-1)
@@ -100,7 +105,7 @@ def test_control_rrt():
     # 5) Provide a state validity checker as a lambda
     # This partial-lambda structure ensures the argument signature matches (State*) -> bool
     ss.setStateValidityChecker(lambda s: isStateValid(ss.getSpaceInformation(), s))
-    
+
     # 6) Provide a state propagator
     ss.setStatePropagator(propagate)
 

@@ -53,7 +53,7 @@ namespace ompl
         {
             namespace
             {
-std::size_t generateId()
+                std::size_t generateId()
                 {
                     static std::atomic<std::size_t> id{0u};
                     return id++;
@@ -131,58 +131,57 @@ std::size_t generateId()
             ompl::base::Cost Vertex::getCostToComeFromStart() const
             {
                 return costToComeFromStart_;
-            }         
-            
-            
+            }
+
             bool Vertex::isGoal()
             {
-                return  goalVertex_;
+                return goalVertex_;
             }
-            
+
             bool Vertex::isStart()
             {
-                return  startVertex_; 
-            } 
+                return startVertex_;
+            }
             void Vertex::setGoalVertex()
             {
-                  goalVertex_ = true; 
+                goalVertex_ = true;
             }
             void Vertex::setStartVertex()
             {
-                  startVertex_ = true;
+                startVertex_ = true;
             }
-                       
+
             void Vertex::setForwardId(const std::size_t counter)
             {
-                    ForwardVersion_ = counter;
+                ForwardVersion_ = counter;
             }
             std::size_t Vertex::getForwardId()
             {
-                   return ForwardVersion_; 
+                return ForwardVersion_;
             }
             void Vertex::resetForwardId()
             {
-                   ForwardVersion_ = 0u;
+                ForwardVersion_ = 0u;
             }
-            
+
             void Vertex::setReverseId(const std::size_t counter)
             {
-                    ReverseVersion_ = counter;
+                ReverseVersion_ = counter;
             }
             std::size_t Vertex::getReverseId()
             {
-                   return ReverseVersion_; 
+                return ReverseVersion_;
             }
             void Vertex::resetReverseId()
             {
-                   ReverseVersion_ = 0u;
+                ReverseVersion_ = 0u;
             }
 
             ompl::base::Cost Vertex::getCostToComeFromGoal() const
             {
                 return costToComeFromGoal_;
             }
-            
+
             ompl::base::Cost Vertex::getCostToGoToGoal() const
             {
                 return getCostToComeFromGoal();
@@ -192,22 +191,22 @@ std::size_t generateId()
             {
                 return edgeCostFromForwardParent_;
             }
-            
+
             ompl::base::Cost Vertex::getValidForwardEdgeCost() const
             {
                 return edgeCostFromValidForwardParent_;
             }
-            
+
             ompl::base::Cost Vertex::getValidReverseEdgeCost() const
             {
                 return edgeCostFromValidReverseParent_;
-            } 
-            
+            }
+
             ompl::base::Cost Vertex::getEdgeCostFromReverseParent() const
             {
                 return edgeCostFromBackwardParent_;
-            }            
-  
+            }
+
             bool Vertex::hasForwardParent() const
             {
                 return static_cast<bool>(forwardParent_.lock());
@@ -217,7 +216,7 @@ std::size_t generateId()
             {
                 return static_cast<bool>(forwardEdgeParent_.lock());
             }
-            
+
             std::shared_ptr<Vertex> Vertex::getForwardParent() const
             {
                 return forwardParent_.lock();
@@ -227,7 +226,6 @@ std::size_t generateId()
             {
                 return forwardEdgeParent_.lock();
             }
-
 
             bool Vertex::hasReverseParent() const
             {
@@ -257,8 +255,8 @@ std::size_t generateId()
             void Vertex::setCostToComeFromStart(const ompl::base::Cost &cost)
             {
                 costToComeFromStart_ = cost;
-            }            
-            
+            }
+
             void Vertex::resetMeet()
             {
                 meetVertex_ = false;
@@ -271,12 +269,12 @@ std::size_t generateId()
             {
                 return meetVertex_;
             }
-            
+
             void Vertex::setCostToComeFromGoal(const ompl::base::Cost &cost)
             {
                 costToComeFromGoal_ = cost;
             }
-             
+
             void Vertex::resetCostToComeFromGoal()
             {
                 costToComeFromGoal_ = objective_->infiniteCost();
@@ -289,34 +287,34 @@ std::size_t generateId()
 
             void Vertex::setForwardInvalid()
             {
-                  forwardInvalidChildState_ = true;
+                forwardInvalidChildState_ = true;
             }
-            
+
             bool Vertex::forwardInvalid()
             {
-                  return forwardInvalidChildState_;
+                return forwardInvalidChildState_;
             }
-            
+
             void Vertex::resetForwardInvalid()
             {
-                  forwardInvalidChildState_ = false;
+                forwardInvalidChildState_ = false;
             }
-            
+
             void Vertex::setReverseInvalid()
             {
-                  reverseInvalidChildState_ = true; 
+                reverseInvalidChildState_ = true;
             }
-             
+
             bool Vertex::reverseInvalid()
             {
-                  return reverseInvalidChildState_;
+                return reverseInvalidChildState_;
             }
-            
+
             void Vertex::resetReverseInvalid()
             {
-                  reverseInvalidChildState_ = false;  
+                reverseInvalidChildState_ = false;
             }
-            
+
             void Vertex::setCostToGoToGoal(const ompl::base::Cost &cost)
             {
                 costToGoToGoal_ = cost;
@@ -325,69 +323,70 @@ std::size_t generateId()
             void Vertex::setCostToGoToStart(const ompl::base::Cost &cost)
             {
                 costToGoToStart_ = cost;
-            }            
+            }
 
-            void Vertex::setNearObstacle() 
+            void Vertex::setNearObstacle()
             {
                 nearObstacle_ = true;
             }
 
             bool Vertex::nearObstacle()
             {
-                   return nearObstacle_; 
+                return nearObstacle_;
             }
 
-            void Vertex::resetNearObstacle() {
-                  nearObstacle_ = false;
+            void Vertex::resetNearObstacle()
+            {
+                nearObstacle_ = false;
             }
             bool Vertex::isForwardExpanded()
             {
-                return IsForwardExpanded_ ;
+                return IsForwardExpanded_;
             }
-            
+
             void Vertex::setForwardExpanded()
             {
                 IsForwardExpanded_ = true;
             }
-            
+
             void Vertex::resetForwardExpanded()
             {
                 IsForwardExpanded_ = false;
             }
-            
+
             bool Vertex::isReverseExpanded()
             {
-                return IsReverseExpanded_ ;
+                return IsReverseExpanded_;
             }
-            
+
             void Vertex::setReverseExpanded()
             {
                 IsReverseExpanded_ = true;
             }
-            
+
             void Vertex::resetReverseExpanded()
             {
                 IsReverseExpanded_ = false;
-            }               
-            
+            }
+
             void Vertex::setLowerCostBoundToStart(const ompl::base::Cost &ToStart)
             {
-                  lowerCostBoundToGoToStart_ = ToStart;      
-            }             
+                lowerCostBoundToGoToStart_ = ToStart;
+            }
 
             void Vertex::setLowerCostBoundToGoal(const ompl::base::Cost &ToGoal)
             {
-                  lowerCostBoundToGoToGoal_ = ToGoal;  
-            }   
-              
+                lowerCostBoundToGoToGoal_ = ToGoal;
+            }
+
             ompl::base::Cost Vertex::getLowerCostBoundToStart()
             {
-                  return lowerCostBoundToGoToStart_;      
-            }             
+                return lowerCostBoundToGoToStart_;
+            }
 
             ompl::base::Cost Vertex::getLowerCostBoundToGoal()
             {
-                  return lowerCostBoundToGoToGoal_;  
+                return lowerCostBoundToGoToGoal_;
             }
 
             void Vertex::setForwardValidParent(const std::shared_ptr<Vertex> &vertex, const ompl::base::Cost &edgeCost)
@@ -395,7 +394,7 @@ std::size_t generateId()
                 // Remember the edge cost.
                 edgeCostFromValidForwardParent_ = edgeCost;
                 // Remember the corresponding parent.
-                forwardEdgeParent_ = std::weak_ptr<Vertex>(vertex); 
+                forwardEdgeParent_ = std::weak_ptr<Vertex>(vertex);
             }
 
             void Vertex::setReverseValidParent(const std::shared_ptr<Vertex> &vertex, const ompl::base::Cost &edgeCost)
@@ -403,14 +402,14 @@ std::size_t generateId()
                 // Remember the edge cost.
                 edgeCostFromValidReverseParent_ = edgeCost;
                 // Remember the corresponding parent.
-                reverseEdgeParent_ = std::weak_ptr<Vertex>(vertex);    
-            }   
+                reverseEdgeParent_ = std::weak_ptr<Vertex>(vertex);
+            }
 
             void Vertex::resetForwardParent()
             {
                 forwardParent_.reset();
             }
-           
+
             void Vertex::resetForwardEdgeParent()
             {
                 forwardEdgeParent_.reset();
@@ -419,9 +418,11 @@ std::size_t generateId()
             void Vertex::setForwardVertexParent(const std::shared_ptr<Vertex> &vertex, const ompl::base::Cost &edgeCost)
             {
                 // If this is a rewiring, remove from my parent's children.
-                if(static_cast<bool>(forwardParent_.lock()))//&&(!static_cast<bool>(forwardEdgeParent_.lock()) ||  forwardParent_.lock()->getId() != forwardEdgeParent_.lock()->getId())
-                {   
-                       forwardParent_.lock()->removeFromForwardChildren(vertexId_);
+                if (static_cast<bool>(forwardParent_.lock()))  //&&(!static_cast<bool>(forwardEdgeParent_.lock()) ||
+                                                               // forwardParent_.lock()->getId() !=
+                                                               // forwardEdgeParent_.lock()->getId())
+                {
+                    forwardParent_.lock()->removeFromForwardChildren(vertexId_);
                 }
                 // Remember the parent.
                 edgeCostFromForwardParent_ = edgeCost;
@@ -429,11 +430,13 @@ std::size_t generateId()
             }
 
             void Vertex::setReverseVertexParent(const std::shared_ptr<Vertex> &vertex, const ompl::base::Cost &edgeCost)
-            {  
+            {
                 // If this is a rewiring, remove from my parent's children.
-                if (static_cast<bool>(reverseParent_.lock()))//(!static_cast<bool>(reverseEdgeParent_.lock()) || reverseParent_.lock()->getId() != reverseEdgeParent_.lock()->getId())
-                {  
-                       reverseParent_.lock()->removeFromReverseChildren(vertexId_);
+                if (static_cast<bool>(reverseParent_.lock()))  //(!static_cast<bool>(reverseEdgeParent_.lock()) ||
+                                                               // reverseParent_.lock()->getId() !=
+                                                               // reverseEdgeParent_.lock()->getId())
+                {
+                    reverseParent_.lock()->removeFromReverseChildren(vertexId_);
                 }
                 // Remember the parent.
                 edgeCostFromBackwardParent_ = edgeCost;
@@ -458,10 +461,10 @@ std::size_t generateId()
             void Vertex::removeFromForwardChildren(std::size_t vertexId)
             {
                 // Find the child.
-                auto it = std::find_if(
-                    forwardChildren_.begin(), forwardChildren_.end(),
-                    [vertexId](const std::weak_ptr<Vertex> &child) { return vertexId == child.lock()->getId(); });
-                
+                auto it = std::find_if(forwardChildren_.begin(), forwardChildren_.end(),
+                                       [vertexId](const std::weak_ptr<Vertex> &child)
+                                       { return vertexId == child.lock()->getId(); });
+
                 // Throw if it is not found.
                 if (it == forwardChildren_.end())
                 {
@@ -469,11 +472,11 @@ std::size_t generateId()
                     throw ompl::Exception(msg);
                 }
                 // Swap and pop.
-                
+
                 std::iter_swap(it, forwardChildren_.rbegin());
                 forwardChildren_.pop_back();
             }
-            
+
             void Vertex::addToReverseChildren(const std::shared_ptr<Vertex> &vertex)
             {
                 reverseChildren_.push_back(vertex);
@@ -482,9 +485,9 @@ std::size_t generateId()
             void Vertex::removeFromReverseChildren(std::size_t vertexId)
             {
                 // Find the child.
-                auto it = std::find_if(
-                    reverseChildren_.begin(), reverseChildren_.end(),
-                    [vertexId](const std::weak_ptr<Vertex> &child) {return vertexId == child.lock()->getId(); });
+                auto it = std::find_if(reverseChildren_.begin(), reverseChildren_.end(),
+                                       [vertexId](const std::weak_ptr<Vertex> &child)
+                                       { return vertexId == child.lock()->getId(); });
 
                 // Throw if it is not found.
                 if (it == reverseChildren_.end())
@@ -528,9 +531,8 @@ std::size_t generateId()
                 }
                 return false;
             }
-             
-            void Vertex::setIncomingCollisionCheckResolution(const std::size_t vertexId,
-                                                            std::size_t numChecks) const
+
+            void Vertex::setIncomingCollisionCheckResolution(const std::size_t vertexId, std::size_t numChecks) const
             {
                 incomingCollisionCheckResolution_[vertexId] = numChecks;
             }
@@ -545,8 +547,8 @@ std::size_t generateId()
                 {
                     return incomingCollisionCheckResolution_[vertexId];
                 }
-            } 
-            
+            }
+
             void Vertex::blacklistAsChild(const std::shared_ptr<Vertex> &vertex) const
             {
                 blacklistedChildren_.emplace_back(vertex);
@@ -663,7 +665,6 @@ std::size_t generateId()
                 return forwardVertexQueuePointer_;
             }
 
-
             typename ompl::BinaryHeap<
                 std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>,
                 std::function<bool(const std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>> &,
@@ -676,13 +677,13 @@ std::size_t generateId()
                     reverseVertexQueuePointer_ = nullptr;
                 }
                 return reverseVertexQueuePointer_;
-            }          
+            }
 
             void Vertex::resetForwardVertexQueuePointer()
             {
                 forwardVertexQueuePointer_ = nullptr;
             }
-            
+
             void Vertex::resetReverseVertexQueuePointer()
             {
                 reverseVertexQueuePointer_ = nullptr;

@@ -243,9 +243,9 @@ ompl::base::PlannerStatus ompl::tools::Thunder::solve(const base::PlannerTermina
         log.result = "timedout";
         log.is_saved = "not_saved";
     }
-    else if ((lastStatus_ == ompl::base::PlannerStatus::INVALID_START)
-            || (lastStatus_ == ompl::base::PlannerStatus::INVALID_GOAL)
-            || (lastStatus_ == ompl::base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE))
+    else if ((lastStatus_ == ompl::base::PlannerStatus::INVALID_START) ||
+             (lastStatus_ == ompl::base::PlannerStatus::INVALID_GOAL) ||
+             (lastStatus_ == ompl::base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE))
     {
         // Skip further processing if absolutely no path is available
         OMPL_ERROR("Lightning Solve: invalid start or goal, planner status: %s", lastStatus_.asString().c_str());

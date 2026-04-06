@@ -51,9 +51,9 @@ namespace ompl
     public:
         ParameterSmoothStep() = default;
 
-        ParameterSmoothStep(double initValue) : Parameter(initValue){};
+        ParameterSmoothStep(double initValue) : Parameter(initValue) {};
 
-        ParameterSmoothStep(double initValue, double targetValue) : Parameter(initValue, targetValue){};
+        ParameterSmoothStep(double initValue, double targetValue) : Parameter(initValue, targetValue) {};
 
         /**  \brief Evaluate interpolation at counter using a third-order hermite
          * polynomial */
@@ -72,5 +72,5 @@ namespace ompl
             return getValueInit() + (getValueTarget() - getValueInit()) * (t * t * (3 - 2 * t));
         }
     };
-}
+}  // namespace ompl
 #endif

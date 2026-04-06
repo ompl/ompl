@@ -1,11 +1,15 @@
 
 static const unsigned int CIRCLES_ID = 1;
 
-template<>
-std::string problemName<CIRCLES_ID>() { return "circles"; }
+template <>
+std::string problemName<CIRCLES_ID>()
+{
+    return "circles";
+}
 
 // Setup for the Circles problem, part of the OMPL test suite.
-static std::shared_ptr<geometric::SimpleSetup> setupCirclesProblem(unsigned int query_index) {
+static std::shared_ptr<geometric::SimpleSetup> setupCirclesProblem(unsigned int query_index)
+{
     std::filesystem::path path(TEST_RESOURCES_DIR);
 
     Circles2D circles;
@@ -16,9 +20,9 @@ static std::shared_ptr<geometric::SimpleSetup> setupCirclesProblem(unsigned int 
 #if OMPL_VERSION_VALUE < 15000
     // For older versions of OMPL, we are missing the constructor we need, so we hack things.
     geometric::SimpleSetup *raw_ss = new geometric::SimpleSetup(si->getStateSpace());
-    const_cast<base::SpaceInformationPtr&>(raw_ss->getSpaceInformation()) = si;
-    const_cast<base::ProblemDefinitionPtr&>(raw_ss->getProblemDefinition()).reset(new base::ProblemDefinition(si));
-    const_cast<geometric::PathSimplifierPtr&>(raw_ss->getPathSimplifier()).reset(new geometric::PathSimplifier(si));
+    const_cast<base::SpaceInformationPtr &>(raw_ss->getSpaceInformation()) = si;
+    const_cast<base::ProblemDefinitionPtr &>(raw_ss->getProblemDefinition()).reset(new base::ProblemDefinition(si));
+    const_cast<geometric::PathSimplifierPtr &>(raw_ss->getPathSimplifier()).reset(new geometric::PathSimplifier(si));
 #else
     geometric::SimpleSetup *raw_ss = new geometric::SimpleSetup(si);
 #endif
@@ -44,10 +48,11 @@ static base::ProjectionEvaluatorPtr getCirclesProjEvaluator(const base::SpaceInf
     std::vector<double> cdim = {1, 1};
     std::vector<unsigned int> projection = {0, 1};
 
-    return base::ProjectionEvaluatorPtr(new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection));
+    return base::ProjectionEvaluatorPtr(
+        new base::RealVectorOrthogonalProjectionEvaluator(si->getStateSpace(), cdim, projection));
 }
 
-template<>
+template <>
 void addPlanner<geometric::EST, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
     auto est(std::make_shared<geometric::EST>(si));
@@ -55,7 +60,7 @@ void addPlanner<geometric::EST, CIRCLES_ID>(Benchmark &benchmark, const base::Sp
     benchmark.addPlanner(est);
 }
 
-template<>
+template <>
 void addPlanner<geometric::BiEST, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
     auto est(std::make_shared<geometric::BiEST>(si));
@@ -63,7 +68,7 @@ void addPlanner<geometric::BiEST, CIRCLES_ID>(Benchmark &benchmark, const base::
     benchmark.addPlanner(est);
 }
 
-template<>
+template <>
 void addPlanner<geometric::ProjEST, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
     auto est(std::make_shared<geometric::ProjEST>(si));
@@ -72,7 +77,7 @@ void addPlanner<geometric::ProjEST, CIRCLES_ID>(Benchmark &benchmark, const base
     benchmark.addPlanner(est);
 }
 
-template<>
+template <>
 void addPlanner<geometric::SBL, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
     auto sbl(std::make_shared<geometric::SBL>(si));
@@ -81,7 +86,7 @@ void addPlanner<geometric::SBL, CIRCLES_ID>(Benchmark &benchmark, const base::Sp
     benchmark.addPlanner(sbl);
 }
 
-template<>
+template <>
 void addPlanner<geometric::KPIECE1, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
     auto kpiece(std::make_shared<geometric::KPIECE1>(si));
@@ -90,7 +95,7 @@ void addPlanner<geometric::KPIECE1, CIRCLES_ID>(Benchmark &benchmark, const base
     benchmark.addPlanner(kpiece);
 }
 
-template<>
+template <>
 void addPlanner<geometric::BKPIECE1, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
     auto kpiece(std::make_shared<geometric::BKPIECE1>(si));
@@ -99,7 +104,7 @@ void addPlanner<geometric::BKPIECE1, CIRCLES_ID>(Benchmark &benchmark, const bas
     benchmark.addPlanner(kpiece);
 }
 
-template<>
+template <>
 void addPlanner<geometric::LBKPIECE1, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
     auto kpiece(std::make_shared<geometric::LBKPIECE1>(si));
@@ -109,7 +114,7 @@ void addPlanner<geometric::LBKPIECE1, CIRCLES_ID>(Benchmark &benchmark, const ba
 }
 
 #if OMPL_VERSION_VALUE >= 13000
-template<>
+template <>
 void addPlanner<geometric::PDST, CIRCLES_ID>(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
     auto pdst(std::make_shared<geometric::PDST>(si));

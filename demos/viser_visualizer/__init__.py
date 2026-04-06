@@ -1,3 +1,3 @@
 from .viser_visualizer import ViserVisualizer
 
-__all__ = ['ViserVisualizer']
+__all__ = ["ViserVisualizer"]

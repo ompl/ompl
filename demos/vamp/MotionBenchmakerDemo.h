@@ -39,9 +39,8 @@ public:
      * @param problemFile Path to the JSON file containing problem definitions
      * @param plannerName The OMPL planner to use (e.g., "RRTConnect", "RRTstar")
      */
-    MotionBenchmakerDemo(const std::string& robotName,
-                        const std::string& problemFile,
-                        const std::string& plannerName = "RRTConnect");
+    MotionBenchmakerDemo(const std::string &robotName, const std::string &problemFile,
+                         const std::string &plannerName = "RRTConnect");
 
     /**
      * @brief Run a benchmark on a specific problem.
@@ -52,8 +51,7 @@ public:
      *
      * @return Vector of results for each trial
      */
-    std::vector<PlanningResult> benchmarkProblem(const std::string& problemName,
-                                                 unsigned int numTrials = 1,
+    std::vector<PlanningResult> benchmarkProblem(const std::string &problemName, unsigned int numTrials = 1,
                                                  double timeoutSeconds = 5.0);
 
     /**
@@ -65,15 +63,14 @@ public:
      *
      * @return Map from problem name to list of results
      */
-    std::map<std::string, std::vector<PlanningResult>> benchmarkAll(
-        unsigned int numTrials = 1,
-        double timeoutSeconds = 5.0,
-        bool print_failures = false);
+    std::map<std::string, std::vector<PlanningResult>> benchmarkAll(unsigned int numTrials = 1,
+                                                                    double timeoutSeconds = 5.0,
+                                                                    bool print_failures = false);
 
     /**
      * @brief Get the list of available problem names.
      */
-    const std::vector<std::string>& getProblemNames() const
+    const std::vector<std::string> &getProblemNames() const
     {
         return problemNames_;
     }
@@ -81,8 +78,7 @@ public:
     /**
      * @brief Print summary statistics for a set of results.
      */
-    static void printStatistics(const std::string& problemName,
-                               const std::vector<PlanningResult>& results);
+    static void printStatistics(const std::string &problemName, const std::vector<PlanningResult> &results);
 
 private:
     std::string robotName_;
@@ -91,7 +87,7 @@ private:
     std::map<std::string, std::vector<boost::property_tree::ptree>> problems_;
     std::shared_ptr<ompl::base::StateSpace> space_;
     std::shared_ptr<ompl::geometric::SimpleSetup> ss_;
-    
+
     // Environment for collision checking
     using Environment = vamp::collision::Environment<vamp::FloatVector<vamp::FloatVectorWidth>>;
     std::shared_ptr<Environment> currentEnv_;
@@ -99,7 +95,7 @@ private:
     /**
      * @brief Load problems from a JSON file (MBM format).
      */
-    void loadProblemsFromJSON(const std::string& filename);
+    void loadProblemsFromJSON(const std::string &filename);
 
     /**
      * @brief Initialize the space information and planner for the given robot.
@@ -109,29 +105,23 @@ private:
     /**
      * @brief Set up a planning problem in the given simple setup.
      */
-    bool setupProblem(const std::string& problemName,
-                      const boost::property_tree::ptree& problemData);
+    bool setupProblem(const std::string &problemName, const boost::property_tree::ptree &problemData);
 
     /**
      * @brief Run a single planning trial on a problem.
      */
-    PlanningResult solveInstance(const std::string& problemName,
-                               const boost::property_tree::ptree& problemData,
-                               double timeoutSeconds);
+    PlanningResult solveInstance(const std::string &problemName, const boost::property_tree::ptree &problemData,
+                                 double timeoutSeconds);
     /**
      * @brief Benchmark an instance using OMPL's benchmark.
      */
-    PlanningResult benchmarkInstance(
-                                const std::string& problemName,
-                                const boost::property_tree::ptree& problemData,
-                                unsigned int benchmarkTrials,
-                                double timeoutSeconds);
+    PlanningResult benchmarkInstance(const std::string &problemName, const boost::property_tree::ptree &problemData,
+                                     unsigned int benchmarkTrials, double timeoutSeconds);
 
     /**
      * @brief Create an OMPL planner instance by name.
      */
-    std::shared_ptr<ompl::base::Planner> createPlanner(
-        const std::shared_ptr<ompl::base::SpaceInformation>& si) const;
+    std::shared_ptr<ompl::base::Planner> createPlanner(const std::shared_ptr<ompl::base::SpaceInformation> &si) const;
 };
 
 #endif

@@ -45,20 +45,45 @@ from ompl.tools import (
     saveAsMysql,
 )
 
+
 def main():
     parser = argparse.ArgumentParser(
-        description='Process benchmark logs and create an SQLite3 database.')
-    parser.add_argument('-d', '--database', default='benchmark.db', \
-        help='Filename of benchmark database')
-    parser.add_argument('-a', '--append', action='store_true', default=False, \
-        help='Append data to database (as opposed to overwriting an existing database)')
-    parser.add_argument('-v', '--view', action='store_true', default=False, \
-        help='Compute the views for best planner configurations')
-    parser.add_argument('-m', '--mysql', action='store_true', default=False, \
-        help='Save SQLite3 database as a MySQL dump file')
-    parser.add_argument('--moveit', action='store_true', default=False, \
-        help='Log files are produced by MoveIt!')
-    parser.add_argument('logfile', nargs='*')
+        description="Process benchmark logs and create an SQLite3 database."
+    )
+    parser.add_argument(
+        "-d",
+        "--database",
+        default="benchmark.db",
+        help="Filename of benchmark database",
+    )
+    parser.add_argument(
+        "-a",
+        "--append",
+        action="store_true",
+        default=False,
+        help="Append data to database (as opposed to overwriting an existing database)",
+    )
+    parser.add_argument(
+        "-v",
+        "--view",
+        action="store_true",
+        default=False,
+        help="Compute the views for best planner configurations",
+    )
+    parser.add_argument(
+        "-m",
+        "--mysql",
+        action="store_true",
+        default=False,
+        help="Save SQLite3 database as a MySQL dump file",
+    )
+    parser.add_argument(
+        "--moveit",
+        action="store_true",
+        default=False,
+        help="Log files are produced by MoveIt!",
+    )
+    parser.add_argument("logfile", nargs="*")
     args = parser.parse_args()
 
     if not args.append and Path(args.database).exists() and args.logfile:
@@ -75,5 +100,6 @@ def main():
     if args.mysql:
         saveAsMysql(args.database)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

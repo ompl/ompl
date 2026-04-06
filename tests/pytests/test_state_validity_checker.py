@@ -25,6 +25,7 @@ class ClearanceStateValidityChecker(ob.StateValidityChecker):
     def clearance(self, state: ob.State) -> float:
         # Distance to boundary of unit circle
         import math
+
         x, y = state[0], state[1]
         dist_from_center = math.sqrt(x * x + y * y)
         return 1.0 - dist_from_center
@@ -106,7 +107,9 @@ def test_all_valid_state_validity_checker():
     state = si.allocState()
     state[0] = 0.99
     state[1] = -0.99
-    assert checker.isValid(state), "AllValidStateValidityChecker should accept any state"
+    assert checker.isValid(state), (
+        "AllValidStateValidityChecker should accept any state"
+    )
 
 
 def test_state_validity_checker_specs():
@@ -121,7 +124,6 @@ def test_state_validity_checker_specs():
     specs.hasValidDirectionComputation = True
     assert specs.clearanceComputationType == ob.ClearanceComputationType.EXACT
     assert specs.hasValidDirectionComputation == True
-
 
 
 def test_lambda_state_validity_checker():
@@ -151,4 +153,3 @@ if __name__ == "__main__":
     test_all_valid_state_validity_checker()
     test_state_validity_checker_specs()
     test_lambda_state_validity_checker()
-

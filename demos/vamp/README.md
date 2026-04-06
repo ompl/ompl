@@ -37,7 +37,7 @@ This will generate a file in `<ompl_directory>/external/vamp/resources/panda/pro
 Go back to your OMPL build directory and run the benchmark:
 
 ```bash
-./demos/demo_VAMPMotionBenchmaker --problem-file <path_to_generated_JSON_file> --robot panda --planner RRTConnect --timeout 1.0 
+./demos/demo_VAMPMotionBenchmaker --problem-file <path_to_generated_JSON_file> --robot panda --planner RRTConnect --timeout 1.0
 ```
 
 This will run the specified planner on all 100 problems for each 7 problem types from the [MotionBenchmaker dataset](https://github.com/KavrakiLab/motion_bench_maker). To run OMPL's benchmark:

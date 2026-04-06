@@ -19,19 +19,20 @@ namespace oc = ompl::control;
 class MyTriangularDecomposition : public oc::TriangularDecomposition
 {
 public:
-    MyTriangularDecomposition(const ob::RealVectorBounds& bounds)
-        : oc::TriangularDecomposition(bounds, createObstacles())
+    MyTriangularDecomposition(const ob::RealVectorBounds &bounds)
+      : oc::TriangularDecomposition(bounds, createObstacles())
     {
         setup();
     }
-    void project(const ob::State* s, std::vector<double>& coord) const override
+    void project(const ob::State *s, std::vector<double> &coord) const override
     {
         coord.resize(2);
         coord[0] = s->as<ob::SE2StateSpace::StateType>()->getX();
         coord[1] = s->as<ob::SE2StateSpace::StateType>()->getY();
     }
 
-    void sampleFullState(const ob::StateSamplerPtr& sampler, const std::vector<double>& coord, ob::State* s) const override
+    void sampleFullState(const ob::StateSamplerPtr &sampler, const std::vector<double> &coord,
+                         ob::State *s) const override
     {
         sampler->sampleUniform(s);
         s->as<ob::SE2StateSpace::StateType>()->setXY(coord[0], coord[1]);
@@ -66,15 +67,14 @@ public:
 
 bool triContains(double x, double y, double ax, double ay, double bx, double by, double cx, double cy)
 {
-    if ((x-ax)*(by-ay) - (bx-ax)*(y-ay) > 0.)
+    if ((x - ax) * (by - ay) - (bx - ax) * (y - ay) > 0.)
         return false;
-    if ((x-bx)*(cy-by) - (cx-bx)*(y-by) > 0.)
+    if ((x - bx) * (cy - by) - (cx - bx) * (y - by) > 0.)
         return false;
-    if ((x-cx)*(ay-cy) - (ax-cx)*(y-cy) > 0.)
+    if ((x - cx) * (ay - cy) - (ax - cx) * (y - cy) > 0.)
         return false;
     return true;
 }
-
 
 bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 {
@@ -85,9 +85,8 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
     // check validity of state defined by pos & rot
     double x = se2state->getX();
     double y = se2state->getY();
-    return si->satisfiesBounds(state) && !triContains(x,y, -0.5,0.75,-0.75,0.68,-0.5,0.5)
-        && !triContains(x,y, 0,0.5,-0.3,0,0,-0.5)
-        && !triContains(x,y,0,-0.5,0.6,0.6,0,0.5);
+    return si->satisfiesBounds(state) && !triContains(x, y, -0.5, 0.75, -0.75, 0.68, -0.5, 0.5) &&
+           !triContains(x, y, 0, 0.5, -0.3, 0, 0, -0.5) && !triContains(x, y, 0, -0.5, 0.6, 0.6, 0, 0.5);
 }
 
 void propagate(const ob::State *start, const oc::Control *control, const double duration, ob::State *result)
@@ -103,10 +102,8 @@ void propagate(const ob::State *start, const oc::Control *control, const double 
     result->as<ob::SE2StateSpace::StateType>()->as<ob::RealVectorStateSpace::StateType>(0)->values[1] =
         (*pos)[1] + (*rctrl)[0] * duration * sin(rot->value);
 
-    result->as<ob::SE2StateSpace::StateType>()->as<ob::SO2StateSpace::StateType>(1)->value =
-        rot->value + (*rctrl)[1];
+    result->as<ob::SE2StateSpace::StateType>()->as<ob::SO2StateSpace::StateType>(1)->value = rot->value + (*rctrl)[1];
 }
-
 
 void planWithSimpleSetup()
 {
@@ -138,8 +135,7 @@ void planWithSimpleSetup()
 
     // set state validity checking for this space
     oc::SpaceInformation *si = ss.getSpaceInformation().get();
-    ss.setStateValidityChecker(
-        [si](const ob::State *state) { return isStateValid(si, state); });
+    ss.setStateValidityChecker([si](const ob::State *state) { return isStateValid(si, state); });
 
     // create a start state
     ob::ScopedState<ob::SE2StateSpace> start(space);

@@ -237,9 +237,8 @@ void ompl::geometric::AnytimePathShortening::threadSolve(base::Planner *planner,
                 ps.partialShortcutPath(*pathCopy);
             addPath(pathCopy, planner);
         }
-        else if ((status == base::PlannerStatus::INVALID_START)
-                || (status == base::PlannerStatus::INVALID_GOAL)
-                || (status == base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE))
+        else if ((status == base::PlannerStatus::INVALID_START) || (status == base::PlannerStatus::INVALID_GOAL) ||
+                 (status == base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE))
         {
             // there is not point in trying again with these error types that will repeat.
             {

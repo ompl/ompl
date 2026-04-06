@@ -122,72 +122,72 @@ void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m)
           nb::arg("si"))
      .def(nb::init<const ob::StateSpacePtr &>(),
           nb::arg("space"))
-     
+
      // getSpaceInformation
      .def("getSpaceInformation",
           &og::SimpleSetup::getSpaceInformation)
-     
+
      // getProblemDefinition (two overloads: const and non-const)
      // getProblemDefinition (two overloads: const and non-const)
      .def("getProblemDefinition",
           static_cast<ob::ProblemDefinitionPtr &(og::SimpleSetup::*)()>(&og::SimpleSetup::getProblemDefinition))
      .def("getProblemDefinitionConst",
           static_cast<const ob::ProblemDefinitionPtr &(og::SimpleSetup::*)() const>(&og::SimpleSetup::getProblemDefinition))
-     
+
      // getStateSpace
      .def("getStateSpace",
           &og::SimpleSetup::getStateSpace)
-     
+
      // getStateValidityChecker
      .def("getStateValidityChecker",
           &og::SimpleSetup::getStateValidityChecker)
-     
+
      // getGoal
      .def("getGoal",
           &og::SimpleSetup::getGoal)
-     
+
      // getPlanner
      .def("getPlanner",
           &og::SimpleSetup::getPlanner)
-     
+
      // getPlannerAllocator
      .def("getPlannerAllocator",
           &og::SimpleSetup::getPlannerAllocator)
-     
+
      // getPathSimplifier
      .def("getPathSimplifier",
           static_cast<og::PathSimplifierPtr &(og::SimpleSetup::*)()>(&og::SimpleSetup::getPathSimplifier))
      .def("getPathSimplifierConst",
           static_cast<const og::PathSimplifierPtr &(og::SimpleSetup::*)() const>(&og::SimpleSetup::getPathSimplifier))
-     
+
      // getOptimizationObjective
      .def("getOptimizationObjective",
           &og::SimpleSetup::getOptimizationObjective)
-     
+
      // haveExactSolutionPath, haveSolutionPath
      .def("haveExactSolutionPath",
           &og::SimpleSetup::haveExactSolutionPath)
      .def("haveSolutionPath",
           &og::SimpleSetup::haveSolutionPath)
-     
+
      // getSolutionPlannerName
      .def("getSolutionPlannerName",
           &og::SimpleSetup::getSolutionPlannerName)
-     
+
      // getSolutionPath returns a PathGeometric&. We should return a reference.
      .def("getSolutionPath",
           [](og::SimpleSetup &self) -> og::PathGeometric & {
                return self.getSolutionPath();
           },
           nb::rv_policy::reference_internal)
-     
+
      // getPlannerData
      .def("getPlannerData",
           [](og::SimpleSetup &self, ob::PlannerData &pd) {
                self.getPlannerData(pd);
           },
           nb::arg("plannerData"))
-     
+
      // setStateValidityChecker (two overloads)
      .def("setStateValidityChecker",
          [](og::SimpleSetup &ss, const ompl::base::StateValidityCheckerFn &svc) {
@@ -203,12 +203,12 @@ void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m)
              if (self.is_valid()) nb::setattr(self, "_svc", nb::cast(svc));
          },
           nb::arg("svc"))
-     
+
      // setOptimizationObjective
      .def("setOptimizationObjective",
           &og::SimpleSetup::setOptimizationObjective,
           nb::arg("objective"))
-     
+
      // setStartAndGoalStates, addStartState, etc.
      .def("setStartAndGoalStates",
           [](og::SimpleSetup &ss, const ob::State *start, const ob::State *goal, double threshold) {
@@ -218,7 +218,7 @@ void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m)
           },
           nb::arg("start"), nb::arg("goal"),
           nb::arg("threshold") = std::numeric_limits<double>::epsilon())
-     
+
      .def("clearStartStates",
           &og::SimpleSetup::clearStartStates)
 
@@ -241,8 +241,8 @@ void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m)
                static_cast<SimpleSetupPublicist&>(ss).configured_ = false;
           },
           nb::arg("goal"),
-          nb::arg("threshold") = std::numeric_limits<double>::epsilon())        
-     
+          nb::arg("threshold") = std::numeric_limits<double>::epsilon())
+
      .def ("setGoal", &og::SimpleSetup::setGoal,
           nb::arg("goal"))
      .def("setPlanner",
@@ -252,7 +252,7 @@ void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m)
      .def("setPlannerAllocator",
           &og::SimpleSetup::setPlannerAllocator,
           nb::arg("allocator"))
-     
+
      // solve (two overloads)
      .def("solve",
           static_cast<ob::PlannerStatus (og::SimpleSetup::*)(double)>(&og::SimpleSetup::solve),
@@ -260,17 +260,17 @@ void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m)
      .def("solve",
           static_cast<ob::PlannerStatus (og::SimpleSetup::*)(const ob::PlannerTerminationCondition &)>(&og::SimpleSetup::solve),
           nb::arg("ptc"))
-     
+
      // getLastPlannerStatus
      .def("getLastPlannerStatus",
           &og::SimpleSetup::getLastPlannerStatus)
-     
+
      // getLastPlanComputationTime, getLastSimplificationTime
      .def("getLastPlanComputationTime",
           &og::SimpleSetup::getLastPlanComputationTime)
      .def("getLastSimplificationTime",
           &og::SimpleSetup::getLastSimplificationTime)
-     
+
      // simplifySolution (two overloads)
      .def("simplifySolution",
           static_cast<void (og::SimpleSetup::*)(double)>(&og::SimpleSetup::simplifySolution),
@@ -278,11 +278,11 @@ void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m)
      .def("simplifySolution",
           static_cast<void (og::SimpleSetup::*)(const ob::PlannerTerminationCondition &)>(&og::SimpleSetup::simplifySolution),
           nb::arg("ptc"))
-     
+
      // clear
      .def("clear",
           &og::SimpleSetup::clear)
-     
+
      // print
      .def("print",
           [](const og::SimpleSetup &self) {
@@ -296,7 +296,7 @@ void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m)
                self.print(oss);
                return oss.str();
           })
-     
+
      // setup
      .def("setup",
           &og::SimpleSetup::setup);

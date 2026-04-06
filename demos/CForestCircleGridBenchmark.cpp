@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2014, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2014, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Javier V. Gomez, Mark Moll */
 
@@ -51,12 +51,12 @@ namespace po = boost::program_options;
 bool isStateValid(double radiusSquared, const ob::State *state)
 {
     const auto *s = state->as<ob::SE2StateSpace::StateType>();
-    double x=s->getX(), y=s->getY();
+    double x = s->getX(), y = s->getY();
     x = std::abs(x - std::floor(x));
     y = std::abs(y - std::floor(y));
     x = std::min(x, 1. - x);
     y = std::min(y, 1. - y);
-    return x*x + y*y > radiusSquared;
+    return x * x + y * y > radiusSquared;
 }
 
 int main(int argc, char **argv)
@@ -68,18 +68,15 @@ int main(int argc, char **argv)
 
     po::options_description desc("Options");
 
-    desc.add_options()
-        ("help", "show help message")
-        ("dubins", "use Dubins state space")
-        ("dubinssym", "use symmetrized Dubins state space")
-        ("reedsshepp", "use Reeds-Shepp state space")
-        ("distance", po::value<int>(&distance)->default_value(3), "integer grid distance between start and goal")
-        ("obstacle-radius", po::value<double>(&obstacleRadius)->default_value(.25), "radius of obstacles")
-        ("turning-radius", po::value<double>(&turningRadius)->default_value(.5), "turning radius of robot (ignored for default point robot)")
-        ("grid-limit", po::value<int>(&gridLimit)->default_value(10), "size of the grid")
-        ("runtime-limit", po::value<double>(&runtimeLimit)->default_value(2), "time limit for every test")
-        ("run-count", po::value<int>(&runCount)->default_value(100), "number of times to run each planner")
-    ;
+    desc.add_options()("help", "show help message")("dubins", "use Dubins state space")(
+        "dubinssym", "use symmetrized Dubins state space")("reedsshepp", "use Reeds-Shepp state space")(
+        "distance", po::value<int>(&distance)->default_value(3), "integer grid distance between start and goal")(
+        "obstacle-radius", po::value<double>(&obstacleRadius)->default_value(.25),
+        "radius of obstacles")("turning-radius", po::value<double>(&turningRadius)->default_value(.5),
+                               "turning radius of robot (ignored for default point robot)")(
+        "grid-limit", po::value<int>(&gridLimit)->default_value(10), "size of the grid")(
+        "runtime-limit", po::value<double>(&runtimeLimit)->default_value(2), "time limit for every test")(
+        "run-count", po::value<int>(&runCount)->default_value(100), "number of times to run each planner");
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -109,11 +106,7 @@ int main(int argc, char **argv)
 
     // set state validity checking for this space
     double radiusSquared = obstacleRadius * obstacleRadius;
-    ss.setStateValidityChecker(
-        [radiusSquared](const ob::State *state)
-        {
-            return isStateValid(radiusSquared, state);
-        });
+    ss.setStateValidityChecker([radiusSquared](const ob::State *state) { return isStateValid(radiusSquared, state); });
 
     // define start & goal states
     ob::ScopedState<ob::SE2StateSpace> start(space), goal(space);
@@ -140,5 +133,3 @@ int main(int argc, char **argv)
 
     exit(0);
 }
-
-

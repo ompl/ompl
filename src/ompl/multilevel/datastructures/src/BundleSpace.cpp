@@ -480,5 +480,5 @@ namespace ompl
             bundleSpace.print(out);
             return out;
         }
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl

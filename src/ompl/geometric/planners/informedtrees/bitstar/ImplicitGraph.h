@@ -479,7 +479,7 @@ namespace ompl
              * batch. */
             std::size_t averageNumOfAllowedFailedAttemptsWhenSampling_{2u};
         };  // class ImplicitGraph
-    }       // namespace geometric
+    }  // namespace geometric
 }  // namespace ompl
 
 #endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_IMPLICITGRAPH_

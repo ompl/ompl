@@ -1,6 +1,6 @@
 #!/bin/bash
 # The typical use will be watch ./test_results.sh
-echo 
+echo
 echo -n "Set of return codes so far: [ "
 cat ompl_run_test_codes | sort | uniq | tr "\\n" " "
 echo "]"

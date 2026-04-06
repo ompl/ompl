@@ -305,9 +305,9 @@ namespace ompl
             void Vertex::removeFromForwardChildren(std::size_t vertexId)
             {
                 // Find the child.
-                auto it = std::find_if(
-                    forwardChildren_.begin(), forwardChildren_.end(),
-                    [vertexId](const std::weak_ptr<Vertex> &child) { return vertexId == child.lock()->getId(); });
+                auto it = std::find_if(forwardChildren_.begin(), forwardChildren_.end(),
+                                       [vertexId](const std::weak_ptr<Vertex> &child)
+                                       { return vertexId == child.lock()->getId(); });
 
                 // Throw if it is not found.
                 if (it == forwardChildren_.end())
@@ -329,9 +329,9 @@ namespace ompl
             void Vertex::removeFromReverseChildren(std::size_t vertexId)
             {
                 // Find the child.
-                auto it = std::find_if(
-                    reverseChildren_.begin(), reverseChildren_.end(),
-                    [vertexId](const std::weak_ptr<Vertex> &child) { return vertexId == child.lock()->getId(); });
+                auto it = std::find_if(reverseChildren_.begin(), reverseChildren_.end(),
+                                       [vertexId](const std::weak_ptr<Vertex> &child)
+                                       { return vertexId == child.lock()->getId(); });
 
                 // Throw if it is not found.
                 if (it == reverseChildren_.end())

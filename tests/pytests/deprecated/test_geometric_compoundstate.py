@@ -38,7 +38,8 @@
 
 import sys
 from os.path import abspath, dirname, join
-sys.path.insert(0, join(dirname(dirname(dirname(abspath(__file__)))), 'py-bindings'))
+
+sys.path.insert(0, join(dirname(dirname(dirname(abspath(__file__)))), "py-bindings"))
 from functools import partial
 from time import perf_counter
 from math import fabs
@@ -50,32 +51,34 @@ from ompl.util import setLogLevel, LogLevel
 
 SOLUTION_TIME = 5.0
 
+
 class Environment(object):
     def __init__(self, fname):
-        fp = open(fname, 'r')
+        fp = open(fname, "r")
         lines = fp.readlines()
         fp.close()
-        self.width, self.height = [int(i) for i in lines[0].split(' ')[1:3]]
+        self.width, self.height = [int(i) for i in lines[0].split(" ")[1:3]]
         self.grid = []
-        self.start = [int(i) for i in lines[1].split(' ')[1:3]]
-        self.goal = [int(i) for i in lines[2].split(' ')[1:3]]
+        self.start = [int(i) for i in lines[1].split(" ")[1:3]]
+        self.goal = [int(i) for i in lines[2].split(" ")[1:3]]
         for i in range(self.width):
-            self.grid.append(
-                [int(j) for j in lines[4+i].split(' ')[0:self.height]])
-        self.char_mapping = ['__', '##', 'oo', 'XX']
+            self.grid.append([int(j) for j in lines[4 + i].split(" ")[0 : self.height]])
+        self.char_mapping = ["__", "##", "oo", "XX"]
 
     def __str__(self):
-        result = ''
+        result = ""
         for line in self.grid:
-            result = result + ''.join([self.char_mapping[c] for c in line]) + '\n'
+            result = result + "".join([self.char_mapping[c] for c in line]) + "\n"
         return result
+
 
 def isValid(grid, state):
     # planning is done in a continuous space, but our collision space
     # representation is discrete
     x = int(state[0][0])
     y = int(state[1][0])
-    return grid[x][y] == 0 # 0 means valid state
+    return grid[x][y] == 0  # 0 means valid state
+
 
 class mySpace1(ob.RealVectorStateSpace):
     def __init__(self):
@@ -84,7 +87,8 @@ class mySpace1(ob.RealVectorStateSpace):
     def distance(self, state1, state2):
         x1 = int(state1[0])
         x2 = int(state2[0])
-        return fabs(x1-x2)
+        return fabs(x1 - x2)
+
 
 class mySetup(object):
     def __init__(self, env):
@@ -127,20 +131,20 @@ def testPlanner(env, time, pathLength, show=False):
         elapsed = perf_counter() - startTime
         time = time + elapsed
         if show:
-            print('Found solution in %f seconds!' % elapsed)
+            print("Found solution in %f seconds!" % elapsed)
 
         startTime = perf_counter()
         setup.setup.simplifySolution()
         elapsed = perf_counter() - startTime
         time = time + elapsed
         if show:
-            print('Simplified solution in %f seconds!' % elapsed)
+            print("Simplified solution in %f seconds!" % elapsed)
 
         path = setup.setup.getSolutionPath()
         path.interpolate(100)
         pathLength = pathLength + path.length()
         if show:
-            print(env, '\n')
+            print(env, "\n")
             temp = copy.deepcopy(env)
             for i in range(len(path.states)):
                 x = int(path.states[i][0][0])
@@ -149,7 +153,7 @@ def testPlanner(env, time, pathLength, show=False):
                     temp.grid[x][y] = 2
                 else:
                     temp.grid[x][y] = 3
-            print(temp, '\n')
+            print(temp, "\n")
     else:
         result = False
 
@@ -158,9 +162,11 @@ def testPlanner(env, time, pathLength, show=False):
 
 class PlanTest(unittest.TestCase):
     def setUp(self):
-        self.env = Environment(dirname(abspath(__file__))+'/../../tests/resources/env1.txt')
+        self.env = Environment(
+            dirname(abspath(__file__)) + "/../../tests/resources/env1.txt"
+        )
         if self.env.width * self.env.height == 0:
-            self.fail('The environment has a 0 dimension. Cannot continue')
+            self.fail("The environment has a 0 dimension. Cannot continue")
         self.verbose = True
 
     def testRunPlanner(self):
@@ -179,9 +185,9 @@ class PlanTest(unittest.TestCase):
         avglength = length / float(N)
 
         if self.verbose:
-            print('    Success rate: %f%%' % success)
-            print('    Average runtime: %f' % avgruntime)
-            print('    Average path length: %f' % avglength)
+            print("    Success rate: %f%%" % success)
+            print("    Average runtime: %f" % avgruntime)
+            print("    Average path length: %f" % avglength)
 
         self.assertTrue(success >= 99.0)
         self.assertTrue(avgruntime < 2.5)
@@ -189,9 +195,10 @@ class PlanTest(unittest.TestCase):
 
 
 def suite():
-    suites = (unittest.makeSuite(PlanTest))
+    suites = unittest.makeSuite(PlanTest)
     return unittest.TestSuite(suites)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     setLogLevel(LogLevel.LOG_ERROR)
     unittest.main()

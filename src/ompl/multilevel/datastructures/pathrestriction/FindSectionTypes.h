@@ -12,6 +12,6 @@ namespace ompl
             PATTERN_DANCE = 2
         };
     }
-}
+}  // namespace ompl
 
 #endif

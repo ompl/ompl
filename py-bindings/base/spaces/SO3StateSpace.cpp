@@ -8,12 +8,11 @@
 
 namespace nb = nanobind;
 
-void ompl::binding::base::initSpaces_SO3StateSpace(nb::module_& m)
+void ompl::binding::base::initSpaces_SO3StateSpace(nb::module_ &m)
 {
     // Bind the SO3StateSampler.
-    nb::class_<ompl::base::SO3StateSampler,
-               ompl::base::StateSampler>(m, "SO3StateSampler")
-        .def(nb::init<const ompl::base::StateSpace*>())
+    nb::class_<ompl::base::SO3StateSampler, ompl::base::StateSampler>(m, "SO3StateSampler")
+        .def(nb::init<const ompl::base::StateSpace *>())
         .def("sampleUniform", &ompl::base::SO3StateSampler::sampleUniform)
         .def("sampleUniformNear", &ompl::base::SO3StateSampler::sampleUniformNear)
         .def("sampleGaussian", &ompl::base::SO3StateSampler::sampleGaussian);
@@ -30,8 +29,7 @@ void ompl::binding::base::initSpaces_SO3StateSpace(nb::module_& m)
         .def("setIdentity", &ompl::base::SO3StateSpace::StateType::setIdentity);
 
     // Bind the SO3StateSpace class.
-    nb::class_<ompl::base::SO3StateSpace,
-               ompl::base::StateSpace>(m, "SO3StateSpace")
+    nb::class_<ompl::base::SO3StateSpace, ompl::base::StateSpace>(m, "SO3StateSpace")
         .def(nb::init<>())
         .def("norm", &ompl::base::SO3StateSpace::norm)
         .def("getDimension", &ompl::base::SO3StateSpace::getDimension)
@@ -49,11 +47,9 @@ void ompl::binding::base::initSpaces_SO3StateSpace(nb::module_& m)
         .def("allocDefaultStateSampler", &ompl::base::SO3StateSpace::allocDefaultStateSampler)
         .def("allocState", &ompl::base::SO3StateSpace::allocState)
         .def("getValueAddressAtIndex", &ompl::base::SO3StateSpace::getValueAddressAtIndex)
-        .def("printState", [](const ompl::base::SO3StateSpace &ss, const ompl::base::State *state) {
-             ss.printState(state, std::cout);
-         }, nb::arg("state"))
-        .def("printSettings", [](const ompl::base::SO3StateSpace &ss) {
-             ss.printSettings(std::cout);
-         })
+        .def(
+            "printState", [](const ompl::base::SO3StateSpace &ss, const ompl::base::State *state)
+            { ss.printState(state, std::cout); }, nb::arg("state"))
+        .def("printSettings", [](const ompl::base::SO3StateSpace &ss) { ss.printSettings(std::cout); })
         .def("registerProjections", &ompl::base::SO3StateSpace::registerProjections);
 }

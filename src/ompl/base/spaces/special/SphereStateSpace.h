@@ -114,7 +114,7 @@ namespace ompl
         protected:
             double radius_{1.0};
         };
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 
 #endif

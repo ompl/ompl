@@ -4,6 +4,7 @@ import pytest
 from ompl import base as ob
 from ompl import control as oc
 
+
 def test_control_state_space():
     # Create a control state space
     space = ob.SE2StateSpace()
@@ -19,8 +20,8 @@ def test_control_state_space():
 
     # set the bounds for the control space
     cbounds = ob.RealVectorBounds(2)
-    cbounds.setLow(-.3)
-    cbounds.setHigh(.3)
+    cbounds.setLow(-0.3)
+    cbounds.setHigh(0.3)
     cspace.setBounds(cbounds)
 
     control = cspace.allocControl()
@@ -43,6 +44,7 @@ def test_control_state_space():
     assert cspace.getDimension() == 2
     cspace.printSettings()
 
+
 def test_control_space_information():
     def propagate(temp1, control, duration, state):
         state.setX(temp1.getX() + control[0] * duration)
@@ -62,9 +64,9 @@ def test_control_space_information():
 
     # set the bounds for the control space
     cbounds = ob.RealVectorBounds(2)
-    cbounds.setLow(-.3)
-    cbounds.setHigh(.3)
-    cspace.setBounds(cbounds)  
+    cbounds.setLow(-0.3)
+    cbounds.setHigh(0.3)
+    cspace.setBounds(cbounds)
 
     si = oc.SpaceInformation(space, cspace)
     si.setPropagationStepSize(1)
@@ -85,15 +87,17 @@ def test_control_space_information():
     newState = space.allocState()
     si.propagate(state, control, 1, newState)
 
-    assert newState.getX() == pytest.approx(0+control[0])
-    assert newState.getY() == pytest.approx(0+control[1])
+    assert newState.getX() == pytest.approx(0 + control[0])
+    assert newState.getY() == pytest.approx(0 + control[1])
     assert newState.getYaw() == pytest.approx(0)
+
 
 def test_path_control():
     def propagate(temp1, control, duration, state):
         state.setX(temp1.getX() + control[0] * duration)
         state.setY(temp1.getY() + control[0] * duration)
         state.setYaw(temp1.getYaw() + control[1] * duration)
+
     space = ob.SE2StateSpace()
 
     # set the bounds for the R^2 part of SE(2)
@@ -107,9 +111,9 @@ def test_path_control():
 
     # set the bounds for the control space
     cbounds = ob.RealVectorBounds(2)
-    cbounds.setLow(-.3)
-    cbounds.setHigh(.3)
-    cspace.setBounds(cbounds)  
+    cbounds.setLow(-0.3)
+    cbounds.setHigh(0.3)
+    cspace.setBounds(cbounds)
 
     si = oc.SpaceInformation(space, cspace)
     si.setStatePropagator(propagate)
@@ -135,6 +139,7 @@ def test_path_control():
 
     assert pc.getStateCount() == 2
     assert pc.getControlCount() == 1
+
 
 if __name__ == "__main__":
     test_control_state_space()

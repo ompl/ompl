@@ -44,8 +44,7 @@
 
 #include <stdexcept>
 
-ompl::geometric::AOXRRTConnect::AOXRRTConnect(const base::SpaceInformationPtr &si)
-  : base::Planner(si, "AOXRRTConnect")
+ompl::geometric::AOXRRTConnect::AOXRRTConnect(const base::SpaceInformationPtr &si) : base::Planner(si, "AOXRRTConnect")
 {
     specs_.recognizedGoal = base::GOAL_SAMPLEABLE_REGION;
     specs_.directed = true;
@@ -129,11 +128,13 @@ void ompl::geometric::AOXRRTConnect::reset(bool solvedProblem)
     {
         tStart_->setDistanceFunction([this](const Motion *a, const Motion *b) { return aoxDistanceFunction(a, b); });
         tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return aoxDistanceFunction(a, b); });
-    } 
+    }
     else /* Use standard distance function if no cost bound is set */
     {
-        tStart_->setDistanceFunction([this](const Motion *a, const Motion *b) { return euclideanDistanceFunction(a, b); });
-        tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return euclideanDistanceFunction(a, b); });
+        tStart_->setDistanceFunction([this](const Motion *a, const Motion *b)
+                                     { return euclideanDistanceFunction(a, b); });
+        tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b)
+                                    { return euclideanDistanceFunction(a, b); });
     }
 
     /* Start from the start tree */
@@ -147,7 +148,9 @@ void ompl::geometric::AOXRRTConnect::reset(bool solvedProblem)
     {
         maxInternalSamples += maxInternalSamplesIncrement;
         maxInternalVertices += maxInternalVerticesIncrement;
-    } else {
+    }
+    else
+    {
         /* If we solved the problem, reset our internal reset conditions as well */
         maxInternalSamples = maxInternalSamplesIncrement;
         maxInternalVertices = maxInternalVerticesIncrement;
@@ -362,7 +365,7 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
     {
         TreeData &tree = startTree_ ? tStart_ : tGoal_;
         TreeData &otherTree = !startTree_ ? tStart_ : tGoal_;
-        tgi.start = startTree_;        
+        tgi.start = startTree_;
 
         if (tGoal_->size() == 0 || pis_.getSampledGoalsCount() < tGoal_->size() / 2)
         {
@@ -491,7 +494,7 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
         float asize = tree->size();
         float bsize = otherTree->size();
         float ratio = std::abs(asize - bsize) / asize;
-        
+
         /* Swap trees if our balanced RRTC condition is met */
         if (ratio < 1.f)
         {
@@ -503,13 +506,16 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
         bool placed_sampled = false;
         double c_rand;
         double c_range;
-        do {
+        do
+        {
             placed_sampled = sampler_->sampleUniform(rstate, bestCost_);
-            sampleAttempts ++;
-            
+            sampleAttempts++;
+
             double cost_sample = rng_.uniformReal(0, 1);
-            auto g_hat = tgi.start ? si_->distance(rmotion->state, startState) : si_->distance(rmotion->state, goalState);
-            auto h_hat = !tgi.start ? si_->distance(rmotion->state, startState) : si_->distance(rmotion->state, goalState);
+            auto g_hat =
+                tgi.start ? si_->distance(rmotion->state, startState) : si_->distance(rmotion->state, goalState);
+            auto h_hat =
+                !tgi.start ? si_->distance(rmotion->state, startState) : si_->distance(rmotion->state, goalState);
             auto f_hat = g_hat + h_hat;
 
             c_range = bestCost_.value() - f_hat;
