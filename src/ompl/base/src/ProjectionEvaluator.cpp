@@ -285,9 +285,9 @@ void ompl::base::ProjectionEvaluator::setup()
 
     unsigned int dim = getDimension();
     for (unsigned int i = 0; i < dim; ++i)
-        params_.declareParam<double>("cellsize." + std::to_string(i),
-                                     [this, i](double cellsize) { setCellSizes(i, cellsize); },
-                                     [this, i] { return getCellSizes(i); });
+        params_.declareParam<double>(
+            "cellsize." + std::to_string(i), [this, i](double cellsize) { setCellSizes(i, cellsize); },
+            [this, i] { return getCellSizes(i); });
 }
 
 void ompl::base::ProjectionEvaluator::computeCoordinates(const Eigen::Ref<Eigen::VectorXd> &projection,

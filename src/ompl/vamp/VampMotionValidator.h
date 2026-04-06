@@ -25,8 +25,7 @@ namespace ompl::vamp
     public:
         using Environment = ::vamp::collision::Environment<::vamp::FloatVector<rake>>;
 
-        VampMotionValidator(ob::SpaceInformation *si, const Environment &env)
-          : ob::MotionValidator(si), env_(env)
+        VampMotionValidator(ob::SpaceInformation *si, const Environment &env) : ob::MotionValidator(si), env_(env)
         {
         }
 
@@ -37,25 +36,19 @@ namespace ompl::vamp
 
         auto checkMotion(const ob::State *s1, const ob::State *s2) const -> bool override
         {
-            return ::vamp::planning::validate_motion<Robot, rake, Robot::resolution>(
-                ompl_to_vamp<Robot>(s1),
-                ompl_to_vamp<Robot>(s2),
-                env_);
+            return ::vamp::planning::validate_motion<Robot, rake, Robot::resolution>(ompl_to_vamp<Robot>(s1),
+                                                                                     ompl_to_vamp<Robot>(s2), env_);
         }
 
-        auto checkMotion(
-            const ob::State *s1,
-            const ob::State *s2,
-            std::pair<ob::State *, double> &last_valid) const -> bool override
+        auto checkMotion(const ob::State *s1, const ob::State *s2, std::pair<ob::State *, double> &last_valid) const
+            -> bool override
         {
             // throw ompl::Exception("VampMotionValidator::checkMotion with lastValid not implemented");
             // TODO: VAMP does not support returning the last valid state, but it may become available in the future
             last_valid.first = nullptr;
             last_valid.second = 0.0;
-            return ::vamp::planning::validate_motion<Robot, rake, Robot::resolution>(
-                ompl_to_vamp<Robot>(s1),
-                ompl_to_vamp<Robot>(s2),
-                env_);
+            return ::vamp::planning::validate_motion<Robot, rake, Robot::resolution>(ompl_to_vamp<Robot>(s1),
+                                                                                     ompl_to_vamp<Robot>(s2), env_);
         }
 
     private:

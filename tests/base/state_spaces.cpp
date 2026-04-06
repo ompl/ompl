@@ -500,7 +500,7 @@ BOOST_AUTO_TEST_CASE(Torus_Simple)
     base::ScopedState<base::TorusStateSpace> s1(m);
     base::ScopedState<base::TorusStateSpace> s2(m);
 
-    //Check distances on first dimension
+    // Check distances on first dimension
     s1->setS1(PI - 0.1);
     s1->setS2(0);
     s2->setS1(-PI + 0.1);
@@ -510,7 +510,7 @@ BOOST_AUTO_TEST_CASE(Torus_Simple)
     BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s1.get()), 0.0, 1e-3);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s2.get()), 0.0, 1e-3);
 
-    //Check distances on second dimension
+    // Check distances on second dimension
     s1->setS1(0);
     s1->setS2(+PI - 0.1);
     s2->setS1(0);
@@ -520,13 +520,12 @@ BOOST_AUTO_TEST_CASE(Torus_Simple)
     BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s1.get()), 0.0, 1e-3);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s2.get()), 0.0, 1e-3);
 
-    //Check interpolation
+    // Check interpolation
     s2 = s1;
     m->interpolate(s1.get(), s1.get(), 0.5, s1.get());
     BOOST_CHECK_EQUAL(s1, s2);
     m->interpolate(s1.get(), s2.get(), 0.5, s1.get());
     BOOST_CHECK_EQUAL(s1, s2);
-
 }
 
 BOOST_AUTO_TEST_CASE(Mobius_Simple)
@@ -549,19 +548,19 @@ BOOST_AUTO_TEST_CASE(Mobius_Simple)
     s1->setV(-intervalMax);
     s2->setU(-PI);
     s2->setV(+intervalMax);
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 2*intervalMax, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 2 * intervalMax, 1e-3);
 
     s1->setU(+PI);
     s1->setV(-intervalMax);
     s2->setU(+PI);
     s2->setV(+intervalMax);
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 2*intervalMax, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 2 * intervalMax, 1e-3);
 
-    //check that the both endings are correctly glued together
+    // check that the both endings are correctly glued together
     s1->setU(+PI - 0.1);
     s1->setV(+intervalMax);
     s2->setU(-PI + 0.1);
-    s2->setV(-intervalMax); //segment should be inverted!
+    s2->setV(-intervalMax);  // segment should be inverted!
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.2, 1e-3);
 
     s1->setU(+PI - 0.1);
@@ -574,7 +573,7 @@ BOOST_AUTO_TEST_CASE(Mobius_Simple)
     s1->setV(+intervalMax);
     s2->setU(-PI + 0.1);
     s2->setV(+intervalMax);
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 2*intervalMax + 0.2, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 2 * intervalMax + 0.2, 1e-3);
 }
 
 BOOST_AUTO_TEST_CASE(Sphere_Simple)
@@ -593,7 +592,7 @@ BOOST_AUTO_TEST_CASE(Sphere_Simple)
     base::ScopedState<base::SphereStateSpace> s1(m);
     base::ScopedState<base::SphereStateSpace> s2(m);
 
-    //north-south interpolation
+    // north-south interpolation
     s1->setTheta(0);
     s1->setPhi(0);
     s2->setTheta(0);
@@ -601,7 +600,7 @@ BOOST_AUTO_TEST_CASE(Sphere_Simple)
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), PI, 1e-3);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), PI, 1e-3);
 
-    //east-west interpolation (at south pole)
+    // east-west interpolation (at south pole)
     s1->setTheta(0);
     s1->setPhi(0);
     s2->setTheta(+PI);
@@ -609,7 +608,7 @@ BOOST_AUTO_TEST_CASE(Sphere_Simple)
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.0, 1e-3);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.0, 1e-3);
 
-    //east-west interpolation (at north pole)
+    // east-west interpolation (at north pole)
     s1->setTheta(PI);
     s1->setPhi(PI);
     s2->setTheta(0);
@@ -617,13 +616,13 @@ BOOST_AUTO_TEST_CASE(Sphere_Simple)
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.0, 1e-3);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.0, 1e-3);
 
-    //east-west interpolation (at equator)
+    // east-west interpolation (at equator)
     s1->setTheta(0);
-    s1->setPhi(+PI/2.0);
-    s2->setTheta(+PI/3);
-    s2->setPhi(+PI/2.0);
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), PI/3, 1e-3);
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), PI/3, 1e-3);
+    s1->setPhi(+PI / 2.0);
+    s2->setTheta(+PI / 3);
+    s2->setPhi(+PI / 2.0);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), PI / 3, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), PI / 3, 1e-3);
 }
 
 BOOST_AUTO_TEST_CASE(KleinBottle_Simple)
@@ -639,55 +638,54 @@ BOOST_AUTO_TEST_CASE(KleinBottle_Simple)
     base::ScopedState<base::KleinBottleStateSpace> s1(m);
     base::ScopedState<base::KleinBottleStateSpace> s2(m);
 
-    //Check that gluing overlaps in the correct way
-    s1->setUV(0.1, 0); 
-    s2->setUV(PI-0.1, -PI);
+    // Check that gluing overlaps in the correct way
+    s1->setUV(0.1, 0);
+    s2->setUV(PI - 0.1, -PI);
 
     BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.2, 1e-3);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.2, 1e-3);
 
-    s1->setUV(0.1, 0); 
-    s2->setUV(PI-0.1, +PI);
+    s1->setUV(0.1, 0);
+    s2->setUV(PI - 0.1, +PI);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.2, 1e-3);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.2, 1e-3);
 
-    s1->setUV(0.1, 0.5*PI); 
-    s2->setUV(PI-0.1, 0.5*PI);
+    s1->setUV(0.1, 0.5 * PI);
+    s2->setUV(PI - 0.1, 0.5 * PI);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.2, 1e-3);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.2, 1e-3);
 
-    s1->setUV(0.1, -0.3*PI); 
-    s2->setUV(PI-0.1, -PI+0.3*PI);
+    s1->setUV(0.1, -0.3 * PI);
+    s2->setUV(PI - 0.1, -PI + 0.3 * PI);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s1.get(), s2.get()), 0.2, 1e-3);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s2.get(), s1.get()), 0.2, 1e-3);
 
-    //Check interpolations along gluing
+    // Check interpolations along gluing
     base::ScopedState<base::KleinBottleStateSpace> s3(m);
     base::ScopedState<base::KleinBottleStateSpace> s4(m);
 
-    s1->setUV(0.1, -0.3*PI); 
-    s2->setUV(PI-0.1, -PI+0.3*PI);
+    s1->setUV(0.1, -0.3 * PI);
+    s2->setUV(PI - 0.1, -PI + 0.3 * PI);
 
     m->interpolate(s1.get(), s2.get(), 0.3, s3.get());
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s3.get(), s1.get()), 0.3*0.2, 1e-3);
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s3.get(), s2.get()), 0.7*0.2, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s3.get(), s1.get()), 0.3 * 0.2, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s3.get(), s2.get()), 0.7 * 0.2, 1e-3);
     m->interpolate(s1.get(), s2.get(), 0.7, s3.get());
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s3.get(), s1.get()), 0.7*0.2, 1e-3);
-    BOOST_OMPL_EXPECT_NEAR(m->distance(s3.get(), s2.get()), 0.3*0.2, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s3.get(), s1.get()), 0.7 * 0.2, 1e-3);
+    BOOST_OMPL_EXPECT_NEAR(m->distance(s3.get(), s2.get()), 0.3 * 0.2, 1e-3);
 
     m->interpolate(s1.get(), s2.get(), 0.5, s3.get());
 
-    s4->setUV(PI, -PI+0.3*PI);
+    s4->setUV(PI, -PI + 0.3 * PI);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s3.get(), s4.get()), 0.0, 1e-3);
 
-    s4->setUV(0, -0.3*PI);
+    s4->setUV(0, -0.3 * PI);
     BOOST_OMPL_EXPECT_NEAR(m->distance(s3.get(), s4.get()), 0.0, 1e-3);
 
-    //Check interpolation
+    // Check interpolation
     s2 = s1;
     m->interpolate(s1.get(), s1.get(), 0.5, s1.get());
     BOOST_CHECK_EQUAL(s1, s2);
     m->interpolate(s1.get(), s2.get(), 0.5, s1.get());
     BOOST_CHECK_EQUAL(s1, s2);
 }
-

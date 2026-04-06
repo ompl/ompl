@@ -163,7 +163,7 @@ if(NOT SKBUILD)
     set_package_properties(PkgConfig PROPERTIES
         URL "https://www.freedesktop.org/wiki/Software/pkg-config/"
         PURPOSE "Used to find (compilation flags for) dependencies.")
-        
+
     # Add VAMP to feature summary
     set_package_properties(VAMP PROPERTIES
         URL "https://github.com/KavrakiLab/vamp"

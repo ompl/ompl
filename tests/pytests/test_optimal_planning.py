@@ -231,4 +231,3 @@ if __name__ == "__main__":
     test_bitstar_settings()
     test_fmt_settings()
     test_path_length_optimization()
-

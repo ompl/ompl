@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the University of Santa Cruz nor the names of 
+ *   * Neither the name of the University of Santa Cruz nor the names of
  *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -83,7 +83,7 @@ namespace ompl
             HybridTimeStateSpace()
             {
                 setName("Hybrid Time" + getName());
-                type_ = STATE_SPACE_TIME;   // TODO: add STATE_SPACE_HYBRID_TIME to ompl::base::StateSpaceType
+                type_ = STATE_SPACE_TIME;  // TODO: add STATE_SPACE_HYBRID_TIME to ompl::base::StateSpaceType
             }
 
             ~HybridTimeStateSpace() override = default;
@@ -201,7 +201,7 @@ namespace ompl
             /** \brief The maximum point in time considered by the state space (if bounds are used) */
             unsigned int maxJumps_{0};
         };
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 
 #endif

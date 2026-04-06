@@ -11,9 +11,8 @@ namespace nb = nanobind;
 void ompl::binding::base::initSpaces_SO2StateSpace(nb::module_ &m)
 {
     // Bind the SO2 state sampler.
-    nb::class_<ompl::base::SO2StateSampler,
-               ompl::base::StateSampler>(m, "SO2StateSampler")
-        .def(nb::init<const ompl::base::StateSpace*>())
+    nb::class_<ompl::base::SO2StateSampler, ompl::base::StateSampler>(m, "SO2StateSampler")
+        .def(nb::init<const ompl::base::StateSpace *>())
         .def("sampleUniform", &ompl::base::SO2StateSampler::sampleUniform)
         .def("sampleUniformNear", &ompl::base::SO2StateSampler::sampleUniformNear)
         .def("sampleGaussian", &ompl::base::SO2StateSampler::sampleGaussian);
@@ -24,8 +23,7 @@ void ompl::binding::base::initSpaces_SO2StateSpace(nb::module_ &m)
              "Set the state to the identity (zero angle)")
         .def_rw("value", &ompl::base::SO2StateSpace::StateType::value);
 
-    nb::class_<ompl::base::SO2StateSpace,
-               ompl::base::StateSpace>(m, "SO2StateSpace")
+    nb::class_<ompl::base::SO2StateSpace, ompl::base::StateSpace>(m, "SO2StateSpace")
         .def(nb::init<>())
         .def("getDimension", &ompl::base::SO2StateSpace::getDimension)
         .def("getMaximumExtent", &ompl::base::SO2StateSpace::getMaximumExtent)
@@ -41,11 +39,9 @@ void ompl::binding::base::initSpaces_SO2StateSpace(nb::module_ &m)
         .def("interpolate", &ompl::base::SO2StateSpace::interpolate)
         .def("allocDefaultStateSampler", &ompl::base::SO2StateSpace::allocDefaultStateSampler)
         .def("allocState", &ompl::base::SO2StateSpace::allocState)
-        .def("printState", [](const ompl::base::SO2StateSpace &ss, const ompl::base::State *state) {
-            ss.printState(state, std::cout);
-        }, nb::arg("state"))
-        .def("printSettings", [](const ompl::base::SO2StateSpace &ss) {
-            ss.printSettings(std::cout);
-        })
+        .def(
+            "printState", [](const ompl::base::SO2StateSpace &ss, const ompl::base::State *state)
+            { ss.printState(state, std::cout); }, nb::arg("state"))
+        .def("printSettings", [](const ompl::base::SO2StateSpace &ss) { ss.printSettings(std::cout); })
         .def("registerProjections", &ompl::base::SO2StateSpace::registerProjections);
 }

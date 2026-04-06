@@ -113,6 +113,6 @@ namespace ompl
             PROJECTION_UNKNOWN = -1
         };
     }
-}
+}  // namespace ompl
 
 #endif

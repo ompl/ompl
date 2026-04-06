@@ -6,9 +6,7 @@ namespace nb = nanobind;
 namespace oc = ompl::control;
 namespace ob = ompl::base;
 
-void ompl::binding::control::initPlannersSst_SST(nb::module_& m)
+void ompl::binding::control::initPlannersSst_SST(nb::module_ &m)
 {
-
-    nb::class_<oc::SST, ob::Planner>(m, "SST")
-        ;
+    nb::class_<oc::SST, ob::Planner>(m, "SST");
 }

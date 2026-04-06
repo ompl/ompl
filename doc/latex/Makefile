@@ -10,4 +10,3 @@ primer:
 
 clean:
 	rm -f OMPL_Primer.{aux,bbl,blg,log,toc}
-

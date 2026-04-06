@@ -38,6 +38,7 @@
 
 from math import sin, cos, tan
 from functools import partial
+
 try:
     from ompl import base as ob
     from ompl import control as oc
@@ -46,10 +47,12 @@ except ImportError:
     # subdirectory of the parent directory called "py-bindings."
     from os.path import abspath, dirname, join
     import sys
-    sys.path.insert(0, join(dirname(dirname(abspath(__file__))), 'py-bindings'))
+
+    sys.path.insert(0, join(dirname(dirname(abspath(__file__))), "py-bindings"))
     from ompl import base as ob
-    from ompl import geometric as og # needed for asGeometric()
+    from ompl import geometric as og  # needed for asGeometric()
     from ompl import control as oc
+
 
 def kinematicCarODE(q, u, qdot):
     theta = q[2]
@@ -63,6 +66,7 @@ def isStateValid(spaceInformation, state):
     # perform collision checking or check if other constraints are
     # satisfied
     return spaceInformation.satisfiesBounds(state)
+
 
 def plan():
     # construct the state space we are planning in
@@ -79,13 +83,15 @@ def plan():
 
     # set the bounds for the control space
     cbounds = ob.RealVectorBounds(2)
-    cbounds.setLow(-.3)
-    cbounds.setHigh(.3)
+    cbounds.setLow(-0.3)
+    cbounds.setHigh(0.3)
     cspace.setBounds(cbounds)
 
     # define a simple setup class
     ss = oc.SimpleSetup(cspace)
-    validityChecker = ob.StateValidityCheckerFn(partial(isStateValid, ss.getSpaceInformation()))
+    validityChecker = ob.StateValidityCheckerFn(
+        partial(isStateValid, ss.getSpaceInformation())
+    )
     ss.setStateValidityChecker(validityChecker)
     ode = oc.ODE(kinematicCarODE)
     odeSolver = oc.ODEBasicSolver(ss.getSpaceInformation(), ode)
@@ -112,7 +118,10 @@ def plan():
 
     if solved:
         # print the path to screen
-        print("Found solution:\n%s" % ss.getSolutionPath().asGeometric().printAsMatrix())
+        print(
+            "Found solution:\n%s" % ss.getSolutionPath().asGeometric().printAsMatrix()
+        )
+
 
 if __name__ == "__main__":
     plan()

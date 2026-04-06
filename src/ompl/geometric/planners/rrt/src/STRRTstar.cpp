@@ -469,8 +469,7 @@ ompl::geometric::STRRTstar::GrowState ompl::geometric::STRRTstar::growTree(
     // in start tree sort by distance
     if (tgi.start)
     {
-        std::sort(nbh.begin(), nbh.end(),
-                  [this, &rmotion](Motion *a, Motion *b)
+        std::sort(nbh.begin(), nbh.end(), [this, &rmotion](Motion *a, Motion *b)
                   { return si_->distance(a->state, rmotion->state) < si_->distance(b->state, rmotion->state); });
     }
     // in goal tree sort by time of root node
@@ -1067,7 +1066,8 @@ bool ompl::geometric::STRRTstar::sampleGoalTime(ompl::base::State *goal, double 
 {
     double ltb, utb;
     double startTime = si_->getStateSpace()->as<ompl::base::SpaceTimeStateSpace>()->getStateTime(startMotion_->state);
-    double minTimeToGoal = si_->getStateSpace()->as<ompl::base::SpaceTimeStateSpace>()->timeToCoverDistance(startMotion_->state, goal);
+    double minTimeToGoal =
+        si_->getStateSpace()->as<ompl::base::SpaceTimeStateSpace>()->timeToCoverDistance(startMotion_->state, goal);
     double minTime = startTime + minTimeToGoal;
 
     if (isTimeBounded_)

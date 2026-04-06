@@ -30,33 +30,21 @@ BOOST_AUTO_TEST_CASE(VAMPPlanning)
 {
     // Build a simple sphere obstacle environment
     vamp::collision::Environment<float> env_float;
-    
+
     // Add some sphere obstacles
     std::vector<std::array<float, 3>> obstacles = {
-        {0.55, 0, 0.25},
-        {0.35, 0.35, 0.25},
-        {0, 0.55, 0.25},
-        {-0.55, 0, 0.25},
-        {-0.35, -0.35, 0.25},
-        {0, -0.55, 0.25},
-        {0.35, -0.35, 0.25},
-        {0.35, 0.35, 0.8},
-        {0, 0.55, 0.8},
-        {-0.35, 0.35, 0.8},
-        {-0.55, 0, 0.8},
-        {-0.35, -0.35, 0.8},
-        {0, -0.55, 0.8},
-        {0.35, -0.35, 0.8},
+        {0.55, 0, 0.25},  {0.35, 0.35, 0.25},  {0, 0.55, 0.25},   {-0.55, 0, 0.25},   {-0.35, -0.35, 0.25},
+        {0, -0.55, 0.25}, {0.35, -0.35, 0.25}, {0.35, 0.35, 0.8}, {0, 0.55, 0.8},     {-0.35, 0.35, 0.8},
+        {-0.55, 0, 0.8},  {-0.35, -0.35, 0.8}, {0, -0.55, 0.8},   {0.35, -0.35, 0.8},
     };
-    
+
     constexpr float radius = 0.2f;
-    for (const auto& obs : obstacles)
+    for (const auto &obs : obstacles)
     {
-        env_float.spheres.emplace_back(
-            vamp::collision::factory::sphere::array(obs, radius));
+        env_float.spheres.emplace_back(vamp::collision::factory::sphere::array(obs, radius));
     }
     env_float.sort();
-    
+
     // Convert to vectorized environment for SIMD collision checking
     Environment env(env_float);
 
@@ -67,25 +55,23 @@ BOOST_AUTO_TEST_CASE(VAMPPlanning)
 
     auto si = ss.getSpaceInformation();
 
-    si->setStateValidityChecker(
-        std::make_shared<ompl::vamp::VampStateValidityChecker<Robot>>(si, env));
-    si->setMotionValidator(
-        std::make_shared<ompl::vamp::VampMotionValidator<Robot>>(si, env));
+    si->setStateValidityChecker(std::make_shared<ompl::vamp::VampStateValidityChecker<Robot>>(si, env));
+    si->setMotionValidator(std::make_shared<ompl::vamp::VampMotionValidator<Robot>>(si, env));
 
     // Define start and goal configurations (Panda 7 DOF)
     ob::ScopedState<> start(space);
     ob::ScopedState<> goal(space);
-    
+
     std::array<double, 7> start_config = {0., -0.785, 0., -2.356, 0., 1.571, 0.785};
     std::array<double, 7> goal_config = {2.35, 1., 0., -0.8, 0., 2.5, 0.785};
-    
+
     for (std::size_t i = 0; i < Robot::dimension; ++i)
     {
         start[i] = start_config[i];
         goal[i] = goal_config[i];
     }
 
-    // Create RRTConnect planner (optional, a default will be automatically chosen otherwise)  
+    // Create RRTConnect planner (optional, a default will be automatically chosen otherwise)
     auto planner = std::make_shared<og::RRTConnect>(si);
     ss.setPlanner(planner);
 
@@ -96,7 +82,7 @@ BOOST_AUTO_TEST_CASE(VAMPPlanning)
     auto start_time = std::chrono::steady_clock::now();
     ob::PlannerStatus status = ss.solve(ob::timedPlannerTerminationCondition(5.0));
     auto end_time = std::chrono::steady_clock::now();
-    
+
     auto duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
     auto duration_ms = duration_ns / 1e6;
     BOOST_TEST(status == ob::PlannerStatus::EXACT_SOLUTION);

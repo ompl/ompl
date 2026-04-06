@@ -186,14 +186,14 @@ void saveStatistic(std::ostream &logfile, ob::ScopedState<> const &start, ob::Sc
     double length;
     unsigned int success;
     char type = '?';
-    const auto& name = start.getSpace()->getName();
+    const auto &name = start.getSpace()->getName();
     try
     {
         ompl::tools::Profiler::ScopedBlock _(name);
         auto path = getPath<Space>(start, goal);
         success = 1;
         length = path.length();
-        if constexpr (!std::is_same_v<Space,ob::VanaStateSpace>)
+        if constexpr (!std::is_same_v<Space, ob::VanaStateSpace>)
             type = (char)path.category();
     }
     catch (std::runtime_error &e)
@@ -302,7 +302,8 @@ void benchmark(unsigned numSamples, double radius, double maxPitch)
 
     ompl::tools::Profiler::Start();
     std::ofstream logfile("benchmark.csv");
-    logfile << "X,Y,Z,pitch,yaw,owen_success,owen_length,owen_category,vana_success,vana_length,vana_category,vanaowen_success,vanaowen_length,vanaowen_category\n";
+    logfile
+        << "X,Y,Z,pitch,yaw,owen_success,owen_length,owen_category,vana_success,vana_length,vana_category,vanaowen_success,vanaowen_length,vanaowen_category\n";
 
     for (unsigned int i = 0; i < numSamples; ++i)
     {
@@ -338,7 +339,7 @@ int main(int argc, char *argv[])
             ("vana", "generate a Vana path starting from (x,y,z,pitch,yaw)=(0,0,0,0,0) to a random pose")
             ("vanaowen", "generate a Vana-Owen path starting from (x,y,z,pitch,yaw)=(0,0,0,0,0) to a random pose")
             ("plan", "use a planner to plan a path to a random pose in space with obstacles")
-            ("savepath", po::value<std::string>(&pathName), "save an (approximate) solution path to file") 
+            ("savepath", po::value<std::string>(&pathName), "save an (approximate) solution path to file")
             ("start", po::value<std::vector<double>>()->multitoken(),
                 "use (x,y,z,[pitch,]yaw) as the start")
             ("goal", po::value<std::vector<double>>()->multitoken(),

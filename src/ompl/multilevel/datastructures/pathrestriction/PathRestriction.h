@@ -48,14 +48,14 @@ namespace ompl
         /** \brief Forward declaration of ompl::base::Path */
         OMPL_CLASS_FORWARD(Path);
         /// @endcond
-    }
+    }  // namespace base
     namespace geometric
     {
         /// @cond IGNORE
         /** \brief Forward declaration of ompl::geometric::PathGeometric */
         OMPL_CLASS_FORWARD(PathGeometric);
         /// @endcond
-    }
+    }  // namespace geometric
     namespace multilevel
     {
         /// @cond IGNORE
@@ -176,7 +176,7 @@ namespace ompl
              * last base path index)*/
             FindSectionPtr findSection_;
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 #endif

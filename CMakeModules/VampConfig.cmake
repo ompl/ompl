@@ -8,7 +8,7 @@ function(apply_vamp_simd_flags TARGET_NAME)
     if(NOT DEFINED VAMP_SIMD_FLAGS)
         return()
     endif()
-    
+
     target_compile_options(${TARGET_NAME} PRIVATE ${VAMP_SIMD_FLAGS})
     message(STATUS "Applied VAMP SIMD flags to ${TARGET_NAME}")
 endfunction()
@@ -28,22 +28,22 @@ function(configure_vamp)
     endif()
 
     message(STATUS "Configuring VAMP integration...")
-    
+
     # Configure VAMP build options
     configure_vamp_build_options()
-    
+
     # Setup SIMD environment
     setup_vamp_simd_environment()
-    
+
     # Add VAMP subdirectory
     add_subdirectory(external/vamp)
-    
+
     # Restore original flags
     restore_original_flags()
-    
+
     # Configure VAMP targets
     configure_vamp_targets()
-    
+
     set(OMPL_HAVE_VAMP TRUE CACHE BOOL "Whether VAMP integration is available" FORCE)
     message(STATUS "VAMP integration configured successfully")
 endfunction()
@@ -52,10 +52,10 @@ endfunction()
 function(configure_vamp_build_options)
     # Pass VAMP build options to submodule
     set(VAMP_PORTABLE_BUILD ${VAMP_PORTABLE_BUILD} CACHE BOOL "Build VAMP with portable SIMD settings" FORCE)
-    
+
     # Set VAMP Python bindings - use top-level option value
     set(VAMP_BUILD_PYTHON_BINDINGS ${VAMP_BUILD_PYTHON_BINDINGS} CACHE BOOL "Build VAMP Python bindings" FORCE)
-    
+
     # Set VAMP-specific options
     set(VAMP_BUILD_CPP_DEMO OFF CACHE BOOL "Build VAMP C++ Demo Scripts" FORCE)
     set(VAMP_BUILD_OMPL_DEMO OFF CACHE BOOL "Build VAMP C++ OMPL Integration Demo Scripts" FORCE)
@@ -67,7 +67,7 @@ function(setup_vamp_simd_environment)
     # Store current flags to restore later (use cache to persist across function calls)
     set(_VAMP_OLD_CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE INTERNAL "Stored C flags before VAMP SIMD setup")
     set(_VAMP_OLD_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" CACHE INTERNAL "Stored CXX flags before VAMP SIMD setup")
-    
+
     # Determine SIMD flags based on architecture and build mode
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
         if(VAMP_PORTABLE_BUILD)
@@ -88,14 +88,14 @@ function(setup_vamp_simd_environment)
     else()
         message(FATAL_ERROR "Unsupported architecture ${CMAKE_SYSTEM_PROCESSOR} for VAMP")
     endif()
-    
+
     # Convert list to space-separated string for CMAKE_C_FLAGS
     string(REPLACE ";" " " SIMD_FLAGS_STR "${SIMD_FLAGS_LIST}")
-    
+
     # Apply SIMD flags globally for VAMP and its dependencies
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SIMD_FLAGS_STR}" CACHE STRING "" FORCE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SIMD_FLAGS_STR}" CACHE STRING "" FORCE)
-    
+
     # Store SIMD flags for later use
     set(VAMP_SIMD_FLAGS ${SIMD_FLAGS_LIST} PARENT_SCOPE)
 endfunction()
@@ -120,23 +120,23 @@ function(configure_vamp_targets)
             CXX_VISIBILITY_PRESET hidden
             VISIBILITY_INLINES_HIDDEN ON
         )
-        
+
         # Apply SIMD flags to VAMP C++ library
         if(DEFINED VAMP_SIMD_FLAGS)
             target_compile_options(vamp_cpp INTERFACE ${VAMP_SIMD_FLAGS})
         endif()
-        
+
         message(STATUS "VAMP C++ library target configured")
     endif()
-    
+
     # Print VAMP build configuration
     if(VAMP_PORTABLE_BUILD)
         message(STATUS "VAMP: Using portable build mode for distribution")
     else()
         message(STATUS "VAMP: Using native build mode for best performance")
     endif()
-    
+
 endfunction()
 
 # Export VAMP configuration for other modules
-set(VAMP_CONFIGURED TRUE) 
+set(VAMP_CONFIGURED TRUE)

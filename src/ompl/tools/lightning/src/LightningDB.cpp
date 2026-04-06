@@ -53,9 +53,7 @@ ompl::tools::LightningDB::LightningDB(const base::StateSpacePtr &space)
 
     // Use our custom distance function for nearest neighbor tree
     nn_->setDistanceFunction([this](const ompl::base::PlannerDataPtr &a, const ompl::base::PlannerDataPtr &b)
-                             {
-                                 return distanceFunction(a, b);
-                             });
+                             { return distanceFunction(a, b); });
 
     // Load the PlannerData instance to be used for searching
     nnSearchKey_ = std::make_shared<ompl::base::PlannerData>(si_);

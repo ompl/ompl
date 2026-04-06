@@ -53,7 +53,7 @@ namespace ompl
         /** \brief Forward declaration of ompl::base::GoalStates */
         OMPL_CLASS_FORWARD(GoalStates);
         /// @endcond
-    }
+    }  // namespace base
     namespace multilevel
     {
         /** \brief A planner for a sequence of BundleSpaces

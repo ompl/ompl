@@ -127,7 +127,7 @@ namespace ompl
             static std::mutex staticConstructorLock_;
             /// @endcond
         };
-    }
-}
+    }  // namespace tools
+}  // namespace ompl
 
 #endif

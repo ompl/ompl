@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2014, University of Toronto
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Toronto nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2014, University of Toronto
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Toronto nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Authors: Jonathan Gammell, Marlin Strub */
 
@@ -75,13 +75,14 @@ namespace ompl
             using SortKeyAndVertexPtrPair = std::pair<SortKey, VertexPtrPair>;
 
             /** \brief The function signature of the sorting function for the Edge Queue*/
-            using EdgeComparisonFunction = std::function<bool(const SortKeyAndVertexPtrPair &, const SortKeyAndVertexPtrPair &)>;
+            using EdgeComparisonFunction =
+                std::function<bool(const SortKeyAndVertexPtrPair &, const SortKeyAndVertexPtrPair &)>;
 
             /** \brief The underlying edge queue. Using static keys for the same reason as the Vertex Queue */
             using EdgeQueue = ompl::BinaryHeap<SortKeyAndVertexPtrPair, EdgeComparisonFunction>;
 
             /** \brief An element pointer into the edge queue binary heap */
-            using EdgeQueueElemPtr = EdgeQueue::Element*;
+            using EdgeQueueElemPtr = EdgeQueue::Element *;
 
             /** \brief A vector of edge queue pointers */
             using EdgeQueueElemPtrVector = std::vector<EdgeQueueElemPtr>;
@@ -139,8 +140,8 @@ namespace ompl
             // ---
 
             /** \brief Finish the queue if it is sorted, if not resort the queue. Finishing the queue clears all the
-             * edge containers and moves the vertex expansion token to the end. After calling finish() ON A SORTED QUEUE,
-             * isEmpty() will return true. Keeps threshold, etc.*/
+             * edge containers and moves the vertex expansion token to the end. After calling finish() ON A SORTED
+             * QUEUE, isEmpty() will return true. Keeps threshold, etc.*/
             void clear();
 
             /** \brief Clear the set of inconsistent vertices. */
@@ -227,7 +228,7 @@ namespace ompl
             /** A lexicographical comparison function for the std::arrays of costs. This is the sorting function for
              * both the vertex and edge queues and is just a wrapper to std::lexicographical_compare. */
             bool lexicographicalBetterThan(const std::array<ompl::base::Cost, 3> &lhs,
-                                 const std::array<ompl::base::Cost, 3> &rhs) const;
+                                           const std::array<ompl::base::Cost, 3> &rhs) const;
 
             // ---
             // Debug helpers.
@@ -265,20 +266,22 @@ namespace ompl
             /** \brief The factor by which the cost-to-go heuristic is inflated. */
             double inflationFactor_{1.0};
 
-            /** \brief The cost of the best solution, which is the maximum heuristic value allowed for vertices/edges in the queue. */
+            /** \brief The cost of the best solution, which is the maximum heuristic value allowed for vertices/edges in
+             * the queue. */
             ompl::base::Cost solutionCost_{std::numeric_limits<double>::infinity()};
 
             /** \brief Whether the problem has a solution. */
             bool hasExactSolution_{false};
 
-            /** \brief A counter for the number of times we've reset the vertex queue. Used to efficiently reset the edge queue lookups stored in vertices. */
+            /** \brief A counter for the number of times we've reset the vertex queue. Used to efficiently reset the
+             * edge queue lookups stored in vertices. */
             const std::shared_ptr<unsigned int> searchId_;
 
             /** \brief The number of edges processed, in one way or other, from the queue. Accessible via numEdgesPopped
              */
             unsigned int numEdgesPopped_{0u};
 
-        }; // class SearchQueue
-    } // namespace geometric
+        };  // class SearchQueue
+    }  // namespace geometric
 }  // namespace ompl
 #endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_SEARCHQUEUE_

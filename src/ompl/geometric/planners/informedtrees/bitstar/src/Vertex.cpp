@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2014, University of Toronto
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Toronto nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2014, University of Toronto
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Toronto nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Authors: Jonathan Gammell, Marlin Strub */
 
@@ -56,26 +56,26 @@
 
 // Debug macros.
 #ifdef BITSTAR_DEBUG
-    // Debug setting. The id number of a vertex to track. Requires BITSTAR_DEBUG to be defined in BITstar.h
-    #define TRACK_VERTEX_ID 0
+// Debug setting. The id number of a vertex to track. Requires BITSTAR_DEBUG to be defined in BITstar.h
+#define TRACK_VERTEX_ID 0
 
-    /** \brief A helper function to print out every function called on vertex "TRACK_VERTEX_ID" that changes it */
-    #define PRINT_VERTEX_CHANGE \
-        if (id_ == TRACK_VERTEX_ID) \
-        { \
-            std::cout << "Vertex " << id_ << ": " << __func__ << "" << std::endl; \
-        }
+/** \brief A helper function to print out every function called on vertex "TRACK_VERTEX_ID" that changes it */
+#define PRINT_VERTEX_CHANGE                                                                                            \
+    if (id_ == TRACK_VERTEX_ID)                                                                                        \
+    {                                                                                                                  \
+        std::cout << "Vertex " << id_ << ": " << __func__ << "" << std::endl;                                          \
+    }
 
-    /** \brief Assert that the vertex is not pruned. */
-    #define ASSERT_NOT_PRUNED \
-        if (this->isPruned_) \
-        { \
-            std::cout << "Vertex " << id_ << ": " << __func__ << std::endl; \
-            throw ompl::Exception("Attempting to access a pruned vertex."); \
-        }
+/** \brief Assert that the vertex is not pruned. */
+#define ASSERT_NOT_PRUNED                                                                                              \
+    if (this->isPruned_)                                                                                               \
+    {                                                                                                                  \
+        std::cout << "Vertex " << id_ << ": " << __func__ << std::endl;                                                \
+        throw ompl::Exception("Attempting to access a pruned vertex.");                                                \
+    }
 #else
-    #define PRINT_VERTEX_CHANGE
-    #define ASSERT_NOT_PRUNED
+#define PRINT_VERTEX_CHANGE
+#define ASSERT_NOT_PRUNED
 #endif  // BITSTAR_DEBUG
 
 // An anonymous namespace to hide the instance:
@@ -99,7 +99,7 @@ namespace
         std::call_once(g_IdInited, &initIdGenerator);
         return *g_IdGenerator;
     }
-}
+}  // namespace
 
 namespace ompl
 {
@@ -107,8 +107,9 @@ namespace ompl
     {
         /////////////////////////////////////////////////////////////////////////////////////////////
         // Public functions:
-        BITstar::Vertex::Vertex(ompl::base::SpaceInformationPtr spaceInformation, const CostHelper *const costHelpPtr, SearchQueue *const queuePtr,
-                   const std::shared_ptr<const unsigned int> &approximationId, bool root)
+        BITstar::Vertex::Vertex(ompl::base::SpaceInformationPtr spaceInformation, const CostHelper *const costHelpPtr,
+                                SearchQueue *const queuePtr, const std::shared_ptr<const unsigned int> &approximationId,
+                                bool root)
           : id_(getIdGenerator().getNewId())
           , si_(std::move(spaceInformation))
           , costHelpPtr_(std::move(costHelpPtr))
@@ -580,10 +581,12 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
-            // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
+            // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which
+            // would be an error.
             if (*currentApproximationId_ != lookupApproximationId_)
             {
-                throw ompl::Exception("Attempted to remove an incoming queue edge added under a different expansion id.");
+                throw ompl::Exception(
+                    "Attempted to remove an incoming queue edge added under a different expansion id.");
             }
 
             // Variable
@@ -617,16 +620,19 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
         }
 
-        void BITstar::Vertex::removeFromEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtrVector::const_iterator& element)
+        void
+        BITstar::Vertex::removeFromEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtrVector::const_iterator &element)
         {
             ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
-            // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
+            // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which
+            // would be an error.
             if (*currentApproximationId_ != lookupApproximationId_)
             {
-                throw ompl::Exception("Attempted to remove an incoming queue edge added under a different expansion id.");
+                throw ompl::Exception(
+                    "Attempted to remove an incoming queue edge added under a different expansion id.");
             }
 #endif  // BITSTAR_DEBUG
 
@@ -672,7 +678,7 @@ namespace ompl
             return edgeQueueInLookup_.size();
         }
 
-        void BITstar::Vertex::insertInEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtr& element)
+        void BITstar::Vertex::insertInEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtr &element)
         {
             ASSERT_NOT_PRUNED
 
@@ -710,10 +716,12 @@ namespace ompl
 
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
-            // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
+            // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which
+            // would be an error.
             if (*currentApproximationId_ != lookupApproximationId_)
             {
-                throw ompl::Exception("Attempted to remove an incoming queue edge added under a different expansion id.");
+                throw ompl::Exception(
+                    "Attempted to remove an incoming queue edge added under a different expansion id.");
             }
 
             // Variable
@@ -747,16 +755,19 @@ namespace ompl
 #endif  // BITSTAR_DEBUG
         }
 
-        void BITstar::Vertex::removeFromEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtrVector::const_iterator& element)
+        void BITstar::Vertex::removeFromEdgeQueueOutLookup(
+            const SearchQueue::EdgeQueueElemPtrVector::const_iterator &element)
         {
             ASSERT_NOT_PRUNED
 
 #ifdef BITSTAR_DEBUG
             // Assert that the edge queue entries we have are of the same set as the one we're seeking to delete.
-            // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which would be an error.
+            // If so, there's no point clearing them, as then we'd be trying to remove an edge that doesn't exist which
+            // would be an error.
             if (*currentApproximationId_ != lookupApproximationId_)
             {
-                throw ompl::Exception("Attempted to remove an outgoing queue edge added under a different expansion id.");
+                throw ompl::Exception(
+                    "Attempted to remove an outgoing queue edge added under a different expansion id.");
             }
 #endif  // BITSTAR_DEBUG
 
@@ -837,8 +848,10 @@ namespace ompl
                 cost_ = costHelpPtr_->combineCosts(parentPtr_->getCost(), edgeCost_);
 
                 // If I have outgoing edges in the search queue, they need to be updated.
-                for (const auto& edge : edgeQueueOutLookup_) {
-                    if (lookupApproximationId_ == *currentApproximationId_) {
+                for (const auto &edge : edgeQueueOutLookup_)
+                {
+                    if (lookupApproximationId_ == *currentApproximationId_)
+                    {
                         queuePtr_->update(edge);
                     }
                 }
@@ -988,5 +1001,5 @@ namespace ompl
             }
             // No else, this is the same pass through the vertex queue.
         }
-    }  // geometric
-}  // ompl
+    }  // namespace geometric
+}  // namespace ompl

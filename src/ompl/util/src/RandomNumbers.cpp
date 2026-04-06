@@ -143,7 +143,7 @@ public:
     using variate_generator_t = boost::variate_generator<std::mt19937 *, spherical_dist_t>;
 
     /** \brief Constructor */
-    SphericalData(std::mt19937 *generatorPtr) : generatorPtr_(generatorPtr){};
+    SphericalData(std::mt19937 *generatorPtr) : generatorPtr_(generatorPtr) {};
 
     /** \brief The generator for a specified dimension. Will create if not existent */
     container_type_t generate(unsigned int dim)

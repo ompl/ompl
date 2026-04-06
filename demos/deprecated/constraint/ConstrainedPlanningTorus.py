@@ -51,7 +51,6 @@ PI2 = 2 * math.pi
 
 
 class TorusConstraint(ob.Constraint):
-
     def __init__(self, outer, inner, maze):
         super(TorusConstraint, self).__init__(3, 1)
         self.outer = outer
@@ -65,7 +64,7 @@ class TorusConstraint(ob.Constraint):
 
         for x in range(w):
             for y in range(h):
-                p = np.array([x / (w - 1.), y / (h - 1.)], dtype=np.float64)
+                p = np.array([x / (w - 1.0), y / (h - 1.0)], dtype=np.float64)
                 c = self.ppm.getPixel(x, y)
                 if c.red == 255 and c.blue == 0 and c.green == 0:
                     start = self.mazeToAmbient(p)
@@ -83,10 +82,12 @@ class TorusConstraint(ob.Constraint):
     def jacobian(self, x, out):
         xySquaredNorm = x[0] * x[0] + x[1] * x[1]
         xyNorm = math.sqrt(xySquaredNorm)
-        denom = math.sqrt(x[2] * x[2] + (xyNorm - self.outer)
-                          * (xyNorm - self.outer))
-        c = (xyNorm - self.outer) * (xyNorm * xySquaredNorm) / \
-            (xySquaredNorm * xySquaredNorm * denom)
+        denom = math.sqrt(x[2] * x[2] + (xyNorm - self.outer) * (xyNorm - self.outer))
+        c = (
+            (xyNorm - self.outer)
+            * (xyNorm * xySquaredNorm)
+            / (xySquaredNorm * xySquaredNorm * denom)
+        )
         out[0, :] = [x[0] * c, x[1] * c, x[2] / denom]
 
     def ambientToMaze(self, x):
@@ -95,10 +96,10 @@ class TorusConstraint(ob.Constraint):
         w = self.ppm.getWidth()
 
         mx = math.atan2(x[2], nrm - self.outer) / PI2
-        mx += (mx < 0)
+        mx += mx < 0
         mx *= h
         my = math.atan2(x[1], x[0]) / PI2
-        my += (my < 0)
+        my += my < 0
         my *= w
         return mx, my
 
@@ -177,8 +178,9 @@ def torusPlanning(options):
         sstart[i] = start[i]
         sgoal[i] = goal[i]
     cp.setStartAndGoalStates(sstart, sgoal)
-    cp.ss.setStateValidityChecker(ob.StateValidityCheckerFn(partial(
-        TorusConstraint.isValid, constraint)))
+    cp.ss.setStateValidityChecker(
+        ob.StateValidityCheckerFn(partial(TorusConstraint.isValid, constraint))
+    )
 
     planners = options.planner.split(",")
     if not options.bench:
@@ -186,22 +188,29 @@ def torusPlanning(options):
     else:
         torusPlanningBench(cp, planners)
 
+
 if __name__ == "__main__":
     defaultMaze = join(join(dirname(__file__), "mazes"), "normal.ppm")
     parser = argparse.ArgumentParser()
-    parser.add_argument("-o", "--output", action="store_true",
-                        help="Dump found solution path (if one exists) in plain text and planning "
-                        "graph in GraphML to `torus_path.txt` and `torus_graph.graphml` "
-                        "respectively.")
-    parser.add_argument("--bench", action="store_true",
-                        help="Do benchmarking on provided planner list.")
-    parser.add_argument("--outer", type=float, default=2,
-                        help="Outer radius of torus.")
-    parser.add_argument("--inner", type=float, default=1,
-                        help="Inner radius of torus.")
-    parser.add_argument("--maze", default=defaultMaze,
-                        help="Filename of maze image (in .ppm format) to use as obstacles on the "
-                        "surface of the torus.")
+    parser.add_argument(
+        "-o",
+        "--output",
+        action="store_true",
+        help="Dump found solution path (if one exists) in plain text and planning "
+        "graph in GraphML to `torus_path.txt` and `torus_graph.graphml` "
+        "respectively.",
+    )
+    parser.add_argument(
+        "--bench", action="store_true", help="Do benchmarking on provided planner list."
+    )
+    parser.add_argument("--outer", type=float, default=2, help="Outer radius of torus.")
+    parser.add_argument("--inner", type=float, default=1, help="Inner radius of torus.")
+    parser.add_argument(
+        "--maze",
+        default=defaultMaze,
+        help="Filename of maze image (in .ppm format) to use as obstacles on the "
+        "surface of the torus.",
+    )
     addSpaceOption(parser)
     addPlannerOption(parser)
     addConstrainedOptions(parser)

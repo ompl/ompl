@@ -39,8 +39,7 @@
 #include "ompl/base/goals/GoalSampleableRegion.h"
 #include "ompl/tools/config/SelfConfig.h"
 
-ompl::geometric::AORRTC::AORRTC(const base::SpaceInformationPtr &si)
-  : base::Planner(si, "AORRTC")
+ompl::geometric::AORRTC::AORRTC(const base::SpaceInformationPtr &si) : base::Planner(si, "AORRTC")
 {
     specs_.approximateSolutions = true;
     specs_.directed = true;
@@ -126,7 +125,7 @@ ompl::base::PlannerStatus ompl::geometric::AORRTC::solve(const base::PlannerTerm
         {
             /* Inform the planner about our cost bound */
             aox_planner->setPathCost(bestCost_.value());
-            
+
             /* Try to solve the planning problem */
             solve_status = aox_planner->solve(ptc);
 
@@ -157,7 +156,7 @@ ompl::base::PlannerStatus ompl::geometric::AORRTC::solve(const base::PlannerTerm
 
                     pdef_->addSolutionPath(bestPath_, false, 0.0, getName());
                 }
-            }            
+            }
         }
 
         /* Find an initial solution */
@@ -185,8 +184,7 @@ ompl::base::PlannerStatus ompl::geometric::AORRTC::solve(const base::PlannerTerm
 
         /* If we ran into errors, exit early */
         if (solve_status == base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE ||
-            solve_status == base::PlannerStatus::INVALID_START ||
-            solve_status == base::PlannerStatus::INVALID_GOAL)
+            solve_status == base::PlannerStatus::INVALID_START || solve_status == base::PlannerStatus::INVALID_GOAL)
         {
             return solve_status;
         }
@@ -218,7 +216,9 @@ ompl::base::PlannerStatus ompl::geometric::AORRTC::solve(const base::PlannerTerm
     if (pdef_->hasExactSolution())
     {
         return base::PlannerStatus::EXACT_SOLUTION;
-    } else {
+    }
+    else
+    {
         return base::PlannerStatus::TIMEOUT;
     }
 }

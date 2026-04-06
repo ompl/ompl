@@ -1,9 +1,9 @@
 # Multilevel Planning Tutorial {#multiLevelPlanningTutorial}
 
-We show in this tutorial how to setup a multilevel planning task for a 2D rigid body in the plane. 
+We show in this tutorial how to setup a multilevel planning task for a 2D rigid body in the plane.
 
-### Classical Planning 
-We assume that you know how to setup a classical planning problem in OMPL. To recap, we need to define  
+### Classical Planning
+We assume that you know how to setup a classical planning problem in OMPL. To recap, we need to define
 - `ompl::base::SpaceInformationPtr`, the state space
 - `ompl::base::ProblemDefinitionPtr`, the start and goal state
 - `ompl::base::PlannerPtr`, the planner used
@@ -13,7 +13,7 @@ We then construct and solve a planning problem as
 ~~~{.cpp}
 
 ompl::base::SpaceInformationPtr si;
-ompl::base::ProblemDefinitionPtr pdef; 
+ompl::base::ProblemDefinitionPtr pdef;
 
 //...
 // Set start and goal states to pdef
@@ -26,7 +26,7 @@ planner->solve();
 
 ~~~
 
-### Multilevel Planning 
+### Multilevel Planning
 
 In a Multilevel planning setting, we change this routine to add a finite
 number of levels of abstraction, which can be exploited by an algorithm (if it
@@ -43,8 +43,8 @@ original state space.
 A planning problem can then be solved as
 
 ~~~{.cpp}
-std::vector<ompl::base::SpaceInformationPtr> siVec; 
-ompl::base::ProblemDefinitionPtr pdef; 
+std::vector<ompl::base::SpaceInformationPtr> siVec;
+ompl::base::ProblemDefinitionPtr pdef;
 
 //...
 // Build siVec (see below), set start and goal states to pdef
@@ -60,7 +60,7 @@ planner->solve();
 ### Building multiple levels of abstraction
 
 Let us build a small sequence of two levels for a rigid body in 2D with
-configuration space 
+configuration space
 \f$SE(2)\f$. You can find this example [here](MultiLevelPlanningRigidBody2D_8cpp_source.html)
 
 First, we need to construct the `ompl::base::SpaceInformationPtr` for each level. In
@@ -85,7 +85,7 @@ ompl::base::SpaceInformationPtr si_R2(std::make_shared<ompl::base::SpaceInformat
 
 Second, we need to set the `ompl::base::StateValidityChecker` for each
 `ompl::base::SpaceInformationPtr`. This is done by defining a validity function
-which evaluates to true if a state is feasible and false if it is infeasible. 
+which evaluates to true if a state is feasible and false if it is infeasible.
 
 For the \f$SE(2)\f$ constraint, we declare all configurations feasible where the
 rotation is smaller than \f$\frac{\pi}{2}\f$ and where the position is not in a
@@ -99,7 +99,7 @@ bool boxConstraint(const double values[])
     double pos_cnstr = sqrt(x*x + y*y);
     return (pos_cnstr > 0.2);
 }
-bool isStateValid_SE2(const ompl::base::State *state) 
+bool isStateValid_SE2(const ompl::base::State *state)
 {
     const auto *SE2state = state->as<ompl::base::SE2StateSpace::StateType>();
     const auto *R2 = SE2state->as<ompl::base::RealVectorStateSpace::StateType>(0);
@@ -111,8 +111,8 @@ bool isStateValid_SE2(const ompl::base::State *state)
 The validity function for the simplified robot can be constructed by removing some of the constraints. In real experiments, we often remove links or parts of links from a robot, which implicitly removes the constraints. We choose the following constraint
 
 ~~~{.cpp}
-bool isStateValid_R2(const ompl::base::State *state) 
-{ 
+bool isStateValid_R2(const ompl::base::State *state)
+{
     const auto *R2 = state->as<ompl::base::RealVectorStateSpace::StateType>();
     return boxConstraint(R2->values);
 }
@@ -121,7 +121,7 @@ bool isStateValid_R2(const ompl::base::State *state)
 Finally, we set the validity function and push the
 `ompl::base::SpaceInformationPtr` into siVec. Note that the
 `ompl::base::SpaceInformationPtr` have to be sorted in ascending order depending
-on number of dimensions. 
+on number of dimensions.
 
 ~~~{.cpp}
 si_SE2->setStateValidityChecker(isStateValid_SE2);
@@ -165,7 +165,7 @@ You can use this in your code in the following way:
 ~~~{.cpp}
     #include <ompl/multilevel/datastructures/PlannerDataVertexAnnotated.h>
 
-    ompl::multilevel::PlannerDataVertexAnnotated *v = 
+    ompl::multilevel::PlannerDataVertexAnnotated *v =
     dynamic_cast<ompl::multilevel::PlannerDataVertexAnnotated*>(&pd->getVertex(0));
 if(v!=nullptr){
     unsigned int level = v->getLevel();

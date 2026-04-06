@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the University of Santa Cruz nor the names of 
+ *   * Neither the name of the University of Santa Cruz nor the names of
  *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -40,12 +40,14 @@
 
 void ompl::base::HybridTimeStateSampler::sampleUniform(State *state)
 {
-    if (space_->as<HybridTimeStateSpace>()->isTimeBounded()) {
-        state->as<HybridTimeStateSpace::StateType>()->position = rng_.uniformReal(
-            space_->as<HybridTimeStateSpace>()->getMinTimeBound(), space_->as<HybridTimeStateSpace>()->getMaxTimeBound());
-        state->as<HybridTimeStateSpace::StateType>()->jumps = rng_.uniformInt(
-            space_->as<HybridTimeStateSpace>()->getMinJumpsBound(), space_->as<HybridTimeStateSpace>()->getMaxJumpBound());
-
+    if (space_->as<HybridTimeStateSpace>()->isTimeBounded())
+    {
+        state->as<HybridTimeStateSpace::StateType>()->position =
+            rng_.uniformReal(space_->as<HybridTimeStateSpace>()->getMinTimeBound(),
+                             space_->as<HybridTimeStateSpace>()->getMaxTimeBound());
+        state->as<HybridTimeStateSpace::StateType>()->jumps =
+            rng_.uniformInt(space_->as<HybridTimeStateSpace>()->getMinJumpsBound(),
+                            space_->as<HybridTimeStateSpace>()->getMaxJumpBound());
     }
     else
         state->as<HybridTimeStateSpace::StateType>()->position = 0.0;
@@ -66,7 +68,8 @@ void ompl::base::HybridTimeStateSampler::sampleGaussian(State *state, const Stat
     space_->enforceBounds(state);
 }
 
-void ompl::base::HybridTimeStateSpace::interpolate(const State *from, const State *to, double t, State *state) const {
+void ompl::base::HybridTimeStateSpace::interpolate(const State *from, const State *to, double t, State *state) const
+{
     (void)from, (void)to, (void)t, (void)state;
 }
 
@@ -126,9 +129,9 @@ void ompl::base::HybridTimeStateSpace::enforceBounds(State *state) const
 bool ompl::base::HybridTimeStateSpace::satisfiesBounds(const State *state) const
 {
     return (!timeBounded_ || (state->as<StateType>()->position >= minTime_ - std::numeric_limits<double>::epsilon() &&
-                         state->as<StateType>()->position <= maxTime_ + std::numeric_limits<double>::epsilon())) &&
-                         (!jumpsBounded_ || (state->as<StateType>()->jumps >= minJumps_ - std::numeric_limits<double>::epsilon() &&
-                         state->as<StateType>()->jumps <= maxJumps_ + std::numeric_limits<double>::epsilon()));
+                              state->as<StateType>()->position <= maxTime_ + std::numeric_limits<double>::epsilon())) &&
+           (!jumpsBounded_ || (state->as<StateType>()->jumps >= minJumps_ - std::numeric_limits<double>::epsilon() &&
+                               state->as<StateType>()->jumps <= maxJumps_ + std::numeric_limits<double>::epsilon()));
 }
 
 void ompl::base::HybridTimeStateSpace::copyState(State *destination, const State *source) const
@@ -182,7 +185,8 @@ double *ompl::base::HybridTimeStateSpace::getValueAddressAtIndex(State *state, c
 {
     if (index == 0)
         return &(state->as<StateType>()->position);
-    else if (index == 1) { 
+    else if (index == 1)
+    {
         return std::make_shared<double>(state->as<StateType>()->jumps).get();
     }
     return nullptr;

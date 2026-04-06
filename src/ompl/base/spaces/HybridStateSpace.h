@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the University of Santa Cruz nor the names of 
+ *   * Neither the name of the University of Santa Cruz nor the names of
  *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -52,7 +52,7 @@ namespace ompl
         public:
             /** \brief Constructor. The maximum velocity and the weight of the time component for distance calculation
                 need to be specified. */
-            explicit HybridStateSpace(const StateSpacePtr& spaceComponent);
+            explicit HybridStateSpace(const StateSpacePtr &spaceComponent);
 
             /** \brief The distance from state1 to state2. May be infinite.
              *
@@ -72,16 +72,16 @@ namespace ompl
             double distanceTime(const ompl::base::State *state1, const ompl::base::State *state2) const;
 
             /** \brief The time value of the given state. */
-            static double getStateTime(const ompl::base::State *state) ;
+            static double getStateTime(const ompl::base::State *state);
 
             /** \brief The jumps value of the given state. */
-            static int getStateJumps(const ompl::base::State *state) ;
+            static int getStateJumps(const ompl::base::State *state);
 
             /** \brief Set the jumps value of the given state. */
-            static void setStateJumps(ompl::base::State *state, int jumps) ;
+            static void setStateJumps(ompl::base::State *state, int jumps);
 
             /** \brief Set the time position value of the given state. */
-            static void setStateTime(ompl::base::State *state, double position) ;
+            static void setStateTime(ompl::base::State *state, double position);
 
             /** \brief Set lower and upper time bounds for the time component. */
             void setTimeBounds(double lb, double ub);
@@ -90,7 +90,7 @@ namespace ompl
             StateSpacePtr getSpaceComponent();
 
             /** \brief The time component as a TimeStateSpace pointer. */
-            HybridTimeStateSpace * getTimeComponent();
+            HybridTimeStateSpace *getTimeComponent();
 
             /** \brief No metric state space, as the triangle inequality is not satisfied. */
             bool isMetricSpace() const override;
@@ -102,11 +102,10 @@ namespace ompl
             void updateEpsilon();
 
         protected:
-
             /** \brief The epsilon for time distance calculation. */
             double eps_ = std::numeric_limits<float>::epsilon();
         };
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 
 #endif

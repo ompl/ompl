@@ -42,7 +42,7 @@ Once dependencies are installed, you can build OMPL on Linux, macOS,
 and MS Windows. Go to the top-level directory of OMPL and type the
 following commands:
 
-    git submodule update --init --recursive 
+    git submodule update --init --recursive
     mkdir -p build/Release
     cd build/Release
     cmake ../..

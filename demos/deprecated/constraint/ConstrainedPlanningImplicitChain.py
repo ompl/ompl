@@ -52,7 +52,6 @@ def normalize(x):
 
 
 class ChainConstraint(ob.Constraint):
-
     class Wall(object):
         # Container class for the "wall" obstacles that are on the surface of the
         # sphere constraint (when extra = 1).
@@ -108,15 +107,22 @@ class ChainConstraint(ob.Constraint):
         self.jointRadius = ChainConstraint.JOINT_RADIUS
         self.obstacles = obstacles
         self.extra = extra
-        step = 2. * self.radius / (obstacles + 1.)
-        self.walls = [ChainConstraint.Wall(-self.radius + i * step, self.radius / 8.,
-                                           self.width, self.jointRadius, i % 2)
-                      for i in range(obstacles)]
+        step = 2.0 * self.radius / (obstacles + 1.0)
+        self.walls = [
+            ChainConstraint.Wall(
+                -self.radius + i * step,
+                self.radius / 8.0,
+                self.width,
+                self.jointRadius,
+                i % 2,
+            )
+            for i in range(obstacles)
+        ]
 
     def function(self, x, out):
         joint1 = np.zeros(3)
         for i in range(self.links):
-            joint2 = x[(3 * i):(3 * i + 3)]
+            joint2 = x[(3 * i) : (3 * i + 3)]
             out[i] = np.linalg.norm(joint1 - joint2) - self.length
             joint1 = joint2
 
@@ -134,20 +140,22 @@ class ChainConstraint(ob.Constraint):
 
     def jacobian(self, x, out):
         out[:, :] = np.zeros(
-            (self.getCoDimension(), self.getAmbientDimension()), dtype=np.float64)
+            (self.getCoDimension(), self.getAmbientDimension()), dtype=np.float64
+        )
 
         plus = np.zeros(3 * (self.links + 1))
-        plus[:(3 * self.links)] = x[:(3 * self.links)]
+        plus[: (3 * self.links)] = x[: (3 * self.links)]
 
         minus = np.zeros(3 * (self.links + 1))
-        minus[-(3 * self.links):] = x[:(3 * self.links)]
+        minus[-(3 * self.links) :] = x[: (3 * self.links)]
 
         diagonal = plus - minus
 
         for i in range(self.links):
-            out[i, (3 * i):(3 * i + 3)] = normalize(diagonal[(3 * i):(3 * i + 3)])
-        out[1:self.links, 0:(3 * self.links - 3)
-            ] -= out[1:self.links, 3:(3 * self.links)]
+            out[i, (3 * i) : (3 * i + 3)] = normalize(diagonal[(3 * i) : (3 * i + 3)])
+        out[1 : self.links, 0 : (3 * self.links - 3)] -= out[
+            1 : self.links, 3 : (3 * self.links)
+        ]
 
         if self.extra >= 1:
             out[self.links, -3:] = -normalize(diagonal[-3:])
@@ -155,18 +163,18 @@ class ChainConstraint(ob.Constraint):
         o = self.links - 5
 
         if self.extra >= 2:
-            out[self.links + 1, (o * 3 + 2):(o * 3 + 5)] = [1, -1]
+            out[self.links + 1, (o * 3 + 2) : (o * 3 + 5)] = [1, -1]
         if self.extra >= 3:
-            out[self.links + 2, (o * 3 + 2):(o * 3 + 5)] = [1, -1]
+            out[self.links + 2, (o * 3 + 2) : (o * 3 + 5)] = [1, -1]
         if self.extra >= 4:
-            out[self.links + 3, (o * 3 + 2):(o * 3 + 5)] = [1, -1]
+            out[self.links + 3, (o * 3 + 2) : (o * 3 + 5)] = [1, -1]
 
     # Checks if there are no self-collisions (of the joints themselves) or
     # collisions with the extra obstacles on the surface of the sphere.
     def isValid(self, state):
         x = np.array([state[i] for i in range(self.getAmbientDimension())])
         for i in range(self.links):
-            joint = x[(3 * i):(3 * i + 3)]
+            joint = x[(3 * i) : (3 * i + 3)]
             if joint[2] < 0:
                 return False
             if np.linalg.norm(joint) >= self.radius - self.jointRadius:
@@ -175,12 +183,12 @@ class ChainConstraint(ob.Constraint):
                         return False
 
         for i in range(self.links):
-            joint1 = x[(3 * i):(3 * i + 3)]
+            joint1 = x[(3 * i) : (3 * i + 3)]
             if np.max(np.absolute(joint1)) < self.jointRadius:
                 return False
 
             for j in range(i + 1, self.links):
-                joint2 = x[(3 * j):(3 * j + 3)]
+                joint2 = x[(3 * j) : (3 * j + 3)]
                 if np.max(np.absolute(joint1 - joint2)) < self.jointRadius:
                     return False
 
@@ -253,7 +261,6 @@ class ChainConstraint(ob.Constraint):
     # radius equal to that of the constraint (when extra = 1). */
     def getProjection(self, space):
         class ChainProjection(ob.ProjectionEvaluator):
-
             def __init__(self, space, links, radius):
                 super(ChainProjection, self).__init__(space)
                 self.links = links  # Number of chain links.
@@ -265,7 +272,7 @@ class ChainConstraint(ob.Constraint):
                 return 2
 
             def defaultCellSizes(self):
-                self.cellSizes_ = list2vec([.1, .1])
+                self.cellSizes_ = list2vec([0.1, 0.1])
 
             def project(self, state, projection):
                 s = 3 * (self.links - 1)
@@ -285,8 +292,7 @@ class ChainConstraint(ob.Constraint):
 
     def addBenchmarkParameters(self, bench):
         bench.addExperimentParameter("links", "INTEGER", str(self.links))
-        bench.addExperimentParameter(
-            "obstacles", "INTEGER", str(self.obstacles))
+        bench.addExperimentParameter("obstacles", "INTEGER", str(self.obstacles))
         bench.addExperimentParameter("extra", "INTEGER", str(self.extra))
 
 
@@ -314,11 +320,11 @@ def chainPlanningBench(cp, planners):
 
 def chainPlanning(options):
     # Create our constraint.
-    constraint = ChainConstraint(
-        options.links, options.obstacles, options.extra)
+    constraint = ChainConstraint(options.links, options.obstacles, options.extra)
 
     cp = ConstrainedProblem(
-        options.space, constraint.createSpace(), constraint, options)
+        options.space, constraint.createSpace(), constraint, options
+    )
 
     cp.css.registerProjection("chain", constraint.getProjection(cp.css))
 
@@ -329,8 +335,9 @@ def chainPlanning(options):
         sstart[i] = start[i]
         sgoal[i] = goal[i]
     cp.setStartAndGoalStates(sstart, sgoal)
-    cp.ss.setStateValidityChecker(ob.StateValidityCheckerFn(partial(
-        ChainConstraint.isValid, constraint)))
+    cp.ss.setStateValidityChecker(
+        ob.StateValidityCheckerFn(partial(ChainConstraint.isValid, constraint))
+    )
 
     planners = options.planner.split(",")
     if not options.bench:
@@ -341,25 +348,46 @@ def chainPlanning(options):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-o", "--output", action="store_true",
-                        help="Dump found solution path (if one exists) in plain text and planning "
-                        "graph in GraphML to `torus_path.txt` and `torus_graph.graphml` "
-                        "respectively.")
-    parser.add_argument("--bench", action="store_true",
-                        help="Do benchmarking on provided planner list.")
-    parser.add_argument("-l", "--links", type=int, default=5,
-                        help="Number of links in the kinematic chain. Minimum is 4.")
-    parser.add_argument("-x", "--obstacles", type=int, default=0, choices=[0, 1, 2],
-                        help="Number of `wall' obstacles on the surface of the sphere. Ranges from "
-                        "[0, 2]")
-    parser.add_argument("-e", "--extra", type=int, default=1,
-                        help="Number of extra constraints to add to the chain. Extra constraints "
-                        "are as follows:\n"
-                        "1: End-effector is constrained to be on the surface of a sphere of radius "
-                        "links - 2\n"
-                        "2: (links-5)th and (links-4)th ball have the same z-value\n"
-                        "3: (links-4)th and (links-3)th ball have the same x-value\n"
-                        "4: (links-3)th and (links-2)th ball have the same z-value")
+    parser.add_argument(
+        "-o",
+        "--output",
+        action="store_true",
+        help="Dump found solution path (if one exists) in plain text and planning "
+        "graph in GraphML to `torus_path.txt` and `torus_graph.graphml` "
+        "respectively.",
+    )
+    parser.add_argument(
+        "--bench", action="store_true", help="Do benchmarking on provided planner list."
+    )
+    parser.add_argument(
+        "-l",
+        "--links",
+        type=int,
+        default=5,
+        help="Number of links in the kinematic chain. Minimum is 4.",
+    )
+    parser.add_argument(
+        "-x",
+        "--obstacles",
+        type=int,
+        default=0,
+        choices=[0, 1, 2],
+        help="Number of `wall' obstacles on the surface of the sphere. Ranges from "
+        "[0, 2]",
+    )
+    parser.add_argument(
+        "-e",
+        "--extra",
+        type=int,
+        default=1,
+        help="Number of extra constraints to add to the chain. Extra constraints "
+        "are as follows:\n"
+        "1: End-effector is constrained to be on the surface of a sphere of radius "
+        "links - 2\n"
+        "2: (links-5)th and (links-4)th ball have the same z-value\n"
+        "3: (links-4)th and (links-3)th ball have the same x-value\n"
+        "4: (links-3)th and (links-2)th ball have the same z-value",
+    )
     addSpaceOption(parser)
     addPlannerOption(parser)
     addConstrainedOptions(parser)

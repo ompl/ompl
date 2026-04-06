@@ -90,10 +90,12 @@ struct ExperienceBasedPlannerTest
         const auto si = std::make_shared<ob::SpaceInformation>(space);
         auto exp_planner = std::make_unique<ExpPlannerT>(si);
         PlannerSetter<ExpPlannerT, PlannerT, ReplannerT>::setPlanners(exp_planner);
-        exp_planner->setStateValidityChecker([](const ob::State *state) {
-            (void)state;
-            return true;
-        });
+        exp_planner->setStateValidityChecker(
+            [](const ob::State *state)
+            {
+                (void)state;
+                return true;
+            });
 
         return exp_planner;
     }
@@ -101,7 +103,7 @@ struct ExperienceBasedPlannerTest
     static void runTest()
     {
         std::string temp_path = std::filesystem::temp_directory_path().string() + "/testfile-XXXXXX";
-        mkstemp(const_cast<char*>(temp_path.c_str()));
+        mkstemp(const_cast<char *>(temp_path.c_str()));
         const size_t n_problem = 5;
 
         // solve problem

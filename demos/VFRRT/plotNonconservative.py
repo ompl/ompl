@@ -40,16 +40,24 @@ import matplotlib.pyplot as plt
 from pylab import meshgrid, arange, quiver, quiverkey, sqrt
 import numpy as np
 
+
 def makeVectorField(f, xmin, xmax, ymin, ymax, step):
     X, Y = meshgrid(arange(xmin, xmax, step), arange(ymin, ymax, step))
     U, V = zip(*map(lambda xx: f(*xx), zip(X, Y)))
-    Q = quiver(X, Y, U, V, units='width')
-    quiverkey(Q, 0, 0, 4, '', coordinates='figure', labelpos='W')
+    Q = quiver(X, Y, U, V, units="width")
+    quiverkey(Q, 0, 0, 4, "", coordinates="figure", labelpos="W")
+
 
 fig = plt.figure()
-ax = fig.gca(aspect='equal')
+ax = fig.gca(aspect="equal")
 x = np.loadtxt("vfrrt-nonconservative.path")
-makeVectorField(lambda x, y: (y / sqrt(x * x + y * y + 1e-6), -x / sqrt(x * x + y * y + 1e-6)),
-                -6, 6, -6, 6, 0.5)
+makeVectorField(
+    lambda x, y: (y / sqrt(x * x + y * y + 1e-6), -x / sqrt(x * x + y * y + 1e-6)),
+    -6,
+    6,
+    -6,
+    6,
+    0.5,
+)
 ax.plot(x[:, 0], x[:, 1])
 plt.show()

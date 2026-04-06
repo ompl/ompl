@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the University of Santa Cruz nor the names of 
+ *   * Neither the name of the University of Santa Cruz nor the names of
  *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -44,14 +44,28 @@
 double distanceFunc(ompl::base::State *state1, ompl::base::State *state2)
 {
     double dist = 0;
-    dist = sqrt(pow(state1->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[0] - state2->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[0], 2) + pow(state1->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[1] - state2->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[1], 2));
+    dist = sqrt(pow(state1->as<ompl::base::HybridStateSpace::StateType>()
+                            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+                            ->values[0] -
+                        state2->as<ompl::base::HybridStateSpace::StateType>()
+                            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+                            ->values[0],
+                    2) +
+                pow(state1->as<ompl::base::HybridStateSpace::StateType>()
+                            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+                            ->values[1] -
+                        state2->as<ompl::base::HybridStateSpace::StateType>()
+                            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+                            ->values[1],
+                    2));
     return fabs(dist);
 }
 
 /** \brief Jump set is true whenever the ball is on or below the surface and has a downwards velocity. */
 bool jumpSet(ompl::control::HyRRT::Motion *motion)
 {
-    auto *motion_state = motion->state->as<ompl::base::CompoundState>()->as<ompl::base::RealVectorStateSpace::StateType>(0);
+    auto *motion_state =
+        motion->state->as<ompl::base::CompoundState>()->as<ompl::base::RealVectorStateSpace::StateType>(0);
     double velocity = motion_state->values[1];
     double pos_cur = motion_state->values[0];
 
@@ -76,28 +90,42 @@ bool unsafeSet(ompl::control::HyRRT::Motion *motion)
     return false;
 }
 
-/** \brief Represents the flow map, or the first-order derivative of the pinball state when in flow regime. 
+/** \brief Represents the flow map, or the first-order derivative of the pinball state when in flow regime.
  * The only force applied here is of gravity in the negative y direction. */
-void flowODE(const ompl::control::ODESolver::StateType& x_cur, const ompl::control::Control* u, ompl::control::ODESolver::StateType& x_new)
+void flowODE(const ompl::control::ODESolver::StateType &x_cur, const ompl::control::Control *u,
+             ompl::control::ODESolver::StateType &x_new)
 {
-    (void)u;    // No control is applied when a state is in the flow set
+    (void)u;  // No control is applied when a state is in the flow set
 
     // Ensure qdot is the same size as q.  Zero out all values.
     x_new.resize(x_cur.size(), 0);
- 
-    x_new[0] = x_cur[1];            // x-dot
-    x_new[1] = x_cur[2];            // v-dot
-    x_new[2] = 0;    // a-dot
+
+    x_new[0] = x_cur[1];  // x-dot
+    x_new[1] = x_cur[2];  // v-dot
+    x_new[2] = 0;         // a-dot
 }
 
 /** \brief Simulates the dynamics of the ball when in jump regime, with input from the surface. */
-ompl::base::State *discreteSimulator(ompl::base::State *x_cur, const ompl::control::Control *u, ompl::base::State *new_state)
+ompl::base::State *discreteSimulator(ompl::base::State *x_cur, const ompl::control::Control *u,
+                                     ompl::base::State *new_state)
 {
-    double velocity = -0.8 * x_cur->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[1];
+    double velocity = -0.8 * x_cur->as<ompl::base::HybridStateSpace::StateType>()
+                                 ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+                                 ->values[1];
 
-    new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[0] = x_cur->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[0];
-    new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[1] = velocity - u->as<ompl::control::RealVectorControlSpace::ControlType>()->values[0];
-    new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[2] = x_cur->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[2];
+    new_state->as<ompl::base::HybridStateSpace::StateType>()
+        ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+        ->values[0] = x_cur->as<ompl::base::HybridStateSpace::StateType>()
+                          ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+                          ->values[0];
+    new_state->as<ompl::base::HybridStateSpace::StateType>()
+        ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+        ->values[1] = velocity - u->as<ompl::control::RealVectorControlSpace::ControlType>()->values[0];
+    new_state->as<ompl::base::HybridStateSpace::StateType>()
+        ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+        ->values[2] = x_cur->as<ompl::base::HybridStateSpace::StateType>()
+                          ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+                          ->values[2];
     return new_state;
 }
 
@@ -150,8 +178,10 @@ int main()
     ompl::base::StateSpacePtr hybridSpacePtr(hybridSpace);
 
     // Define control space
-    ompl::control::RealVectorControlSpace *flowControlSpace = new ompl::control::RealVectorControlSpace(hybridSpacePtr, 1);
-    ompl::control::RealVectorControlSpace *jumpControlSpace = new ompl::control::RealVectorControlSpace(hybridSpacePtr, 1);
+    ompl::control::RealVectorControlSpace *flowControlSpace =
+        new ompl::control::RealVectorControlSpace(hybridSpacePtr, 1);
+    ompl::control::RealVectorControlSpace *jumpControlSpace =
+        new ompl::control::RealVectorControlSpace(hybridSpacePtr, 1);
 
     ompl::base::RealVectorBounds flowBounds(1);
     flowBounds.setLow(0, 0);
@@ -164,14 +194,16 @@ int main()
     jumpControlSpace->setBounds(jumpBounds);
 
     ompl::control::RealVectorControlUniformSampler flowControlSampler(flowControlSpace);
-    flowControlSpace->setControlSamplerAllocator([](const ompl::control::ControlSpace *space) -> ompl::control::ControlSamplerPtr {
-        return std::make_shared<ompl::control::RealVectorControlUniformSampler>(space);
-    });
+    flowControlSpace->setControlSamplerAllocator(
+        [](const ompl::control::ControlSpace *space) -> ompl::control::ControlSamplerPtr
+        { return std::make_shared<ompl::control::RealVectorControlUniformSampler>(space); });
 
-    ompl::control::RealVectorControlUniformSampler jumpControlSampler(jumpControlSpace);     // Doesn't do anything because the bounds for jump input are just [0, 0], but here for demonstration
-    jumpControlSpace->setControlSamplerAllocator([](const ompl::control::ControlSpace *space) -> ompl::control::ControlSamplerPtr {
-        return std::make_shared<ompl::control::RealVectorControlUniformSampler>(space);
-    });
+    ompl::control::RealVectorControlUniformSampler jumpControlSampler(
+        jumpControlSpace);  // Doesn't do anything because the bounds for jump input are just [0, 0], but here for
+                            // demonstration
+    jumpControlSpace->setControlSamplerAllocator(
+        [](const ompl::control::ControlSpace *space) -> ompl::control::ControlSamplerPtr
+        { return std::make_shared<ompl::control::RealVectorControlUniformSampler>(space); });
 
     ompl::control::ControlSpacePtr flowControlSpacePtr(flowControlSpace);
     ompl::control::ControlSpacePtr jumpControlSpacePtr(jumpControlSpace);
@@ -184,17 +216,23 @@ int main()
 
     // Construct a space information instance for this state space
     ompl::control::SpaceInformationPtr si(new ompl::control::SpaceInformation(hybridSpacePtr, controlSpacePtr));
-    ompl::control::ODESolverPtr odeSolver (new ompl::control::ODEBasicSolver<> (si, &flowODE));
-    
+    ompl::control::ODESolverPtr odeSolver(new ompl::control::ODEBasicSolver<>(si, &flowODE));
+
     si->setStatePropagator(ompl::control::ODESolver::getStatePropagator(odeSolver));
     si->setPropagationStepSize(0.01);
     si->setup();
 
     // Set start state to be 1 unit above the floor with zero velocity and gravitaional acceleration of 9.81
     ompl::base::ScopedState<> start(hybridSpacePtr);
-    start->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[0] = 1;
-    start->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[1] = 0;
-    start->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[2] = -9.81;
+    start->as<ompl::base::HybridStateSpace::StateType>()
+        ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+        ->values[0] = 1;
+    start->as<ompl::base::HybridStateSpace::StateType>()
+        ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+        ->values[1] = 0;
+    start->as<ompl::base::HybridStateSpace::StateType>()
+        ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+        ->values[2] = -9.81;
 
     // Set goal state to be on floor with a zero velocity, and tolerance of 0.1
     std::shared_ptr<EuclideanGoalRegion> goal = std::make_shared<EuclideanGoalRegion>(si);

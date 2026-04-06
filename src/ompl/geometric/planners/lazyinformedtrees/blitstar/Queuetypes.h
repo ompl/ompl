@@ -65,13 +65,13 @@ namespace ompl
 
             /** \brief A type for elements in the vertex queue. */
             using KeyVertexPair = std::pair<std::array<ompl::base::Cost, 2u>, std::shared_ptr<Vertex>>;
-            
+
             /** \brief A meeting vertex. */
             using MiddleVertex = std::pair<ompl::base::Cost, std::shared_ptr<Vertex>>;
-            
+
             /** \brief A promissing edge. */
-            using keyEdgePair  =  std::pair<std::shared_ptr<Vertex>, std::shared_ptr<Vertex>>;  
-                   
+            using keyEdgePair = std::pair<std::shared_ptr<Vertex>, std::shared_ptr<Vertex>>;
+
             /** \brief The type of the vertex queue. */
             using VertexQueue =
                 ompl::BinaryHeap<KeyVertexPair, std::function<bool(const KeyVertexPair &, const KeyVertexPair &)>>;

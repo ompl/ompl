@@ -68,7 +68,7 @@ else()
     # Try to find the library directly
     find_library(OMPL_LIBRARY_PATH NAMES ompl
         PATHS "${PACKAGE_PREFIX_DIR}/lib")
-    
+
     # If found, set OMPL_LIBRARIES
     if(OMPL_LIBRARY_PATH)
         set(OMPL_LIBRARIES "${OMPL_LIBRARY_PATH}")
@@ -81,7 +81,7 @@ else()
             message(FATAL_ERROR "Could not find OMPL library. Please check your installation.")
         endif()
     endif()
-    
+
     # Add dependent libraries
     foreach(_lib @Boost_SERIALIZATION_LIBRARY@;@SPOT_LIBRARIES@)
         if(_lib)

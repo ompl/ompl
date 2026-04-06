@@ -18,21 +18,27 @@ void ompl::binding::geometric::initPlannersFmt_BFMT(nb::module_ &m)
 
         // solve
         .def("solve",
-             [](og::BFMT &self, nb::object what) {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what)) {
+             [](og::BFMT &self, nb::object what)
+             {
+                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                 {
                      return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 } else if (nb::isinstance<double>(what)) {
+                 }
+                 else if (nb::isinstance<double>(what))
+                 {
                      return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 } else {
+                 }
+                 else
+                 {
                      throw nb::type_error(
                          "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
                  }
              })
 
         // getPlannerData
-        .def("getPlannerData",
-             [](const og::BFMT &self, ob::PlannerData &data) { self.getPlannerData(data); },
-             nb::arg("data"))
+        .def(
+            "getPlannerData", [](const og::BFMT &self, ob::PlannerData &data) { self.getPlannerData(data); },
+            nb::arg("data"))
 
         // clear / setup
         .def("clear", &og::BFMT::clear)
@@ -70,4 +76,3 @@ void ompl::binding::geometric::initPlannersFmt_BFMT(nb::module_ &m)
         .def("setFreeSpaceVolume", &og::BFMT::setFreeSpaceVolume, nb::arg("freeSpaceVolume"))
         .def("getFreeSpaceVolume", &og::BFMT::getFreeSpaceVolume);
 }
-

@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2015, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2015, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Mark Moll, Dave Coleman, Ioan Sucan */
 
@@ -51,7 +51,6 @@ namespace ot = ompl::tools;
 class Plane2DEnvironment
 {
 public:
-
     Plane2DEnvironment(const char *ppm_file, bool useThunder = true)
     {
         bool ok = false;
@@ -60,7 +59,7 @@ public:
             ppm_.loadFile(ppm_file);
             ok = true;
         }
-        catch(ompl::Exception &ex)
+        catch (ompl::Exception &ex)
         {
             OMPL_ERROR("Unable to load %s.\n%s", ppm_file, ex.what());
         }
@@ -82,14 +81,13 @@ public:
                 expPlanner_->setFilePath("lightning.db");
             }
             // set state validity checking for this space
-            expPlanner_->setStateValidityChecker([this](const ob::State *state)
-                { return isStateValid(state); });
+            expPlanner_->setStateValidityChecker([this](const ob::State *state) { return isStateValid(state); });
             space->setup();
             expPlanner_->getSpaceInformation()->setStateValidityCheckingResolution(1.0 / space->getMaximumExtent());
             vss_ = expPlanner_->getSpaceInformation()->allocValidStateSampler();
 
             // DTC
-            //experience_setup_->setPlanner(std::make_shared<og::RRTConnect>(si_));
+            // experience_setup_->setPlanner(std::make_shared<og::RRTConnect>(si_));
             // Set the repair planner
             // experience_setup_->setRepairPlanner(std::make_shared<og::RRTConnect>(si_));
         }
@@ -121,8 +119,7 @@ public:
 
         bool solved = expPlanner_->solve(10.);
         if (solved)
-            OMPL_INFORM("Found solution in %g seconds",
-                expPlanner_->getLastPlanComputationTime());
+            OMPL_INFORM("Found solution in %g seconds", expPlanner_->getLastPlanComputationTime());
         else
             OMPL_INFORM("No solution found");
 
@@ -132,7 +129,6 @@ public:
     }
 
 private:
-
     bool isStateValid(const ob::State *state) const
     {
         const int w = std::min((int)state->as<ob::RealVectorStateSpace::StateType>()->values[0], maxWidth_);
@@ -154,7 +150,7 @@ int main(int argc, char **)
     std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 
     std::filesystem::path path(TEST_RESOURCES_DIR);
-    Plane2DEnvironment env((path / "ppm" / "floor.ppm").string().c_str(), argc==1);
+    Plane2DEnvironment env((path / "ppm" / "floor.ppm").string().c_str(), argc == 1);
 
     for (unsigned int i = 0; i < 100; ++i)
         env.plan();

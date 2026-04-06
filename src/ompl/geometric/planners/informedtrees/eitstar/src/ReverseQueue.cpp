@@ -142,9 +142,8 @@ namespace ompl
             {
                 // Check if the edge is in the queue via the reverse queue pointers.
                 const auto &lookup = edge.source->asReverseVertex()->outgoingReverseQueueLookup_;
-                const auto it = std::find_if(lookup.cbegin(), lookup.cend(), [&edge](const auto &p) {
-                    return std::get<4>(p->data).target->getId() == edge.target->getId();
-                });
+                const auto it = std::find_if(lookup.cbegin(), lookup.cend(), [&edge](const auto &p)
+                                             { return std::get<4>(p->data).target->getId() == edge.target->getId(); });
 
                 // Indicate that the edge is not in the queue by returning false.
                 if (it == lookup.cend())
@@ -215,7 +214,8 @@ namespace ompl
             std::function<bool(const ReverseQueue::HeapElement &, const ReverseQueue::HeapElement &)>
             ReverseQueue::getCostComparisonOperator() const
             {
-                return [&objective = objective_](const HeapElement &lhs, const HeapElement &rhs) {
+                return [&objective = objective_](const HeapElement &lhs, const HeapElement &rhs)
+                {
                     if (objective->isCostEquivalentTo(std::get<0>(lhs), std::get<0>(rhs)))
                     {
                         if (objective->isCostEquivalentTo(std::get<1>(lhs), std::get<1>(rhs)))
@@ -237,7 +237,8 @@ namespace ompl
             std::function<bool(const ReverseQueue::HeapElement &, const ReverseQueue::HeapElement &)>
             ReverseQueue::getEffortComparisonOperator() const
             {
-                return [&objective = objective_](const HeapElement &lhs, const HeapElement &rhs) {
+                return [&objective = objective_](const HeapElement &lhs, const HeapElement &rhs)
+                {
                     if (std::get<2>(lhs) == std::get<2>(rhs))
                     {
                         if (std::get<3>(lhs) == std::get<3>(rhs))

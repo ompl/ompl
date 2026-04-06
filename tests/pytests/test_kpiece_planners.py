@@ -203,6 +203,3 @@ if __name__ == "__main__":
     test_kpiece1_clear()
     test_discretization()
     test_discretization_cell_data()
-
-
-

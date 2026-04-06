@@ -14,10 +14,10 @@ if (OMPL_BUILD_DEMOS)
             Boost::program_options)
     endmacro(add_ompl_demo)
 
-    
+
     add_ompl_demo(demo_SSTPinballPlanning SSTPinballPlanning.cpp)
     add_ompl_demo(demo_PinballPlanning PinballPlanning.cpp)
-    add_ompl_demo(demo_BouncingBallPlanning BouncingBallPlanning.cpp)    
+    add_ompl_demo(demo_BouncingBallPlanning BouncingBallPlanning.cpp)
     add_ompl_demo(demo_RigidBodyPlanning RigidBodyPlanning.cpp)
     add_ompl_demo(demo_RigidBodyPlanningWithIK RigidBodyPlanningWithIK.cpp)
     add_ompl_demo(demo_RigidBodyPlanningWithControls RigidBodyPlanningWithControls.cpp)
@@ -34,22 +34,22 @@ if (OMPL_BUILD_DEMOS)
     add_ompl_demo(demo_Koules ${Koules_SRC})
     add_ompl_demo(demo_PlannerData PlannerData.cpp)
     add_ompl_demo(demo_ThunderLightning ThunderLightning.cpp)
-    
+
     add_ompl_demo(demo_OptimalPlanning OptimalPlanning.cpp)
     add_ompl_demo(demo_PlannerProgressProperties PlannerProgressProperties.cpp)
     add_ompl_demo(demo_CForestCircleGridBenchmark CForestCircleGridBenchmark.cpp)
-    
+
     add_ompl_demo(demo_Diagonal Diagonal.cpp)
-    
+
     add_ompl_demo(demo_VectorFieldConservative VFRRT/VectorFieldConservative.cpp)
     add_ompl_demo(demo_VectorFieldNonconservative VFRRT/VectorFieldNonconservative.cpp)
-    
+
     add_ompl_demo(demo_ConstrainedPlanningSphere constraint/ConstrainedPlanningSphere.cpp)
     add_ompl_demo(demo_ConstrainedPlanningTorus constraint/ConstrainedPlanningTorus.cpp)
     add_ompl_demo(demo_ConstrainedPlanningImplicitChain constraint/ConstrainedPlanningImplicitChain.cpp)
     add_ompl_demo(demo_ConstrainedPlanningImplicitParallel constraint/ConstrainedPlanningImplicitParallel.cpp)
     add_ompl_demo(demo_ConstrainedPlanningKinematicChain constraint/ConstrainedPlanningKinematicChain.cpp)
-    
+
     add_ompl_demo(demo_MultiLevelPlanningRigidBody2D multilevel/MultiLevelPlanningRigidBody2D.cpp)
     add_ompl_demo(demo_MultiLevelPlanningRigidBody3D multilevel/MultiLevelPlanningRigidBody3D.cpp)
     add_ompl_demo(demo_MultiLevelPlanningKinematicChain multilevel/MultiLevelPlanningKinematicChain.cpp)
@@ -69,7 +69,7 @@ if (OMPL_BUILD_DEMOS)
             PlanarManipulator/PolyWorld.cpp
         )
         target_link_libraries(demo_PlanarManipulator PRIVATE yaml-cpp::yaml-cpp)
-        
+
         add_ompl_demo(demo_MultiLevelPlanarManipulator
             multilevel/MultiLevelPlanarManipulatorDemo.cpp
             PlanarManipulator/PlanarManipulator.cpp
@@ -93,7 +93,7 @@ if (OMPL_BUILD_DEMOS)
         target_include_directories(demo_VAMPMotionBenchmaker PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vamp)
         target_link_libraries(demo_VAMPMotionBenchmaker PRIVATE vamp_cpp)
     endif()
-    
+
 endif(OMPL_BUILD_DEMOS)
 
 if(NOT SKBUILD)

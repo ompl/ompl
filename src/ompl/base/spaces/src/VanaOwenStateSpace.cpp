@@ -163,7 +163,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
     {
         if (std::abs(result.deltaZ_) < 1e-8 && std::abs(to->pitch() - from->pitch()) < 1e-8)
         {
-            result.pathSZ_.type_ = &DubinsStateSpace::dubinsPathType()[0]; // LSL type
+            result.pathSZ_.type_ = &DubinsStateSpace::dubinsPathType()[0];  // LSL type
             result.pathSZ_.length_[0] = result.pathSZ_.length_[2] = 0.;
             result.pathSZ_.length_[1] = result.deltaZ_;
             // don't break length() and interpolation()
@@ -233,7 +233,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
                 OMPL_WARN("Maximum number of iterations exceeded for high altitude Vana-Owen path");
             return std::abs(rval) < 1e-4;
         }
-        catch (std::domain_error& e)
+        catch (std::domain_error &e)
         {
             return false;
         }
@@ -244,10 +244,11 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
         auto zi = scratch[1];
         auto phiFun = [&, this](double phi)
         {
-            if (std::abs(phi)>twopi)
+            if (std::abs(phi) > twopi)
                 throw std::domain_error("phi too large");
             turn(from, radius, phi, zi);
-            return (std::abs(phi) + dubinsSpace_.getPath(zi, to).length()) * radius * std::abs(tanPitch) - std::abs(result.deltaZ_);
+            return (std::abs(phi) + dubinsSpace_.getPath(zi, to).length()) * radius * std::abs(tanPitch) -
+                   std::abs(result.deltaZ_);
         };
 
         try
@@ -261,7 +262,8 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
         }
         catch (...)
         {
-            try {
+            try
+            {
                 std::uintmax_t iter = MAX_ITER;
                 result.phi_ = -.1;
                 auto root = boost::math::tools::bracket_and_solve_root(phiFun, result.phi_, 2., true, TOLERANCE, iter);
@@ -269,7 +271,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
             }
             catch (...)
             {
-                //OMPL_ERROR("this shouldn't be happening!");
+                // OMPL_ERROR("this shouldn't be happening!");
                 return false;
             }
         }
@@ -342,9 +344,8 @@ void VanaOwenStateSpace::interpolate(const State *from, const State *to, const d
 {
     if (auto path = getPath(from, to))
         interpolate(from, to, t, *path, state);
-    else
-        if (from != state)
-            copyState(state, from);
+    else if (from != state)
+        copyState(state, from);
 }
 
 void VanaOwenStateSpace::interpolate(const State *from, const State *to, const double t, PathType &path,

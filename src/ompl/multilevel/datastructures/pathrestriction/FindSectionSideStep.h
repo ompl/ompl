@@ -75,7 +75,7 @@ namespace ompl
 
             bool recursiveSideStep(HeadPtr &head, bool interpolateFiberFirst = true, unsigned int depth = 0);
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 #endif

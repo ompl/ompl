@@ -30,12 +30,12 @@ void ompl::binding::base::initSpacesConstraint_AtlasStateSpace(nb::module_ &m)
         .def("sampleGaussian", &ob::AtlasStateSampler::sampleGaussian, nb::arg("state"), nb::arg("mean"),
              nb::arg("stdDev"));
 
-     // TODO [ob::AtlasStateSampler][TEST]
+    // TODO [ob::AtlasStateSampler][TEST]
     nb::class_<ompl::base::AtlasStateSpace::StateType, ompl::base::ConstrainedStateSpace::StateType> stateType(m, "Atla"
                                                                                                                   "sSta"
                                                                                                                   "teTy"
                                                                                                                   "pe");
-                                                                                                                  
+
     // TODO [ob::AtlasStateSpace][TEST]
     nb::class_<ob::AtlasStateSpace, ob::ConstrainedStateSpace>(m, "AtlasStateSpace")
         .def(nb::init<const ob::StateSpacePtr &, const ob::ConstraintPtr &, bool>(), nb::arg("ambientSpace"),
@@ -73,10 +73,12 @@ void ompl::binding::base::initSpacesConstraint_AtlasStateSpace(nb::module_ &m)
             nb::arg("from"), nb::arg("to"), nb::arg("interpolate") = false)
         .def("anchorChart", &ob::AtlasStateSpace::anchorChart, nb::arg("state"), nb::rv_policy::reference_internal)
         .def("estimateFrontierPercent", &ob::AtlasStateSpace::estimateFrontierPercent)
-        .def("printPLY", [](const ob::AtlasStateSpace &space) { 
-            // space.printPLY(std::cout); 
-            std::ostringstream oss;
-            space.printPLY(oss);
-            return oss.str();
-        });
-    }
+        .def("printPLY",
+             [](const ob::AtlasStateSpace &space)
+             {
+                 // space.printPLY(std::cout);
+                 std::ostringstream oss;
+                 space.printPLY(oss);
+                 return oss.str();
+             });
+}

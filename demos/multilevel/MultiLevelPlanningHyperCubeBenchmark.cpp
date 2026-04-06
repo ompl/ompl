@@ -83,9 +83,9 @@ int main(int argc, char **argv)
     ompl::tools::Benchmark benchmark(ss, "HyperCube");
     benchmark.addExperimentParameter("num_dims", "INTEGER", std::to_string(curDim));
 
-    //############################################################################
-    // Load All Planner
-    //############################################################################
+    // ############################################################################
+    //  Load All Planner
+    // ############################################################################
 
     // MultiLevel Planner
     std::vector<int> proj = getHypercubeAdmissibleProjection(curDim);
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
     addPlanner(benchmark, std::make_shared<SPARS>(si), range);
     addPlanner(benchmark, std::make_shared<SPARStwo>(si), range);
 
-    //############################################################################
+    // ############################################################################
 
     printEstimatedTimeToCompletion(numberPlanners, run_count, runtime_limit);
 

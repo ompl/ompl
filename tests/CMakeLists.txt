@@ -74,13 +74,13 @@ if (OMPL_BUILD_TESTS)
         if(TARGET vamp_cpp)
             target_link_libraries(test_vamp_integration vamp_cpp)
             target_link_libraries(test_vamp_planning vamp_cpp)
-            
+
             # Apply VAMP SIMD flags to the test to ensure SIMD functionality works
             if(DEFINED VAMP_SIMD_FLAGS)
                 target_compile_options(test_vamp_integration PRIVATE ${VAMP_SIMD_FLAGS})
                 message(STATUS "Applied VAMP SIMD flags to test_vamp_integration: ${VAMP_SIMD_FLAGS}")
             endif()
-            
+
             message(STATUS "VAMP integration test configured with vamp_cpp target and SIMD flags")
         else()
             message(WARNING "OMPL_HAVE_VAMP is TRUE but vamp_cpp target not found")

@@ -19,7 +19,7 @@ See also the extensive documentation [here](CForest.html). This also describes h
 
 - M. Otte, N. Correll, C-FOREST: Parallel Shortest Path Planning With
 Superlinear Speedup, IEEE Transactions on Robotics, Vol 20, No 3, 2013.
-DOI: [10.1109/TRO.2013.2240176](https://dx.doi.org/10.1109/TRO.2013.2240176)  
+DOI: [10.1109/TRO.2013.2240176](https://dx.doi.org/10.1109/TRO.2013.2240176)
 [[PDF]](https://dx.doi.org/10.1109/TRO.2013.2240176)
 
 ## Fast Marching Tree algorithm (FMT∗)

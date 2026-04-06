@@ -10,12 +10,12 @@ When developing your own code that relies on OMPL, you have several options:
    See [Build Options](buildOptions.html) for details on how to enable/disable different OMPL-specific features. Below are the specifics for different build systems:
 
    - __CMake:__ For ease of use with CMake, we have included a CMake module for finding in `CONFIG`` mode. If you use CMake in your own project, you can simply use the following commands in your CMakeLists.txt to find and link to the OMPL target.
-   
+
       ```cmake
       find_package(ompl CONFIG)
       target_link_libraries(your_library PUBLIC ompl::ompl)
       ```
-      
+
       To support the previous CMake module behavior, the following variables are defined. These are for backwards compatability, but not recommended anymore. These variables are NOT portable if these libraries exist at a different place than where ompl was built.
 
          - `OMPL_FOUND`         - `TRUE`
