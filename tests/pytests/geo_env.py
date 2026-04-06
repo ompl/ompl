@@ -40,17 +40,17 @@ def create_simple_setup():
 def solve_with_planner(ss, planner, timeout=5.0):
     """
     Set the planner on SimpleSetup, solve, and check the result.
-    
+
     Args:
         ss: SimpleSetup object
         planner: The planner to use
         timeout: Maximum solve time in seconds (default 5.0)
-    
+
     Returns:
         The solution path if found, None otherwise
     """
     ss.setPlanner(planner)
-    
+
     # Solve
     result = ss.solve(timeout)
     print("Planner result:", result)
@@ -66,4 +66,3 @@ def solve_with_planner(ss, planner, timeout=5.0):
     else:
         print(f"No solution found within {timeout} seconds of planning time.")
         return None
-

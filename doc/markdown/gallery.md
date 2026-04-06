@@ -2,7 +2,7 @@
 
 ## Ultra-fast Motion Planning
 
-OMPL supports State-Of-The-Art hardware accelerated planning through [VAMP](https://github.com/kavrakilab/vamp), solving problems for high-dimensional robots in microseconds. 
+OMPL supports State-Of-The-Art hardware accelerated planning through [VAMP](https://github.com/kavrakilab/vamp), solving problems for high-dimensional robots in microseconds.
 
 \htmlonly
 <div class="row justify-content-center">
@@ -27,7 +27,7 @@ OMPL has support for [motion planning subject to hard constraints](constrainedPl
 \endhtmlonly
 
 ## Planning with Point Clouds
-OMPL, through [VAMP and CAPT](http://github.com/kavrakilab/vamp), supports planning with point clouds for use with real-world robots and sensors. The examples below shows planning for a 7-DOF manipulator, comparing primitive-based environments with pointcloud representations and a real-robot deployment. 
+OMPL, through [VAMP and CAPT](http://github.com/kavrakilab/vamp), supports planning with point clouds for use with real-world robots and sensors. The examples below shows planning for a 7-DOF manipulator, comparing primitive-based environments with pointcloud representations and a real-robot deployment.
 
 \htmlonly
 <div class="row justify-content-center">

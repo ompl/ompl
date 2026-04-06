@@ -53,9 +53,9 @@ nanobind_add_stub(
     DEPENDS _ompl
     VERBOSE
     MARKER_FILE py.typed
-    RECURSIVE                                
-    OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/ompl 
-    OUTPUT                                      
+    RECURSIVE
+    OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/ompl
+    OUTPUT
         ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl/__init__.pyi
         ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl/base.pyi
         ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl/geometric.pyi
@@ -81,7 +81,7 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl
         DESTINATION ${OMPL_PYTHON_INSTALL_DIR}
         FILES_MATCHING PATTERN "*.pyi")
 # install module hierarchy
-install(FILES 
+install(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/__init__.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/base.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/geometric.py
@@ -91,7 +91,7 @@ install(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/_benchmark_statistics.py
         DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
 if(SKBUILD)
-    install(FILES 
+    install(FILES
             ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/ompl_benchmark_statistics.py
             DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
 endif()

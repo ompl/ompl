@@ -64,8 +64,8 @@ namespace ompl
         {
         private:
             using BaseT = ompl::base::Planner;
-            using BaseT::si_;  // make it private.
             using BaseT::getSpaceInformation;
+            using BaseT::si_;  // make it private.
 
             // Note: use getBundle(), or getBase()
             // to access the SpaceInformationPtr

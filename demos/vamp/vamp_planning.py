@@ -8,11 +8,16 @@ from fire import Fire
 from ompl import base as ob
 from ompl import geometric as og
 from ompl import tools as ot
-from vamp_state_space import VampMotionValidator, VampStateValidityChecker, VampStateSpace
+from vamp_state_space import (
+    VampMotionValidator,
+    VampStateValidityChecker,
+    VampStateSpace,
+)
 
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from viser_visualizer.viser_visualizer import ViserVisualizer
 
 import time
@@ -22,10 +27,10 @@ import shutil
 
 POINTS_PER_SPHERE = 300
 # Starting configuration
-a = [0., -0.785, 0., -2.356, 0., 1.571, 0.785]
+a = [0.0, -0.785, 0.0, -2.356, 0.0, 1.571, 0.785]
 
 # Goal configuration
-b = [2.35, 1., 0., -0.8, 0, 2.5, 0.785]
+b = [2.35, 1.0, 0.0, -0.8, 0, 2.5, 0.785]
 # Problem specification: a list of sphere centers
 problem = [
     [0.55, 0, 0.25],
@@ -42,10 +47,12 @@ problem = [
     [-0.35, -0.35, 0.8],
     [0, -0.55, 0.8],
     [0.35, -0.35, 0.8],
-    ]
+]
 
 
-def isStateValid(s:ob.RealVectorStateType, env:vamp.Environment, dimension: int) -> bool:
+def isStateValid(
+    s: ob.RealVectorStateType, env: vamp.Environment, dimension: int
+) -> bool:
     config = s[0:dimension]
     return vamp.panda.validate(config, env)
 
@@ -55,7 +62,7 @@ def create_environment(
     radius: float = 0.2,
     use_point_cloud: bool = False,
     points_per_sphere: int = POINTS_PER_SPHERE,
-    ):
+):
     """Create a VAMP environment with either spheres or point cloud obstacles.
 
     Returns (env, spheres, point_cloud) where point_cloud is None for sphere mode.
@@ -74,7 +81,9 @@ def create_environment(
         # Sample points on the surface of each obstacle sphere to form a point cloud
         point_cloud = np.vstack(
             [
-                vamp.pointcloud.sphere_sample_surface(center, radius, points_per_sphere, 0.0)
+                vamp.pointcloud.sphere_sample_surface(
+                    center, radius, points_per_sphere, 0.0
+                )
                 for center in spheres_copy
             ]
         ).astype(np.float32)
@@ -83,7 +92,9 @@ def create_environment(
         r_min, r_max = vamp.panda.min_max_radii()
         # filter_pointcloud(cloud, radius, leaf_size, origin, lower_bound, upper_bound, sort)
         #   - Filters and organizes the point cloud for efficient collision checking
-        filtered_point_cloud_list, elapsed_ns = vamp.filter_pointcloud(point_cloud, r_min, 2, (0,0,0), (-2,-2,-2), (2,2,2), True)
+        filtered_point_cloud_list, elapsed_ns = vamp.filter_pointcloud(
+            point_cloud, r_min, 2, (0, 0, 0), (-2, -2, -2), (2, 2, 2), True
+        )
         # add_pointcloud(cloud, r_min, r_max, padding)
         #   - padding: extra clearance added around each point
         n_added = env.add_pointcloud(filtered_point_cloud_list, r_min, r_max, 0.01)
@@ -99,11 +110,11 @@ def planOnce(
     radius: float = 0.2,
     use_point_cloud: bool = False,
     points_per_sphere: int = POINTS_PER_SPHERE,
-    visualize: bool = False
-    ):
-
+    visualize: bool = False,
+):
     env, spheres, point_cloud = create_environment(
-        variation, radius, use_point_cloud, points_per_sphere)
+        variation, radius, use_point_cloud, points_per_sphere
+    )
 
     # Use VAMP's robot module to initialize state space and validations
     robot = vamp.panda
@@ -141,9 +152,9 @@ def planOnce(
         print(f"Generated path with {path.getStateCount()} states")
 
         if visualize:
-            visualizer = ViserVisualizer(robot_name="panda",
-                                        robot_dimension=dimension,
-                                        port=8080)
+            visualizer = ViserVisualizer(
+                robot_name="panda", robot_dimension=dimension, port=8080
+            )
 
             if point_cloud is not None:
                 pc_colors = np.tile([204, 102, 51], (point_cloud.shape[0], 1))
@@ -166,11 +177,11 @@ def planBenchmark(
     radius: float = 0.2,
     use_point_cloud: bool = False,
     points_per_sphere: int = POINTS_PER_SPHERE,
-    n_trials: int = 100
-    ):
-
+    n_trials: int = 100,
+):
     env, spheres, point_cloud = create_environment(
-        variation, radius, use_point_cloud, points_per_sphere)
+        variation, radius, use_point_cloud, points_per_sphere
+    )
 
     # Use VAMP's robot module to initialize state space and validations
     robot = vamp.panda
@@ -194,12 +205,7 @@ def planBenchmark(
     goal[0:dimension] = b
     ss.setStartAndGoalStates(start, goal)
 
-    planners = [
-        og.RRTConnect(si),
-        og.RRT(si),
-        og.KPIECE1(si),
-        og.LBKPIECE1(si)
-    ]
+    planners = [og.RRTConnect(si), og.RRT(si), og.KPIECE1(si), og.LBKPIECE1(si)]
 
     # Create Benchmark
     env_label = "PointCloud" if use_point_cloud else "Sphere"
@@ -218,16 +224,20 @@ def planBenchmark(
     log_file = "vamp_cage_planning_benchmark_python.log"
     benchmark.saveResultsToFile(log_file)
     db_path = "vamp_cage_planning_benchmark_python.db"
-    ot.readBenchmarkLog(db_path, [log_file], moveitformat=False)  
+    ot.readBenchmarkLog(db_path, [log_file], moveitformat=False)
     print(f"Database saved to {db_path}")
 
     try:
         import plannerarena.app
+
         print(f"Displaying benchmark results from {db_path}")
         plannerarena.app.DATABASE = os.path.abspath(db_path)
         plannerarena.app.run()
     except ImportError:
-        print("PlannerArena not found, please install it from https://github.com/ompl/plannerarena")
+        print(
+            "PlannerArena not found, please install it from https://github.com/ompl/plannerarena"
+        )
+
 
 def main(
     variation: float = 0.01,
@@ -235,13 +245,13 @@ def main(
     use_point_cloud: bool = False,
     n_trials: int = 100,
     radius: float = 0.2,
-    visualize: bool = False
-    ):
-
+    visualize: bool = False,
+):
     if benchmark:
         planBenchmark(variation, radius, use_point_cloud, n_trials=n_trials)
     else:
         planOnce(variation, radius, use_point_cloud, visualize=visualize)
+
 
 if __name__ == "__main__":
     Fire(main)

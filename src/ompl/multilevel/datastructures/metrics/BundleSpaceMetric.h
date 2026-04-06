@@ -60,9 +60,9 @@ namespace ompl
 
             virtual void clear();
 
-            //############################################################################
-            // Distance Functions
-            //############################################################################
+            // ############################################################################
+            //  Distance Functions
+            // ############################################################################
 
             virtual double distanceBundle(const Configuration *xStart, const Configuration *xDest) = 0;
 
@@ -70,9 +70,9 @@ namespace ompl
 
             virtual double distanceBase(const Configuration *xStart, const Configuration *xDest) = 0;
 
-            //############################################################################
-            // Interpolate Functions
-            //############################################################################
+            // ############################################################################
+            //  Interpolate Functions
+            // ############################################################################
 
             virtual void interpolateBundle(const Configuration *q_from, const Configuration *q_to, const double step,
                                            Configuration *q_interp) = 0;
@@ -89,7 +89,7 @@ namespace ompl
             base::State *xBaseStartTmp_;
             base::State *xBaseDestTmp_;
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 #endif

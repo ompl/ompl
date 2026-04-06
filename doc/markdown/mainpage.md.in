@@ -109,10 +109,10 @@
       <p>
         OMPL includes complete examples on how to integrate with libraries that perform collision checking, kinematics, model loading, etc. By default, support for VAMP is enabled. <a href="https://github.com/KavrakiLab/vamp">VAMP</a> is a library for SIMD-accelerated collision checking and forward kinematics, which reduces planning times by several orders of magnitude. We have also included support for <a href="https://stack-of-tasks.github.io/pinocchio/">Pinocchio</a>, a library for forward/inverse kinematics and dynamics.
       </p>
-      
+
       <p>
         OMPL aims to make it straightforward to evaluate new planning algorithms on realistic robots in realistic settings through integrations with libraries like VAMP and Pinocchio. Developers of new algorithms are encouraged to use OMPL's <a href="benchmark.html">benchmarking capabilities</a>. Benchmark results can be explored interactively in <a href="https://plannerarena.org">Planner Arena</a>, an external package like <a href="https://robotic-esp.com/code/pdt/">Planner Developer Tools</a> or your own plotting tool!
-      </p>  
+      </p>
   </div>
   <div class="col-sm-3">
     <div class="row justify-content-around">

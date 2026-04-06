@@ -33,7 +33,7 @@
  *********************************************************************/
 
 /* Author: Dave Coleman
-*/
+ */
 
 #ifndef OMPL_TOOLS_THUNDER_THUNDERDB_
 #define OMPL_TOOLS_THUNDER_THUNDERDB_
@@ -173,7 +173,7 @@ namespace ompl
 
         };  // end of class ThunderDB
 
-    }  // end of namespace
+    }  // namespace tools
 
-}  // end of namespace
+}  // namespace ompl
 #endif

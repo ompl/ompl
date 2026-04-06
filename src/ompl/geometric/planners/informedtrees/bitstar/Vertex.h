@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2014, University of Toronto
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Toronto nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2014, University of Toronto
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Toronto nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Authors: Jonathan Gammell, Marlin Strub */
 
@@ -72,8 +72,9 @@ namespace ompl
             // ---
 
             /** \brief Construct a vertex using space information, and helpers to compute various costs. */
-          Vertex(ompl::base::SpaceInformationPtr spaceInformation, const CostHelper *const costHelpPtr, SearchQueue *const queuePtr,
-                   const std::shared_ptr<const unsigned int> &approximationId, bool root = false);
+            Vertex(ompl::base::SpaceInformationPtr spaceInformation, const CostHelper *const costHelpPtr,
+                   SearchQueue *const queuePtr, const std::shared_ptr<const unsigned int> &approximationId,
+                   bool root = false);
 
             /** \brief Destruct a vertex. */
             virtual ~Vertex();
@@ -136,7 +137,8 @@ namespace ompl
              * this vertex's cost, and can update descendent costs. */
             void addParent(const VertexPtr &newParent, const ompl::base::Cost &edgeInCost);
 
-            /** \brief Remove the parent of this vertex. Will always update this vertex's cost, and can update the descendent costs. */
+            /** \brief Remove the parent of this vertex. Will always update this vertex's cost, and can update the
+             * descendent costs. */
             void removeParent(bool updateChildCosts);
 
             /** \brief Get whether this vertex has any children. */
@@ -153,8 +155,8 @@ namespace ompl
             void addChild(const VertexPtr &newChild);
 
             /** \brief Remove a child from this vertex. Does not change this vertex's cost or those of its descendants.
-            * Child must still have this vertex listed as its parent and it will also throw an exception if the given
-            * vertex pointer is not found. */
+             * Child must still have this vertex listed as its parent and it will also throw an exception if the given
+             * vertex pointer is not found. */
             void removeChild(const VertexPtr &oldChild);
 
             /** \brief Put the vertex on the blacklist of children. */
@@ -197,10 +199,12 @@ namespace ompl
             // Edge queue lookups.
             // ---
 
-            /** \brief Add to the list of the edge queue entries that point in to this vertex. Will clear existing in/out lookups if they were added under a different id. */
+            /** \brief Add to the list of the edge queue entries that point in to this vertex. Will clear existing
+             * in/out lookups if they were added under a different id. */
             void insertInEdgeQueueInLookup(const SearchQueue::EdgeQueueElemPtr &inEdge);
 
-            /** \brief Add to the list of the edge queue entries that point out of this vertex. Will clear existing in/out lookups if they were added under a different id. */
+            /** \brief Add to the list of the edge queue entries that point out of this vertex. Will clear existing
+             * in/out lookups if they were added under a different id. */
             void insertInEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtr &outEdge);
 
             /** \brief Remove an incoming edge queue entry by value to the member vector. */
@@ -215,22 +219,28 @@ namespace ompl
             /** \brief Remove an outgoing edge queue entry by iterator to the member vector. */
             void removeFromEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtrVector::const_iterator &outEdge);
 
-            /** \brief Get an iterator to the front of the incoming edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
+            /** \brief Get an iterator to the front of the incoming edge queue entry vector. Will clear existing in/out
+             * lookups if they were added under a different id. */
             BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator edgeQueueInLookupConstBegin();
 
-            /** \brief Get an iterator to the front of the outgoing edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
+            /** \brief Get an iterator to the front of the outgoing edge queue entry vector. Will clear existing in/out
+             * lookups if they were added under a different id. */
             BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator edgeQueueOutLookupConstBegin();
 
-            /** \brief Get an iterator to the end of the incoming edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
+            /** \brief Get an iterator to the end of the incoming edge queue entry vector. Will clear existing in/out
+             * lookups if they were added under a different id. */
             BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator edgeQueueInLookupConstEnd();
 
-            /** \brief Get an iterator to the end of the outgoing edge queue entry vector. Will clear existing in/out lookups if they were added under a different id. */
+            /** \brief Get an iterator to the end of the outgoing edge queue entry vector. Will clear existing in/out
+             * lookups if they were added under a different id. */
             BITstar::SearchQueue::EdgeQueueElemPtrVector::const_iterator edgeQueueOutLookupConstEnd();
 
-            /** \brief Get the number of edge queue entries incoming to this vertex. Will clear existing in/out lookups if they were added under a different id. */
+            /** \brief Get the number of edge queue entries incoming to this vertex. Will clear existing in/out lookups
+             * if they were added under a different id. */
             unsigned int edgeQueueInLookupSize();
 
-            /** \brief Get the number of edge queue entries outgoing from this vertex. Will clear existing in/out lookups if they were added under a different id. */
+            /** \brief Get the number of edge queue entries outgoing from this vertex. Will clear existing in/out
+             * lookups if they were added under a different id. */
             unsigned int edgeQueueOutLookupSize();
 
             /** \brief Clear the pointers to all of the incoming edge queue entries. */
@@ -244,7 +254,8 @@ namespace ompl
             // Internal bookkeeping.
             // ---
 
-            /** \brief Calculates the updated cost and depth of the current state, optionally calls itself on all children. */
+            /** \brief Calculates the updated cost and depth of the current state, optionally calls itself on all
+             * children. */
             void updateCostAndDepth(bool cascadeUpdates = true);
 
             // ---
@@ -299,7 +310,8 @@ namespace ompl
             /** \brief A list of pointers to elements in the edge queue that point out from this vertex. */
             SearchQueue::EdgeQueueElemPtrVector edgeQueueOutLookup_;
 
-            /** \brief A collection of potential child vertex ids that are blacklisted for edges (due to a collision). */
+            /** \brief A collection of potential child vertex ids that are blacklisted for edges (due to a collision).
+             */
             std::set<BITstar::VertexId> childIdBlacklist_;
 
             /** \brief A collection of potential child vertex ids that are whitelisted for edges. */
@@ -329,10 +341,11 @@ namespace ompl
             /** \brief A helper function to clear the given outgoing lookup (and in debug mode assert it existed). */
             void removeFromEdgeQueueOutLookup(const SearchQueue::EdgeQueueElemPtrVector::iterator &iterToDelete);
 
-            /** \brief A helper function to clear existing lookups if they are out of date (i.e., created at a different id than the one given). */
+            /** \brief A helper function to clear existing lookups if they are out of date (i.e., created at a different
+             * id than the one given). */
             void clearLookupsIfOutdated();
         };  // class Vertex
-    } // namespace geometric
+    }  // namespace geometric
 }  // namespace ompl
 
 #endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_VERTEX_

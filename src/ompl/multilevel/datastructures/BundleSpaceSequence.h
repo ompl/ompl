@@ -53,7 +53,7 @@ namespace ompl
         /** \brief Forward declaration of ompl::base::GoalStates */
         OMPL_CLASS_FORWARD(GoalStates);
         /// @endcond
-    }
+    }  // namespace base
     namespace multilevel
     {
         /** \brief A planner for a sequence of BundleSpaces
@@ -76,13 +76,13 @@ namespace ompl
             /** \brief Non-multilevel Mode: Calling with a single
              * ompl::base::SpaceInformationPtr will revert to standard planning
              * without invoking any projection operators. */
-            BundleSpaceSequence(ompl::base::SpaceInformationPtr si,
-                                std::string type = "BundleSpacePlannerNonMultilevel");
+            BundleSpaceSequence(ompl::base::SpaceInformationPtr si, std::string type = "BundleSpacePlannerNonMultileve"
+                                                                                       "l");
 
             /** \brief Basic Mode: Specify vector of ompl::base::SpaceInformationPtr
                  and let the algorithm figure out the projections itself.*/
-            BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec,
-                                std::string type = "BundleSpacePlanner");
+            BundleSpaceSequence(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type = "BundleSpacePla"
+                                                                                                        "nner");
 
             /** \brief Advanced Mode: Specify not only the vector of
              * ompl::base::SpaceInformationPtr, but also how

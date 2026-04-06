@@ -14,26 +14,32 @@ namespace og = ompl::geometric;
 void ompl::binding::geometric::initPlannersInformedtrees_BITstar(nb::module_ &m)
 {
     nb::class_<og::BITstar, ob::Planner>(m, "BITstar")
-        .def(nb::init<const ob::SpaceInformationPtr &, const std::string &>(),
-             nb::arg("si"), nb::arg("name") = "kBITstar")
+        .def(nb::init<const ob::SpaceInformationPtr &, const std::string &>(), nb::arg("si"),
+             nb::arg("name") = "kBITstar")
 
         // solve
         .def("solve",
-             [](og::BITstar &self, nb::object what) {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what)) {
+             [](og::BITstar &self, nb::object what)
+             {
+                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                 {
                      return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 } else if (nb::isinstance<double>(what)) {
+                 }
+                 else if (nb::isinstance<double>(what))
+                 {
                      return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 } else {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
+                 }
+                 else
+                 {
+                     throw nb::type_error("Invalid argument type for solve. Expected PlannerTerminationCondition or "
+                                          "double.");
                  }
              })
 
         // getPlannerData
-        .def("getPlannerData",
-             [](const og::BITstar &self, ob::PlannerData &data) { self.getPlannerData(data); },
-             nb::arg("data"))
+        .def(
+            "getPlannerData", [](const og::BITstar &self, ob::PlannerData &data) { self.getPlannerData(data); },
+            nb::arg("data"))
 
         // clear / setup
         .def("clear", &og::BITstar::clear)
@@ -80,4 +86,3 @@ void ompl::binding::geometric::initPlannersInformedtrees_BITstar(nb::module_ &m)
              nb::arg("findApproximate"))
         .def("getConsiderApproximateSolutions", &og::BITstar::getConsiderApproximateSolutions);
 }
-

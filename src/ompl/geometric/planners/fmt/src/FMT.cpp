@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2013, Autonomous Systems Laboratory, Stanford University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of Stanford University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2013, Autonomous Systems Laboratory, Stanford University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Stanford University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Authors: Ashley Clark (Stanford) and Wolfgang Pointner (AIT) */
 /* Co-developers: Brice Rebsamen (Stanford), Tim Wheeler (Stanford)
@@ -50,8 +50,7 @@
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/geometric/planners/fmt/FMT.h>
 
-ompl::geometric::FMT::FMT(const base::SpaceInformationPtr &si)
-  : base::Planner(si, "FMT")
+ompl::geometric::FMT::FMT(const base::SpaceInformationPtr &si) : base::Planner(si, "FMT")
 {
     // An upper bound on the free space volume is the total space volume; the free fraction is estimated in sampleFree
     freeSpaceVolume_ = si_->getStateSpace()->getMeasure();
@@ -97,10 +96,7 @@ void ompl::geometric::FMT::setup()
 
         if (!nn_)
             nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
-        nn_->setDistanceFunction([this](const Motion *a, const Motion *b)
-                                 {
-                                     return distanceFunction(a, b);
-                                 });
+        nn_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 
         if (nearestK_ && !nn_->reportsSortedResults())
         {
@@ -229,7 +225,7 @@ void ompl::geometric::FMT::sampleFree(const base::PlannerTerminationCondition &p
             nn_->add(motion);
             motion = new Motion(si_);
         }  // If collision free
-    }      // While nodeCount < numSamples
+    }  // While nodeCount < numSamples
     si_->freeState(motion->getState());
     delete motion;
 
@@ -463,8 +459,8 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
                     }
                 }
             }  // while (!ptc && Open_.empty())
-        }      // else if (extendedFMT_ && !successfulExpansion)
-    }          // While not at goal
+        }  // else if (extendedFMT_ && !successfulExpansion)
+    }  // While not at goal
 
     if (plannerSuccess)
     {
@@ -592,7 +588,7 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion **z)
                 x->setSetType(Motion::SET_CLOSED);
             }
         }  // An optimal connection from Open to x was found
-    }      // For each node near z and in set Unvisited, try to connect it to set Open
+    }  // For each node near z and in set Unvisited, try to connect it to set Open
 
     // Update Open
     Open_.pop();

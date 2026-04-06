@@ -10,9 +10,8 @@ namespace nb = nanobind;
 void ompl::binding::base::initSpaces_TimeStateSpace(nb::module_ &m)
 {
     // Bind the TimeStateSampler.
-    nb::class_<ompl::base::TimeStateSampler,
-               ompl::base::StateSampler>(m, "TimeStateSampler")
-        .def(nb::init<const ompl::base::StateSpace*>())
+    nb::class_<ompl::base::TimeStateSampler, ompl::base::StateSampler>(m, "TimeStateSampler")
+        .def(nb::init<const ompl::base::StateSpace *>())
         .def("sampleUniform", &ompl::base::TimeStateSampler::sampleUniform)
         .def("sampleUniformNear", &ompl::base::TimeStateSampler::sampleUniformNear)
         .def("sampleGaussian", &ompl::base::TimeStateSampler::sampleGaussian);
@@ -22,8 +21,7 @@ void ompl::binding::base::initSpaces_TimeStateSpace(nb::module_ &m)
         .def_rw("position", &ompl::base::TimeStateSpace::StateType::position);
 
     // Bind the TimeStateSpace class.
-    nb::class_<ompl::base::TimeStateSpace,
-               ompl::base::StateSpace>(m, "TimeStateSpace")
+    nb::class_<ompl::base::TimeStateSpace, ompl::base::StateSpace>(m, "TimeStateSpace")
         .def(nb::init<>())
         // Set and get bounds (for time, bounds are specified as two doubles)
         .def("setBounds", &ompl::base::TimeStateSpace::setBounds, nb::arg("minTime"), nb::arg("maxTime"))
@@ -42,12 +40,10 @@ void ompl::binding::base::initSpaces_TimeStateSpace(nb::module_ &m)
         .def("allocDefaultStateSampler", &ompl::base::TimeStateSpace::allocDefaultStateSampler)
         .def("allocState", &ompl::base::TimeStateSpace::allocState)
         .def("getValueAddressAtIndex", &ompl::base::TimeStateSpace::getValueAddressAtIndex)
-        .def("printState", [](const ompl::base::TimeStateSpace &ss, const ompl::base::State *state) {
-            ss.printState(state, std::cout);
-        }, nb::arg("state"))
+        .def(
+            "printState", [](const ompl::base::TimeStateSpace &ss, const ompl::base::State *state)
+            { ss.printState(state, std::cout); }, nb::arg("state"))
 
-        .def("printSettings", [](const ompl::base::TimeStateSpace &ss) {
-            ss.printSettings(std::cout);
-        })
+        .def("printSettings", [](const ompl::base::TimeStateSpace &ss) { ss.printSettings(std::cout); })
         .def("registerProjections", &ompl::base::TimeStateSpace::registerProjections);
 }

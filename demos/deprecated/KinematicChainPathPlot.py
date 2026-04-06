@@ -46,65 +46,83 @@
 from sys import argv
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches  import PathPatch
+from matplotlib.patches import PathPatch
 from matplotlib.path import Path
 from matplotlib import animation, cm, colors
 
 fig = plt.figure()
-plt.axis('equal')
+plt.axis("equal")
 ax = plt.axes(xlim=(-1, 1), ylim=(-1, 1))
-ln, = plt.plot([], [], animated=True)
+(ln,) = plt.plot([], [], animated=True)
 
-def getPositions(pose, linkLength, color='red'):
+
+def getPositions(pose, linkLength, color="red"):
     angles = np.cumsum(pose)
-    return PathPatch(Path(
-        np.insert(linkLength * np.cumsum([np.cos(angles), np.sin(angles)], \
-            axis=1), 0, 0., axis=1).T), facecolor='none', edgecolor=color)
+    return PathPatch(
+        Path(
+            np.insert(
+                linkLength * np.cumsum([np.cos(angles), np.sin(angles)], axis=1),
+                0,
+                0.0,
+                axis=1,
+            ).T
+        ),
+        facecolor="none",
+        edgecolor=color,
+    )
+
 
 def drawEnvironment(env):
     ax.clear()
     if env:
         plt.gca().add_patch(env)
 
+
 def drawPose(index, env, poses, linkLength):
     drawEnvironment(env)
     if index == -1:
         cMap = cm.ScalarMappable(
             norm=colors.Normalize(vmin=0, vmax=poses.shape[0] - 1),
-            cmap=plt.get_cmap('viridis'))
-        for (i, pose) in enumerate(poses):
-            plt.gca().add_patch(getPositions(pose, linkLength, \
-                cMap.to_rgba(i)))
+            cmap=plt.get_cmap("viridis"),
+        )
+        for i, pose in enumerate(poses):
+            plt.gca().add_patch(getPositions(pose, linkLength, cMap.to_rgba(i)))
     else:
         plt.gca().add_patch(getPositions(poses[index, :], linkLength))
-        return ln,
+        return (ln,)
+
 
 def makeMovie(fname, env, poses, linkLength):
-    ani = animation.FuncAnimation(plt.gcf(), drawPose, \
-        fargs=(env, poses, linkLength), frames=poses.shape[0], \
-        blit=True)
+    ani = animation.FuncAnimation(
+        plt.gcf(),
+        drawPose,
+        fargs=(env, poses, linkLength),
+        frames=poses.shape[0],
+        blit=True,
+    )
     ani.save(fname, bitrate=300, fps=20)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     if len(argv) < 2:
-        print('Usage: %s num_links [movie]' % argv[0])
+        print("Usage: %s num_links [movie]" % argv[0])
         exit(1)
 
     dims = int(argv[1])
 
     env = None
     try:
-        coords = np.loadtxt('environment_%d.dat' % dims)
-        env = PathPatch(Path(coords), facecolor='none', edgecolor='black')
+        coords = np.loadtxt("environment_%d.dat" % dims)
+        env = PathPatch(Path(coords), facecolor="none", edgecolor="black")
     except ValueError:
         pass
 
-    poses = np.loadtxt('kinematic_path_%d.dat' % dims)
-    linkLength = 1. / dims
+    poses = np.loadtxt("kinematic_path_%d.dat" % dims)
+    linkLength = 1.0 / dims
 
     if len(argv) > 2:
-        makeMovie('kinematic_%d.mp4' % dims, env, poses, linkLength)
+        makeMovie("kinematic_%d.mp4" % dims, env, poses, linkLength)
     else:
         drawPose(-1, env, poses, linkLength)
         fig = plt.gcf()
-        fig.savefig('kinematic_%d.pdf' % dims)
+        fig.savefig("kinematic_%d.pdf" % dims)

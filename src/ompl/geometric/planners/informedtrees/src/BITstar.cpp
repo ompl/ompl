@@ -655,9 +655,8 @@ namespace ompl
                 // Count the number of samples that could be pruned.
                 auto samples = graphPtr_->getCopyOfSamples();
                 auto numSamplesThatCouldBePruned =
-                    std::count_if(samples.begin(), samples.end(), [this](const auto& sample){
-                        return graphPtr_->canSampleBePruned(sample);
-                    });
+                    std::count_if(samples.begin(), samples.end(),
+                                  [this](const auto &sample) { return graphPtr_->canSampleBePruned(sample); });
 
                 // Only prune if the decrease in number of samples and the associated decrease in nearest neighbour
                 // lookup cost justifies the cost of pruning. There has to be a way to make this more formal, and less

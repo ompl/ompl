@@ -214,7 +214,7 @@ namespace ompl
 
         };  // end of class Lightning
 
-    }  // end of namespace
+    }  // namespace tools
 
-}  // end of namespace
+}  // namespace ompl
 #endif

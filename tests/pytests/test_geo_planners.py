@@ -24,6 +24,7 @@ def test_rrt():
     solution_path = solve_with_planner(ss, rrt_planner)
     assert solution_path is not None
 
+
 def test_rrt_connect():
     # 1) Create SimpleSetup from environment
     ss = create_simple_setup()
@@ -36,6 +37,7 @@ def test_rrt_connect():
     # 3) Solve and check result
     solution_path = solve_with_planner(ss, rrt_connect_planner)
     assert solution_path is not None
+
 
 def test_prm():
     # 1) Create SimpleSetup from environment
@@ -69,6 +71,7 @@ def test_prm_star():
     # 3) Solve and check result
     solution_path = solve_with_planner(ss, prm_star_planner, timeout=0.01)
     assert solution_path is not None
+
 
 if __name__ == "__main__":
     test_rrt()

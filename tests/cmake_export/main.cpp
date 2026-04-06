@@ -1,5 +1,6 @@
 #include "ompl/base/State.h"
 
-int main() {
+int main()
+{
     return 0;
 }

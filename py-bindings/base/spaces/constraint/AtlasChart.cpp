@@ -12,7 +12,6 @@ namespace ob = ompl::base;
 
 void ompl::binding::base::initSpacesConstraint_AtlasChart(nb::module_ &m)
 {
-
     // TODO [ob::AtlasChart][TEST]
     nb::class_<ob::AtlasChart>(m, "AtlasChart")
         // Constructor: (atlas_space, state)
@@ -72,9 +71,8 @@ void ompl::binding::base::initSpacesConstraint_AtlasChart(nb::module_ &m)
 
         // inPolytope: test if local u lies inside the chart's polytope
         .def(
-            "inPolytope",
-            [](const ob::AtlasChart &self, const Eigen::VectorXd &u) { return self.inPolytope(u, nullptr, nullptr); },
-            nb::arg("u"))
+            "inPolytope", [](const ob::AtlasChart &self, const Eigen::VectorXd &u)
+            { return self.inPolytope(u, nullptr, nullptr); }, nb::arg("u"))
 
         // borderCheck: update halfspaces to include v if it's near the boundary
         .def("borderCheck", &ob::AtlasChart::borderCheck, nb::arg("v"))
@@ -83,14 +81,13 @@ void ompl::binding::base::initSpacesConstraint_AtlasChart(nb::module_ &m)
         .def("owningNeighbor", &ob::AtlasChart::owningNeighbor, nb::arg("x"), nb::rv_policy::reference_internal)
 
         // toPolygon: return the polytope as a list of boundary vertices
-        .def(
-            "toPolygon",
-            [](const ob::AtlasChart &self)
-            {
-                std::vector<Eigen::VectorXd> verts;
-                bool ok = self.toPolygon(verts);
-                return std::make_pair(ok, verts);
-            })
+        .def("toPolygon",
+             [](const ob::AtlasChart &self)
+             {
+                 std::vector<Eigen::VectorXd> verts;
+                 bool ok = self.toPolygon(verts);
+                 return std::make_pair(ok, verts);
+             })
 
         // count of halfspaces (polytope facets)
         .def("getNeighborCount", &ob::AtlasChart::getNeighborCount)

@@ -83,7 +83,7 @@ the robot.  OMPL contains the DiscreteMotionValidator, which uses the
 interpolated movements between two states (computed by the StateSpace) to
 determine if a particular motion is valid. This is an approximate computation as only a finite number of states along the motion are checked for validity (using the StateValidityChecker).
 
-\paragraph {OptimizationObjective} Certain motion planners can meet optimization 
+\paragraph {OptimizationObjective} Certain motion planners can meet optimization
 objectives as well. These objectives can implement different cost functions.
 The OptimizationObjective class provides an abstract interface to the relevant operations with costs that the planners need.
 There are multiple default optimization objectives already implemented. For example, to minimize path length, a
@@ -91,7 +91,7 @@ PathLengthOptimizationObjective (derived from OptimizationObjective) can be used
 
 \paragraph {ProblemDefinition} A motion planning query is specified by the
 ProblemDefinition object.  Instances of this class define a start state and goal
-configuration for the robot, and the optimization objective to meet, if any. 
+configuration for the robot, and the optimization objective to meet, if any.
 The goal can be a single configuration or a region surrounding a particular state.
 Solutions to motion planning queries are also retrieved using this class.
 
@@ -122,7 +122,7 @@ For geometric motion planning, the user must define and instantiate the state
 space object for the robot, and provide a start and goal configuration in that
 space to define the motion planning query.  Any planner defined in the
 geometric namespace can then be employed to solve the motion planning query.
-Some of these planners (as indicated by the planner specification) also follow 
+Some of these planners (as indicated by the planner specification) also follow
 optimization objectives.
 
 \paragraph {Planning with Controls}
@@ -170,8 +170,8 @@ OMPL.  OMPL provides a Benchmark class that attempts a specific query a given
 number of times, and allows the user to try any number of planners.
 Additionally, the Benchmark instance can be configured to fail an attempt after
 a specific amount of time or when the planner exhausts a given amount of memory.
-If multiple instances of the same type of planner are to be benchmarked (e.g., with 
-different sets of settings), changing the planner name is a good idea 
+If multiple instances of the same type of planner are to be benchmarked (e.g., with
+different sets of settings), changing the planner name is a good idea
 (Planner::setName() function), so that the results can be distinguished.
 
 When the benchmarking has finished, the Benchmark instance will write a log

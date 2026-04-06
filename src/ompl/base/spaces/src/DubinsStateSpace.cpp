@@ -718,18 +718,16 @@ DubinsStateSpace::PathType getPath(double d, double alpha, double beta)
     return isLongPath(d, alpha, beta) ? ::dubinsClassification(d, alpha, beta) : ::dubinsExhaustive(d, alpha, beta);
 }
 
-const std::vector<std::vector<DubinsStateSpace::DubinsPathSegmentType> >& DubinsStateSpace::dubinsPathType() {
-  static std::vector<std::vector<DubinsStateSpace::DubinsPathSegmentType> >* pathType
-    = new std::vector<std::vector<DubinsStateSpace::DubinsPathSegmentType> >(
-      {{
-        {{DUBINS_LEFT, DUBINS_STRAIGHT, DUBINS_LEFT}},
-        {{DUBINS_RIGHT, DUBINS_STRAIGHT, DUBINS_RIGHT}},
-        {{DUBINS_RIGHT, DUBINS_STRAIGHT, DUBINS_LEFT}},
-        {{DUBINS_LEFT, DUBINS_STRAIGHT, DUBINS_RIGHT}},
-        {{DUBINS_RIGHT, DUBINS_LEFT, DUBINS_RIGHT}},
-        {{DUBINS_LEFT, DUBINS_RIGHT, DUBINS_LEFT}}
-      }}
-    );
+const std::vector<std::vector<DubinsStateSpace::DubinsPathSegmentType>> &DubinsStateSpace::dubinsPathType()
+{
+    static std::vector<std::vector<DubinsStateSpace::DubinsPathSegmentType>> *pathType =
+        new std::vector<std::vector<DubinsStateSpace::DubinsPathSegmentType>>(
+            {{{{DUBINS_LEFT, DUBINS_STRAIGHT, DUBINS_LEFT}},
+              {{DUBINS_RIGHT, DUBINS_STRAIGHT, DUBINS_RIGHT}},
+              {{DUBINS_RIGHT, DUBINS_STRAIGHT, DUBINS_LEFT}},
+              {{DUBINS_LEFT, DUBINS_STRAIGHT, DUBINS_RIGHT}},
+              {{DUBINS_RIGHT, DUBINS_LEFT, DUBINS_RIGHT}},
+              {{DUBINS_LEFT, DUBINS_RIGHT, DUBINS_LEFT}}}});
     return *pathType;
 }
 
@@ -753,8 +751,8 @@ void DubinsStateSpace::interpolate(const State *from, const State *to, const dou
     interpolate(from, to, t, firstTime, path, state);
 }
 
-void DubinsStateSpace::interpolate(const State *from, const State *to, const double t, bool &firstTime,
-                                   PathType &path, State *state) const
+void DubinsStateSpace::interpolate(const State *from, const State *to, const double t, bool &firstTime, PathType &path,
+                                   State *state) const
 {
     if (firstTime)
     {
@@ -786,8 +784,7 @@ void DubinsStateSpace::interpolate(const State *from, const State *to, const dou
     interpolate(from, path, t, state, rho_);
 }
 
-void DubinsStateSpace::interpolate(const State *from, const PathType &path, double t, State *state,
-                                   double radius) const
+void DubinsStateSpace::interpolate(const State *from, const PathType &path, double t, State *state, double radius) const
 {
     auto *s = allocState()->as<StateType>();
     double seg = t * path.length(), phi, v;

@@ -196,11 +196,13 @@ namespace ompl::base
          */
         std::optional<PathType> getPath(const State *state1, const State *state2) const;
 
-        double getMinTurnRadius() const {
+        double getMinTurnRadius() const
+        {
             return rho_;
         };
 
-        double getMaxPitch() const {
+        double getMaxPitch() const
+        {
             return atan(tanMaxPitch_);
         };
 

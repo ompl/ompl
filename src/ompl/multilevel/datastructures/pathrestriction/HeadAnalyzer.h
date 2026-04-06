@@ -107,5 +107,5 @@ namespace ompl
 
             bool enabled_{true};
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl

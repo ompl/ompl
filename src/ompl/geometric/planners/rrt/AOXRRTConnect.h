@@ -71,8 +71,8 @@ namespace ompl
            [[PDF]](http://ieeexplore.ieee.org/ielx5/6794/18246/00844730.pdf?tp=&arnumber=844730&isnumber=18246)
            [[more]](http://msl.cs.uiuc.edu/~lavalle/rrtpubs.html)
            T. S. Wilson, W. Thomason, Z. Kingston, and J. D. Gammell, AORRTC: Almost-surely asymptotically optimal
-           planning with RRT-Connect, in <em>IEEE Robotics and Automation Letters</em>, Vol. 10, no. 12, pp. 13375-13382, Dec. 2025. DOI:
-           [10.1109/LRA.2025.3615522](http://dx.doi.org/10.1109/LRA.2025.3615522)<br>
+           planning with RRT-Connect, in <em>IEEE Robotics and Automation Letters</em>, Vol. 10, no. 12, pp.
+           13375-13382, Dec. 2025. DOI: [10.1109/LRA.2025.3615522](http://dx.doi.org/10.1109/LRA.2025.3615522)<br>
            [[PDF]](https://arxiv.org/abs/2505.10542)
         */
 
@@ -129,10 +129,13 @@ namespace ompl
             bool internalResetCondition()
             {
                 bool shouldReset = false;
-                if (tStart_ && tGoal_) {
+                if (tStart_ && tGoal_)
+                {
                     /* Reset if we have met our maximum internal vertices */
                     shouldReset = shouldReset || (tStart_->size() + tGoal_->size() >= maxInternalVertices);
-                } else {
+                }
+                else
+                {
                     /* If our trees don't exist, we're not in the middle of a search anyways */
                     shouldReset = true;
                 }
@@ -222,7 +225,7 @@ namespace ompl
 
             /* Pad rootDist to account for floating point error
                Needed to make sure the root is included in nearest list
-               TODO: Should use some relative epsilon for padding 
+               TODO: Should use some relative epsilon for padding
                (FLT_EPSILON is good but does not scale with the magnitude of rootDist and may be too small) */
             const float rootDistPadding = 0.00001;
 
@@ -249,7 +252,7 @@ namespace ompl
 
             /** \brief Maximum samples tried before the search is restarted */
             std::size_t maxInternalSamples{10000000};
-            
+
             /** \brief Increment by which maxSamples is increased */
             std::size_t maxInternalSamplesIncrement{10000000};
 

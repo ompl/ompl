@@ -44,6 +44,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.patches as patches
 
+
 # Reads a YAML world specification from the worldFile.
 # Returns the set of obstacles and the bounds of the world.
 def readWorldFile(worldFile):

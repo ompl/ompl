@@ -42,6 +42,7 @@ from ompl import base as ob
 from ompl import geometric as og
 from functools import partial
 
+
 class Plane2DEnvironment:
     def __init__(self, ppm_file):
         self.ppm_ = ou.PPM()
@@ -54,11 +55,11 @@ class Plane2DEnvironment:
         self.ss_ = og.SimpleSetup(space)
 
         # set state validity checking for this space
-        self.ss_.setStateValidityChecker(
-            partial(Plane2DEnvironment.isStateValid, self))
+        self.ss_.setStateValidityChecker(partial(Plane2DEnvironment.isStateValid, self))
         space.setup()
-        self.ss_.getSpaceInformation().setStateValidityCheckingResolution( \
-            1.0 / space.getMaximumExtent())
+        self.ss_.getSpaceInformation().setStateValidityCheckingResolution(
+            1.0 / space.getMaximumExtent()
+        )
         #      self.ss_.setPlanner(og.RRTConnect(self.ss_.getSpaceInformation()))
 
     def plan(self, start_row, start_col, goal_row, goal_col):
@@ -114,8 +115,15 @@ class Plane2DEnvironment:
 
 
 if __name__ == "__main__":
-    fname = join(join(join(join(dirname(dirname(dirname(abspath(__file__)))), \
-        'tests'), 'resources'), 'ppm'), 'floor.ppm')
+    fname = join(
+        join(
+            join(
+                join(dirname(dirname(dirname(abspath(__file__)))), "tests"), "resources"
+            ),
+            "ppm",
+        ),
+        "floor.ppm",
+    )
     env = Plane2DEnvironment(fname)
 
     if env.plan(0, 0, 777, 1265):

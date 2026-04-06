@@ -19,21 +19,27 @@ void ompl::binding::geometric::initPlannersRrt_RRTstar(nb::module_ &m)
 
         // solve
         .def("solve",
-             [](og::RRTstar &self, nb::object what) {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what)) {
+             [](og::RRTstar &self, nb::object what)
+             {
+                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                 {
                      return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 } else if (nb::isinstance<double>(what)) {
+                 }
+                 else if (nb::isinstance<double>(what))
+                 {
                      return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 } else {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
+                 }
+                 else
+                 {
+                     throw nb::type_error("Invalid argument type for solve. Expected PlannerTerminationCondition or "
+                                          "double.");
                  }
              })
 
         // getPlannerData
-        .def("getPlannerData",
-             [](const og::RRTstar &self, ob::PlannerData &data) { self.getPlannerData(data); },
-             nb::arg("data"))
+        .def(
+            "getPlannerData", [](const og::RRTstar &self, ob::PlannerData &data) { self.getPlannerData(data); },
+            nb::arg("data"))
 
         // clear / setup
         .def("clear", &og::RRTstar::clear)
@@ -107,4 +113,3 @@ void ompl::binding::geometric::initPlannersRrt_RRTstar(nb::module_ &m)
         .def("numIterations", &og::RRTstar::numIterations)
         .def("bestCost", &og::RRTstar::bestCost);
 }
-

@@ -17,9 +17,8 @@ namespace ompl::vamp
     {
         using Configuration = typename Robot::Configuration;
 
-        alignas(Configuration::S::Alignment)
-            std::array<typename Configuration::S::ScalarT, Configuration::num_scalars>
-                aligned_buffer{};
+        alignas(Configuration::S::Alignment) std::array<typename Configuration::S::ScalarT, Configuration::num_scalars>
+            aligned_buffer{};
 
         const auto *as = state->as<ob::RealVectorStateSpace::StateType>();
         for (std::size_t i = 0; i < Robot::dimension; ++i)

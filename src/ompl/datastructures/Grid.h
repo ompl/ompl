@@ -169,7 +169,7 @@ namespace ompl
             ComponentHash ch;
             std::vector<std::vector<Cell *>> res;
 
-            for (auto & i: hash_)
+            for (auto &i : hash_)
             {
                 Cell *c0 = i.second;
                 auto pos = ch.find(&c0->coord);

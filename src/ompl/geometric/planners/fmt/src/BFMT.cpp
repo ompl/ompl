@@ -70,9 +70,7 @@ namespace ompl
                 if (!nn_)
                     nn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<BiDirMotion *>(this));
                 nn_->setDistanceFunction([this](const BiDirMotion *a, const BiDirMotion *b)
-                                         {
-                                             return distanceFunction(a, b);
-                                         });
+                                         { return distanceFunction(a, b); });
 
                 if (nearestK_ && !nn_->reportsSortedResults())
                 {
@@ -532,7 +530,7 @@ namespace ompl
             // add nodes in Open_new to Open
             for (auto &i : Open_new)
             {
-                if(Open_elements[tree_][i] == nullptr)
+                if (Open_elements[tree_][i] == nullptr)
                 {
                     Open_elements[tree_][i] = Open_[tree_].insert(i);
                     i->setCurrentSet(BiDirMotion::SET_OPEN);
@@ -853,5 +851,5 @@ namespace ompl
                 }
             }
         }
-    }  // End "geometric" namespace
-}  // End "ompl" namespace
+    }  // namespace geometric
+}  // namespace ompl

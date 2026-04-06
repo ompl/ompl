@@ -51,7 +51,7 @@ namespace ompl
         /** \brief Forward declaration of ompl::multilevel::Projection */
         OMPL_CLASS_FORWARD(Projection);
         /// @endcond
-    }
+    }  // namespace multilevel
     namespace multilevel
     {
         /* \brief If no projection operator is provided, you can invoke this
@@ -152,6 +152,6 @@ namespace ompl
             /** \brief Estimate number of components on state space */
             int GetNumberOfComponents(const base::StateSpacePtr &space);
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 #endif

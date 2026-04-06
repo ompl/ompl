@@ -39,7 +39,7 @@ namespace ompl::vamp
     // VAMP State Space for OMPL
     //==========================================================================
 
-    template <typename Robot> 
+    template <typename Robot>
     class VampStateSpace : public ob::RealVectorStateSpace
     {
     public:

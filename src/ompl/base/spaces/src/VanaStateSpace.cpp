@@ -208,13 +208,11 @@ void VanaStateSpace::interpolate(const State *from, const State *to, const doubl
 {
     if (auto path = getPath(from, to))
         interpolate(from, to, t, *path, state);
-    else
-        if (from != state)
-            copyState(state, from);
+    else if (from != state)
+        copyState(state, from);
 }
 
-void VanaStateSpace::interpolate(const State *from, const State *to, const double t, PathType &path,
-                                 State *state) const
+void VanaStateSpace::interpolate(const State *from, const State *to, const double t, PathType &path, State *state) const
 {
     if (t >= 1.)
     {
@@ -234,7 +232,7 @@ void VanaStateSpace::interpolate(const State *from, const State *to, const doubl
 
 void VanaStateSpace::interpolate(const State *from, const PathType &path, double t, State *state) const
 {
-    auto intermediate = (from==state) ? dubinsSpace_.allocState() : state;
+    auto intermediate = (from == state) ? dubinsSpace_.allocState() : state;
     auto s = state->as<StateType>();
     auto i = intermediate->as<DubinsStateSpace::StateType>();
     // This is exploiting internal properties of compound state spaces like DubinsStateSpace
@@ -243,7 +241,7 @@ void VanaStateSpace::interpolate(const State *from, const PathType &path, double
     (*s)[2] = i->getY();
     s->pitch() = i->getYaw();
     dubinsSpace_.interpolate(from, path.pathXY_, t, state, path.horizontalRadius_);
-    if (from==state)
+    if (from == state)
         dubinsSpace_.freeState(intermediate);
 }
 

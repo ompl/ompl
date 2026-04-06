@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ryan Luna */
 
@@ -277,7 +277,7 @@ namespace
         }
         return sstream.str();
     }
-}
+}  // namespace
 
 void ompl::base::PlannerData::printGraphML(std::ostream &out) const
 {
@@ -289,18 +289,12 @@ void ompl::base::PlannerData::printGraphML(std::ostream &out) const
     // \todo Can we use make_function_property_map() here and have it
     // infer the property template arguments?
     using Edge = ompl::base::PlannerData::Graph::Edge;
-    boost::function_property_map<std::function<double(Edge)>, Edge> weightmap([this](Edge e)
-                                                                              {
-                                                                                  return get(boost::edge_weight_t(),
-                                                                                             *graph_)[e].value();
-                                                                              });
+    boost::function_property_map<std::function<double(Edge)>, Edge> weightmap(
+        [this](Edge e) { return get(boost::edge_weight_t(), *graph_)[e].value(); });
     ompl::base::ScopedState<> s(si_);
     using Vertex = ompl::base::PlannerData::Graph::Vertex;
-    boost::function_property_map<std::function<std::string(Vertex)>, Vertex> coordsmap([this, &s](Vertex v)
-                                                                                       {
-                                                                                           return vertexCoords(*graph_,
-                                                                                                               s, v);
-                                                                                       });
+    boost::function_property_map<std::function<std::string(Vertex)>, Vertex> coordsmap(
+        [this, &s](Vertex v) { return vertexCoords(*graph_, s, v); });
 
     // Not writing vertex or edge structures.
     boost::dynamic_properties dp;
@@ -645,17 +639,13 @@ void ompl::base::PlannerData::extractMinimumSpanningTree(unsigned int v, const b
     // \todo Once (https://svn.boost.org/trac/boost/ticket/9368) gets
     // into boost we can use the far more direct
     // boost::prim_minimum_spanning_tree().
-    boost::dijkstra_shortest_paths(*graph_, v, boost::predecessor_map(&pred[0])
-                                                   .distance_compare([&opt](Cost c1, Cost c2)
-                                                                     {
-                                                                         return opt.isCostBetterThan(c1, c2);
-                                                                     })
-                                                   .distance_combine([](Cost, Cost c)
-                                                                     {
-                                                                         return c;
-                                                                     })
-                                                   .distance_inf(opt.infiniteCost())
-                                                   .distance_zero(opt.identityCost()));
+    boost::dijkstra_shortest_paths(
+        *graph_, v,
+        boost::predecessor_map(&pred[0])
+            .distance_compare([&opt](Cost c1, Cost c2) { return opt.isCostBetterThan(c1, c2); })
+            .distance_combine([](Cost, Cost c) { return c; })
+            .distance_inf(opt.infiniteCost())
+            .distance_zero(opt.identityCost()));
 
     // Adding vertices to MST
     for (std::size_t i = 0; i < pred.size(); ++i)
@@ -747,8 +737,7 @@ ompl::base::PlannerData::Graph &ompl::base::PlannerData::toBoostGraph()
 
 const ompl::base::PlannerData::Graph &ompl::base::PlannerData::toBoostGraph() const
 {
-    const auto *boostgraph =
-        reinterpret_cast<const ompl::base::PlannerData::Graph *>(graphRaw_);
+    const auto *boostgraph = reinterpret_cast<const ompl::base::PlannerData::Graph *>(graphRaw_);
     return *boostgraph;
 }
 
@@ -797,7 +786,8 @@ void ompl::base::PlannerData::printPLY(std::ostream &out, const bool asIs) const
     std::size_t vcount = 0;
     std::size_t fcount = 0;
 
-    auto stateOutput = [&](const ompl::base::State *state) {
+    auto stateOutput = [&](const ompl::base::State *state)
+    {
         space->copyToReals(reals, state);
         std::copy(reals.begin(), reals.end(), std::ostream_iterator<double>(v, " "));
         v << std::endl;

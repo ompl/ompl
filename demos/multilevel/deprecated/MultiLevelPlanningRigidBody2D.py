@@ -38,6 +38,7 @@
 
 from os.path import abspath, dirname, join
 import sys
+
 try:
     from ompl import util as ou
     from ompl import base as ob
@@ -45,7 +46,9 @@ try:
 except ImportError:
     # if the ompl module is not in the PYTHONPATH assume it is installed in a
     # subdirectory of the parent directory called "py-bindings."
-    sys.path.insert(0, join(dirname(dirname(dirname(abspath(__file__)))), 'py-bindings'))
+    sys.path.insert(
+        0, join(dirname(dirname(dirname(abspath(__file__)))), "py-bindings")
+    )
     from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
@@ -54,17 +57,21 @@ from math import sqrt, pi
 # Path Planning in SE2 = R2 \times SO2
 # using quotient-spaces R2 and SE2
 
+
 def boxConstraint(x, y):
     x = x - 0.5
     y = y - 0.5
     pos_cnstr = sqrt(x * x + y * y)
     return pos_cnstr > 0.2
 
+
 def isStateValid_SE2(state):
     return boxConstraint(state.getX(), state.getY()) and state.getYaw() < pi / 2.0
 
+
 def isStateValid_R2(state):
     return boxConstraint(state[0], state[1])
+
 
 if __name__ == "__main__":
     # Setup SE2
@@ -108,17 +115,17 @@ if __name__ == "__main__":
     solved = planner.solve(1.0)
 
     if solved:
-        print('-' * 80)
-        print('Configuration-Space Path (SE2):')
-        print('-' * 80)
+        print("-" * 80)
+        print("Configuration-Space Path (SE2):")
+        print("-" * 80)
         print(pdef.getSolutionPath())
 
-        print('-' * 80)
-        print('Quotient-Space Path (R2):')
-        print('-' * 80)
+        print("-" * 80)
+        print("Quotient-Space Path (R2):")
+        print("-" * 80)
         print(planner.getProblemDefinition(0).getSolutionPath())
 
         nodes = planner.getFeasibleNodes()
-        print('-' * 80)
-        for (i, node) in enumerate(nodes):
-            print('QuotientSpace%d has %d nodes.' % (i, node))
+        print("-" * 80)
+        for i, node in enumerate(nodes):
+            print("QuotientSpace%d has %d nodes." % (i, node))

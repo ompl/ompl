@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the University of Santa Cruz nor the names of 
+ *   * Neither the name of the University of Santa Cruz nor the names of
  *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -36,11 +36,11 @@
 
 #include "ompl/base/spaces/HybridStateSpace.h"
 
-ompl::base::HybridStateSpace::HybridStateSpace(const StateSpacePtr& spaceComponent)
+ompl::base::HybridStateSpace::HybridStateSpace(const StateSpacePtr &spaceComponent)
 {
     setName("HybridStateSpace" + getName());
-    addSubspace(spaceComponent, 1); // space component
-    addSubspace(std::make_shared<HybridTimeStateSpace>(), 1); // time component
+    addSubspace(spaceComponent, 1);                            // space component
+    addSubspace(std::make_shared<HybridTimeStateSpace>(), 1);  // time component
     lock();
 }
 
@@ -55,7 +55,7 @@ double ompl::base::HybridStateSpace::distance(const ompl::base::State *state1, c
  * Direction-independent distance in space
  */
 double ompl::base::HybridStateSpace::distanceSpace(const ompl::base::State *state1,
-                                                      const ompl::base::State *state2) const
+                                                   const ompl::base::State *state2) const
 {
     const auto *cstate1 = static_cast<const CompoundState *>(state1);
     const auto *cstate2 = static_cast<const CompoundState *>(state2);
@@ -67,7 +67,7 @@ double ompl::base::HybridStateSpace::distanceSpace(const ompl::base::State *stat
  * Direction-independent distance in time
  */
 double ompl::base::HybridStateSpace::distanceTime(const ompl::base::State *state1,
-                                                     const ompl::base::State *state2) const
+                                                  const ompl::base::State *state2) const
 {
     const auto *cstate1 = static_cast<const CompoundState *>(state1);
     const auto *cstate2 = static_cast<const CompoundState *>(state2);
@@ -80,7 +80,7 @@ ompl::base::StateSpacePtr ompl::base::HybridStateSpace::getSpaceComponent()
     return components_[0];
 }
 
-ompl::base::HybridTimeStateSpace * ompl::base::HybridStateSpace::getTimeComponent()     // change to hybrid time
+ompl::base::HybridTimeStateSpace *ompl::base::HybridStateSpace::getTimeComponent()  // change to hybrid time
 {
     return components_[1]->as<HybridTimeStateSpace>();
 }

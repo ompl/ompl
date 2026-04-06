@@ -18,20 +18,26 @@ void ompl::binding::geometric::initPlannersKpiece_LBKPIECE1(nb::module_ &m)
 
         // solve
         .def("solve",
-             [](og::LBKPIECE1 &self, nb::object what) {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what)) {
+             [](og::LBKPIECE1 &self, nb::object what)
+             {
+                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                 {
                      return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 } else if (nb::isinstance<double>(what)) {
+                 }
+                 else if (nb::isinstance<double>(what))
+                 {
                      return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 } else {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
+                 }
+                 else
+                 {
+                     throw nb::type_error("Invalid argument type for solve. Expected PlannerTerminationCondition or "
+                                          "double.");
                  }
              })
 
-        .def("getPlannerData",
-             [](const og::LBKPIECE1 &self, ob::PlannerData &data) { self.getPlannerData(data); },
-             nb::arg("data"))
+        .def(
+            "getPlannerData", [](const og::LBKPIECE1 &self, ob::PlannerData &data) { self.getPlannerData(data); },
+            nb::arg("data"))
 
         .def("clear", &og::LBKPIECE1::clear)
         .def("setup", &og::LBKPIECE1::setup)

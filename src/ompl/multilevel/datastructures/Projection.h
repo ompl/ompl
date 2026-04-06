@@ -50,7 +50,7 @@ namespace ompl
         /** \brief Forward declaration of ompl::base::StateSpace */
         OMPL_CLASS_FORWARD(StateSpace);
         /// @endcond
-    }
+    }  // namespace base
     namespace multilevel
     {
         /// @cond IGNORE
@@ -159,6 +159,6 @@ namespace ompl
 
             std::vector<ProjectionPtr> components_;
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 #endif

@@ -14,7 +14,7 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the University of Santa Cruz nor the names of 
+ *   * Neither the name of the University of Santa Cruz nor the names of
  *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
  *
@@ -371,7 +371,8 @@ bool unsafeSet(ompl::control::HySST::Motion *motion)
     return false;
 }
 
-/** \brief Simulates the dynamics of the multicopter when in jump regime, with input from the surface and no control applied. */
+/** \brief Simulates the dynamics of the multicopter when in jump regime, with input from the surface and no control
+ * applied. */
 ompl::base::State *discreteSimulator(ompl::base::State *x_cur, const ompl::control::Control *u,
                                      ompl::base::State *new_state)
 {
@@ -522,7 +523,7 @@ bool collisionChecker(ompl::control::HySST::Motion *motion,
     return collision && run;
 }
 
-/** \brief Represents the flow map, or the first-order derivative of the multicopter state when in flow regime. 
+/** \brief Represents the flow map, or the first-order derivative of the multicopter state when in flow regime.
  * The first-order derivative of the acceleration is equal to the control input applied. */
 void flowODE(const ompl::control::ODESolver::StateType &x_cur, const ompl::control::Control *u,
              ompl::control::ODESolver::StateType &x_new)
@@ -696,7 +697,7 @@ int main()
     cHySST.setCollisionChecker(collisionChecker);
     cHySST.setSelectionRadius(0.2);
     cHySST.setPruningRadius(0.1);
-    cHySST.setBatchSize(1); 
+    cHySST.setBatchSize(1);
 
     // attempt to solve the planning problem within 30 seconds
     ompl::time::point t0 = ompl::time::now();

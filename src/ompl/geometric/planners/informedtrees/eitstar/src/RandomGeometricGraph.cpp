@@ -64,9 +64,8 @@ namespace ompl
               , solutionCost_(solutionCost)
             {
                 samples_.setDistanceFunction(
-                    [this](const std::shared_ptr<State> &state1, const std::shared_ptr<State> &state2) {
-                        return spaceInfo_->distance(state1->state_, state2->state_);
-                    });
+                    [this](const std::shared_ptr<State> &state1, const std::shared_ptr<State> &state2)
+                    { return spaceInfo_->distance(state1->state_, state2->state_); });
             }
 
             void RandomGeometricGraph::setup(const std::shared_ptr<ompl::base::ProblemDefinition> &problem,
@@ -208,8 +207,7 @@ namespace ompl
                     do
                     {
                         // Get a new goal. If there are none, or the underlying state is invalid this will be a nullptr.
-                        const auto newGoalState =
-                            inputStates->nextGoal(terminationCondition);
+                        const auto newGoalState = inputStates->nextGoal(terminationCondition);
 
                         // If there was a new valid goal, register it as such and remember that a goal has been added.
                         if (static_cast<bool>(newGoalState))
@@ -430,19 +428,15 @@ namespace ompl
                 auto &sourceNeighbors = edge.source->neighbors_.second;
                 auto &targetNeighbors = edge.target->neighbors_.second;
 
-                sourceNeighbors.erase(std::remove_if(sourceNeighbors.begin(), sourceNeighbors.end(),
-                                                     [&edge](const auto &neighbor) {
-                                                         return neighbor.expired() ||
-                                                                neighbor.lock()->getId() == edge.target->getId();
-                                                     }),
-                                      sourceNeighbors.end());
+                sourceNeighbors.erase(
+                    std::remove_if(sourceNeighbors.begin(), sourceNeighbors.end(), [&edge](const auto &neighbor)
+                                   { return neighbor.expired() || neighbor.lock()->getId() == edge.target->getId(); }),
+                    sourceNeighbors.end());
 
-                targetNeighbors.erase(std::remove_if(targetNeighbors.begin(), targetNeighbors.end(),
-                                                     [&edge](const auto &neighbor) {
-                                                         return neighbor.expired() ||
-                                                                neighbor.lock()->getId() == edge.source->getId();
-                                                     }),
-                                      targetNeighbors.end());
+                targetNeighbors.erase(
+                    std::remove_if(targetNeighbors.begin(), targetNeighbors.end(), [&edge](const auto &neighbor)
+                                   { return neighbor.expired() || neighbor.lock()->getId() == edge.source->getId(); }),
+                    targetNeighbors.end());
             }
 
             std::size_t RandomGeometricGraph::getTag() const
@@ -494,7 +488,8 @@ namespace ompl
                 whitelistedStates_.push_back(state);
             }
 
-            std::shared_ptr<State> RandomGeometricGraph::getNewSample(const ompl::base::PlannerTerminationCondition& terminationCondition)
+            std::shared_ptr<State>
+            RandomGeometricGraph::getNewSample(const ompl::base::PlannerTerminationCondition &terminationCondition)
             {
                 // Allocate a new state.
                 auto state = std::make_shared<State>(spaceInfo_, objective_);
@@ -712,13 +707,13 @@ namespace ompl
                     if (isMultiqueryEnabled_)
                     {
                         std::copy_if(whitelistedNeighbors.begin(), whitelistedNeighbors.end(),
-                                     std::back_inserter(neighbors), [&neighbors](const auto v) {
-                                         return std::find(neighbors.begin(), neighbors.end(), v) == neighbors.end();
-                                     });
+                                     std::back_inserter(neighbors), [&neighbors](const auto v)
+                                     { return std::find(neighbors.begin(), neighbors.end(), v) == neighbors.end(); });
                     }
 
                     // We dont want to connect to blacklisted neighbors and the querying state itself.
-                    const auto connectionPredicate = [&state, this](const std::shared_ptr<State> &neighbor) {
+                    const auto connectionPredicate = [&state, this](const std::shared_ptr<State> &neighbor)
+                    {
                         return !state->isBlacklisted(neighbor) && (state->id_ != neighbor->id_) &&
                                !(isGoal(state) && isGoal(neighbor));
                     };

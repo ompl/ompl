@@ -44,6 +44,6 @@ void ompl::binding::geometric::init_PathSimplifier(nb::module_ &m)
                                double>(&og::PathSimplifier::findBetterGoal),
              nb::arg("path"), nb::arg("ptc"), nb::arg("samplingAttempts") = 10u, nb::arg("rangeRatio") = 0.33,
              nb::arg("snapToVertex") = 0.005)
-        .def("freeStates", (void (og::PathSimplifier::*)(bool))&og::PathSimplifier::freeStates, nb::arg("flag"))
-        .def("freeStates", (bool (og::PathSimplifier::*)() const) & og::PathSimplifier::freeStates);
+        .def("freeStates", (void(og::PathSimplifier::*)(bool)) & og::PathSimplifier::freeStates, nb::arg("flag"))
+        .def("freeStates", (bool(og::PathSimplifier::*)() const) & og::PathSimplifier::freeStates);
 }

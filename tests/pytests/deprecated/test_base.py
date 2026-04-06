@@ -40,11 +40,14 @@ import unittest
 from math import pi
 import sys
 from os.path import abspath, dirname, join
-sys.path.insert(0, join(dirname(dirname(dirname(abspath(__file__)))), 'py-bindings'))
+
+sys.path.insert(0, join(dirname(dirname(dirname(abspath(__file__)))), "py-bindings"))
 from ompl.base import *
+
 
 def isValid(_):
     return True
+
 
 class TestSO2(unittest.TestCase):
     def testSimple(self):
@@ -60,7 +63,7 @@ class TestSO2(unittest.TestCase):
 
         s1().value = pi - 0.08
         m.interpolate(s1(), s2(), 0.5, s3())
-        self.assertAlmostEqual(s3().value, -pi+0.01, 3)
+        self.assertAlmostEqual(s3().value, -pi + 0.01, 3)
 
         s1().value = pi - 0.1
         s2().value = 0.1
@@ -68,6 +71,7 @@ class TestSO2(unittest.TestCase):
 
         m.interpolate(s1(), s2(), 0.5, s3())
         self.assertAlmostEqual(s3().value, pi / 2.0, 3)
+
 
 class TestSO3(unittest.TestCase):
     def testSimple(self):
@@ -93,10 +97,9 @@ class TestSO3(unittest.TestCase):
 
 
 def suite():
-    suites = (
-        unittest.makeSuite(TestSO2),
-        unittest.makeSuite(TestSO3))
+    suites = (unittest.makeSuite(TestSO2), unittest.makeSuite(TestSO3))
     return unittest.TestSuite(suites)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

@@ -3,7 +3,6 @@ import math
 from ompl import util as ou
 
 
-
 def test_rng_basic():
     rng = ou.RNG()
 
@@ -102,6 +101,7 @@ def test_rng_local_seed():
     new_seed = 99999
     rng.setLocalSeed(new_seed)
     assert rng.getLocalSeed() == new_seed
+
 
 if __name__ == "__main__":
     test_rng_basic()

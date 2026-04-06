@@ -27,16 +27,23 @@ void ompl::binding::geometric::initPlannersRrt_RRT(nb::module_ &m)
         //             return self.solve(ptc);
         //         },
         //         nb::arg("ptc"))
-        .def("solve", 
-               [](og::RRT &self, nb::object what){
-                       if (nb::isinstance<ob::PlannerTerminationCondition>(what)) {
-                            return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                       } else if (nb::isinstance<double>(what)) {
-                            return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                       } else {
-                            throw nb::type_error("Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-                       }
-               })
+        .def("solve",
+             [](og::RRT &self, nb::object what)
+             {
+                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                 {
+                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
+                 }
+                 else if (nb::isinstance<double>(what))
+                 {
+                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
+                 }
+                 else
+                 {
+                     throw nb::type_error("Invalid argument type for solve. Expected PlannerTerminationCondition or "
+                                          "double.");
+                 }
+             })
 
         // getPlannerData
         .def(

@@ -18,21 +18,27 @@ void ompl::binding::geometric::initPlannersFmt_FMT(nb::module_ &m)
 
         // solve
         .def("solve",
-             [](og::FMT &self, nb::object what) {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what)) {
+             [](og::FMT &self, nb::object what)
+             {
+                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                 {
                      return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 } else if (nb::isinstance<double>(what)) {
+                 }
+                 else if (nb::isinstance<double>(what))
+                 {
                      return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 } else {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
+                 }
+                 else
+                 {
+                     throw nb::type_error("Invalid argument type for solve. Expected PlannerTerminationCondition or "
+                                          "double.");
                  }
              })
 
         // getPlannerData
-        .def("getPlannerData",
-             [](const og::FMT &self, ob::PlannerData &data) { self.getPlannerData(data); },
-             nb::arg("data"))
+        .def(
+            "getPlannerData", [](const og::FMT &self, ob::PlannerData &data) { self.getPlannerData(data); },
+            nb::arg("data"))
 
         // clear / setup
         .def("clear", &og::FMT::clear)
@@ -66,4 +72,3 @@ void ompl::binding::geometric::initPlannersFmt_FMT(nb::module_ &m)
         .def("setExtendedFMT", &og::FMT::setExtendedFMT, nb::arg("e"))
         .def("getExtendedFMT", &og::FMT::getExtendedFMT);
 }
-

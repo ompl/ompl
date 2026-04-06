@@ -49,8 +49,8 @@ namespace ompl
     {
         static const unsigned int PATH_SECTION_TREE_MAX_DEPTH = 3;
         static const unsigned int PATH_SECTION_TREE_MAX_BRANCHING = 10;
-    }
-}
+    }  // namespace magic
+}  // namespace ompl
 
 using namespace ompl::multilevel;
 
@@ -110,9 +110,9 @@ bool FindSectionSideStep::recursiveSideStep(HeadPtr &head, bool interpolateFiber
         ->getGraphSampler()
         ->setPathBiasStartSegment(head->getLocationOnBasePath());
 
-    //############################################################################
-    // Get last valid state information
-    //############################################################################
+    // ############################################################################
+    //  Get last valid state information
+    // ############################################################################
 
     if (depth + 1 >= magic::PATH_SECTION_TREE_MAX_DEPTH)
     {

@@ -105,7 +105,7 @@ void ompl::binding::base::init_SpaceInformation(nb::module_ &m)
         .def("distance", &ompl::base::SpaceInformation::distance)
         .def("enforceBounds", &ompl::base::SpaceInformation::enforceBounds)
         .def("printState", [](const ompl::base::SpaceInformation &si, const ompl::base::State *state) { si.printState(state, std::cout); })
-        .def("setStateValidityChecker", 
+        .def("setStateValidityChecker",
             [](ompl::base::SpaceInformation &si, const std::function<bool(const ompl::base::State*)> &func) {
                 si.setStateValidityChecker(func);
                 // Store in dict for traversal
@@ -130,10 +130,10 @@ void ompl::binding::base::init_SpaceInformation(nb::module_ &m)
         .def("getMotionValidator", nb::overload_cast<>(&ompl::base::SpaceInformation::getMotionValidator, nb::const_))
         .def("setStateValidityCheckingResolution", &ompl::base::SpaceInformation::setStateValidityCheckingResolution)
         .def("getStateValidityCheckingResolution", &ompl::base::SpaceInformation::getStateValidityCheckingResolution)
-        .def("allocState", [](const ompl::base::SpaceInformation &si) { 
+        .def("allocState", [](const ompl::base::SpaceInformation &si) {
             ompl::base::State* state = si.allocState();
             return std::shared_ptr<ompl::base::State>(
-                state, 
+                state,
                 [&si](ompl::base::State* s) {
                     si.freeState(s);
                 }
@@ -154,7 +154,7 @@ void ompl::binding::base::init_SpaceInformation(nb::module_ &m)
         .def("randomBounceMotion", &ompl::base::SpaceInformation::randomBounceMotion)
 
         .def("checkMotion", nb::overload_cast<const ompl::base::State*, const ompl::base::State*>(&ompl::base::SpaceInformation::checkMotion, nb::const_))
-        
+
        .def("checkMotion", nb::overload_cast<const std::vector<ompl::base::State*>&, unsigned int, unsigned int&>(&ompl::base::SpaceInformation::checkMotion, nb::const_))
         .def("checkMotion", nb::overload_cast<const std::vector<ompl::base::State*>&, unsigned int>(&ompl::base::SpaceInformation::checkMotion, nb::const_))
 

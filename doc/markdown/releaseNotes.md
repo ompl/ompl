@@ -50,9 +50,9 @@
 - Added new planners:
   - [ST-RRT*](\ref gSTRRTstar): a bidirectional, time-optimal planner for planning in space-time.
   - **Multi-level planners**: Planning algorithms which can exploit multiple levels of abstractions.
-    - [Rapidly-exploring Random Quotient space Trees (QRRT)](\ref QRRT): A generalization of RRT to plan on different abstraction levels. 
+    - [Rapidly-exploring Random Quotient space Trees (QRRT)](\ref QRRT): A generalization of RRT to plan on different abstraction levels.
     - [QRRT*](\ref QRRTstar): An asymptotically optimal version of QRRT.
-    - [Quotient-Space Roadmap Planner (QMP)](\ref QMP): A generalization of PRM to plan on different abstraction levels. 
+    - [Quotient-Space Roadmap Planner (QMP)](\ref QMP): A generalization of PRM to plan on different abstraction levels.
     - [QMP*](\ref QMPstar): An asymptotically optimal version of QMP.
 - AIT* has been significantly refactored.
 - SST now uses the intermediate solution callback to report new solutions.

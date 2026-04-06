@@ -5,6 +5,7 @@ from ompl import base as ob
 from ompl import geometric as og
 import time
 
+
 def test_rrt_planner():
     # 1) Create a 2D RealVectorStateSpace
     space = ob.RealVectorStateSpace(2)
@@ -17,7 +18,7 @@ def test_rrt_planner():
     # For demonstration, we won't do real collision checks.
     def is_valid(state):
         return True
-    
+
     si = ob.SpaceInformation(space)
     si.setStateValidityChecker(is_valid)
     si.setup()
@@ -46,15 +47,12 @@ def test_rrt_planner():
     print("Range:", rrt_planner.getRange())
     print("Intermediate states:", rrt_planner.getIntermediateStates())
 
-
     # 7) Construct a PlannerTerminationCondition that stops after 1 second.
     ptc = ob.PlannerTerminationCondition(lambda: True)
 
     start_time = time.time()
     # Create a termination condition that returns True after 5 seconds
-    ptc = ob.PlannerTerminationCondition(
-        lambda: (time.time() - start_time) > 5
-    )
+    ptc = ob.PlannerTerminationCondition(lambda: (time.time() - start_time) > 5)
 
     # 8) Solve
     # result = ss.solve(1.0)
@@ -71,6 +69,7 @@ def test_rrt_planner():
             print("Solution path states:", solutionPath.getStateCount())
     else:
         print("No solution found within 1 second of planning time.")
+
 
 if __name__ == "__main__":
     test_rrt_planner()

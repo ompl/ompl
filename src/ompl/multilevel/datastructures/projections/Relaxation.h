@@ -53,7 +53,7 @@ namespace ompl
 
             ~Projection_Relaxation() override = default;
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 #endif

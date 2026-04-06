@@ -5,7 +5,7 @@
 
 namespace nb = nanobind;
 
-void ompl::binding::base::initSpaces_SE2StateSpace(nb::module_& m)
+void ompl::binding::base::initSpaces_SE2StateSpace(nb::module_ &m)
 {
     nb::class_<ompl::base::SE2StateSpace::StateType, ompl::base::State>(m, "SE2StateType")
         .def("getX", &ompl::base::SE2StateSpace::StateType::getX)

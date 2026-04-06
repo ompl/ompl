@@ -60,7 +60,7 @@ namespace ompl
             double getLevelConstant();
             double epsilon{0.1};
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 #endif

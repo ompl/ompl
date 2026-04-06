@@ -13,8 +13,8 @@
  *   ./demo_MotionBenchmakerDemo --problem-file <problem_file.json> --robot <robot_name>
  *
  * Example:
- *   ./demo_MotionBenchmakerDemo --problem-file problems.json --robot panda 
- * 
+ *   ./demo_MotionBenchmakerDemo --problem-file problems.json --robot panda
+ *
  * Usage for benchmark
  *   ./demo_MotionBenchmakerDemo --problem-file problems.json --robot panda --benchmark 100
  */
@@ -32,7 +32,7 @@
 
 namespace po = boost::program_options;
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     po::options_description desc("Options");
 
@@ -42,19 +42,16 @@ int main(int argc, char** argv)
     unsigned int benchmarkTrials = 0;
     double timeoutSeconds = 5.0;
 
-    desc.add_options()
-        ("help", "show help message")
-        ("problem-file", po::value<std::string>(&problemFile)->default_value("problems.json"), 
-         "Problem file in JSON format")
-        ("robot", po::value<std::string>(&robotName)->default_value("panda"), 
-         "Robot name (e.g., panda)")
-        ("planner", po::value<std::string>(&plannerName)->default_value("RRTConnect"), 
-         "Planner name (e.g., RRTConnect, RRT, KPIECE1)")
-        ("benchmark", po::value<unsigned int>(&benchmarkTrials)->default_value(0), 
-         "Benchmark Planners for a specified number of trials")
-        ("timeout", po::value<double>(&timeoutSeconds)->default_value(5.0), 
-         "Timeout in seconds for each planning attempt")
-        ;
+    desc.add_options()("help", "show help message")(
+        "problem-file", po::value<std::string>(&problemFile)->default_value("problems.json"),
+        "Problem file in JSON format")("robot", po::value<std::string>(&robotName)->default_value("panda"),
+                                       "Robot name (e.g., panda)")(
+        "planner", po::value<std::string>(&plannerName)->default_value("RRTConnect"),
+        "Planner name (e.g., RRTConnect, RRT, KPIECE1)")("benchmark",
+                                                         po::value<unsigned int>(&benchmarkTrials)->default_value(0),
+                                                         "Benchmark Planners for a specified number of trials")(
+        "timeout", po::value<double>(&timeoutSeconds)->default_value(5.0),
+        "Timeout in seconds for each planning attempt");
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -74,15 +71,18 @@ int main(int argc, char** argv)
     std::cout << "Trials: " << benchmarkTrials << std::endl;
     std::cout << std::endl;
 
-    try {
+    try
+    {
         // Create the benchmarker
         MotionBenchmakerDemo benchmarker(robotName, problemFile, plannerName);
 
         // Get list of problems
-        const auto& problemNames = benchmarker.getProblemNames();
+        const auto &problemNames = benchmarker.getProblemNames();
         std::cout << "Available problems: ";
-        for (size_t i = 0; i < problemNames.size(); ++i) {
-            if (i > 0) std::cout << ", ";
+        for (size_t i = 0; i < problemNames.size(); ++i)
+        {
+            if (i > 0)
+                std::cout << ", ";
             std::cout << problemNames[i];
         }
         std::cout << std::endl << std::endl;
@@ -92,16 +92,20 @@ int main(int argc, char** argv)
         auto results = benchmarker.benchmarkAll(benchmarkTrials, timeoutSeconds, true);
 
         // Print statistics for each problem
-        if (benchmarkTrials > 0) {
+        if (benchmarkTrials > 0)
+        {
             std::cout << "Benchmark Results Saved, use python script to transfer to .db" << std::endl;
         }
-        else{
-            for (const auto& [problemName, problemResults] : results) {
+        else
+        {
+            for (const auto &[problemName, problemResults] : results)
+            {
                 MotionBenchmakerDemo::printStatistics(problemName, problemResults);
             }
         }
-
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception &e)
+    {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }

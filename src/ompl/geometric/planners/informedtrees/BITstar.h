@@ -556,7 +556,7 @@ namespace ompl
             /** \brief Whether to stop the planner as soon as the path changes. */
             bool stopOnSolutionChange_{false};
         };  // class BITstar
-    }       // namespace geometric
+    }  // namespace geometric
 }  // namespace ompl
 
 #endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_

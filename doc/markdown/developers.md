@@ -64,5 +64,5 @@ A breakdown of all contributions by commits can be found on GitHub for the [OMPL
 - [Caleb Voss](http://calebvoss.com), Rice University (now at OpenText)
 - Bryce Willey, Rice University (now at [Realtime Robotics](https://rtr.ai))
 - Yi Wang, University of New Hampshire
-- Tyler Wilson, 
+- Tyler Wilson,
 - Beverly Xu, UCSD

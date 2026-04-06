@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2010, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2010, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 #include "ompl/base/StateSpace.h"
 #include "ompl/util/Exception.h"
@@ -77,8 +77,8 @@ namespace ompl
                 return *g_allocatedSpaces;
             }
         }  // namespace
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 /// @endcond
 
 ompl::base::StateSpace::StateSpace()
@@ -97,13 +97,13 @@ ompl::base::StateSpace::StateSpace()
 
     maxExtent_ = std::numeric_limits<double>::infinity();
 
-    params_.declareParam<double>("longest_valid_segment_fraction",
-                                 [this](double segmentFraction) { setLongestValidSegmentFraction(segmentFraction); },
-                                 [this] { return getLongestValidSegmentFraction(); });
+    params_.declareParam<double>(
+        "longest_valid_segment_fraction", [this](double segmentFraction)
+        { setLongestValidSegmentFraction(segmentFraction); }, [this] { return getLongestValidSegmentFraction(); });
 
-    params_.declareParam<unsigned int>("valid_segment_count_factor",
-                                       [this](unsigned int factor) { setValidSegmentCountFactor(factor); },
-                                       [this] { return getValidSegmentCountFactor(); });
+    params_.declareParam<unsigned int>(
+        "valid_segment_count_factor", [this](unsigned int factor) { setValidSegmentCountFactor(factor); },
+        [this] { return getValidSegmentCountFactor(); });
     as.list_.push_back(this);
 }
 
@@ -189,8 +189,8 @@ namespace ompl
             locationsMap.clear();
             computeLocationsHelper(s, substateMap, locationsArray, locationsMap, StateSpace::ValueLocation());
         }
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 /// @endcond
 
 const std::string &ompl::base::StateSpace::getName() const
@@ -465,8 +465,8 @@ namespace ompl
                 return a.space->getName() > b.space->getName();
             }
         };
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 
 /// @endcond
 
@@ -590,8 +590,8 @@ void ompl::base::StateSpace::Diagram(std::ostream &out)
             {
                 if ((*it)->isCompound() && (*it)->as<CompoundStateSpace>()->hasSubspace((*jt)->getName()))
                     out << '"' << (*it)->getName() << R"(" -> ")" << (*jt)->getName() << R"(" [label=")"
-                        << ompl::toString((*it)->as<CompoundStateSpace>()->getSubspaceWeight((*jt)->getName())) <<
-                        R"("];)" << std::endl;
+                        << ompl::toString((*it)->as<CompoundStateSpace>()->getSubspaceWeight((*jt)->getName()))
+                        << R"("];)" << std::endl;
                 else if (!StateSpaceIncludes(*it, *jt) && StateSpaceCovers(*it, *jt))
                     out << '"' << (*it)->getName() << R"(" -> ")" << (*jt)->getName() << R"(" [style=dashed];)"
                         << std::endl;
@@ -1637,5 +1637,5 @@ namespace ompl
 
             return std::make_shared<CompoundStateSpace>(components, weights);
         }
-    }
-}
+    }  // namespace base
+}  // namespace ompl

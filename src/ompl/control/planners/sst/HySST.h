@@ -1,39 +1,40 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2025, University of Santa Cruz Hybrid Systems Laboratory
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2025, University of Santa Cruz Hybrid Systems Laboratory
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
  *   * Redistributions of source code must retain the above copyright
  *     notice, this list of conditions and the following disclaimer.
  *   * Redistributions in binary form must reproduce the above
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of the University of Santa Cruz nor the names of 
+ *   * Neither the name of the University of Santa Cruz nor the names of
  *     its contributors may be used to endorse or promote products derived
  *     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Authors: Beverly Xu */
-/* Adapted from: ompl/geometric/planners/src/SST.cpp by  Zakary Littlefield of Rutgers the State University of New Jersey, New Brunswick */
+/* Adapted from: ompl/geometric/planners/src/SST.cpp by  Zakary Littlefield of Rutgers the State University of New
+ * Jersey, New Brunswick */
 
 #ifndef OMPL_CONTROL_PLANNERS_SST_HySST_
 #define OMPL_CONTROL_PLANNERS_SST_HySST_
@@ -55,7 +56,8 @@ namespace ompl
            to use an alternative method that makes use of a steering function. Using HySST for
            geometric problems does not take advantage of this function.
            @par External documentation
-           N. Wang and R. G. Sanfelice, "HySST: An Asymptotically Near-Optimal Motion Planning Algorithm for Hybrid Systems."
+           N. Wang and R. G. Sanfelice, "HySST: An Asymptotically Near-Optimal Motion Planning Algorithm for Hybrid
+           Systems."
            [[PDF]](https://arxiv.org/pdf/2305.18649)
         */
         class HySST : public base::Planner
@@ -72,7 +74,7 @@ namespace ompl
 
             /** \brief Representation of a motion
              * @par This only contains pointers to parent motions as we
-             * only need to go backwards in the tree. 
+             * only need to go backwards in the tree.
              */
             class Motion
             {
@@ -81,7 +83,9 @@ namespace ompl
                 Motion() = default;
 
                 /// \brief Constructor that allocates memory for the state
-                Motion(const control::SpaceInformation *si) : state(si->allocState()), control(si->allocControl()) {}
+                Motion(const control::SpaceInformation *si) : state(si->allocState()), control(si->allocControl())
+                {
+                }
 
                 /// \brief Destructor
                 virtual ~Motion() = default;
@@ -97,7 +101,7 @@ namespace ompl
                 {
                     return parent;
                 }
-                
+
                 /// \brief The total cost accumulated from the root to this vertex
                 base::Cost accCost_{0.};
 
@@ -120,14 +124,14 @@ namespace ompl
                 control::Control *control{nullptr};
             };
 
-            /** 
-             * \brief Main solve function. 
+            /**
+             * \brief Main solve function.
              * @par Continue solving for some amount of time.
              * @param ptc The condition to terminate solving.
              * @return true if solution was found. */
             base::PlannerStatus solve(const base::PlannerTerminationCondition &ptc) override;
 
-            /** 
+            /**
              * \brief Get the PlannerData object associated with this planner
              * @param data the PlannerData object storing the edges and vertices of the solution
              */
@@ -142,8 +146,9 @@ namespace ompl
              * extending from nodes with good path cost from the root of the tree.
              * Making this radius larger will provide higher quality paths, but has two
              * major drawbacks; exploration will occur much more slowly and exploration
-             * around the boundary of the state space may become impossible. 
-             * @param selectionRadius The maximum distance from the random sampled vertex, for a vertex in the search tree to be considered
+             * around the boundary of the state space may become impossible.
+             * @param selectionRadius The maximum distance from the random sampled vertex, for a vertex in the search
+             * tree to be considered
              */
             void setSelectionRadius(double selectionRadius)
             {
@@ -152,8 +157,8 @@ namespace ompl
                 selectionRadius_ = selectionRadius;
             }
 
-            /** 
-             * \brief Get the selection radius the planner is using 
+            /**
+             * \brief Get the selection radius the planner is using
              * @return The selection radius
              */
             double getSelectionRadius() const
@@ -179,8 +184,8 @@ namespace ompl
                 pruningRadius_ = pruningRadius;
             }
 
-            /** 
-             * \brief Get the pruning radius the planner is using 
+            /**
+             * \brief Get the pruning radius the planner is using
              * @return The pruning radius
              */
             double getPruningRadius() const
@@ -200,10 +205,10 @@ namespace ompl
                 setup();
             }
 
-            /** 
+            /**
              * \brief Set the maximum time allocated to a full continuous simulator step.
              * @param tM the maximum time allocated. Must be greater than 0, and greater than than the time
-             * allocated to a single continuous simulator call. 
+             * allocated to a single continuous simulator call.
              */
             void setTm(double tM)
             {
@@ -212,17 +217,19 @@ namespace ompl
                 if (!flowStepDuration_)
                 {
                     if (tM < flowStepDuration_)
-                        throw Exception("Maximum flow time per propagation step must be greater than or equal to the length of time for each flow "
+                        throw Exception("Maximum flow time per propagation step must be greater than or equal to the "
+                                        "length of time for each flow "
                                         "integration step (flowStepDuration_)");
                 }
                 tM_ = tM;
             }
 
-            /** 
-             * \brief Set the time allocated to a single continuous simulator call, within the full period of a continuous simulator step. 
+            /**
+             * \brief Set the time allocated to a single continuous simulator call, within the full period of a
+             * continuous simulator step.
              * @param duration the time allocated per simulator step. Must be
              * greater than 0 and less than the time allocated to a full continuous
-             * simulator step. 
+             * simulator step.
              */
             void setFlowStepDuration(double duration)
             {
@@ -231,21 +238,22 @@ namespace ompl
                 if (!tM_)
                 {
                     if (tM_ < duration)
-                        throw Exception("Flow step length must be less than or equal to the maximum flow time per propagation step (Tm)");
+                        throw Exception("Flow step length must be less than or equal to the maximum flow time per "
+                                        "propagation step (Tm)");
                 }
                 flowStepDuration_ = duration;
             }
 
-            /** 
+            /**
              * \brief Define the jump set
-             * @param jumpSet the jump set associated with the hybrid system. 
+             * @param jumpSet the jump set associated with the hybrid system.
              */
             void setJumpSet(std::function<bool(Motion *)> jumpSet)
             {
                 jumpSet_ = jumpSet;
             }
 
-            /** 
+            /**
              * \brief Define the flow set
              * @param flowSet the flow set associated with the hybrid system.
              */
@@ -254,7 +262,7 @@ namespace ompl
                 flowSet_ = flowSet;
             }
 
-            /** 
+            /**
              * \brief Define the unsafe set
              * @param unsafeSet the unsafe set associated with the hybrid system.
              */
@@ -263,7 +271,7 @@ namespace ompl
                 unsafeSet_ = unsafeSet;
             }
 
-            /** 
+            /**
              * \brief Define the distance measurement function
              * @param function the distance function associated with the motion planning problem.
              */
@@ -272,49 +280,58 @@ namespace ompl
                 distanceFunc_ = function;
             }
 
-            /** 
+            /**
              * \brief Define the discrete dynamics simulator
              * @param function the discrete simulator associated with the hybrid system.
              */
-            void setDiscreteSimulator(std::function<base::State *(base::State *curState, const control::Control *u, base::State *newState)> function)
+            void setDiscreteSimulator(
+                std::function<base::State *(base::State *curState, const control::Control *u, base::State *newState)>
+                    function)
             {
                 discreteSimulator_ = function;
             }
 
-            /** 
+            /**
              * \brief Define the continuous dynamics simulator
              * @param function the continuous simulator associated with the hybrid system.
              */
-            void setContinuousSimulator(std::function<base::State *(const control::Control *u, base::State *curState, double tFlowMax, 
-                                        base::State *newState)> function)
+            void setContinuousSimulator(std::function<base::State *(const control::Control *u, base::State *curState,
+                                                                    double tFlowMax, base::State *newState)>
+                                            function)
             {
                 continuousSimulator_ = function;
             }
 
-            
             /** \brief Simulates the dynamics of the system. */
-            std::function<ompl::base::State *(const control::Control *control, ompl::base::State *x_cur, double tFlow, ompl::base::State *new_state)> continuousSimulator = [this](const control::Control *control, base::State *x_cur, double tFlow, base::State *new_state)
+            std::function<ompl::base::State *(const control::Control *control, ompl::base::State *x_cur, double tFlow,
+                                              ompl::base::State *new_state)>
+                continuousSimulator =
+                    [this](const control::Control *control, base::State *x_cur, double tFlow, base::State *new_state)
             {
                 siC_->getStatePropagator()->propagate(x_cur, control, tFlow, new_state);
                 return new_state;
             };
 
-            /** 
+            /**
              * \brief Define the collision checker
-             * @param function the collision checker associated with the state space. Default is a point-by-point collision checker.
+             * @param function the collision checker associated with the state space. Default is a point-by-point
+             * collision checker.
              */
-            void setCollisionChecker(std::function<bool(Motion *motion, std::function<bool(Motion *motion)> obstacleSet, 
-                                     base::State *newState, double *collisionTime)> function)
+            void setCollisionChecker(std::function<bool(Motion *motion, std::function<bool(Motion *motion)> obstacleSet,
+                                                        base::State *newState, double *collisionTime)>
+                                         function)
             {
                 collisionChecker_ = function;
             }
 
-            /** 
-             * \brief Set solution batch size 
-             * @param batchSize the number of solutions to be generated by the planner until the one with the best cost is returned.
+            /**
+             * \brief Set solution batch size
+             * @param batchSize the number of solutions to be generated by the planner until the one with the best cost
+             * is returned.
              */
-            void setBatchSize(int batchSize) {
-                if(batchSize < 1)
+            void setBatchSize(int batchSize)
+            {
+                if (batchSize < 1)
                     throw Exception("Batch size must be greater than 0");
                 batchSize_ = batchSize;
             }
@@ -358,10 +375,12 @@ namespace ompl
                 Witness() = default;
 
                 /// \brief Constructor that allocates memory for the state
-                Witness(const control::SpaceInformation *si) : Motion(si) {}
+                Witness(const control::SpaceInformation *si) : Motion(si)
+                {
+                }
 
-                /** 
-                 * \brief Get the state contained by the representative motion 
+                /**
+                 * \brief Get the state contained by the representative motion
                  * @return The state contained by the representative motion
                  */
                 base::State *getState() const override
@@ -369,8 +388,8 @@ namespace ompl
                     return rep_->state;
                 }
 
-                /** 
-                 * \brief Get the state contained by the parent motion of the representative motion 
+                /**
+                 * \brief Get the state contained by the parent motion of the representative motion
                  * @return The state contained by the parent motion of the representative motion
                  */
                 Motion *getParent() const override
@@ -378,7 +397,7 @@ namespace ompl
                     return rep_->parent;
                 }
 
-                /** 
+                /**
                  * \brief Set the representative of the witness
                  * \param lRep The representative motion
                  */
@@ -397,8 +416,8 @@ namespace ompl
             /** \brief Runs the initial setup tasks for the tree. */
             void initTree(void);
 
-            /** 
-             * \brief Sample the random motion. 
+            /**
+             * \brief Sample the random motion.
              * @param randomMotion The motion to be initialized
              */
             void randomSample(Motion *randomMotion);
@@ -414,23 +433,25 @@ namespace ompl
             /**
              * \brief Collision checker. Default is point-by-point collision checking using the jump set.
              * @param motion The motion to check for collision
-             * @param obstacleSet A function that returns true if the motion's solution pair intersects with the obstacle set
+             * @param obstacleSet A function that returns true if the motion's solution pair intersects with the
+             * obstacle set
              * @param ts The start time of the motion. Default is -1.0
              * @param tf The end time of the motion. Default is -1.0
              * @param newState The collision state (if a collision occurs)
-             * @param collisionTime The time of collision (if a collision occurs). If no collision occurs, this value is -1.0
+             * @param collisionTime The time of collision (if a collision occurs). If no collision occurs, this value is
+             * -1.0
              * @return true if a collision occurs, false otherwise
              */
-            std::function<bool(Motion *motion,
-                               std::function<bool(Motion *motion)> obstacleSet,
-                               base::State *newState, double *collisionTime)>
-                collisionChecker_ =
-                    [this](Motion *motion,
-                           std::function<bool(Motion *motion)> obstacleSet, base::State *newState, double *collisionTime) -> bool
+            std::function<bool(Motion *motion, std::function<bool(Motion *motion)> obstacleSet, base::State *newState,
+                               double *collisionTime)>
+                collisionChecker_ = [this](Motion *motion, std::function<bool(Motion *motion)> obstacleSet,
+                                           base::State *newState, double *collisionTime) -> bool
             {
-                if (obstacleSet(motion)) {
+                if (obstacleSet(motion))
+                {
                     si_->copyState(newState, motion->solutionPair->back());
-                    *collisionTime = ompl::base::HybridStateSpace::getStateTime(motion->solutionPair->back()) - flowStepDuration_;
+                    *collisionTime =
+                        ompl::base::HybridStateSpace::getStateTime(motion->solutionPair->back()) - flowStepDuration_;
                     motion->solutionPair->resize(motion->solutionPair->size() - 1);
                     return true;
                 }
@@ -443,16 +464,14 @@ namespace ompl
             /// \brief The base::SpaceInformation cast as control::SpaceInformation, for convenience
             control::SpaceInformation *siC_;
 
-            /** 
-             * \brief Compute distance between states, default is Euclidean distance 
+            /**
+             * \brief Compute distance between states, default is Euclidean distance
              * @param state1 The first state
              * @param state2 The second state
              * @return The distance between the two states
              */
-            std::function<double(base::State *state1, base::State *state2)> distanceFunc_ = [this](base::State *state1, base::State *state2) -> double
-            {
-                return si_->distance(state1, state2);
-            };
+            std::function<double(base::State *state1, base::State *state2)> distanceFunc_ =
+                [this](base::State *state1, base::State *state2) -> double { return si_->distance(state1, state2); };
 
             /// \brief The maximum flow time for a given flow propagation step. Must be set by the user.
             double tM_{-1.};
@@ -463,31 +482,32 @@ namespace ompl
             /// \brief The flow time for a given integration step, within a flow propagation step. Must be set by user.
             double flowStepDuration_;
 
-            /** 
+            /**
              * \brief Simulator for propagation under jump regime
              * @param curState The current state
              * @param u The input
              * @param newState The newly propagated state
              * @return The newly propagated state
              */
-            std::function<base::State *(base::State *curState, const control::Control *u, base::State *newState)> discreteSimulator_;
+            std::function<base::State *(base::State *curState, const control::Control *u, base::State *newState)>
+                discreteSimulator_;
 
-            /** 
-             * \brief Function that returns true if a motion intersects with the jump set, and false if not. 
+            /**
+             * \brief Function that returns true if a motion intersects with the jump set, and false if not.
              * @param motion The motion to check
              * @return True if the state is in the jump set, false if not
              */
             std::function<bool(Motion *motion)> jumpSet_;
 
-            /** 
-             * \brief Function that returns true if a motion intersects with the flow set, and false if not. 
+            /**
+             * \brief Function that returns true if a motion intersects with the flow set, and false if not.
              * @param motion The motion to check
              * @return True if the state is in the flow set, false if not
              */
             std::function<bool(Motion *motion)> flowSet_;
 
-            /** 
-             * \brief Function that returns true if a motion intersects with the unsafe set, and false if not. 
+            /**
+             * \brief Function that returns true if a motion intersects with the unsafe set, and false if not.
              * @param motion The motion to check
              * @return True if the state is in the unsafe set, false if not
              */
@@ -497,9 +517,9 @@ namespace ompl
             base::OptimizationObjectivePtr opt_;
 
             /** \brief Calculate the cost of a motion. Default is using optimization objective. */
-            std::function<base::Cost (Motion *motion)> costFunc_;
+            std::function<base::Cost(Motion *motion)> costFunc_;
 
-            /** 
+            /**
              * \brief Simulator for propagation under flow regime
              * @param input The input
              * @param curState The current state
@@ -507,28 +527,30 @@ namespace ompl
              * @param newState The newly propagated state
              * @return The newly propagated state
              */
-            std::function<base::State *(const control::Control *u, base::State *curState, double tFlowMax, base::State *newState)> continuousSimulator_;
+            std::function<base::State *(const control::Control *u, base::State *curState, double tFlowMax,
+                                        base::State *newState)>
+                continuousSimulator_;
 
-            /** 
-             * \brief Construct the path, starting at the last edge. 
+            /**
+             * \brief Construct the path, starting at the last edge.
              * @param lastMotion The last motion in the solution
              * @return the planner status (APPROXIMATE, EXACT, or UNKNOWN)
              */
             base::PlannerStatus constructSolution(Motion *lastMotion);
 
-            /** 
+            /**
              * \brief Finds the best node in the tree withing the selection radius around a random sample.
              * @param sample The random sampled vertex to find the closest witness to.
              */
             Motion *selectNode(Motion *sample);
 
-            /** 
+            /**
              * \brief Find the closest witness node to a newly generated potential node.
              * @param node The vertex to find the closest witness to.
              */
             Witness *findClosestWitness(Motion *node);
 
-            /** 
+            /**
              * \brief Randomly propagate a new edge.
              * @param m The motion to extend
              */
@@ -544,7 +566,7 @@ namespace ompl
             std::shared_ptr<NearestNeighbors<Motion *>> witnesses_;
 
             /// \brief The radius for determining the node selected for extension. Delta_s.
-            double selectionRadius_{-1.};   
+            double selectionRadius_{-1.};
 
             /// \brief The radius for determining the size of the pruning region. Delta_bn.
             double pruningRadius_{-1.};
@@ -564,7 +586,7 @@ namespace ompl
             /// \brief The number of solutions allowed until the most optimal solution is returned.
             int batchSize_{1};
         };
-    }
-}
+    }  // namespace control
+}  // namespace ompl
 
 #endif

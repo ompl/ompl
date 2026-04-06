@@ -18,12 +18,11 @@ void ompl::binding::base::initSpaces_SE3StateSpace(nb::module_ &m)
         .def("setY", &ompl::base::SE3StateSpace::StateType::setY)
         .def("setZ", &ompl::base::SE3StateSpace::StateType::setZ)
         .def("setXYZ", &ompl::base::SE3StateSpace::StateType::setXYZ)
-        .def("rotation", nb::overload_cast<>(
-              &ompl::base::SE3StateSpace::StateType::rotation), nb::rv_policy::reference_internal);
-    
+        .def("rotation", nb::overload_cast<>(&ompl::base::SE3StateSpace::StateType::rotation),
+             nb::rv_policy::reference_internal);
+
     // Bind the SE3StateSpace class.
-    nb::class_<ompl::base::SE3StateSpace,
-               ompl::base::CompoundStateSpace>(m, "SE3StateSpace")
+    nb::class_<ompl::base::SE3StateSpace, ompl::base::CompoundStateSpace>(m, "SE3StateSpace")
         .def(nb::init<>())
         .def("setBounds", &ompl::base::SE3StateSpace::setBounds)
         .def("getBounds", &ompl::base::SE3StateSpace::getBounds)

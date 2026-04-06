@@ -55,8 +55,8 @@ namespace ompl
         public:
             /** \brief Constructor for a set of ompl::base::SpaceInformationPtr
              * which represent different abstraction levels */
-            PlannerMultiLevel(std::vector<ompl::base::SpaceInformationPtr> &siVec,
-                              std::string type = "PlannerMultiLevel");
+            PlannerMultiLevel(std::vector<ompl::base::SpaceInformationPtr> &siVec, std::string type = "PlannerMultiLeve"
+                                                                                                      "l");
 
             PlannerMultiLevel(ompl::base::SpaceInformationPtr si);
 

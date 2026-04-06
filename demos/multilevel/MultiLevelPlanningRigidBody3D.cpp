@@ -85,10 +85,10 @@ bool isStateValid_R3(const State *state)
 
 int main()
 {
-    //############################################################################
-    // Step 1: Setup planning problem using several quotient-spaces
-    //############################################################################
-    // Setup SE3
+    // ############################################################################
+    //  Step 1: Setup planning problem using several quotient-spaces
+    // ############################################################################
+    //  Setup SE3
     auto SE3(std::make_shared<SE3StateSpace>());
     RealVectorBounds bounds(3);
     bounds.setLow(0);
@@ -119,10 +119,10 @@ int main()
     ProblemDefinitionPtr pdef = std::make_shared<ProblemDefinition>(si_SE3);
     pdef->setStartAndGoalStates(start_SE3, goal_SE3);
 
-    //############################################################################
-    // Step 2: Do path planning as usual but with a sequence of
-    // spaceinformationptr
-    //############################################################################
+    // ############################################################################
+    //  Step 2: Do path planning as usual but with a sequence of
+    //  spaceinformationptr
+    // ############################################################################
     auto planner = std::make_shared<ompl::multilevel::QRRT>(si_vec);
 
     // Planner can be used as any other OMPL algorithm

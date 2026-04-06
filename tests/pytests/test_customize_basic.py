@@ -1,9 +1,11 @@
-from ompl import base as ob 
+from ompl import base as ob
 from ompl import geometric as og
 import pytest
 import time
 import random
-# Note: virtual bool isSatisfied (const State *st, double *distance) const is not available in the python API. 
+
+
+# Note: virtual bool isSatisfied (const State *st, double *distance) const is not available in the python API.
 #   Refer to GoalRegion if you want to use this function.
 class MyGoal(ob.Goal):
     def __init__(self, si: ob.SpaceInformation):
@@ -16,12 +18,13 @@ class MyGoal(ob.Goal):
         if -0.1 < val < 0.1:
             return True
         return False
-    
+
     def isStartGoalPairValid(self, start: ob.State, goal: ob.State) -> bool:
         return True
-    
+
     def print(self):
         print("MyGoal")
+
 
 def test_customize_goal():
     space = ob.RealVectorStateSpace(2)
@@ -32,7 +35,7 @@ def test_customize_goal():
 
     def is_valid(state):
         return True
-    
+
     si = ob.SpaceInformation(space)
     si.setStateValidityChecker(is_valid)
     si.setup()
@@ -52,6 +55,7 @@ def test_customize_goal():
     print("Is goal satisfied? ", val)
     assert not val, "Goal should not be satisfied"
 
+
 class MyGoalRegion(ob.GoalRegion):
     def __init__(self, si: ob.SpaceInformation):
         super().__init__(si)
@@ -64,6 +68,7 @@ class MyGoalRegion(ob.GoalRegion):
             return 0.0
         return abs(val) - 0.1
 
+
 def test_customize_goal_region():
     space = ob.RealVectorStateSpace(2)
     bounds = ob.RealVectorBounds(2)
@@ -73,13 +78,13 @@ def test_customize_goal_region():
 
     def is_valid(state):
         return True
-    
+
     si = ob.SpaceInformation(space)
     si.setStateValidityChecker(is_valid)
     si.setup()
 
     goal = MyGoalRegion(si)
-    goal.setThreshold(1E-4)
+    goal.setThreshold(1e-4)
     validState = si.allocState()
     validState[0] = 0.0
     validState[1] = 0.0
@@ -100,24 +105,30 @@ def test_customize_goal_region():
     val = goal.isSatisfied(invalidState)
     assert not val, "Goal should not be satisfied"
 
+
 class GoalSampleableRegion(ob.GoalSampleableRegion):
     def __init__(self, si: ob.SpaceInformation):
         super().__init__(si)
         self.si = si
+
     def sampleGoal(self, state: ob.State) -> None:
         state[0] = 0.0
         state[1] = random.uniform(-0.1, 0.1)
+
     def maxSampleCount(self) -> int:
         return 10
+
     def couldSample(self) -> bool:
         return True
+
     def distanceGoal(self, state: ob.State) -> float:
         # the second dimension of the state is [-0.1, 0.1]
         val = state[1]
         if -0.1 < val < 0.1:
             return 0.0
         return abs(val) - 0.1
-    
+
+
 def test_customize_goal_sampleable_region():
     space = ob.RealVectorStateSpace(2)
     bounds = ob.RealVectorBounds(2)
@@ -127,13 +138,13 @@ def test_customize_goal_sampleable_region():
 
     def is_valid(state):
         return True
-    
+
     si = ob.SpaceInformation(space)
     si.setStateValidityChecker(is_valid)
     si.setup()
 
     goal = GoalSampleableRegion(si)
-    goal.setThreshold(1E-4)
+    goal.setThreshold(1e-4)
     print(goal.getThreshold())
     validState = si.allocState()
     validState[0] = 0.0
@@ -161,12 +172,11 @@ def test_customize_goal_sampleable_region():
 
     start_time = time.time()
     # Create a termination condition that returns True after 5 seconds
-    ptc = ob.PlannerTerminationCondition(
-        lambda: (time.time() - start_time) > 5
-    )
-    # Note: 
+    ptc = ob.PlannerTerminationCondition(lambda: (time.time() - start_time) > 5)
+    # Note:
     result = ss.solve(ptc)
     print("Planner result:", result)
+
 
 if __name__ == "__main__":
     test_customize_goal()

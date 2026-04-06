@@ -40,10 +40,12 @@ import os
 import sqlite3
 import sys
 import argparse
+
 # Pathlib is part of the standard library in Python 3, but for Python2 you
 # may have to `apt install python-pathlib2` or `pip install pathlib2`
 from pathlib import Path
 from warnings import warn
+
 
 # Given a text line, split it into tokens (by space) and return the token
 # at the desired index. Additionally, test that some expected tokens exist.
@@ -59,8 +61,10 @@ def readLogValue(filevar, desired_token_index, expected_tokens):
                 return None
     return tokens[desired_token_index]
 
+
 def readOptionalLogValue(filevar, desired_token_index, expected_tokens=None):
     return readLogValue(filevar, desired_token_index, expected_tokens)
+
 
 def readRequiredLogValue(name, filevar, desired_token_index, expected_tokens=None):
     result = readLogValue(filevar, desired_token_index, expected_tokens)
@@ -68,10 +72,12 @@ def readRequiredLogValue(name, filevar, desired_token_index, expected_tokens=Non
         raise Exception("Unable to read " + name)
     return result
 
+
 def ensurePrefix(line, prefix):
     if not line.startswith(prefix):
         raise Exception("Expected prefix " + prefix + " was not found")
     return line
+
 
 def readOptionalMultilineValue(filevar):
     start_pos = filevar.tell()
@@ -79,20 +85,21 @@ def readOptionalMultilineValue(filevar):
     if not line.startswith("<<<|"):
         filevar.seek(start_pos)
         return None
-    value = ''
+    value = ""
     line = filevar.readline()
-    while not line.startswith('|>>>'):
+    while not line.startswith("|>>>"):
         value = value + line
         line = filevar.readline()
         if line is None:
             raise Exception("Expected token |>>> missing")
     return value
 
+
 def readRequiredMultilineValue(filevar):
     ensurePrefix(filevar.readline(), "<<<|")
-    value = ''
+    value = ""
     line = filevar.readline()
-    while not line.startswith('|>>>'):
+    while not line.startswith("|>>>"):
         value = value + line
         line = filevar.readline()
         if line is None:
@@ -105,9 +112,9 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
 
     conn = sqlite3.connect(dbname)
     if sys.version_info[0] < 3:
-        conn.text_factory = lambda x: unicode(x, 'utf-8', 'ignore')
+        conn.text_factory = lambda x: unicode(x, "utf-8", "ignore")
     c = conn.cursor()
-    c.execute('PRAGMA FOREIGN_KEYS = ON')
+    c.execute("PRAGMA FOREIGN_KEYS = ON")
 
     # create all tables if they don't already exist
     c.executescript("""CREATE TABLE IF NOT EXISTS experiments
@@ -130,131 +137,208 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
         FOREIGN KEY (runid) REFERENCES runs(id) ON DELETE CASCADE)""")
 
     for filename in filenames:
-        print('Processing ' + filename)
-        logfile = open(filename, 'r')
+        print("Processing " + filename)
+        logfile = open(filename, "r")
         start_pos = logfile.tell()
-        libname = readOptionalLogValue(logfile, 0, {1 : "version"})
+        libname = readOptionalLogValue(logfile, 0, {1: "version"})
         if libname is None:
             libname = "OMPL"
         logfile.seek(start_pos)
-        version = readOptionalLogValue(logfile, -1, {1 : "version"})
+        version = readOptionalLogValue(logfile, -1, {1: "version"})
         if version is None:
             # set the version number to make Planner Arena happy
             version = "0.0.0"
-        version = ' '.join([libname, version])
-        expname = readRequiredLogValue("experiment name", logfile, -1, {0 : "Experiment"})
+        version = " ".join([libname, version])
+        expname = readRequiredLogValue(
+            "experiment name", logfile, -1, {0: "Experiment"}
+        )
 
         # optional experiment properties
-        nrexpprops = int(readOptionalLogValue(logfile, 0, \
-            {-2: "experiment", -1: "properties"}) or 0)
+        nrexpprops = int(
+            readOptionalLogValue(logfile, 0, {-2: "experiment", -1: "properties"}) or 0
+        )
         expprops = {}
         for _ in range(nrexpprops):
-            entry = logfile.readline().strip().split(' = ')
-            nameAndType = entry[0].split(' ')
-            expprops[''.join(nameAndType[:-1]).replace('-', '_')] = (entry[1], nameAndType[-1])
+            entry = logfile.readline().strip().split(" = ")
+            nameAndType = entry[0].split(" ")
+            expprops["".join(nameAndType[:-1]).replace("-", "_")] = (
+                entry[1],
+                nameAndType[-1],
+            )
 
         # adding columns to experiments table
-        c.execute('PRAGMA table_info(experiments)')
+        c.execute("PRAGMA table_info(experiments)")
         columnNames = [col[1] for col in c.fetchall()]
         for name in sorted(expprops.keys()):
             # only add column if it doesn't exist
             if name not in columnNames:
-                c.execute('ALTER TABLE experiments ADD %s %s' % (name, expprops[name][1]))
+                c.execute(
+                    "ALTER TABLE experiments ADD %s %s" % (name, expprops[name][1])
+                )
 
-        hostname = readRequiredLogValue("hostname", logfile, -1, {0 : "Running"})
-        date = ' '.join(ensurePrefix(logfile.readline(), "Starting").split()[2:])
+        hostname = readRequiredLogValue("hostname", logfile, -1, {0: "Running"})
+        date = " ".join(ensurePrefix(logfile.readline(), "Starting").split()[2:])
         if moveitformat:
-            expsetup = readRequiredLogValue("goal name", logfile, -1, {0: "Goal", 1: "name"})
+            expsetup = readRequiredLogValue(
+                "goal name", logfile, -1, {0: "Goal", 1: "name"}
+            )
             cpuinfo = None
-            rseed = '0'
-            timelimit = float(readRequiredLogValue("time limit", logfile, 0, \
-                {-3 : "seconds", -2 : "per", -1 : "run"}))
+            rseed = "0"
+            timelimit = float(
+                readRequiredLogValue(
+                    "time limit", logfile, 0, {-3: "seconds", -2: "per", -1: "run"}
+                )
+            )
             memorylimit = 0
         else:
             expsetup = readRequiredMultilineValue(logfile)
             cpuinfo = readOptionalMultilineValue(logfile)
-            rseed = readRequiredLogValue("random seed", logfile, 0, \
-                {-2 : "random", -1 : "seed"})
-            timelimit = float(readRequiredLogValue("time limit", logfile, 0, \
-                {-3 : "seconds", -2 : "per", -1 : "run"}))
-            memorylimit = float(readRequiredLogValue("memory limit", logfile, 0, \
-                {-3 : "MB", -2 : "per", -1 : "run"}))
-        nrrunsOrNone = readOptionalLogValue(logfile, 0, \
-            {-3 : "runs", -2 : "per", -1 : "planner"})
+            rseed = readRequiredLogValue(
+                "random seed", logfile, 0, {-2: "random", -1: "seed"}
+            )
+            timelimit = float(
+                readRequiredLogValue(
+                    "time limit", logfile, 0, {-3: "seconds", -2: "per", -1: "run"}
+                )
+            )
+            memorylimit = float(
+                readRequiredLogValue(
+                    "memory limit", logfile, 0, {-3: "MB", -2: "per", -1: "run"}
+                )
+            )
+        nrrunsOrNone = readOptionalLogValue(
+            logfile, 0, {-3: "runs", -2: "per", -1: "planner"}
+        )
         nrruns = -1
         if nrrunsOrNone is not None:
             nrruns = int(nrrunsOrNone)
-        totaltime = float(readRequiredLogValue("total time", logfile, 0, \
-            {-3 : "collect", -2 : "the", -1 : "data"}))
+        totaltime = float(
+            readRequiredLogValue(
+                "total time", logfile, 0, {-3: "collect", -2: "the", -1: "data"}
+            )
+        )
         numEnums = 0
-        numEnumsOrNone = readOptionalLogValue(logfile, 0, {-2 : "enum"})
+        numEnumsOrNone = readOptionalLogValue(logfile, 0, {-2: "enum"})
         if numEnumsOrNone is not None:
             numEnums = int(numEnumsOrNone)
         for _ in range(numEnums):
-            enum = logfile.readline()[:-1].split('|')
+            enum = logfile.readline()[:-1].split("|")
             c.execute('SELECT * FROM enums WHERE name IS "%s"' % enum[0])
             if c.fetchone() is None:
                 for j in range(len(enum) - 1):
-                    c.execute('INSERT INTO enums VALUES (?,?,?)', \
-                        (enum[0], j, enum[j + 1]))
+                    c.execute(
+                        "INSERT INTO enums VALUES (?,?,?)", (enum[0], j, enum[j + 1])
+                    )
 
         # Creating entry in experiments table
-        expColNames = ['name', 'totaltime', 'timelimit', 'memorylimit', 'runcount', 'version',
-                       'hostname', 'cpuinfo', 'date', 'seed', 'setup']
-        experimentEntries = [expname, totaltime, timelimit, memorylimit, nrruns, version,
-                             hostname, cpuinfo, date, rseed, expsetup]
+        expColNames = [
+            "name",
+            "totaltime",
+            "timelimit",
+            "memorylimit",
+            "runcount",
+            "version",
+            "hostname",
+            "cpuinfo",
+            "date",
+            "seed",
+            "setup",
+        ]
+        experimentEntries = [
+            expname,
+            totaltime,
+            timelimit,
+            memorylimit,
+            nrruns,
+            version,
+            hostname,
+            cpuinfo,
+            date,
+            rseed,
+            expsetup,
+        ]
         expProps = expprops.keys()
         expColNames += expProps
         experimentEntries += [expprops[name][0] for name in expProps]
-        c.execute('INSERT INTO experiments (' + ','.join(expColNames) + ') VALUES (' +
-                  ','.join('?'*len(experimentEntries)) + ')', experimentEntries)
+        c.execute(
+            "INSERT INTO experiments ("
+            + ",".join(expColNames)
+            + ") VALUES ("
+            + ",".join("?" * len(experimentEntries))
+            + ")",
+            experimentEntries,
+        )
         experimentId = c.lastrowid
 
-        numPlanners = int(readRequiredLogValue("planner count", logfile, 0, {-1 : "planners"}))
+        numPlanners = int(
+            readRequiredLogValue("planner count", logfile, 0, {-1: "planners"})
+        )
         for _ in range(numPlanners):
             plannerName = logfile.readline()[:-1]
-            print('Parsing data for ' + plannerName)
+            print("Parsing data for " + plannerName)
 
             # read common data for planner
             numCommon = int(logfile.readline().split()[0])
-            settings = ''
+            settings = ""
             for j in range(numCommon):
-                settings = settings + logfile.readline() + ';'
+                settings = settings + logfile.readline() + ";"
 
             # find planner id
-            c.execute('SELECT id FROM plannerConfigs WHERE (name=? AND settings=?)', \
-                (plannerName, settings,))
+            c.execute(
+                "SELECT id FROM plannerConfigs WHERE (name=? AND settings=?)",
+                (
+                    plannerName,
+                    settings,
+                ),
+            )
             p = c.fetchone()
             if p is None:
-                c.execute('INSERT INTO plannerConfigs VALUES (?,?,?)', \
-                    (None, plannerName, settings,))
+                c.execute(
+                    "INSERT INTO plannerConfigs VALUES (?,?,?)",
+                    (
+                        None,
+                        plannerName,
+                        settings,
+                    ),
+                )
                 plannerId = c.lastrowid
             else:
                 plannerId = p[0]
 
             # get current column names
-            c.execute('PRAGMA table_info(runs)')
+            c.execute("PRAGMA table_info(runs)")
             columnNames = [col[1] for col in c.fetchall()]
 
             # read properties and add columns as necessary
             numProperties = int(logfile.readline().split()[0])
-            propertyNames = ['experimentid', 'plannerid']
+            propertyNames = ["experimentid", "plannerid"]
             for j in range(numProperties):
                 field = logfile.readline().split()
                 propertyType = field[-1]
-                propertyName = '_'.join(field[:-1])
+                propertyName = "_".join(field[:-1])
                 if propertyName not in columnNames:
-                    c.execute('ALTER TABLE runs ADD %s %s' % (propertyName, propertyType))
+                    c.execute(
+                        "ALTER TABLE runs ADD %s %s" % (propertyName, propertyType)
+                    )
                 propertyNames.append(propertyName)
             # read measurements
-            insertFmtStr = 'INSERT INTO runs (' + ','.join(propertyNames) + \
-                ') VALUES (' + ','.join('?'*len(propertyNames)) + ')'
+            insertFmtStr = (
+                "INSERT INTO runs ("
+                + ",".join(propertyNames)
+                + ") VALUES ("
+                + ",".join("?" * len(propertyNames))
+                + ")"
+            )
             numRuns = int(logfile.readline().split()[0])
             runIds = []
             for j in range(numRuns):
-                values = tuple([experimentId, plannerId] + \
-                    [None if not x or x == 'nan' or x == 'inf' else x \
-                    for x in logfile.readline().split('; ')[:-1]])
+                values = tuple(
+                    [experimentId, plannerId]
+                    + [
+                        None if not x or x == "nan" or x == "inf" else x
+                        for x in logfile.readline().split("; ")[:-1]
+                    ]
+                )
 
                 c.execute(insertFmtStr, values)
                 # extract primary key of each run row so we can reference them
@@ -264,57 +348,71 @@ def readBenchmarkLog(dbname, filenames, moveitformat):
             nextLine = logfile.readline().strip()
 
             # read planner progress data if it's supplied
-            if nextLine != '.':
+            if nextLine != ".":
                 # get current column names
-                c.execute('PRAGMA table_info(progress)')
+                c.execute("PRAGMA table_info(progress)")
                 columnNames = [col[1] for col in c.fetchall()]
 
                 # read progress properties and add columns as necesary
                 numProgressProperties = int(nextLine.split()[0])
-                progressPropertyNames = ['runid']
+                progressPropertyNames = ["runid"]
                 for _ in range(numProgressProperties):
                     field = logfile.readline().split()
                     progressPropertyType = field[-1]
                     progressPropertyName = "_".join(field[:-1])
                     if progressPropertyName not in columnNames:
-                        c.execute('ALTER TABLE progress ADD %s %s' % \
-                            (progressPropertyName, progressPropertyType))
+                        c.execute(
+                            "ALTER TABLE progress ADD %s %s"
+                            % (progressPropertyName, progressPropertyType)
+                        )
                     progressPropertyNames.append(progressPropertyName)
                 # read progress measurements
-                insertFmtStr = 'INSERT INTO progress (' + \
-                    ','.join(progressPropertyNames) + ') VALUES (' + \
-                    ','.join('?'*len(progressPropertyNames)) + ')'
+                insertFmtStr = (
+                    "INSERT INTO progress ("
+                    + ",".join(progressPropertyNames)
+                    + ") VALUES ("
+                    + ",".join("?" * len(progressPropertyNames))
+                    + ")"
+                )
                 numRuns = int(logfile.readline().split()[0])
                 for j in range(numRuns):
-                    dataSeries = logfile.readline().split(';')[:-1]
+                    dataSeries = logfile.readline().split(";")[:-1]
                     for dataSample in dataSeries:
-                        values = tuple([runIds[j]] + \
-                            [None if not x or x == 'nan' or x == 'inf' else x \
-                            for x in dataSample.split(',')[:-1]])
+                        values = tuple(
+                            [runIds[j]]
+                            + [
+                                None if not x or x == "nan" or x == "inf" else x
+                                for x in dataSample.split(",")[:-1]
+                            ]
+                        )
                         try:
                             c.execute(insertFmtStr, values)
                         except sqlite3.IntegrityError:
-                            print('Ignoring duplicate progress data. Consider increasing '
-                                  'ompl::tools::Benchmark::Request::timeBetweenUpdates.')
+                            print(
+                                "Ignoring duplicate progress data. Consider increasing "
+                                "ompl::tools::Benchmark::Request::timeBetweenUpdates."
+                            )
 
                 logfile.readline()
         logfile.close()
     conn.commit()
     c.close()
 
+
 def saveAsMysql(dbname):
     # See http://stackoverflow.com/questions/1067060/perl-to-python
     import re
+
     print("Saving as MySQL dump file...")
 
     conn = sqlite3.connect(dbname)
-    with open(Path(dbname).with_suffix('.mysql'), 'w') as mysqldump:
+    with open(Path(dbname).with_suffix(".mysql"), "w") as mysqldump:
         # make sure all tables are dropped in an order that keepd foreign keys valid
         c = conn.cursor()
         c.execute("SELECT name FROM sqlite_master WHERE type='table'")
         table_names = [str(t[0]) for t in c.fetchall()]
         c.close()
-        last = ['experiments', 'planner_configs']
+        last = ["experiments", "planner_configs"]
         for table in table_names:
             if table.startswith("sqlite"):
                 continue
@@ -326,8 +424,13 @@ def saveAsMysql(dbname):
 
         for line in conn.iterdump():
             process = False
-            for nope in ('BEGIN TRANSACTION', 'COMMIT', \
-                'sqlite_sequence', 'CREATE UNIQUE INDEX', 'CREATE VIEW'):
+            for nope in (
+                "BEGIN TRANSACTION",
+                "COMMIT",
+                "sqlite_sequence",
+                "CREATE UNIQUE INDEX",
+                "CREATE VIEW",
+            ):
                 if nope in line:
                     break
             else:
@@ -335,33 +438,34 @@ def saveAsMysql(dbname):
             if not process:
                 continue
             line = re.sub(r"[\n\r\t ]+", " ", line)
-            m = re.search('CREATE TABLE ([a-zA-Z0-9_]*)(.*)', line)
+            m = re.search("CREATE TABLE ([a-zA-Z0-9_]*)(.*)", line)
             if m:
                 name, sub = m.groups()
-                sub = sub.replace('"', '`')
-                line = '''CREATE TABLE IF NOT EXISTS %(name)s%(sub)s'''
+                sub = sub.replace('"', "`")
+                line = """CREATE TABLE IF NOT EXISTS %(name)s%(sub)s"""
                 line = line % dict(name=name, sub=sub)
                 # make sure we use an engine that supports foreign keys
                 line = line.rstrip("\n\t ;") + " ENGINE = InnoDB;\n"
             else:
                 m = re.search('INSERT INTO "([a-zA-Z0-9_]*)"(.*)', line)
                 if m:
-                    line = 'INSERT INTO %s%s\n' % m.groups()
-                    line = line.replace('"', r'\"')
+                    line = "INSERT INTO %s%s\n" % m.groups()
+                    line = line.replace('"', r"\"")
                     line = line.replace('"', "'")
 
             line = re.sub(r"([^'])'t'(.)", "\\1THIS_IS_TRUE\\2", line)
-            line = line.replace('THIS_IS_TRUE', '1')
+            line = line.replace("THIS_IS_TRUE", "1")
             line = re.sub(r"([^'])'f'(.)", "\\1THIS_IS_FALSE\\2", line)
-            line = line.replace('THIS_IS_FALSE', '0')
-            line = line.replace('AUTOINCREMENT', 'AUTO_INCREMENT')
+            line = line.replace("THIS_IS_FALSE", "0")
+            line = line.replace("AUTOINCREMENT", "AUTO_INCREMENT")
             mysqldump.write(line)
+
 
 def computeViews(dbname, moveitformat):
     conn = sqlite3.connect(dbname)
     c = conn.cursor()
-    c.execute('PRAGMA FOREIGN_KEYS = ON')
-    c.execute('PRAGMA table_info(runs)')
+    c.execute("PRAGMA FOREIGN_KEYS = ON")
+    c.execute("PRAGMA table_info(runs)")
     if moveitformat:
         s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid,
             solved, total_time
@@ -369,7 +473,7 @@ def computeViews(dbname, moveitformat):
             ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid"""
     # kinodynamic paths cannot be simplified (or least not easily),
     # so simplification_time may not exist as a database column
-    elif 'simplification_time' in [col[1] for col in c.fetchall()]:
+    elif "simplification_time" in [col[1] for col in c.fetchall()]:
         s0 = """SELECT plannerid, plannerConfigs.name AS plannerName, experimentid,
             solved, time + simplification_time AS total_time
             FROM plannerConfigs INNER JOIN experiments INNER JOIN runs
@@ -379,22 +483,34 @@ def computeViews(dbname, moveitformat):
             solved, time AS total_time
             FROM plannerConfigs INNER JOIN experiments INNER JOIN runs
             ON plannerConfigs.id=runs.plannerid AND experiments.id=runs.experimentid"""
-    s1 = """SELECT plannerid, plannerName, experimentid, AVG(solved) AS avg_solved,
+    s1 = (
+        """SELECT plannerid, plannerName, experimentid, AVG(solved) AS avg_solved,
         AVG(total_time) AS avg_total_time
-        FROM (%s) GROUP BY plannerid, experimentid""" % s0
-    s2 = """SELECT plannerid, experimentid, MIN(avg_solved) AS avg_solved, avg_total_time
+        FROM (%s) GROUP BY plannerid, experimentid"""
+        % s0
+    )
+    s2 = (
+        """SELECT plannerid, experimentid, MIN(avg_solved) AS avg_solved, avg_total_time
         FROM (%s) GROUP BY plannerName, experimentid ORDER BY avg_solved DESC,
-        avg_total_time ASC""" % s1
-    c.execute('DROP VIEW IF EXISTS bestPlannerConfigsPerExperiment')
-    c.execute('CREATE VIEW IF NOT EXISTS bestPlannerConfigsPerExperiment AS %s' % s2)
+        avg_total_time ASC"""
+        % s1
+    )
+    c.execute("DROP VIEW IF EXISTS bestPlannerConfigsPerExperiment")
+    c.execute("CREATE VIEW IF NOT EXISTS bestPlannerConfigsPerExperiment AS %s" % s2)
 
-    s1 = """SELECT plannerid, plannerName, AVG(solved) AS avg_solved,
+    s1 = (
+        """SELECT plannerid, plannerName, AVG(solved) AS avg_solved,
         AVG(total_time) AS avg_total_time
-        FROM (%s) GROUP BY plannerid""" % s0
-    s2 = """SELECT plannerid, MIN(avg_solved) AS avg_solved, avg_total_time
-        FROM (%s) GROUP BY plannerName ORDER BY avg_solved DESC, avg_total_time ASC""" % s1
-    c.execute('DROP VIEW IF EXISTS bestPlannerConfigs')
-    c.execute('CREATE VIEW IF NOT EXISTS bestPlannerConfigs AS %s' % s2)
+        FROM (%s) GROUP BY plannerid"""
+        % s0
+    )
+    s2 = (
+        """SELECT plannerid, MIN(avg_solved) AS avg_solved, avg_total_time
+        FROM (%s) GROUP BY plannerName ORDER BY avg_solved DESC, avg_total_time ASC"""
+        % s1
+    )
+    c.execute("DROP VIEW IF EXISTS bestPlannerConfigs")
+    c.execute("CREATE VIEW IF NOT EXISTS bestPlannerConfigs AS %s" % s2)
 
     conn.commit()
     c.close()

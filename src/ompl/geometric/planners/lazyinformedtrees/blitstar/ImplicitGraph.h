@@ -110,9 +110,9 @@ namespace ompl
                 std::size_t getNumNeighbors() const;
                 /** \brief Gets the RGG connection radius. */
                 double getConnectionRadius() const;
-                /** \brief Gets the Eculidean distance to Start. */ 
+                /** \brief Gets the Eculidean distance to Start. */
                 ompl::base::Cost EculideanDistanceToStart(const std::shared_ptr<Vertex> &vertex) const;
-                /** \brief Gets the Eculidean distance to Goal. */ 
+                /** \brief Gets the Eculidean distance to Goal. */
                 ompl::base::Cost EculideanDistanceToGoal(const std::shared_ptr<Vertex> &vertex) const;
 
                 /** \brief Registers a state as a start state. */

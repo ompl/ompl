@@ -52,8 +52,18 @@ struct PinballSetup
 double distanceFunc(ompl::base::State *state1, ompl::base::State *state2)
 {
     double dist = 0;
-    dist = hypot(state1->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[0] - state2->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[0],
-                    state1->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[1] - state2->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[1]);
+    dist = hypot(state1->as<ompl::base::HybridStateSpace::StateType>()
+                         ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+                         ->values[0] -
+                     state2->as<ompl::base::HybridStateSpace::StateType>()
+                         ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+                         ->values[0],
+                 state1->as<ompl::base::HybridStateSpace::StateType>()
+                         ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+                         ->values[1] -
+                     state2->as<ompl::base::HybridStateSpace::StateType>()
+                         ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+                         ->values[1]);
     return fabs(dist);
 }
 
@@ -62,7 +72,8 @@ bool inPaddle(ompl::control::HySST::Motion *motion, std::vector<double> paddleCo
 {
     PinballSetup pinballSetup;
 
-    auto *motion_state = motion->state->as<ompl::base::CompoundState>()->as<ompl::base::RealVectorStateSpace::StateType>(0);
+    auto *motion_state =
+        motion->state->as<ompl::base::CompoundState>()->as<ompl::base::RealVectorStateSpace::StateType>(0);
     double paddleX = paddleCoord[0];
     double paddleY = paddleCoord[1];
     double x1 = motion_state->values[0];
@@ -72,14 +83,18 @@ bool inPaddle(ompl::control::HySST::Motion *motion, std::vector<double> paddleCo
 
     bool inPaddle = false;
 
-    if ((x1 >= paddleX && x1 <= paddleX + pinballSetup.paddleLength) && (x2 >= paddleY && x2 <= paddleY + pinballSetup.paddleWidth / 2) && v2 < 0)
-        inPaddle = true;    // In jump set if both velocity and position vectors are directed toward top of paddle
-    else if ((x1 >= paddleX && x1 <= paddleX + pinballSetup.paddleLength) && (x2 >= paddleY + pinballSetup.paddleWidth / 2 && x2 <= paddleY + pinballSetup.paddleWidth) && v2 > 0)
-        inPaddle = true;    // In jump set if both velocity and position vectors are directed toward bottom of paddle
-    else if ((x1 >= paddleX && x1 <= paddleX + pinballSetup.paddleLength / 4) && (x2 >= paddleY && x2 <= paddleY + pinballSetup.paddleWidth) && v1 > 0)
-        inPaddle = true;    // In jump set if both velocity and position vectors are directed toward left side of paddle
-    else if ((x1 >= paddleX + (3/4) * pinballSetup.paddleLength && x1 <= paddleX + pinballSetup.paddleLength) && (x2 >= paddleY && x2 <= paddleY + pinballSetup.paddleWidth) && v1 < 0)
-        inPaddle = true;    // In jump set if both velocity and position vectors are directed toward left side of paddle
+    if ((x1 >= paddleX && x1 <= paddleX + pinballSetup.paddleLength) &&
+        (x2 >= paddleY && x2 <= paddleY + pinballSetup.paddleWidth / 2) && v2 < 0)
+        inPaddle = true;  // In jump set if both velocity and position vectors are directed toward top of paddle
+    else if ((x1 >= paddleX && x1 <= paddleX + pinballSetup.paddleLength) &&
+             (x2 >= paddleY + pinballSetup.paddleWidth / 2 && x2 <= paddleY + pinballSetup.paddleWidth) && v2 > 0)
+        inPaddle = true;  // In jump set if both velocity and position vectors are directed toward bottom of paddle
+    else if ((x1 >= paddleX && x1 <= paddleX + pinballSetup.paddleLength / 4) &&
+             (x2 >= paddleY && x2 <= paddleY + pinballSetup.paddleWidth) && v1 > 0)
+        inPaddle = true;  // In jump set if both velocity and position vectors are directed toward left side of paddle
+    else if ((x1 >= paddleX + (3 / 4) * pinballSetup.paddleLength && x1 <= paddleX + pinballSetup.paddleLength) &&
+             (x2 >= paddleY && x2 <= paddleY + pinballSetup.paddleWidth) && v1 < 0)
+        inPaddle = true;  // In jump set if both velocity and position vectors are directed toward left side of paddle
 
     return inPaddle;
 }
@@ -89,17 +104,18 @@ bool jumpSet(ompl::control::HySST::Motion *motion)
 {
     PinballSetup pinballSetup;
 
-    auto *motion_state = motion->state->as<ompl::base::CompoundState>()->as<ompl::base::RealVectorStateSpace::StateType>(0);
+    auto *motion_state =
+        motion->state->as<ompl::base::CompoundState>()->as<ompl::base::RealVectorStateSpace::StateType>(0);
     double x1 = motion_state->values[0];
     double v1 = motion_state->values[2];
 
-    for (std::vector<double> paddleCoord : pinballSetup.paddleCoords)    // If ball is in any of the paddles
+    for (std::vector<double> paddleCoord : pinballSetup.paddleCoords)  // If ball is in any of the paddles
     {
         if (inPaddle(motion, paddleCoord))
             return true;
     }
 
-    if ((x1 <= 0 && v1 < 0) || (x1 >= 5 && v1 > 0)) // If ball is in either side wall
+    if ((x1 <= 0 && v1 < 0) || (x1 >= 5 && v1 > 0))  // If ball is in either side wall
         return true;
 
     return false;
@@ -115,7 +131,8 @@ bool flowSet(ompl::control::HySST::Motion *motion)
 bool unsafeSet(ompl::control::HySST::Motion *motion)
 {
     PinballSetup pinballSetup;
-    auto *motion_state = motion->state->as<ompl::base::CompoundState>()->as<ompl::base::RealVectorStateSpace::StateType>(0);
+    auto *motion_state =
+        motion->state->as<ompl::base::CompoundState>()->as<ompl::base::RealVectorStateSpace::StateType>(0);
     double x1 = motion_state->values[0];
     double x2 = motion_state->values[1];
 
@@ -125,12 +142,12 @@ bool unsafeSet(ompl::control::HySST::Motion *motion)
     return false;
 }
 
-/** \brief Represents the flow map, or the first-order derivative of the pinball state when in flow regime. 
+/** \brief Represents the flow map, or the first-order derivative of the pinball state when in flow regime.
  * The only force applied here is of gravity in the negative y direction. */
 void flowODE(const ompl::control::ODESolver::StateType &x_cur, const ompl::control::Control *u,
              ompl::control::ODESolver::StateType &x_new)
 {
-    (void)u;    // No control is applied when a state is in the flow set
+    (void)u;  // No control is applied when a state is in the flow set
 
     // Retrieve the current orientation of the pinball.
     const double v_1 = x_cur[2];
@@ -145,21 +162,25 @@ void flowODE(const ompl::control::ODESolver::StateType &x_cur, const ompl::contr
     x_new[1] = v_2;
     x_new[2] = a_1;
     x_new[3] = a_2;
-    x_new[4] = 0;    // No change to acceleration
-    x_new[5] = 0;    // No change to acceleration
+    x_new[4] = 0;  // No change to acceleration
+    x_new[5] = 0;  // No change to acceleration
 }
 
-/** \brief Simulates the dynamics of the ball when in jump regime, with input from the surface of the paddles and walls. As the collisions
- * are inelastic, there is a coefficient of restitution of 0.8 for the wall and 0.6 for the paddles.
- * Control input it only applied when pinball is colliding with top or sides of the paddle, in which case the input is in the same direction
- * as the horizontal component of the ball's post-collision velocity. 
-*/ompl::base::State *discreteSimulator(ompl::base::State *x_cur, const ompl::control::Control *u, ompl::base::State *new_state)
+/** \brief Simulates the dynamics of the ball when in jump regime, with input from the surface of the paddles and walls.
+ * As the collisions are inelastic, there is a coefficient of restitution of 0.8 for the wall and 0.6 for the paddles.
+ * Control input it only applied when pinball is colliding with top or sides of the paddle, in which case the input is
+ * in the same direction as the horizontal component of the ball's post-collision velocity.
+ */
+ompl::base::State *discreteSimulator(ompl::base::State *x_cur, const ompl::control::Control *u,
+                                     ompl::base::State *new_state)
 {
     // Retrieve control values.
     const double *control = u->as<ompl::control::RealVectorControlSpace::ControlType>()->values;
     const double u_x = control[0];
 
-    auto *state_values = x_cur->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values;
+    auto *state_values = x_cur->as<ompl::base::HybridStateSpace::StateType>()
+                             ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+                             ->values;
     double x1 = state_values[0];
     double x2 = state_values[1];
     double v1 = state_values[2];
@@ -167,32 +188,56 @@ void flowODE(const ompl::control::ODESolver::StateType &x_cur, const ompl::contr
     double a1 = state_values[4];
     double a2 = state_values[5];
 
-    if ((x1 <= 0 && v1 < 0) || (x1 >= 5 && v1 > 0)) // If state is colliding with the wall
+    if ((x1 <= 0 && v1 < 0) || (x1 >= 5 && v1 > 0))  // If state is colliding with the wall
     {
-        new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[2] = -v1 * 0.8;
-        new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[3] = v2;
+        new_state->as<ompl::base::HybridStateSpace::StateType>()
+            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+            ->values[2] = -v1 * 0.8;
+        new_state->as<ompl::base::HybridStateSpace::StateType>()
+            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+            ->values[3] = v2;
     }
-    else if (v2 < 0)   // If state is colliding with the top of the paddle
+    else if (v2 < 0)  // If state is colliding with the top of the paddle
     {
-        new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[2] = v1 + u_x;
-        new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[3] = -v2 * 0.6;
+        new_state->as<ompl::base::HybridStateSpace::StateType>()
+            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+            ->values[2] = v1 + u_x;
+        new_state->as<ompl::base::HybridStateSpace::StateType>()
+            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+            ->values[3] = -v2 * 0.6;
     }
-    else if (v2 > 0)   // If state is colliding with the bottom of the paddle
+    else if (v2 > 0)  // If state is colliding with the bottom of the paddle
     {
-        new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[2] = v1;
-        new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[3] = -v2 * 0.6;
+        new_state->as<ompl::base::HybridStateSpace::StateType>()
+            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+            ->values[2] = v1;
+        new_state->as<ompl::base::HybridStateSpace::StateType>()
+            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+            ->values[3] = -v2 * 0.6;
     }
-    else    // If state is colliding with the side of the paddle
+    else  // If state is colliding with the side of the paddle
     {
-        new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[2] = -(v1 * 0.6 + std::copysign(u_x, v1)); // Input is in the same direction as rebound
-        new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[3] = v2;
+        new_state->as<ompl::base::HybridStateSpace::StateType>()
+            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+            ->values[2] = -(v1 * 0.6 + std::copysign(u_x, v1));  // Input is in the same direction as rebound
+        new_state->as<ompl::base::HybridStateSpace::StateType>()
+            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+            ->values[3] = v2;
     }
 
     // The position and acceleration doesn't change
-    new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[0] = x1;
-    new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[1] = x2;
-    new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[4] = a1;
-    new_state->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[5] = a2;
+    new_state->as<ompl::base::HybridStateSpace::StateType>()
+        ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+        ->values[0] = x1;
+    new_state->as<ompl::base::HybridStateSpace::StateType>()
+        ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+        ->values[1] = x2;
+    new_state->as<ompl::base::HybridStateSpace::StateType>()
+        ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+        ->values[4] = a1;
+    new_state->as<ompl::base::HybridStateSpace::StateType>()
+        ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+        ->values[5] = a2;
     return new_state;
 }
 
@@ -200,7 +245,9 @@ void flowODE(const ompl::control::ODESolver::StateType &x_cur, const ompl::contr
 class EuclideanGoalRegion : public ompl::base::Goal
 {
 public:
-    EuclideanGoalRegion(const ompl::base::SpaceInformationPtr &si) : ompl::base::Goal(si) {}
+    EuclideanGoalRegion(const ompl::base::SpaceInformationPtr &si) : ompl::base::Goal(si)
+    {
+    }
 
     virtual bool isSatisfied(const ompl::base::State *st, double *distance) const
     {
@@ -229,18 +276,23 @@ public:
 class VelocityObjective : public ompl::base::StateCostIntegralObjective
 {
 public:
-    VelocityObjective(const ompl::base::SpaceInformationPtr &si) : ompl::base::StateCostIntegralObjective(si, false) {}
+    VelocityObjective(const ompl::base::SpaceInformationPtr &si) : ompl::base::StateCostIntegralObjective(si, false)
+    {
+    }
 
     // Return the magnitude of the horizontal component of the velocity vector
     ompl::base::Cost stateCost(const ompl::base::State *s) const
     {
-        return ompl::base::Cost(-abs(s->as<ompl::base::CompoundState>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[2]));
+        return ompl::base::Cost(
+            -abs(s->as<ompl::base::CompoundState>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[2]));
     }
 
-    // Return the difference in magnitude of the horizontal components of the between the previous and current velocity vector
+    // Return the difference in magnitude of the horizontal components of the between the previous and current velocity
+    // vector
     ompl::base::Cost motionCost(const ompl::base::State *s1, const ompl::base::State *s2) const
     {
-        return ompl::base::Cost((stateCost(s1).value() + stateCost(s2).value()) * 0.5 * 
+        return ompl::base::Cost(
+            (stateCost(s1).value() + stateCost(s2).value()) * 0.5 *
             (ompl::base::HybridStateSpace::getStateTime(s2) - ompl::base::HybridStateSpace::getStateTime(s1)));
     }
 };
@@ -261,8 +313,10 @@ int main()
     ompl::base::StateSpacePtr hybridSpacePtr(hybridSpace);
 
     // Define control space
-    ompl::control::RealVectorControlSpace *flowControlSpace = new ompl::control::RealVectorControlSpace(hybridSpacePtr, 1);
-    ompl::control::RealVectorControlSpace *jumpControlSpace = new ompl::control::RealVectorControlSpace(hybridSpacePtr, 1);
+    ompl::control::RealVectorControlSpace *flowControlSpace =
+        new ompl::control::RealVectorControlSpace(hybridSpacePtr, 1);
+    ompl::control::RealVectorControlSpace *jumpControlSpace =
+        new ompl::control::RealVectorControlSpace(hybridSpacePtr, 1);
 
     ompl::base::RealVectorBounds flowBounds(1);
     flowBounds.setLow(0, 0);
@@ -275,14 +329,16 @@ int main()
     jumpControlSpace->setBounds(jumpBounds);
 
     ompl::control::RealVectorControlUniformSampler flowControlSampler(flowControlSpace);
-    flowControlSpace->setControlSamplerAllocator([](const ompl::control::ControlSpace *space) -> ompl::control::ControlSamplerPtr {
-        return std::make_shared<ompl::control::RealVectorControlUniformSampler>(space);
-    });
+    flowControlSpace->setControlSamplerAllocator(
+        [](const ompl::control::ControlSpace *space) -> ompl::control::ControlSamplerPtr
+        { return std::make_shared<ompl::control::RealVectorControlUniformSampler>(space); });
 
-    ompl::control::RealVectorControlUniformSampler jumpControlSampler(jumpControlSpace);     // Doesn't do anything because the bounds for jump input are just [0, 0], but here for demonstration
-    jumpControlSpace->setControlSamplerAllocator([](const ompl::control::ControlSpace *space) -> ompl::control::ControlSamplerPtr {
-        return std::make_shared<ompl::control::RealVectorControlUniformSampler>(space);
-    });
+    ompl::control::RealVectorControlUniformSampler jumpControlSampler(
+        jumpControlSpace);  // Doesn't do anything because the bounds for jump input are just [0, 0], but here for
+                            // demonstration
+    jumpControlSpace->setControlSamplerAllocator(
+        [](const ompl::control::ControlSpace *space) -> ompl::control::ControlSamplerPtr
+        { return std::make_shared<ompl::control::RealVectorControlUniformSampler>(space); });
 
     ompl::control::ControlSpacePtr flowControlSpacePtr(flowControlSpace);
     ompl::control::ControlSpacePtr jumpControlSpacePtr(jumpControlSpace);
@@ -295,7 +351,7 @@ int main()
 
     // Construct a space information instance for this state space
     ompl::control::SpaceInformationPtr si(new ompl::control::SpaceInformation(hybridSpacePtr, controlSpacePtr));
-    ompl::control::ODESolverPtr odeSolver (new ompl::control::ODEBasicSolver<> (si, &flowODE));
+    ompl::control::ODESolverPtr odeSolver(new ompl::control::ODEBasicSolver<>(si, &flowODE));
 
     si->setStatePropagator(ompl::control::ODESolver::getStatePropagator(odeSolver));
     si->setPropagationStepSize(0.01);
@@ -313,12 +369,30 @@ int main()
     for (std::size_t i = 0; i < startXs.size(); i++)
     {
         startStates.push_back(ompl::base::ScopedState<>(hybridSpacePtr));
-        startStates.back()->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[0] = startXs[i];
-        startStates.back()->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[1] = 0;
-        startStates.back()->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[2] = 0;
-        startStates.back()->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[3] = 0;
-        startStates.back()->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[4] = 0;
-        startStates.back()->as<ompl::base::HybridStateSpace::StateType>()->as<ompl::base::RealVectorStateSpace::StateType>(0)->values[5] = -9.81;
+        startStates.back()
+            ->as<ompl::base::HybridStateSpace::StateType>()
+            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+            ->values[0] = startXs[i];
+        startStates.back()
+            ->as<ompl::base::HybridStateSpace::StateType>()
+            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+            ->values[1] = 0;
+        startStates.back()
+            ->as<ompl::base::HybridStateSpace::StateType>()
+            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+            ->values[2] = 0;
+        startStates.back()
+            ->as<ompl::base::HybridStateSpace::StateType>()
+            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+            ->values[3] = 0;
+        startStates.back()
+            ->as<ompl::base::HybridStateSpace::StateType>()
+            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+            ->values[4] = 0;
+        startStates.back()
+            ->as<ompl::base::HybridStateSpace::StateType>()
+            ->as<ompl::base::RealVectorStateSpace::StateType>(0)
+            ->values[5] = -9.81;
         pdef->addStartState(startStates.back());
     }
 
@@ -348,7 +422,7 @@ int main()
     cHySST.setUnsafeSet(unsafeSet);
     cHySST.setSelectionRadius(0.8);
     cHySST.setPruningRadius(0.2);
-    cHySST.setBatchSize(1); 
+    cHySST.setBatchSize(1);
 
     // attempt to solve the planning problem within 30 seconds
     ompl::time::point t0 = ompl::time::now();

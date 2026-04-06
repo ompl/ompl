@@ -84,7 +84,7 @@ namespace ompl
             /** \brief Minimum required distance of sample from nearest obstacle to be considered valid */
             double clearance_;
         };
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 
 #endif

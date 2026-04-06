@@ -1,51 +1,49 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2014, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2014, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
 #include "ompl/config.h"
 
 #ifndef OMPL_VERSION_VALUE
-#define OMPL_VERSION_VALUE ( OMPL_MAJOR_VERSION * 1000000       \
-                             + OMPL_MINOR_VERSION * 1000        \
-                             + OMPL_PATCH_VERSION)
+#define OMPL_VERSION_VALUE (OMPL_MAJOR_VERSION * 1000000 + OMPL_MINOR_VERSION * 1000 + OMPL_PATCH_VERSION)
 #endif
 
 // This is copied from the latest version.
 #include "ompl/util/DisableCompilerWarning.h"
-OMPL_PUSH_DISABLE_CLANG_WARNING(-Wunused-function)
-OMPL_PUSH_DISABLE_GCC_WARNING(-Wunused-function)
+OMPL_PUSH_DISABLE_CLANG_WARNING(-Wunused - function)
+OMPL_PUSH_DISABLE_GCC_WARNING(-Wunused - function)
 #include "../geometric/2d/2DcirclesSetup.h"
 OMPL_POP_CLANG
 
@@ -91,10 +89,13 @@ using namespace ompl;
 using tools::Benchmark;
 #endif
 
-template<unsigned int PROBLEM>
-std::string problemName() { return ""; }
+template <unsigned int PROBLEM>
+std::string problemName()
+{
+    return "";
+}
 
-template<typename T, unsigned int PROBLEM>
+template <typename T, unsigned int PROBLEM>
 void addPlanner(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 {
     benchmark.addPlanner(std::make_shared<T>(si));
@@ -102,7 +103,7 @@ void addPlanner(Benchmark &benchmark, const base::SpaceInformationPtr &si)
 
 #include "RegressionTestCirclesProblem.inl.h"
 
-template<unsigned int PROBLEM>
+template <unsigned int PROBLEM>
 void addAllPlanners(Benchmark &b, geometric::SimpleSetup &ss)
 {
     // EST
@@ -129,7 +130,7 @@ void addAllPlanners(Benchmark &b, geometric::SimpleSetup &ss)
 }
 
 // Setup a problem from the known set of problems included with the regression tests.
-template<unsigned int PROBLEM>
+template <unsigned int PROBLEM>
 std::shared_ptr<geometric::SimpleSetup> setupProblem()
 {
     if (PROBLEM == CIRCLES_ID)
@@ -138,7 +139,7 @@ std::shared_ptr<geometric::SimpleSetup> setupProblem()
     return std::shared_ptr<geometric::SimpleSetup>();
 }
 
-template<unsigned int PROBLEM>
+template <unsigned int PROBLEM>
 void runProblem(double runtime_limit, double memory_limit, int run_count)
 {
     std::shared_ptr<geometric::SimpleSetup> ss = setupProblem<PROBLEM>();
