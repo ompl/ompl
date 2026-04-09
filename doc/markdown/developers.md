@@ -1,6 +1,6 @@
 # Developers {#developers}
 
-OMPL is developed and maintained by the [Kavraki Lab](http://kavrakilab.org) at Rice University, led by [Dr. Lydia Kavraki](https://www.cs.rice.edu/~kavraki). The development is coordinated by [Dr. Mark Moll](https://moll.ai) (Metron, formerly Rice), [Dr. Zachary Kingston](https:/zkingston.com) (Purdue University, formerly Rice), [Dr. Lydia Kavraki](https://www.cs.rice.edu/~kavraki) (Rice) and [Dr. Ioan Șucan](http://ioan.sucan.ro) (Waymo, formerly Rice). Many others have contributed to OMPL as well, as can be seen below.
+OMPL is developed and maintained by the [Kavraki Lab](http://kavrakilab.org) at Rice University, led by [Dr. Lydia Kavraki](https://www.cs.rice.edu/~kavraki). The development is coordinated by [Dr. Mark Moll](https://moll.ai) (Metron, formerly Rice), Weihang Guo (Rice), Theodoros Tyrovouzis (Rice), Emiliano Flores (Rice), [Dr. Zachary Kingston](https:/zkingston.com) (Purdue University, formerly Rice), [Dr. Ioan Șucan](http://ioan.sucan.ro) (Waymo, formerly Rice), and [Dr. Lydia Kavraki](https://www.cs.rice.edu/~kavraki) (Rice). Many others have contributed to OMPL as well, as shown below.
 
 ## Contributors (in alphabetical order)
 
