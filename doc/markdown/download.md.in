@@ -17,7 +17,7 @@
   - [vcpkg](https://vcpkg.readthedocs.io).
   .
   Note that these package managers may not always have the latest release.
-- Python wheels are available on the [github release page](https://github.com/ompl/ompl/releases)
+- Python wheels are available on the [PyPI](https://pypi.org/project/ompl/)
 - [Installation instructions.](installation.html)
 - [Older releases.](https://github.com/ompl/ompl/releases) See the [release notes](releaseNotes.html) for a brief a description of changes for each release.
 
