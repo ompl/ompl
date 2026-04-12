@@ -120,6 +120,9 @@ void ompl::geometric::AOXRRTConnect::freeMemory()
 
 void ompl::geometric::AOXRRTConnect::reset(bool solvedProblem)
 {
+    // Free motions before clearing trees to avoid memory leak
+    freeMemory();
+
     tStart_->clear();
     tGoal_->clear();
 
@@ -169,7 +172,8 @@ ompl::geometric::AOXRRTConnect::Motion *ompl::geometric::AOXRRTConnect::findNeig
     Motion *nearest_motion;
     std::vector<Motion *> nearest_vec;
 
-    rootDist += rootDistPadding;
+    // Relative padding to handle floating-point error at any distance scale
+    rootDist *= (1.0 + rootDistRelativeEps);
 
     tree->nearestR(sampled_motion, rootDist, nearest_vec);
     if (nearest_vec.empty())
@@ -182,11 +186,18 @@ ompl::geometric::AOXRRTConnect::Motion *ompl::geometric::AOXRRTConnect::findNeig
     nearest_motion = nearest_vec[idx];
     auto nearest_distance = si_->distance(sampled_motion->state, nearest_motion->state);
 
-    while (nearest_motion->cost > 0 && sampled_motion->cost < nearest_motion->cost + nearest_distance)
+    while (nearest_motion->cost > 0 && sampled_motion->cost < nearest_motion->cost + nearest_distance &&
+           idx + 1 < static_cast<int>(nearest_vec.size()))
     {
         idx++;
         nearest_motion = nearest_vec[idx];
         nearest_distance = si_->distance(sampled_motion->state, nearest_motion->state);
+    }
+
+    // If we exhausted all neighbors without finding a valid connection, return nullptr
+    if (nearest_motion->cost > 0 && sampled_motion->cost < nearest_motion->cost + nearest_distance)
+    {
+        return nullptr;
     }
 
     return nearest_motion;
@@ -315,7 +326,7 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
     auto *cmotion = new Motion(si_);
     base::State *rstate = rmotion->state;
     bool solved = false;
-    GrowState gs;
+    GrowState gs = TRAPPED;
 
     if (goal == nullptr)
     {
@@ -334,6 +345,7 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
 
         /* Straight line check for first search loop
            Nested here for PDT visualize, which calls solve for each iteration */
+        tgi.xmotion = motion;
         si_->copyState(rstate, startState);
         gs = REACHED;
     }
@@ -377,13 +389,6 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
                 motion->root = motion->state;
                 motion->cost = 0;
 
-                /* Straight line check for start of planning
-                   Nested here for PDT visualize, which calls solve for each iteration */
-                if (tGoal_->size() == 0)
-                {
-                    tgi.xmotion = motion;
-                }
-
                 tGoal_->add(motion);
                 goalState = motion->state;
             }
@@ -419,8 +424,9 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
                 tgi.start = !tgi.start;
             }
 
-            /* Keep trying to connect until we reach the other tree or fail to advance */
-            while (gsc == ADVANCED)
+            /* Keep trying to connect until we reach the other tree or fail to advance.
+               Check ptc to avoid blocking for too long with expensive distance functions. */
+            while (gsc == ADVANCED && !ptc)
             {
                 gsc = growTree(otherTree, tgi, cmotion);
             }
@@ -533,6 +539,7 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
     /* Cleanup our memory */
     si_->freeState(tgi.xstate);
     si_->freeState(rstate);
+    si_->freeState(cmotion->state);
     delete rmotion;
     delete cmotion;
 
