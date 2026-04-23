@@ -457,8 +457,183 @@ def test_time_state_space():
     )
 
 
+def test_dubins_state_space():
+    space = ob.DubinsStateSpace(1.0, False)
+    assert not space.isMetricSpace()
+    assert not space.hasSymmetricDistance()
+
+    bounds = ob.RealVectorBounds(2)
+    bounds.setLow(-10)
+    bounds.setHigh(10)
+    space.setBounds(bounds)
+    space.setup()
+
+    s1 = space.allocState()
+    s2 = space.allocState()
+    s1.setX(0.0)
+    s1.setY(0.0)
+    s1.setYaw(0.0)
+    s2.setX(1.0)
+    s2.setY(0.0)
+    s2.setYaw(0.0)
+
+    d = space.distance(s1, s2)
+    assert d > 0.0
+
+    path = space.getPath(s1, s2)
+    assert path.length() == pytest.approx(d, rel=1e-5)
+
+
+def test_reeds_shepp_state_space():
+    space = ob.ReedsSheppStateSpace(1.0)
+
+    bounds = ob.RealVectorBounds(2)
+    bounds.setLow(-10)
+    bounds.setHigh(10)
+    space.setBounds(bounds)
+    space.setup()
+
+    s1 = space.allocState()
+    s2 = space.allocState()
+    s1.setX(0.0)
+    s1.setY(0.0)
+    s1.setYaw(0.0)
+    s2.setX(1.0)
+    s2.setY(0.0)
+    s2.setYaw(0.0)
+
+    d = space.distance(s1, s2)
+    assert d > 0.0
+
+    path = space.getPath(s1, s2)
+    assert path.length() == pytest.approx(d, rel=1e-5)
+
+
+def test_trochoid_state_space():
+    space = ob.TrochoidStateSpace(1.0, 0.0, 0.0, False)
+    assert not space.isMetricSpace()
+
+    bounds = ob.RealVectorBounds(2)
+    bounds.setLow(-10)
+    bounds.setHigh(10)
+    space.setBounds(bounds)
+    space.setup()
+
+    s1 = space.allocState()
+    s2 = space.allocState()
+    s1.setX(0.0)
+    s1.setY(0.0)
+    s1.setYaw(0.0)
+    s2.setX(1.0)
+    s2.setY(0.0)
+    s2.setYaw(0.0)
+
+    d = space.distance(s1, s2)
+    assert d > 0.0
+
+
+def test_owen_state_space():
+    space = ob.OwenStateSpace(1.0)
+    assert not space.isMetricSpace()
+    assert not space.hasSymmetricDistance()
+
+    bounds = ob.RealVectorBounds(3)
+    bounds.setLow(-10)
+    bounds.setHigh(10)
+    space.setBounds(bounds)
+    space.setup()
+
+    s1 = space.allocState()
+    s2 = space.allocState()
+    assert isinstance(s1, ob.OwenStateType)
+    s1[0] = 0.0
+    s1[1] = 0.0
+    s1[2] = 0.0
+    s1.setYaw(0.0)
+    s2[0] = 2.0
+    s2[1] = 0.0
+    s2[2] = 0.5
+    s2.setYaw(0.0)
+
+    d = space.distance(s1, s2)
+    assert d > 0.0
+
+    path = space.getPath(s1, s2)
+    assert path is None or path.length() > 0.0
+
+
+def test_vana_state_space():
+    space = ob.VanaStateSpace(1.0)
+    assert not space.isMetricSpace()
+    assert not space.hasSymmetricDistance()
+
+    bounds = ob.RealVectorBounds(3)
+    bounds.setLow(-10)
+    bounds.setHigh(10)
+    space.setBounds(bounds)
+    space.setup()
+
+    s1 = space.allocState()
+    s2 = space.allocState()
+    assert isinstance(s1, ob.VanaStateType)
+    s1[0] = 0.0
+    s1[1] = 0.0
+    s1[2] = 0.0
+    s1.setYaw(0.0)
+    s1.setPitch(0.0)
+    s2[0] = 2.0
+    s2[1] = 0.0
+    s2[2] = 0.5
+    s2.setYaw(0.0)
+    s2.setPitch(0.0)
+
+    d = space.distance(s1, s2)
+    assert d > 0.0
+
+    path = space.getPath(s1, s2)
+    assert path is None or path.length() > 0.0
+
+
+def test_vana_owen_state_space():
+    space = ob.VanaOwenStateSpace(1.0)
+    assert not space.isMetricSpace()
+    assert not space.hasSymmetricDistance()
+
+    bounds = ob.RealVectorBounds(3)
+    bounds.setLow(-10)
+    bounds.setHigh(10)
+    space.setBounds(bounds)
+    space.setup()
+
+    s1 = space.allocState()
+    s2 = space.allocState()
+    assert isinstance(s1, ob.VanaOwenStateType)
+    s1[0] = 0.0
+    s1[1] = 0.0
+    s1[2] = 0.0
+    s1.setYaw(0.0)
+    s1.setPitch(0.0)
+    s2[0] = 2.0
+    s2[1] = 0.0
+    s2[2] = 0.5
+    s2.setYaw(0.0)
+    s2.setPitch(0.0)
+
+    d = space.distance(s1, s2)
+    assert d > 0.0
+
+    path = space.getPath(s1, s2)
+    assert path is None or path.length() > 0.0
+
+
 if __name__ == "__main__":
     test_rv_state_space()
     test_compound_state_space()
     test_se2_state_space()
     test_time_state_space()
+    test_dubins_state_space()
+    test_reeds_shepp_state_space()
+    test_trochoid_state_space()
+    test_owen_state_space()
+    test_vana_state_space()
+    test_vana_owen_state_space()

@@ -53,6 +53,12 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initSpaces_RealVectorStateProjections(base);
     ompl::binding::base::initSpaces_RealVectorStateSpace(base);
     ompl::binding::base::initSpaces_SE2StateSpace(base);
+    ompl::binding::base::initSpaces_DubinsStateSpace(base);
+    ompl::binding::base::initSpaces_ReedsSheppStateSpace(base);
+    ompl::binding::base::initSpaces_TrochoidStateSpace(base);
+    ompl::binding::base::initSpaces_OwenStateSpace(base);
+    ompl::binding::base::initSpaces_VanaStateSpace(base);
+    ompl::binding::base::initSpaces_VanaOwenStateSpace(base);
     ompl::binding::base::initSpaces_SE3StateSpace(base);
     ompl::binding::base::initSpaces_SO2StateSpace(base);
     ompl::binding::base::initSpaces_SO3StateSpace(base);
