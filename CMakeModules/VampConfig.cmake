@@ -35,6 +35,11 @@ function(configure_vamp)
     # Setup SIMD environment
     setup_vamp_simd_environment()
 
+    if(VAMP_ARCH_UNSUPPORTED)
+        set(OMPL_HAVE_VAMP FALSE CACHE BOOL "Whether VAMP integration is available" FORCE)
+        return()
+    endif()
+
     # Add VAMP subdirectory
     add_subdirectory(external/vamp)
 
@@ -86,7 +91,9 @@ function(setup_vamp_simd_environment)
             message(STATUS "VAMP: Using native SIMD flags for ARM64")
         endif()
     else()
-        message(FATAL_ERROR "Unsupported architecture ${CMAKE_SYSTEM_PROCESSOR} for VAMP")
+        message(WARNING "Unsupported architecture ${CMAKE_SYSTEM_PROCESSOR} for VAMP; disabling VAMP integration")
+        set(VAMP_ARCH_UNSUPPORTED TRUE PARENT_SCOPE)
+        return()
     endif()
 
     # Convert list to space-separated string for CMAKE_C_FLAGS
