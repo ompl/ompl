@@ -18,20 +18,44 @@
   <buildtool_depend>cmake</buildtool_depend>
   <buildtool_depend>pkg-config</buildtool_depend>
 
-  <depend>eigen</depend>
-  <depend>libboost-program-options-dev</depend>
-  <depend>libboost-serialization-dev</depend>
-  <!-- Required by Boost >= 1.90's modular CMake configs: boost_serialization's
-       config recursively find_package()'s boost_system, which is shipped in
-       its own apt package starting with 1.90 and is not pulled in transitively
-       by libboost-serialization-dev. -->
-  <depend>libboost-system-dev</depend>
-  <depend>libflann-dev</depend>
+  <!-- Eigen is header-only — no runtime linkage. -->
+  <build_depend>eigen</build_depend>
+
+  <!-- libompl.so links libboost_serialization; demo binaries link
+       libboost_program_options. Both are needed at runtime, but only the -dev
+       packages at build time. -->
+  <build_depend>libboost-program-options-dev</build_depend>
+  <build_depend>libboost-serialization-dev</build_depend>
+  <exec_depend>libboost-program-options</exec_depend>
+  <exec_depend>libboost-serialization</exec_depend>
+
+  <!-- Build-only: Boost >= 1.90's modular CMake configs make
+       boost_serialization's config recursively find_package() boost_system,
+       which is shipped as its own apt package starting with 1.90 and is not
+       pulled in transitively by libboost-serialization-dev. Boost.System is
+       header-only since 1.69 and OMPL doesn't use it directly, so no runtime
+       dep is required. -->
+  <build_depend>libboost-system-dev</build_depend>
+
+  <!-- FLANN is an optional nearest-neighbor backend; package.xml requires
+       it so it's always available in ROS builds. -->
+  <build_depend>libflann-dev</build_depend>
+  <exec_depend>libflann</exec_depend>
+
+  <!-- yaml-cpp is used by the multicopter demo. The current rosdep mapping
+       has no separate runtime key (the 'yaml-cpp' key resolves to
+       libyaml-cpp-dev, which transitively provides the runtime), so this
+       stays a <depend> until a libyaml-cpp runtime key is added to
+       ros/rosdistro. -->
   <depend>yaml-cpp</depend>
-  <!-- For Python bindings via the bundled nanobind submodule:
-       OMPLDependencies.cmake calls find_package(Python ... COMPONENTS
-       Interpreter Development.Module) which needs Python headers. -->
-  <depend>python3-dev</depend>
+
+  <!-- nanobind builds Python extension modules with Development.Module:
+       the resulting .so files do not link libpython — Python provides
+       symbols at dlopen time. So python3 headers are needed at build time
+       only; users will invariably already have python3 installed (it's
+       essential on every supported platform), and dh_python3 adds the
+       correct runtime dep automatically when building the binary deb. -->
+  <build_depend>python3-dev</build_depend>
 
   <export>
     <build_type>cmake</build_type>
