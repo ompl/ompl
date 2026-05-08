@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>ompl</name>
   <version>2.0.0</version>
   <description>OMPL is a free sampling-based motion planning library.</description>
@@ -15,20 +16,22 @@
   <author>Kavraki Lab</author>
 
   <buildtool_depend>cmake</buildtool_depend>
+  <buildtool_depend>pkg-config</buildtool_depend>
 
-  <build_depend>cmake</build_depend>
-  <build_depend>libboost-program-options-dev</build_depend>
-  <build_depend>libboost-serialization-dev</build_depend>
-  <build_depend>eigen</build_depend>
-  <build_depend>pkg-config</build_depend>
-  <build_depend>libflann-dev</build_depend>
-  <build_depend>yaml-cpp</build_depend>
-
-  <exec_depend>libboost-program-options</exec_depend>
-  <exec_depend>libboost-serialization</exec_depend>
-  <exec_depend>eigen</exec_depend>
-  <exec_depend>libflann-dev</exec_depend>
-  <exec_depend>yaml-cpp</exec_depend>
+  <depend>eigen</depend>
+  <depend>libboost-program-options-dev</depend>
+  <depend>libboost-serialization-dev</depend>
+  <!-- Required by Boost >= 1.90's modular CMake configs: boost_serialization's
+       config recursively find_package()'s boost_system, which is shipped in
+       its own apt package starting with 1.90 and is not pulled in transitively
+       by libboost-serialization-dev. -->
+  <depend>libboost-system-dev</depend>
+  <depend>libflann-dev</depend>
+  <depend>yaml-cpp</depend>
+  <!-- For Python bindings via the bundled nanobind submodule:
+       OMPLDependencies.cmake calls find_package(Python ... COMPONENTS
+       Interpreter Development.Module) which needs Python headers. -->
+  <depend>python3-dev</depend>
 
   <export>
     <build_type>cmake</build_type>
