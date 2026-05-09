@@ -7,10 +7,21 @@ nanobind_add_module(_ompl
     ${PY_OMPL_SOURCES}
 )
 
-# set default python install prefix
+# Default to Python_SITEARCH only for system-wide installs; for custom
+# prefixes use a path relative to CMAKE_INSTALL_PREFIX so install() works
+# without root and without writing outside the requested prefix.
 if(NOT OMPL_PYTHON_INSTALL_PREFIX AND NOT SKBUILD)
-    set(OMPL_PYTHON_INSTALL_PREFIX "${Python_SITEARCH}" CACHE PATH
+    if(DEFINED ENV{DEB_BUILD_OPTIONS}
+       OR CMAKE_INSTALL_PREFIX MATCHES "^/usr/?$"
+       OR CMAKE_INSTALL_PREFIX MATCHES "^/usr/local/?$")
+        set(_ompl_default_py_install "${Python_SITEARCH}")
+    else()
+        set(_ompl_default_py_install
+            "${CMAKE_INSTALL_LIBDIR}/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
+    endif()
+    set(OMPL_PYTHON_INSTALL_PREFIX "${_ompl_default_py_install}" CACHE PATH
         "Path to directory where OMPL python module will be installed")
+    unset(_ompl_default_py_install)
 endif()
 message(STATUS "OMPL Python module install location: ${OMPL_PYTHON_INSTALL_PREFIX}")
 if(OMPL_PYTHON_INSTALL_PREFIX)
