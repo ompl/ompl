@@ -7,21 +7,33 @@ nanobind_add_module(_ompl
     ${PY_OMPL_SOURCES}
 )
 
-# Default to Python_SITEARCH only for system-wide installs; for custom
-# prefixes use a path relative to CMAKE_INSTALL_PREFIX so install() works
-# without root and without writing outside the requested prefix.
+# Ask Python's sysconfig where 'purelib' lands under CMAKE_INSTALL_PREFIX, then
+# strip the prefix to get a relative path. Matches ament_cmake_python's
+# algorithm so the result honors distro conventions (dist-packages on Debian,
+# site-packages elsewhere) and works for any prefix.
 if(NOT OMPL_PYTHON_INSTALL_PREFIX AND NOT SKBUILD)
-    if(DEFINED ENV{DEB_BUILD_OPTIONS}
-       OR CMAKE_INSTALL_PREFIX MATCHES "^/usr/?$"
-       OR CMAKE_INSTALL_PREFIX MATCHES "^/usr/local/?$")
-        set(_ompl_default_py_install "${Python_SITEARCH}")
-    else()
-        set(_ompl_default_py_install
-            "${CMAKE_INSTALL_LIBDIR}/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
+    set(_ompl_py_install_dir_code
+"import os, sysconfig
+schemes = sysconfig.get_scheme_names()
+kwargs = {'vars': {'base': '${CMAKE_INSTALL_PREFIX}'}}
+if 'deb_system' in schemes or 'osx_framework_library' in schemes:
+    kwargs['scheme'] = 'posix_prefix'
+elif 'rpm_prefix' in schemes:
+    kwargs['scheme'] = 'rpm_prefix'
+print(os.path.relpath(sysconfig.get_path('purelib', **kwargs),
+                      start='${CMAKE_INSTALL_PREFIX}').replace(os.sep, '/'))")
+    execute_process(
+        COMMAND "${Python_EXECUTABLE}" -c "${_ompl_py_install_dir_code}"
+        OUTPUT_VARIABLE _ompl_default_py_install
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        RESULT_VARIABLE _ompl_py_query_result)
+    if(NOT _ompl_py_query_result EQUAL 0)
+        message(FATAL_ERROR
+            "Failed to query Python sysconfig for default install path "
+            "(exit ${_ompl_py_query_result}). Set OMPL_PYTHON_INSTALL_PREFIX manually.")
     endif()
     set(OMPL_PYTHON_INSTALL_PREFIX "${_ompl_default_py_install}" CACHE PATH
         "Path to directory where OMPL python module will be installed")
-    unset(_ompl_default_py_install)
 endif()
 message(STATUS "OMPL Python module install location: ${OMPL_PYTHON_INSTALL_PREFIX}")
 if(OMPL_PYTHON_INSTALL_PREFIX)
