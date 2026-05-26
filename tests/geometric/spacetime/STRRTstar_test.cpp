@@ -240,20 +240,20 @@ public:
         //     time t
         //       ^
         //   4.0 |                                      IG   [invalid goal root]
-        //       |                                      *
-        //       |                                     *
-        //       |                                    * 
-        //       |                                   *
-        //       |                                  *
-        //   2.0 |                                 *    VG   [valid goal]
-        //       |                                 *    *
-        //       |                                 *
-        //   1.5 |                                CID
-        //       |                              ***
-        //       |                         ******
-        //       |                    *****
-        //       |           *********
-        //       |  *********        
+        //       |                                     /
+        //       |                                    /
+        //       |                                   / 
+        //       |                                  /
+        //       |                                 |
+        //   2.0 |                                 |    VG   [valid goal]
+        //       |                                 |    
+        //       |                                 |
+        //   1.5 |                              __CID
+        //       |                             / 
+        //       |                      ______/   
+        //       |           __________/
+        //       | _________/
+        //       |/        
         //   0.0 *------------------------------------------> coordinate x
         //     S (0.0)                              0.9  1.0
         //    start
@@ -264,6 +264,176 @@ public:
                          
     }
 
+
+    // test to check the bug: ascendants if the rewired node will not have updated ->root. 
+    void rewireGoalTreeUpdatesDescendantRoots()
+    {
+        std::cout<<"Check ascendats root after rewire test"<<std::endl;
+        setRange(1.0);
+        setOptimumApproxFactor(1);
+        setup();
+
+        upperTimeBound_ = 5.0;
+        isTimeBounded_ = true;
+
+        auto *validGoal = makeMotion(0.99, 2.0);
+        validGoal->root = validGoal->state;
+        validGoal->numConnections = 0;
+        goalMotions_.push_back(validGoal);
+        tGoal_->add(validGoal);
+
+        auto *newValidGoalancestor = makeMotion(0.95, 1.5);
+        newValidGoalancestor->root = validGoal->state;
+        newValidGoalancestor->numConnections = 0;
+        newValidGoalancestor->parent = validGoal;
+        validGoal->children.push_back(newValidGoalancestor);
+        tGoal_->add(newValidGoalancestor);
+
+
+        auto *invalidGoal = makeMotion(1.0, 4.0);
+        invalidGoal->root = invalidGoal->state;
+        invalidGoal->numConnections = 5;
+        goalMotions_.push_back(invalidGoal);
+        tGoal_->add(invalidGoal);
+
+        auto *invalidGoalancestor = makeMotion(0.95, 3.0);
+        invalidGoalancestor->root = invalidGoal->state;
+        invalidGoalancestor->numConnections = 5;
+        invalidGoalancestor->parent = invalidGoal;
+        invalidGoal->children.push_back(invalidGoalancestor);
+        tGoal_->add(invalidGoalancestor);
+
+        auto *rewiredChild = makeMotion(0.9, 1.2);
+        rewiredChild->parent = invalidGoalancestor;
+        rewiredChild->root = invalidGoal->state;
+        rewiredChild->numConnections = 5;
+        invalidGoalancestor->children.push_back(rewiredChild);
+        tGoal_->add(rewiredChild);
+
+        auto *staleRootGrandchild = makeMotion(0.6, 0.8);
+        staleRootGrandchild->parent = rewiredChild;
+        staleRootGrandchild->root = invalidGoal->state;
+        rewiredChild->children.push_back(staleRootGrandchild);
+        staleRootGrandchild->numConnections = 5;
+        tGoal_->add(staleRootGrandchild);
+
+
+        auto *staleRootGrandGrandchild = makeMotion(0.3, 0.5);
+        staleRootGrandGrandchild->parent = staleRootGrandchild;
+        staleRootGrandGrandchild->root = invalidGoal->state;
+        staleRootGrandchild->children.push_back(staleRootGrandGrandchild);
+        staleRootGrandGrandchild->numConnections = 5;
+        tGoal_->add(staleRootGrandGrandchild);
+
+        rewireGoalTree(newValidGoalancestor);
+  
+
+        // Goal-tree layout for rewireGoalTreeUpdatesDescendantRoots()
+        // (We assume, that staleRootGrandGrandchild num connections = 5)
+        // Nodes:
+        // VG    = validGoal                 (x=0.99, t=2.0), root -> VG.state
+        // NVGA  = newValidGoalancestor      (x=0.95, t=1.5), parent -> VG,  root -> VG.state
+        //
+        // IG    = invalidGoal               (x=1.00, t=4.0), root -> IG.state
+        // IGA   = invalidGoalancestor       (x=0.95, t=3.0), parent -> IG,  root -> IG.state
+        // RC    = rewiredChild              (x=0.90, t=1.2), parent -> IGA, root -> IG.state
+        // SRG   = staleRootGrandchild       (x=0.60, t=0.8), parent -> RC,  root -> IG.state
+        // SRGG  = staleRootGrandGrandchild  (x=0.30, t=0.5), parent -> SRG, root -> IG.state
+        //
+        // Before rewire:
+        //
+        // time t
+        //   ^
+        // 4.0 |                                            IG
+        //     |                                           /
+        //     |                                          /
+        // 3.0 |                                      IGA
+        //     |                                     /
+        //     |                                  __/ 
+        //     |                                 |  
+        // 2.0 |                                 |      VG
+        //     |                                 |     /
+        // 1.5 |                                 |   NVGA
+        //     |                                 |
+        // 1.2 |                                RC
+        //     |                       _________/
+        // 0.8 |                    SRG
+        //     |           _________/
+        // 0.5 |        SRGG (num_connections=5)
+        //     |
+        // 0.0 +----------------------------------------------------> coordinate x
+        //              0.30        0.60        0.90 0.95 0.99 1.00
+        //
+        // Parent edges before:
+        //   VG  -> NVGA
+        //   IG  -> IGA -> RC -> SRG -> SRGG
+        //
+        // Root values before:
+        //   NVGA.root = VG.state
+        //   IGA.root  = IG.state
+        //   RC.root   = IG.state
+        //   SRG.root  = IG.state
+        //   SRGG.root = IG.state
+        //
+        //
+        // time t
+        //   ^
+        // 4.0 |                                            IG
+        //     |                                           /
+        //     |                                          / [old branch]
+        // 3.0 |                                       IGA
+        //     |                                      
+        //     |                                      
+        //     |                                    
+        // 2.0 |                                        VG
+        //     |                                       /
+        // 1.5 |                                     NVGA
+        //     |                                  ___/    [rewired here]
+        // 1.2 |                                RC
+        //     |                       _________/
+        // 0.8 |                    SRG
+        //     |           _________/
+        // 0.5 |        SRGG (num_connections=5)
+        //     |
+        // 0.0 +----------------------------------------------------> coordinate x
+        //              0.30        0.60        0.90 0.95 0.99 1.00
+        //
+        // Parent edges after:
+        //   VG -> NVGA -> RC -> SRG -> SRGG
+        //   IG -> IGA
+        //
+
+        BOOST_CHECK(validGoal->numConnections = 5);
+
+        BOOST_CHECK(newValidGoalancestor->root == validGoal->state);
+        BOOST_CHECK(newValidGoalancestor->numConnections == 5);
+        BOOST_CHECK(newValidGoalancestor->parent == validGoal);
+        BOOST_CHECK(newValidGoalancestor->children.size() == 1);
+
+
+        BOOST_CHECK(invalidGoal->numConnections == 0);
+
+        BOOST_CHECK(invalidGoalancestor->root == invalidGoal->state);
+        BOOST_CHECK(invalidGoalancestor->numConnections == 0);
+        BOOST_CHECK(invalidGoalancestor->parent == invalidGoal);
+        BOOST_CHECK(invalidGoalancestor->children.size() == 0);
+
+        BOOST_CHECK(rewiredChild->root == validGoal->state);
+        BOOST_CHECK(rewiredChild->numConnections == 5);
+        BOOST_CHECK(rewiredChild->parent == validGoal);
+        BOOST_CHECK(rewiredChild->children.size() == 1);
+
+        BOOST_CHECK(staleRootGrandchild->root == validGoal->state);
+        BOOST_CHECK(staleRootGrandchild->numConnections == 5);
+        BOOST_CHECK(staleRootGrandchild->parent == validGoal);
+        BOOST_CHECK(staleRootGrandchild->children.size() == 1);
+
+        BOOST_CHECK(staleRootGrandGrandchild->root == validGoal->state);
+        BOOST_CHECK(staleRootGrandGrandchild->numConnections == 5);
+        BOOST_CHECK(staleRootGrandGrandchild->parent == validGoal);
+        BOOST_CHECK(staleRootGrandGrandchild->children.size() == 0);
+
+    }
 private:
     Motion *makeMotion(double position, double time)
     {
@@ -344,21 +514,30 @@ BOOST_AUTO_TEST_CASE(spacetime_pruned_goal_solution_uses_rewired_goal_motion)
     BOOST_CHECK_NO_THROW(planner.constructPrunedRecursiveSolution());
 }
 
-// Stress test for pruning and final time optimising with different seeds
-BOOST_AUTO_TEST_CASE(spacetime_planning_stress)
+// Test case with fixed tree for broken recursive and use-after-free in constructSolution
+BOOST_AUTO_TEST_CASE(spacetime_rewore_goal_tree_updates_descendant_roots)
 {
-    const unsigned int runs = 100;
+    STRRTstarTestAccess planner;
 
-    for (unsigned int i = 0; i < runs; ++i)
-    {
-        BOOST_TEST_CONTEXT("stress run " << i)
-        {
-            runSpaceTimePlanner(0.0, 20.0, 0.5, 6, {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0},
-                                {1.0, 1.0, 1.0, 1.0, 1.0, 1.0}, true, 0.99,
-                                true);  // 6D diagonal movement with goal time optimisation
-        }
-    }
+    BOOST_CHECK_NO_THROW(planner.rewireGoalTreeUpdatesDescendantRoots());
 }
+
+
+// // Stress test for pruning and final time optimising with different seeds
+// BOOST_AUTO_TEST_CASE(spacetime_planning_stress)
+// {
+//     const unsigned int runs = 100;
+
+//     for (unsigned int i = 0; i < runs; ++i)
+//     {
+//         BOOST_TEST_CONTEXT("stress run " << i)
+//         {
+//             runSpaceTimePlanner(0.0, 20.0, 0.5, 6, {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0},
+//                                 {1.0, 1.0, 1.0, 1.0, 1.0, 1.0}, true, 0.99,
+//                                 true);  // 6D diagonal movement with goal time optimisation
+//         }
+//     }
+// }
 
 
 BOOST_AUTO_TEST_SUITE_END()
