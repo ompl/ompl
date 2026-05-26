@@ -1017,7 +1017,7 @@ bool ompl::geometric::STRRTstar::rewireGoalTree(Motion *addedMotion)
                 Motion *p = otherMotion->parent;
                 while (p != nullptr)
                 {
-                    p->numConnections--;
+                    p->numConnections-=otherMotion->numConnections;
                     p = p->parent;
                 }
             }
@@ -1025,13 +1025,25 @@ bool ompl::geometric::STRRTstar::rewireGoalTree(Motion *addedMotion)
             otherMotion->parent = addedMotion;
             otherMotion->root = addedMotion->root;
             addedMotion->children.push_back(otherMotion);
+            // change root state of descendents
+            std::queue<Motion *> queue;
+            queue.push(otherMotion);
+            while (!queue.empty())
+            {
+                for (Motion *c : queue.front()->children)
+                {
+                    queue.push(c); 
+                }
+                queue.front()->root = addedMotion->root;
+                queue.pop();
+            }
             // increase connection count of new ancestors
             if (otherMotion->numConnections > 0)
             {
                 Motion *p = otherMotion->parent;
                 while (p != nullptr)
                 {
-                    p->numConnections++;
+                    p->numConnections+=otherMotion->numConnections;
                     p = p->parent;
                 }
                 if (otherMotion->root->as<ompl::base::CompoundState>()

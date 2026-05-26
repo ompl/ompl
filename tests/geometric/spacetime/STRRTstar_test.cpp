@@ -420,17 +420,17 @@ public:
 
         BOOST_CHECK(rewiredChild->root == validGoal->state);
         BOOST_CHECK(rewiredChild->numConnections == 5);
-        BOOST_CHECK(rewiredChild->parent == validGoal);
+        BOOST_CHECK(rewiredChild->parent == newValidGoalancestor);
         BOOST_CHECK(rewiredChild->children.size() == 1);
 
         BOOST_CHECK(staleRootGrandchild->root == validGoal->state);
         BOOST_CHECK(staleRootGrandchild->numConnections == 5);
-        BOOST_CHECK(staleRootGrandchild->parent == validGoal);
+        BOOST_CHECK(staleRootGrandchild->parent == rewiredChild);
         BOOST_CHECK(staleRootGrandchild->children.size() == 1);
 
         BOOST_CHECK(staleRootGrandGrandchild->root == validGoal->state);
         BOOST_CHECK(staleRootGrandGrandchild->numConnections == 5);
-        BOOST_CHECK(staleRootGrandGrandchild->parent == validGoal);
+        BOOST_CHECK(staleRootGrandGrandchild->parent == staleRootGrandchild);
         BOOST_CHECK(staleRootGrandGrandchild->children.size() == 0);
 
     }
