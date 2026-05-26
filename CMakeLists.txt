@@ -12,7 +12,7 @@ add_feature_info(OMPL_BUILD_VAMP "${OMPL_BUILD_VAMP}" "Whether to build VAMP sub
 # is exported by dpkg-buildpackage / debhelper, so this catches the ROS buildfarm
 # and any apt-builds-from-source automatically). Direct `cmake ..` developer
 # builds keep the native-ISA default.
-if(DEFINED ENV{DEB_BUILD_OPTIONS})
+if(DEFINED ENV{DEB_BUILD_OPTIONS} OR SKBUILD)
     set(_VAMP_PORTABLE_DEFAULT ON)
 else()
     set(_VAMP_PORTABLE_DEFAULT OFF)
