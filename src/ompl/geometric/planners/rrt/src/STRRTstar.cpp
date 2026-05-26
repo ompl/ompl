@@ -628,8 +628,8 @@ void ompl::geometric::STRRTstar::constructSolution(
     }
 
     bestSolution_ = path;
-    auto reachedGaol = path->getState(path->getStateCount() - 1);
-    bestTime_ = reachedGaol->as<ompl::base::CompoundState>()->as<ompl::base::TimeStateSpace::StateType>(1)->position;
+    auto reachedGoal = path->getState(path->getStateCount() - 1);
+    bestTime_ = reachedGoal->as<ompl::base::CompoundState>()->as<ompl::base::TimeStateSpace::StateType>(1)->position;
 
     if (intermediateSolutionCallback)
     {
@@ -647,7 +647,7 @@ void ompl::geometric::STRRTstar::constructSolution(
 
     // loop as long as a new solution is found by rewiring the goal tree
     if (newSolution != nullptr)
-        constructSolution(newSolution->connectionPoint, goalMotion, intermediateSolutionCallback, ptc);
+        constructSolution(newSolution->connectionPoint, newSolution, intermediateSolutionCallback, ptc);
 }
 
 void ompl::geometric::STRRTstar::pruneStartTree()
