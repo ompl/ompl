@@ -582,3 +582,49 @@ BOOST_AUTO_TEST_CASE(Serialization)
     for (auto &state : states)
         space->freeState(state);
 }
+
+// Storage subclass that intentionally writes an empty state buffer to exercise
+// PlannerDataStorage::loadVertices()'s length validation. A faithful store()
+// always writes exactly space->getSerializationLength() bytes; here we
+// short-circuit storeVertices() to produce an archive a malicious caller could
+// craft.
+class TruncatedStorage : public base::PlannerDataStorage
+{
+protected:
+    void storeVertices(const base::PlannerData &pd, boost::archive::binary_oarchive &oa) override
+    {
+        for (unsigned int i = 0; i < pd.numVertices(); ++i)
+        {
+            PlannerDataVertexData vertexData;
+            vertexData.v_ = &pd.getVertex(i);
+            vertexData.type_ = PlannerDataVertexData::STANDARD;
+            vertexData.state_.clear();
+            oa << vertexData;
+        }
+    }
+};
+
+BOOST_AUTO_TEST_CASE(LoadRejectsTruncatedStateBuffer)
+{
+    auto space(std::make_shared<base::RealVectorStateSpace>(2));
+    base::RealVectorBounds bounds(2);
+    bounds.setLow(-1);
+    bounds.setHigh(1);
+    space->setBounds(bounds);
+    auto si(std::make_shared<base::SpaceInformation>(space));
+
+    base::PlannerData data(si);
+    base::State *s = space->allocState();
+    data.addVertex(base::PlannerDataVertex(s));
+
+    TruncatedStorage badStorage;
+    badStorage.store(data, "testdata-truncated");
+    space->freeState(s);
+
+    // load() must reject the short buffer (returning false) rather than
+    // letting space->deserialize() memcpy past the end of vertexData.state_.
+    base::PlannerData data2(si);
+    base::PlannerDataStorage storage;
+    BOOST_CHECK(!storage.load("testdata-truncated", data2));
+    BOOST_CHECK_EQUAL(data2.numVertices(), 0u);
+}

@@ -39,10 +39,12 @@
 
 #include "ompl/base/PlannerData.h"
 #include "ompl/util/Console.h"
+#include <boost/archive/archive_exception.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/utility.hpp>
+#include <cstddef>
 #include <fstream>
 
 namespace ompl
@@ -175,11 +177,25 @@ namespace ompl
             virtual void loadVertices(PlannerData &pd, unsigned int numVertices, boost::archive::binary_iarchive &ia)
             {
                 const StateSpacePtr &space = pd.getSpaceInformation()->getStateSpace();
+                const std::size_t expectedStateBytes = space->getSerializationLength();
                 std::vector<State *> states;
                 for (unsigned int i = 0; i < numVertices; ++i)
                 {
                     PlannerDataVertexData vertexData;
                     ia >> vertexData;
+
+                    // The serialized state buffer is read directly from the archive, so its size
+                    // is determined by the archive contents rather than by the local state space.
+                    // space->deserialize() performs a fixed-length memcpy of expectedStateBytes
+                    // bytes from this buffer; a buffer shorter than that (including an empty
+                    // buffer, where &state_[0] is itself undefined) would cause an out-of-bounds
+                    // heap read. Reject such archives before touching the buffer.
+                    if (vertexData.state_.size() < expectedStateBytes)
+                    {
+                        delete vertexData.v_;
+                        throw boost::archive::archive_exception(
+                            boost::archive::archive_exception::input_stream_error);
+                    }
 
                     // Deserializing all data in the vertex (except the state)
                     const PlannerDataVertex *v = vertexData.v_;
