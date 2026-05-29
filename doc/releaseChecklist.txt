@@ -16,7 +16,6 @@ Steps to release a new version:
     - docker tag ompl:x.y.z kavrakilab/ompl:x.y.z
       docker push kavrakilab/ompl:x.y.z
 * update plannerarena if needed; pull new docker images on plannerarena.org and restart web service
-* cmake --build /tmp/build -t package_source, since github tagged release doesn't include vamp submodule
 * cmake --build /tmp/build -t website to update web site repo (assumed to exist in ${HOME}/src/ompl.github.io)
     - open ~/src/ompl.github.io/index.html in a browser and check that everything looks sane
 * If new blog posts have been added since last release:
@@ -30,7 +29,13 @@ Steps to release a new version:
     - Macports: https://github.com/macports/macports-ports/tree/master/science/ompl
     - HomeBrew: https://github.com/Homebrew/homebrew-core/blob/master/Formula/o/ompl.rb
     - vcpkg: https://github.com/microsoft/vcpkg/tree/master/ports/ompl
-* push changes to ompl repos on github. Create release, include release notes, attach ompl-Source-x.y.z.tar.gz (output of `cmake --build /tmp/build -t package_source`)
+* push changes to ompl repos on github. Create the release with release notes;
+  the `.github/workflows/release_tarball.yml` workflow runs on `release: published`
+  and attaches ompl-x.y.z.tar.gz (with `external/{vamp,nanobind}` vendored in) to
+  the release. This tarball is the canonical source artifact for downstream
+  packagers (ROS bloom, distro packagers, pip sdist consumers) -- anything
+  reaching for "what does an OMPL release archive look like" should point here,
+  not at GitHub's auto-generated source tarball, which excludes submodules.
 * update version on https://en.wikipedia.org/wiki/OMPL
 * announce on ompl-users@lists.sourceforge.net, robot-motion@mit.edu, robotics worldwide
 * after release update version in top-level CMakeLists.txt for next release

@@ -1,0 +1,98 @@
+name: Release Tarball
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build a release tarball for (e.g. 2.0.0)
+        required: true
+        type: string
+
+jobs:
+  build-tarball:
+    name: Build ompl-${{ github.event.release.tag_name || inputs.tag }}.tar.gz
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "name=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out tag with submodules
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.name }}
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Vendor submodule content into the working tree
+        # actions/checkout has already fetched submodule content. Strip the
+        # submodule machinery (.gitmodules + nested .git pointers under
+        # external/*) so the tree looks like a flat checkout. The release
+        # tarball will then contain external/{vamp,nanobind} as regular files,
+        # which is what downstream packagers (bloom, dpkg-source, pip sdist
+        # consumers, etc.) need — `git archive` does not recurse submodules,
+        # so this is the only path through which release-artifact consumers
+        # see VAMP and the nanobind-backed Python bindings at build time.
+        run: |
+          rm -f .gitmodules
+          find external -mindepth 2 -name '.git' -print0 | xargs -0 -r rm -rf
+
+      - name: Build tarball
+        id: tarball
+        run: |
+          TAG="${{ steps.tag.outputs.name }}"
+          BASE="ompl-${TAG}"
+          mkdir -p /tmp/stage
+          # Versioned top-level directory in the tarball, no VCS metadata,
+          # no CI config (.github), no editor cruft.
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.gitignore' \
+            --exclude='.gitmodules' \
+            --exclude='.dockerignore' \
+            --exclude='.clang-format' \
+            --exclude='.pre-commit-config.yaml' \
+            ./ "/tmp/stage/${BASE}/"
+          tar -C /tmp/stage -czf "${BASE}.tar.gz" "${BASE}"
+          sha256sum "${BASE}.tar.gz" > "${BASE}.tar.gz.sha256"
+          ls -lh "${BASE}.tar.gz" "${BASE}.tar.gz.sha256"
+          echo "tarball=${BASE}.tar.gz" >> "$GITHUB_OUTPUT"
+
+      - name: Sanity-check tarball contents
+        run: |
+          TAG="${{ steps.tag.outputs.name }}"
+          BASE="ompl-${TAG}"
+          # The two files whose absence has historically caused
+          # OMPL_HAVE_NANOBIND=0 and OMPL_HAVE_VAMP=FALSE on release builds.
+          tar -tzf "${BASE}.tar.gz" | grep -E \
+            "^${BASE}/external/(vamp|nanobind)/CMakeLists.txt$" \
+            || { echo "::error::vendored submodule CMakeLists not in tarball"; exit 1; }
+
+      - name: Upload to GitHub Release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.name }}
+          TARBALL: ${{ steps.tarball.outputs.tarball }}
+        run: |
+          gh release upload "$TAG" "$TARBALL" "${TARBALL}.sha256" \
+            --repo "${{ github.repository }}" --clobber
+
+      - name: Upload as workflow artifact (manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ompl-${{ steps.tag.outputs.name }}-tarball
+          path: |
+            ompl-*.tar.gz
+            ompl-*.tar.gz.sha256
