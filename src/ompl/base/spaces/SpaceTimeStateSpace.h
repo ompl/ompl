@@ -64,7 +64,8 @@ namespace ompl
             double distance(const ompl::base::State *state1, const ompl::base::State *state2) const override;
 
             /** \brief The time to get from state1 to state2 with respect to vMax. */
-            double timeToCoverDistance(const ompl::base::State *state1, const ompl::base::State *state2) const;
+            virtual double timeToCoverDistance(const ompl::base::State *state1, const ompl::base::State *state2,
+                                               double *distance = nullptr) const;
 
             /** \brief The distance of just the space component. */
             double distanceSpace(const ompl::base::State *state1, const ompl::base::State *state2) const;
