@@ -63,8 +63,8 @@ ompl::geometric::GreedyRRTstar::GreedyRRTstar(const base::SpaceInformationPtr &s
                                 &GreedyRRTstar::getDelayCC, "0,1");
     Planner::declareParam<bool>("delay_rewiring", this, &GreedyRRTstar::setDelayRewiring,
                                 &GreedyRRTstar::getDelayRewiring, "0,1");
-    Planner::declareParam<bool>("greedy_heuristic_gating", this, &GreedyRRTstar::setGreedyHeuristicGating,
-                                &GreedyRRTstar::getGreedyHeuristicGating, "0,1");
+    Planner::declareParam<bool>("greedy_cost_for_tree_pruning", this, &GreedyRRTstar::setGreedyCostForTreePruning,
+                                &GreedyRRTstar::getGreedyCostForTreePruning, "0,1");
     Planner::declareParam<bool>("balanced_search", this, &GreedyRRTstar::setBalancedSearch,
                                 &GreedyRRTstar::getBalancedSearch, "0,1");
     Planner::declareParam<unsigned int>("number_sampling_attempts", this, &GreedyRRTstar::setNumSamplingAttempts,
@@ -99,8 +99,18 @@ void ompl::geometric::GreedyRRTstar::setup()
         tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
     if (!tGoal_)
         tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
-    tStart_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
-    tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
+    if (nnDistFun_)
+    {
+        tStart_->setDistanceFunction([this](const Motion *a, const Motion *b)
+                                     { return nnDistFun_(a->state, b->state); });
+        tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b)
+                                    { return nnDistFun_(a->state, b->state); });
+    }
+    else
+    {
+        tStart_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
+        tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
+    }
 
     // Setup optimization objective
     //
@@ -230,17 +240,16 @@ ompl::geometric::GreedyRRTstar::GrowState ompl::geometric::GreedyRRTstar::growTr
 
     /////////////////////////////////////////////////////////////////////////////////////
 
-    // x_new is rejected if connecting to it does not improve the current best cost (or greedy best cost)
+    // x_new is rejected if connecting to it does not improve the current best cost
     // check if g(xnear) + c(xnear, xnew) + hhat(xnew) can improve that cost
     // this will also make sure both trees are not overlapping each other
-
     if (bestGoalMotion_)
     {
         auto soln_heuristic_cost =
             opt_->combineCosts(opt_->combineCosts(nmotion->cost, opt_->motionCost(nmotion->state, dstate)),
                                costToGoHeuristic(dstate, tgi.start));
 
-        if (!opt_->isCostBetterThan(soln_heuristic_cost, useGreedyHeuristicGating_ ? greedyBestCost_ : bestCost_))
+        if (!opt_->isCostBetterThan(soln_heuristic_cost, bestCost_))
         {
             return TRAPPED;
         }
@@ -546,9 +555,6 @@ ompl::base::PlannerStatus ompl::geometric::GreedyRRTstar::solve(const base::Plan
         startMotions_.push_back(motion);
     }
 
-    // And assure that, if we're using an informed sampler, it's reset
-    infSampler_.reset();
-
     if (tStart_->size() == 0)
     {
         OMPL_ERROR("%s: Motion planning start tree could not be initialized!", getName().c_str());
@@ -560,8 +566,6 @@ ompl::base::PlannerStatus ompl::geometric::GreedyRRTstar::solve(const base::Plan
         OMPL_ERROR("%s: Insufficient states in sampleable goal region", getName().c_str());
         return base::PlannerStatus::INVALID_GOAL;
     }
-
-    const base::ReportIntermediateSolutionFn intermediateSolutionCallback = pdef_->getIntermediateSolutionCallback();
 
     TreeGrowingInfo tgi;
     tgi.xstate = si_->allocState();
@@ -690,7 +694,7 @@ ompl::base::PlannerStatus ompl::geometric::GreedyRRTstar::solve(const base::Plan
             if (!tgi.checkForSolution)
             {
                 GrowState gsc = ADVANCED;
-                while (gsc == ADVANCED)
+                while (gsc == ADVANCED && !ptc)
                     gsc = growTree(otherTree, tgi, rmotion, compareFn);
 
                 /* update distance between trees */
@@ -823,13 +827,13 @@ ompl::base::PlannerStatus ompl::geometric::GreedyRRTstar::solve(const base::Plan
                 {
                     if (useTreePruning_)
                     {
-                        if (greedyBiasingRatio_ <= 0.5)
-                            pruneTrees(bestCost_);
-                        else
+                        if (useGreedyCostForTreePruning_)
                             pruneTrees(greedyBestCost_);
+                        else
+                            pruneTrees(bestCost_);
                     }
 
-                    if (intermediateSolutionCallback)
+                    if (auto intermediateSolutionCallback = pdef_->getIntermediateSolutionCallback())
                     {
                         Motion *solution = bestGoalMotion_->connection;
                         std::vector<Motion *> mpath1;

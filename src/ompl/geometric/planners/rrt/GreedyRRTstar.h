@@ -42,6 +42,7 @@
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/base/goals/GoalState.h"
 
+#include <functional>
 #include <limits>
 #include <vector>
 #include <queue>
@@ -109,6 +110,16 @@ namespace ompl
                 return maxDistance_;
             }
 
+            /** \brief Set a custom distance function for nearest-neighbor queries.
+             *
+             * When set, nearest-neighbor lookups use this function instead of the
+             * state-space distance.  Must be called before setup(). */
+            void
+            setNNDistanceFunction(std::function<double(const ompl::base::State *, const ompl::base::State *)> distFun)
+            {
+                nnDistFun_ = std::move(distFun);
+            }
+
             /** \brief Option that delays collision checking procedures.
                 When it is enabled, all neighbors are sorted by cost. The
                 planner then goes through this list, starting with the lowest
@@ -139,17 +150,17 @@ namespace ompl
                 return delayRewiring_;
             }
 
-            /** \brief Option to use greedy best cost as gating to reject xnew during vertex expansion process.
-             * If this is set to false, current solution cost will be used as gating cost instead */
-            void setGreedyHeuristicGating(bool useGreedyHeuristicGating)
+            /** \brief Option to use greedy best cost during tree pruning process.
+             * If this is set to false, current solution cost will be used as pruning cost instead */
+            void setGreedyCostForTreePruning(bool useGreedyCostForTreePruning)
             {
-                useGreedyHeuristicGating_ = useGreedyHeuristicGating;
+                useGreedyCostForTreePruning_ = useGreedyCostForTreePruning;
             }
 
-            /** \brief Get the state of the greedy heuristic gating option */
-            bool getGreedyHeuristicGating() const
+            /** \brief Get the state of the greedy heuristic pruning option */
+            bool getGreedyCostForTreePruning() const
             {
-                return useGreedyHeuristicGating_;
+                return useGreedyCostForTreePruning_;
             }
 
             /** \brief Option to use the balanced bidirectional search (ensures that both trees are the same size) */
@@ -535,12 +546,15 @@ namespace ompl
             /** \brief Option to delay and reduce collision checking within iterations */
             bool delayCC_{true};
 
+            /** \brief Optional custom distance function for nearest-neighbor queries. */
+            std::function<double(const ompl::base::State *, const ompl::base::State *)> nnDistFun_;
+
             /** \brief Option to delay the rewiring until initial solution has been found */
             bool delayRewiring_{true};
 
-            /** \brief Option to use greedy best cost as gating to reject xnew during vertex expansion process.
-             * If this is set to false, current solution cost will be used as gating cost instead. */
-            bool useGreedyHeuristicGating_{false};
+            /** \brief Option to use greedy best cost during tree pruning process.
+             * If this is set to false, current solution cost will be used as pruning cost instead. */
+            bool useGreedyCostForTreePruning_{true};
 
             /** \brief Option to make the bidirectional search balanced */
             bool useBalancedBiDirectionalSearch_{true};
