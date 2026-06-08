@@ -166,7 +166,7 @@ namespace ompl
             /** \brief Returns the effort of the edge at the top of the forward queue. */
             unsigned int getForwardEffort() const;
 
-           /** \brief Returns true if the reverse queue is empty */
+            /** \brief Returns true if the reverse queue is empty */
             bool isReverseQueueEmpty() const;
 
             /** \brief Returns a copy of the reverse queue. */
@@ -348,7 +348,7 @@ namespace ompl
 
             /** \brief Combines multiple costs. */
             template <typename... Costs>
-            ompl::base::Cost combine(const ompl::base::Cost &cost, const Costs &... costs) const
+            ompl::base::Cost combine(const ompl::base::Cost &cost, const Costs &...costs) const
             {
                 return combine(cost, combine(costs...));
             }

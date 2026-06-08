@@ -90,6 +90,6 @@ namespace ompl
             /** \brief The standard deviation to use in the sampling process */
             double stddev_;
         };
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 #endif

@@ -1,0 +1,6 @@
+file(GLOB_RECURSE PYI_FILES ${dir}/*.pyi)
+foreach(_file ${PYI_FILES})
+    file(READ "${_file}" _pyi_string)
+    string(REGEX REPLACE "import _ompl\\.[a-z]*" "" _pyi_string_fixed "${_pyi_string}")
+    file(WRITE "${_file}" "import ompl as _ompl\n${_pyi_string_fixed}")
+endforeach(_file)

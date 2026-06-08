@@ -198,8 +198,8 @@ namespace ompl
             projection.print(out);
             return out;
         }
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 CompoundProjection::CompoundProjection(const StateSpacePtr &bundleSpace, const StateSpacePtr &baseSpace,
                                        const std::vector<ProjectionPtr> &components)

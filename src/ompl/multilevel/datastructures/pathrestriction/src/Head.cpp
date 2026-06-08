@@ -277,5 +277,5 @@ namespace ompl
             h.print(out);
             return out;
         }
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl

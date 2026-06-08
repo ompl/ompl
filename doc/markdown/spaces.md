@@ -18,6 +18,7 @@ This set of state spaces is included in OMPL:
   - The model proposed by Váňa et al., ompl::base::VanaStateSpace,
   - A hybrid of these models proposed by Moll that combines the best elements of both, ompl::base::VanaOwenStatespace,
 - A couple of "special" topological spaces: ompl::base::KleinBottleStateSpace, ompl::base::MobiusStateSpace, ompl::base::SphereStateSpace, and ompl::base::TorusStateSpace,
+- State spaces for hybrid systems ompl::base::HybridStateSpace and ompl::base::HybridTimeStateSpace
 - Constrained state spaces (ompl::base::ConstrainedStateSpace) to represent implicitly defined spaces when [planning with constraints](constrainedPlanning.html). There are several derived classes corresponding to different methodologies for dealing with constraints:
   - ompl::base::ProjectedStateSpace: uses Newton's method to project states in the ambient configuration space onto the constraint manifold.
   - ompl::base::AtlasStateSpace: a state space that incrementally builds up an atlas approximation of the constraint manifold.

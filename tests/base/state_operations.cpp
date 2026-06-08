@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2010, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2010, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -113,7 +113,6 @@ BOOST_AUTO_TEST_CASE(Scoped)
     sSE3_copy << sC2;
     BOOST_CHECK_EQUAL(sSE3_copy, sSE3);
 
-
     sSE3.random();
     sSE3 >> sSE3_SO2;
     sSE3 >> sSE3_R;
@@ -137,7 +136,7 @@ BOOST_AUTO_TEST_CASE(Scoped)
     BOOST_CHECK_EQUAL(sSE3_copy, sSE3);
     BOOST_CHECK_EQUAL(sSE3[6], r[6]);
     BOOST_CHECK_EQUAL(sSE3[0], r[0]);
-    BOOST_CHECK_EQUAL(sSE3.getSpace()->getValueAddressAtIndex(sSE3.get(), 7), (double*)nullptr);
+    BOOST_CHECK_EQUAL(sSE3.getSpace()->getValueAddressAtIndex(sSE3.get(), 7), (double *)nullptr);
 
     sSE3_R = 0.5;
     BOOST_CHECK_EQUAL(sSE3_R[0], 0.5);
@@ -192,25 +191,24 @@ BOOST_AUTO_TEST_CASE(Allocation)
 
     const unsigned int N = 30000;
     const unsigned int M = 20;
-    std::vector<base::State*> states(N, nullptr);
+    std::vector<base::State *> states(N, nullptr);
 
     ompl::time::point start = ompl::time::now();
-    for (unsigned int j = 0 ; j < M ; ++j)
+    for (unsigned int j = 0; j < M; ++j)
     {
-        for (unsigned int i = 0 ; i < N ; ++i)
+        for (unsigned int i = 0; i < N; ++i)
             states[i] = si.allocState();
 
-        for (unsigned int i = 0 ; i < N ; ++i)
+        for (unsigned int i = 0; i < N; ++i)
             si.freeState(states[i]);
     }
     double d = ompl::time::seconds(ompl::time::now() - start);
     std::cout << (double)N * (double)M / d << " state allocations then frees per second" << std::endl;
 
-
     start = ompl::time::now();
-    for (unsigned int j = 0 ; j < M ; ++j)
+    for (unsigned int j = 0; j < M; ++j)
     {
-        for (unsigned int i = 0 ; i < N ; ++i)
+        for (unsigned int i = 0; i < N; ++i)
         {
             base::State *s = si.allocState();
             si.freeState(s);
@@ -219,17 +217,16 @@ BOOST_AUTO_TEST_CASE(Allocation)
     d = ompl::time::seconds(ompl::time::now() - start);
     std::cout << (double)N * (double)M / d << " mixed state allocations & frees per second" << std::endl;
 
-
     start = ompl::time::now();
-    for (unsigned int j = 0 ; j < M ; ++j)
+    for (unsigned int j = 0; j < M; ++j)
     {
-        for (unsigned int i = 0 ; i < N ; ++i)
+        for (unsigned int i = 0; i < N; ++i)
         {
             base::State *s = si.allocState();
             si.freeState(s);
             states[i] = si.allocState();
         }
-        for (unsigned int i = 0 ; i < N ; ++i)
+        for (unsigned int i = 0; i < N; ++i)
             si.freeState(states[i]);
     }
     d = ompl::time::seconds(ompl::time::now() - start);
@@ -241,8 +238,8 @@ void randomizedAllocator(const base::SpaceInformation *si)
     RNG r;
     const unsigned int n = 500;
 
-    std::vector<base::State*> states(n + 1, nullptr);
-    for (unsigned int i = 0 ; i < n * 1000 ; ++i)
+    std::vector<base::State *> states(n + 1, nullptr);
+    for (unsigned int i = 0; i < n * 1000; ++i)
     {
         int j = r.uniformInt(0, n);
         if (states[j] == nullptr)
@@ -253,7 +250,7 @@ void randomizedAllocator(const base::SpaceInformation *si)
             states[j] = nullptr;
         }
     }
-    for (auto & state : states)
+    for (auto &state : states)
         if (state != nullptr)
             si->freeState(state);
 }
@@ -269,16 +266,16 @@ BOOST_AUTO_TEST_CASE(AllocationWithThreads)
     si.setup();
     const int NT = 10;
     ompl::time::point start = ompl::time::now();
-    std::vector<std::thread*> threads;
-    for (int i = 0 ; i < NT ; ++i)
+    std::vector<std::thread *> threads;
+    for (int i = 0; i < NT; ++i)
         threads.push_back(new std::thread([&si] { randomizedAllocator(&si); }));
-    for (int i = 0 ; i < NT ; ++i)
+    for (int i = 0; i < NT; ++i)
     {
         threads[i]->join();
         delete threads[i];
     }
-    std::cout << "Time spent randomly allocating & freeing states: "
-        << ompl::time::seconds(ompl::time::now() - start) << std::endl;
+    std::cout << "Time spent randomly allocating & freeing states: " << ompl::time::seconds(ompl::time::now() - start)
+              << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(PartialCopy)
@@ -305,7 +302,7 @@ BOOST_AUTO_TEST_CASE(PartialCopy)
     BOOST_CHECK(subspaces.size() == 1);
     base::ScopedState<> dummy(q);
 
-    for (int i = 0 ; i < 100 ; ++i)
+    for (int i = 0; i < 100; ++i)
     {
         state.random();
         tmp = state;

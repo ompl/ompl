@@ -111,8 +111,7 @@ void ompl::base::SO3StateSampler::sampleUniformNear(State *state, const State *n
     double d = rng_.uniform01();
     SO3StateSpace::StateType q, *qs = static_cast<SO3StateSpace::StateType *>(state);
     const auto *qnear = static_cast<const SO3StateSpace::StateType *>(near);
-    computeAxisAngle(q, rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(),
-                     2. * pow(d, third) * distance);
+    computeAxisAngle(q, rng_.gaussian01(), rng_.gaussian01(), rng_.gaussian01(), 2. * pow(d, third) * distance);
     quaternionProduct(*qs, *qnear, q);
 }
 

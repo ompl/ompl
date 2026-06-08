@@ -36,7 +36,7 @@
 
 #define BOOST_TEST_MODULE "ControlPlanning"
 #include <boost/test/unit_test.hpp>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <iostream>
 
 #include "ompl/base/goals/GoalState.h"
@@ -501,7 +501,7 @@ protected:
     PlanTest()
     {
         verbose = true;
-        boost::filesystem::path path(TEST_RESOURCES_DIR);
+        std::filesystem::path path(TEST_RESOURCES_DIR);
         path = path / "env1.txt";
         loadEnvironment(path.string().c_str(), env);
 
@@ -517,7 +517,9 @@ protected:
 
 BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
 
+#ifndef MACHINE_SPEED_FACTOR
 #define MACHINE_SPEED_FACTOR 1.0
+#endif
 
 // define boost tests for a planner assuming the naming convention is followed
 #define OMPL_PLANNER_TEST(Name, MinSuccess, MaxAvgTime)                                                                \
@@ -525,7 +527,7 @@ BOOST_FIXTURE_TEST_SUITE(MyPlanTestFixture, PlanTest)
     {                                                                                                                  \
         if (VERBOSE)                                                                                                   \
             printf("\n\n\n*****************************\nTesting %s ...\n", #Name);                                    \
-        runAllTests<Name##Test>(MinSuccess, (MaxAvgTime) * MACHINE_SPEED_FACTOR);                                        \
+        runAllTests<Name##Test>(MinSuccess, (MaxAvgTime) * MACHINE_SPEED_FACTOR);                                      \
         if (VERBOSE)                                                                                                   \
             printf("Done with %s.\n", #Name);                                                                          \
     }

@@ -67,31 +67,31 @@ namespace ompl
             virtual ~PathSection();
 
             /** \brief Interpolate along restriction using L2 metric
-              *  ---------------
-              *            ____x
-              *       ____/
-              *   ___/
-              *  x
-              *  --------------- */
+             *  ---------------
+             *            ____x
+             *       ____/
+             *   ___/
+             *  x
+             *  --------------- */
             void interpolateL2(HeadPtr &);
 
             /** \brief Interpolate along restriction using L1 metric
-              * (Fiber first)
-              *   ---------------
-              *    _____________x
-              *   |
-              *   |
-              *   x
-              *   --------------- */
+             * (Fiber first)
+             *   ---------------
+             *    _____________x
+             *   |
+             *   |
+             *   x
+             *   --------------- */
             void interpolateL1FiberFirst(HeadPtr &);
 
             /** \brief Interpolate along restriction using L1 metric (Fiber Last)
-              *   ---------------
-              *                 x
-              *                 |
-              *                 |
-              *   x_____________|
-              *   --------------- */
+             *   ---------------
+             *                 x
+             *                 |
+             *                 |
+             *   x_____________|
+             *   --------------- */
             void interpolateL1FiberLast(HeadPtr &);
 
             /** \brief Checks if section is feasible
@@ -141,6 +141,6 @@ namespace ompl
             base::State *xFiberGoal_{nullptr};
             base::State *xFiberTmp_{nullptr};
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 #endif

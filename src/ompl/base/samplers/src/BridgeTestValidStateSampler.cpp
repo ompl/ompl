@@ -8,8 +8,8 @@ ompl::base::BridgeTestValidStateSampler::BridgeTestValidStateSampler(const Space
   , stddev_(si->getMaximumExtent() * magic::STD_DEV_AS_SPACE_EXTENT_FRACTION)
 {
     name_ = "bridge_test";
-    params_.declareParam<double>("standard_deviation", [this](double stddev) { setStdDev(stddev); },
-                                 [this] { return getStdDev(); });
+    params_.declareParam<double>(
+        "standard_deviation", [this](double stddev) { setStdDev(stddev); }, [this] { return getStdDev(); });
 }
 
 bool ompl::base::BridgeTestValidStateSampler::sample(State *state)

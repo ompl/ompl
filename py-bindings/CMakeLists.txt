@@ -1,74 +1,120 @@
-include(PythonBindingsUtils)
-if(PY_PYPLUSPLUS AND PY_PYGCCXML AND CASTXML_FOUND)
-    option(OMPL_BUILD_PYBINDINGS "Build OMPL Python bindings" ON)
-    option(OMPL_BUILD_PYTESTS "Build/run OMPL Python tests" ON)
-else()
-    option(OMPL_BUILD_PYBINDINGS "Build OMPL Python bindings" OFF)
-    option(OMPL_BUILD_PYTESTS "Build/run OMPL Python tests" OFF)
-endif()
-add_feature_info(OMPL_BUILD_PYBINDINGS "${OMPL_BUILD_PYBINDINGS}" "Whether to build the Python bindings.")
-add_feature_info(OMPL_BUILD_PYTESTS "${OMPL_BUILD_PYTESTS}" "Whether to build/run the python binding unit tests.")
+# ---------------------------------------------------------------------
+# Create a single python module named _ompl
+# ---------------------------------------------------------------------
+file(GLOB_RECURSE PY_OMPL_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} base/*.cpp control/*.cpp geometric/*.cpp util/*.cpp tools/*.cpp python.cpp)
+nanobind_add_module(_ompl
+    STABLE_ABI
+    ${PY_OMPL_SOURCES}
+)
 
-if (OMPL_BUILD_PYBINDINGS)
-    if(WIN32)
-        # omit StateStorage class bindings on Windows;
-        # Boost.Serialization does nasty things that break the bindings.
-        set(PYOMPL_EXTRA_CFLAGS "${PYOMPL_EXTRA_CFLAGS} -DOMPL_BASE_STATE_STORAGE_ -DOMPL_BASE_PLANNER_DATA_STORAGE_ -DOMPL_CONTROL_PLANNER_DATA_STORAGE_")
-        add_definitions(-DOMPL_BASE_STATE_STORAGE_ -DOMPL_BASE_PLANNER_DATA_STORAGE_ -DOMPL_CONTROL_PLANNER_DATA_STORAGE_)
-    endif(WIN32)
-
-    set(OMPL_MODULES util base control geometric tools)
-
-    if(PY_OMPL_GENERATE)
-        # need to run cmake to regenerate ompl/bindings_generator.py if
-        # bindings_generator.py.in is changed.
-        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/bindings_generator.py.in"
-            "${CMAKE_CURRENT_SOURCE_DIR}/ompl/bindings_generator.py" @ONLY)
-
-        create_module_generation_targets(util)
-        if(OMPL_HAVE_NUMPY)
-            create_module_generation_targets(base)
-        else()
-            create_module_generation_targets(base "[Cc]onstrain")
-        endif()
-        add_dependencies(update_base_bindings update_util_bindings)
-        create_module_generation_targets(geometric)
-        add_dependencies(update_geometric_bindings update_base_bindings)
-        create_module_generation_targets(control)
-        add_dependencies(update_control_bindings update_geometric_bindings)
-        add_dependencies(update_control_bindings update_base_bindings)
-        create_module_generation_targets(tools)
-        add_dependencies(update_tools_bindings update_control_bindings)
-    endif(PY_OMPL_GENERATE)
-
-    if(PY_OMPL_COMPILE AND EXISTS "${CMAKE_CURRENT_BINARY_DIR}/bindings")
-        foreach(module ${OMPL_MODULES})
-            create_module_target(${module})
-        endforeach(module)
-        if(OMPL_HAVE_NUMPY AND TARGET py_ompl_base)
-            target_link_libraries(py_ompl_base ${Boost_NUMPY_LIBRARY})
-        endif()
-
-        install(DIRECTORY ompl DESTINATION "${OMPL_PYTHON_INSTALL_DIR}"
-            COMPONENT python
-            PATTERN "*.pyc" EXCLUDE
-            PATTERN "__pycache__" EXCLUDE
-            PATTERN "_*.so" EXCLUDE
-            PATTERN "app" EXCLUDE)
-        # put app submodule in omplapp component
-        if(PROJECT_NAME STREQUAL "omplapp")
-            install(DIRECTORY ompl/app
-                DESTINATION "${OMPL_PYTHON_INSTALL_DIR}/ompl"
-                COMPONENT omplapp
-                PATTERN "*.pyc" EXCLUDE
-                PATTERN "__pycache__" EXCLUDE
-                PATTERN "_*.so" EXCLUDE)
-        endif()
+# Ask Python's sysconfig where 'purelib' lands under CMAKE_INSTALL_PREFIX, then
+# strip the prefix to get a relative path. Matches ament_cmake_python's
+# algorithm so the result honors distro conventions (dist-packages on Debian,
+# site-packages elsewhere) and works for any prefix.
+if(NOT OMPL_PYTHON_INSTALL_PREFIX AND NOT SKBUILD)
+    set(_ompl_py_install_dir_code
+"import os, sysconfig
+schemes = sysconfig.get_scheme_names()
+kwargs = {'vars': {'base': '${CMAKE_INSTALL_PREFIX}'}}
+if 'deb_system' in schemes or 'osx_framework_library' in schemes:
+    kwargs['scheme'] = 'posix_prefix'
+elif 'rpm_prefix' in schemes:
+    kwargs['scheme'] = 'rpm_prefix'
+print(os.path.relpath(sysconfig.get_path('purelib', **kwargs),
+                      start='${CMAKE_INSTALL_PREFIX}').replace(os.sep, '/'))")
+    execute_process(
+        COMMAND "${Python_EXECUTABLE}" -c "${_ompl_py_install_dir_code}"
+        OUTPUT_VARIABLE _ompl_default_py_install
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        RESULT_VARIABLE _ompl_py_query_result)
+    if(NOT _ompl_py_query_result EQUAL 0)
+        message(FATAL_ERROR
+            "Failed to query Python sysconfig for default install path "
+            "(exit ${_ompl_py_query_result}). Set OMPL_PYTHON_INSTALL_PREFIX manually.")
     endif()
+    set(OMPL_PYTHON_INSTALL_PREFIX "${_ompl_default_py_install}" CACHE PATH
+        "Path to directory where OMPL python module will be installed")
+endif()
+message(STATUS "OMPL Python module install location: ${OMPL_PYTHON_INSTALL_PREFIX}")
+if(OMPL_PYTHON_INSTALL_PREFIX)
+    set(OMPL_PYTHON_INSTALL_DIR "${OMPL_PYTHON_INSTALL_PREFIX}/ompl")
+else()
+    # For scikit-build / wheel builds, relative path
+    set(OMPL_PYTHON_INSTALL_DIR "ompl")
+endif()
 
-endif(OMPL_BUILD_PYBINDINGS)
+if (DEFINED CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+    set_target_properties(_ompl PROPERTIES LIBRARY_OUTPUT_DIRECTORY
+        "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/ompl")
+else()
+    set_target_properties(_ompl PROPERTIES LIBRARY_OUTPUT_DIRECTORY "ompl")
+endif()
 
-add_custom_target(clean_bindings
-    "${CMAKE_COMMAND}" -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/bindings"
-    COMMAND "${CMAKE_COMMAND}" -E remove -f pyplusplus_{base,control,geometric,tools,util}.{cache,log}
-    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}")
+target_link_libraries(_ompl PRIVATE ompl::ompl)
+target_compile_options(_ompl PRIVATE -Wno-unused-parameter)
+
+# Set RPATH so the module can find libompl
+if(APPLE)
+    set_target_properties(_ompl PROPERTIES
+        BUILD_RPATH "@loader_path"
+        INSTALL_RPATH "@loader_path"
+    )
+elseif(UNIX)
+    set_target_properties(_ompl PROPERTIES
+        BUILD_RPATH "$ORIGIN"
+        INSTALL_RPATH "$ORIGIN"
+    )
+endif()
+
+# ---------------------------------------------------------------------
+# Generate type stubs for the single module
+# ---------------------------------------------------------------------
+nanobind_add_stub(
+    ompl_stub
+    MODULE _ompl
+    PYTHON_PATH $<TARGET_FILE_DIR:_ompl>
+    DEPENDS _ompl
+    VERBOSE
+    MARKER_FILE py.typed
+    RECURSIVE
+    OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR}/ompl
+    OUTPUT
+        ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl/__init__.pyi
+        ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl/base.pyi
+        ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl/geometric.pyi
+        ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl/control.pyi
+        ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl/util.pyi
+)
+
+# Post-process .pyi files to fix imports: replace "import _ompl.X" with "from ompl import _ompl"
+# This allows references like "_ompl.base.State" to continue working
+add_custom_command(
+    TARGET ompl_stub POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -D dir="${CMAKE_CURRENT_BINARY_DIR}/.."
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/../CMakeModules/fix_pyi_imports.cmake"
+    COMMENT "Post-processing .pyi stubs to use 'import ompl as _ompl'"
+)
+
+# install module
+install(TARGETS _ompl LIBRARY DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
+# install ompl shared lib
+install(TARGETS ompl DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
+# install python stubs
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl
+        DESTINATION ${OMPL_PYTHON_INSTALL_DIR}
+        FILES_MATCHING PATTERN "*.pyi")
+# install module hierarchy
+install(FILES
+        ${CMAKE_CURRENT_SOURCE_DIR}/ompl/__init__.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/ompl/base.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/ompl/geometric.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/ompl/control.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/ompl/util.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/ompl/tools.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/ompl/_benchmark_statistics.py
+        DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
+if(SKBUILD)
+    install(FILES
+            ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/ompl_benchmark_statistics.py
+            DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
+endif()

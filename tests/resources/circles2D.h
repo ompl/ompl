@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2013, Willow Garage, Inc.
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Willow Garage nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2013, Willow Garage, Inc.
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Willow Garage nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -48,7 +48,7 @@ struct Circles2D
 {
     struct Circle
     {
-        Circle(double x, double y, double r) : x_(x), y_(y), r_(r), r2_(r*r)
+        Circle(double x, double y, double r) : x_(x), y_(y), r_(r), r2_(r * r)
         {
         }
 
@@ -81,8 +81,9 @@ struct Circles2D
             fin >> id >> x >> y >> r;
             if (fin.eof() || !fin.good())
                 break;
-            circles_.emplace_back(x,y,r);
-            //      std::cout << "Added circle " << id << " at center " << x << ", " << y << " of radius " << r << std::endl;
+            circles_.emplace_back(x, y, r);
+            //      std::cout << "Added circle " << id << " at center " << x << ", " << y << " of radius " << r <<
+            //      std::endl;
         }
         fin.close();
 
@@ -96,7 +97,7 @@ struct Circles2D
         {
             minX_ = minY_ = std::numeric_limits<double>::infinity();
             maxX_ = maxY_ = -std::numeric_limits<double>::infinity();
-            for (std::size_t i = 0 ; i < circles_.size() ; ++i)
+            for (std::size_t i = 0; i < circles_.size(); ++i)
             {
                 if (circles_[i].x_ - circles_[i].r_ < minX_)
                     minX_ = circles_[i].x_ - circles_[i].r_;
@@ -108,7 +109,8 @@ struct Circles2D
                     maxY_ = circles_[i].y_ + circles_[i].r_;
             }
         }
-        //    std::cout << "Bounding box is [" << minX_ << ", " << minY_ << "] x [" << maxX_ << ", " << maxY_ << "]" << std::endl;
+        //    std::cout << "Bounding box is [" << minX_ << ", " << minY_ << "] x [" << maxX_ << ", " << maxY_ << "]" <<
+        //    std::endl;
     }
 
     void loadQueries(const std::string &filename)
@@ -126,7 +128,7 @@ struct Circles2D
         }
     }
 
-    const Query& getQuery(std::size_t index) const
+    const Query &getQuery(std::size_t index) const
     {
         return queries_[index];
     }
@@ -148,7 +150,7 @@ struct Circles2D
         return true;
     }
 
-        /**
+    /**
      * Gets the circle that the point is in collision with, if any.
      * If returns false, then the circle index (of the first circle)
      * is stored in cir.
@@ -157,7 +159,7 @@ struct Circles2D
      */
     bool noOverlap(double x, double y, int &cir) const
     {
-        for (std::size_t i = 0 ; i < circles_.size() ; ++i)
+        for (std::size_t i = 0; i < circles_.size(); ++i)
         {
             double dx = circles_[i].x_ - x;
             double dy = circles_[i].y_ - y;
@@ -178,7 +180,7 @@ struct Circles2D
             double dx = circles_[i].x_ - x;
             double dy = circles_[i].y_ - y;
             double distToI = sqrt(dx * dx + dy * dy) - circles_[i].r_;
-            if (distToI  < minDist)
+            if (distToI < minDist)
             {
                 minDist = distToI;
             }
@@ -195,23 +197,29 @@ struct Circles2D
         A << deltaY, deltaX, -deltaX, deltaY;
         // Solves the system of eqn.
         Eigen::Vector2d z = A.colPivHouseholderQr().solve(b);
-        if (z[1] <= 0) {
+        if (z[1] <= 0)
+        {
             // outside the line, choose the first end point.
             Eigen::Vector2d out(x1, y1);
             return out;
-        } else if (z[1] >= 1) {
+        }
+        else if (z[1] >= 1)
+        {
             Eigen::Vector2d out(x2, y2);
             return out;
-        } else {
+        }
+        else
+        {
             // Inside the line, return the closest point.
-            Eigen::Vector2d out(x1 + z[1]*deltaX, y1 + z[1]*deltaY);
+            Eigen::Vector2d out(x1 + z[1] * deltaX, y1 + z[1] * deltaY);
             return out;
         }
     }
 
     bool lineNoOverlap(double x1, double y1, double x2, double y2) const
     {
-        for (std::size_t i = 0; i < circles_.size(); i++) {
+        for (std::size_t i = 0; i < circles_.size(); i++)
+        {
             Eigen::Vector2d ipoint = lineClosestPoint(x1, y1, x2, y2, i);
             double dx = circles_[i].x_ - ipoint[0];
             double dy = circles_[i].y_ - ipoint[1];
@@ -221,13 +229,13 @@ struct Circles2D
             }
         }
         return true;
-
     }
 
-    double lineSignedDistance(double x1, double y1, double x2, double y2, Eigen::Vector2d& point) const
+    double lineSignedDistance(double x1, double y1, double x2, double y2, Eigen::Vector2d &point) const
     {
         double minDist = std::numeric_limits<double>::infinity();
-        for (std::size_t i = 0; i < circles_.size(); i++) {
+        for (std::size_t i = 0; i < circles_.size(); i++)
+        {
             Eigen::Vector2d ipoint = lineClosestPoint(x1, y1, x2, y2, i);
             double dx = circles_[i].x_ - ipoint[0];
             double dy = circles_[i].y_ - ipoint[1];
@@ -250,7 +258,7 @@ struct Circles2D
             double dx = circles_[i].x_ - x;
             double dy = circles_[i].y_ - y;
             double distToI = sqrt(dx * dx + dy * dy) - circles_[i].r_;
-            if (distToI  < minDist)
+            if (distToI < minDist)
             {
                 minDist = distToI;
                 bestI = i;
@@ -260,11 +268,11 @@ struct Circles2D
         return out.normalized();
     }
 
-    double obstacleDistanceGradient(double x, double y, Eigen::MatrixXd& grad) const
+    double obstacleDistanceGradient(double x, double y, Eigen::MatrixXd &grad) const
     {
         static double resolution = 0.02;
         double inv_twice_resolution = 1.0 / (2.0 * resolution);
-        grad(0, 0) =  (signedDistance(x + resolution, y) - signedDistance(x - resolution, y)) * inv_twice_resolution;
+        grad(0, 0) = (signedDistance(x + resolution, y) - signedDistance(x - resolution, y)) * inv_twice_resolution;
         grad(0, 1) = (signedDistance(x, y + resolution) - signedDistance(x, y - resolution)) * inv_twice_resolution;
         return signedDistance(x, y);
     }
@@ -274,7 +282,7 @@ struct Circles2D
         double max = -1 * std::numeric_limits<double>::infinity();
         for (double x = minX_; x < maxX_; x += resolution)
         {
-            for (double y = minY_; y < maxY_; y+= resolution)
+            for (double y = minY_; y < maxY_; y += resolution)
             {
                 double dist = signedDistance(x, y);
                 if (dist > max)

@@ -108,7 +108,7 @@ std::optional<OwenStateSpace::PathType> OwenStateSpace::getPath(const State *sta
 {
     auto s1 = state1->as<StateType>();
     auto s2 = state2->as<StateType>();
-    auto path = dubinsSpace_.dubins(state1, state2, rho_);
+    auto path = dubinsSpace_.getPath(state1, state2, rho_);
     double dz = (*s2)[2] - (*s1)[2], len = rho_ * path.length();
     if (std::abs(dz) <= len * tanMaxPitch_)
     {
@@ -121,14 +121,14 @@ std::optional<OwenStateSpace::PathType> OwenStateSpace::getPath(const State *sta
         unsigned int k = std::floor((std::abs(dz) / tanMaxPitch_ - len) / (twopi * rho_));
         auto radius = rho_;
         auto radiusFun = [&, this](double r)
-        { return (dubinsSpace_.dubins(state1, state2, r).length() + twopi * k) * r * tanMaxPitch_ - std::abs(dz); };
+        { return (dubinsSpace_.getPath(state1, state2, r).length() + twopi * k) * r * tanMaxPitch_ - std::abs(dz); };
         std::uintmax_t iter = MAX_ITER;
         auto result = boost::math::tools::bracket_and_solve_root(radiusFun, radius, 2., true, TOLERANCE, iter);
         radius = .5 * (result.first + result.second);
         // Discontinuities in the Dubins distance and, by extension, radiusFun can cause bracket_and_solve_root to fail.
         if (std::abs(radiusFun(radius)) > 1e-5)
             return {};
-        path = dubinsSpace_.dubins(state1, state2, radius);
+        path = dubinsSpace_.getPath(state1, state2, radius);
         return PathType{path, radius, dz, k};
     }
 
@@ -139,7 +139,7 @@ std::optional<OwenStateSpace::PathType> OwenStateSpace::getPath(const State *sta
         auto phiFun = [&, this](double phi)
         {
             turn(state1, rho_, phi, zi);
-            return (std::abs(phi) + dubinsSpace_.dubins(zi, state2).length()) * rho_ * tanMaxPitch_ - std::abs(dz);
+            return (std::abs(phi) + dubinsSpace_.getPath(zi, state2).length()) * rho_ * tanMaxPitch_ - std::abs(dz);
         };
 
         try
@@ -167,7 +167,7 @@ std::optional<OwenStateSpace::PathType> OwenStateSpace::getPath(const State *sta
         }
         assert(std::abs(phiFun(phi)) < 1e-5);
         turn(state1, rho_, phi, zi);
-        path = dubinsSpace_.dubins(zi, state2, rho_);
+        path = dubinsSpace_.getPath(zi, state2, rho_);
         dubinsSpace_.freeState(zi);
         return PathType{path, rho_, dz, phi};
     }

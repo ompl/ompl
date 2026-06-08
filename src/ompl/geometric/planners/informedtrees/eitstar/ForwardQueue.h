@@ -137,7 +137,7 @@ namespace ompl
                 {
                     EdgeKeys(const ompl::base::Cost &lowerBound, const ompl::base::Cost &estimated,
                              const std::size_t effort)
-                      : lowerBoundCost(lowerBound), estimatedCost(estimated), estimatedEffort(effort){};
+                      : lowerBoundCost(lowerBound), estimatedCost(estimated), estimatedEffort(effort) {};
                     ompl::base::Cost lowerBoundCost;
                     ompl::base::Cost estimatedCost;
                     std::size_t estimatedEffort;

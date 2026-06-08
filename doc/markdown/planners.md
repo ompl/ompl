@@ -40,6 +40,10 @@ Planners in this category only accounts for the geometric and kinematic constrai
       SST is an asymptotically near-optimal incremental version of RRT.
     - [Transition-based RRT (T-RRT)](\ref gTRRT)<br>
       T-RRT does not give any hard optimality guarantees, but tries to find short, low-cost paths.
+    - [T-RRT*](\ref gTRRTstar)<br>
+      An asymptotically optimal version of [T-RRT](\ref gTRRT).
+    - [AT-RRT](\ref gATRRT)<br>
+      An anytime (optimal) variant of [T-RRT](\ref gTRRT).
     - [Vector Field RRT](\ref gVFRRT)<br>
       VF-RRT is a tree-based motion planner that tries to minimize the so-called upstream cost of a path. The upstream cost is defined by an integral over a user-defined vector field.
     - [Parallel RRT (pRRT)](\ref gpRRT)<br>
@@ -48,6 +52,8 @@ Planners in this category only accounts for the geometric and kinematic constrai
       This planner performs lazy state validity checking (similar to LazyPRM). It is not experimental, but in our experience it does not seem to outperform other planners by a significant margin on any class of problems.
     - [Task-space RRT (TSRRT)](\ref gTSRRT)<br>
       TSRRT is a variant of RRT where exploration is guided by the task space. It requires an ompl::geometric::TaskSpaceConfig instance that defines how to project configuration space states to the task spaces and an inverse operation to lift task space states to the configuration space.
+    - [Asymptotically Optimal RRTConnect (AORRTC)](\ref gAORRTC)<br>
+      AORRTC is a variant of RRTConnect that leverages the AOX meta algorithm to probabilistically converge to optimal solutions. It does this by repeatedly searching in a cost-augmented space and iteratively constraining the cost dimension of this augmented space based on the cost of the current best solution.
   - [Expansive Space Trees (EST)](\ref gEST)<br>
     This planner was published around the same time as RRT. In our experience it is not as sensitive to having a good distance measure, which can be difficult to define for complex high-dimensional state spaces. There are actually three versions of EST: the [original version](\ref gEST) that is close to the first publication, [a bidirectional version](\ref gBiEST), and a [projection-based version](\ref gProjEST). The low-dimensional projection is used to keep track of how the state space has been explored. Most of the time OMPL can automatically determine a reasonable projection. We have implemented a few planners that not necessarily simple variants of EST, but do share the same expansion strategy:
     - [Single-query Bi-directional Lazy collision checking planner (SBL)](\ref gSBL)<br>
@@ -70,12 +76,12 @@ Planners in this category only accounts for the geometric and kinematic constrai
   - [Bidirectional Fast Marching Tree algorithm (BFMT∗)](\ref gBFMT)<br>
     Executes two FMT* trees, one from the start and another one from the goal resulting in a faster planner as it explores less space.
 - **Multi-level planners**<br>
-  Planning algorithms which can exploit multiple levels of abstractions. If you want to use them, you should call them with a vector of `ompl::base::SpaceInformationPtr`. All planner then guarantee probabilistic completeness, if the supplied abstractions are admissible. There is extensive documentation in the form of a [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](group__demos.html).
+  Planning algorithms which can exploit multiple levels of abstractions. If you want to use them, you should call them with a vector of `ompl::base::SpaceInformationPtr`. All planner then guarantee probabilistic completeness, if the supplied abstractions are admissible. There is extensive documentation in the form of a [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](demos.html).
   - [Rapidly-exploring Random Quotient space Trees (QRRT)](\ref QRRT)<br>
-    A generalization of RRT to plan on different abstraction levels. 
+    A generalization of RRT to plan on different abstraction levels.
   - [QRRT*](\ref QRRTstar)<br> An asymptotically optimal version of QRRT
   - [Quotient-Space Roadmap Planner (QMP)](\ref QMP)<br>
-    A generalization of PRM to plan on different abstraction levels. 
+    A generalization of PRM to plan on different abstraction levels.
   - [QMP*](\ref QMPstar)<br> An asymptotically optimal version of QMP
 - **Optimizing planners**<br>
   In recent years several sampling-based planning algorithms have been proposed that still provide some optimality guarantees. Typically, an optimal solution is assumed to be shortest path. In OMPL we have a more general framework for expressing the cost of states and paths that allows you to, e.g., maximize the minimum clearance along a path, minimize the mechanical work, or some arbitrary user-defined optimization criterion. See \ref optimalPlanning for more information. Some of the planners below use this general cost framework, but keep in mind that convergence to optimality is **not guaranteed** when optimizing over something other than path length.
@@ -113,7 +119,7 @@ The line between feasible and optimal planners is not so black and white in prac
 
 - [Hill Climbing](\ref HillClimbing)
 - [Genetic Search](\ref GeneticSearch)
-  
+
 </div>
 
 ## Control-based planners {#control_planners}
@@ -145,12 +151,12 @@ To solve problems involving high-dimensional state spaces, we often can use
 multilevel abstractions to simplify the state spaces, thereby allowing dedicated
 planner to quicker find solutions. The planner in this class support sequences
 of state spaces and can be utilized both for state spaces with geometric and
-dynamic constraints. There is extensive documentation in the form of a [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](group__demos.html).
+dynamic constraints. There is extensive documentation in the form of a [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](demos.html).
   - [Rapidly-exploring Random Quotient space Trees (QRRT)](\ref QRRT)<br>
-    A generalization of RRT to plan on different abstraction levels. 
+    A generalization of RRT to plan on different abstraction levels.
   - [QRRT*](\ref QRRTstar)<br> An asymptotically optimal version of QRRT
   - [Quotient-Space Roadmap Planner (QMP)](\ref QMP)<br>
-    A generalization of PRM to plan on different abstraction levels. 
+    A generalization of PRM to plan on different abstraction levels.
   - [QMP*](\ref QMPstar)<br> An asymptotically optimal version of QMP
   - [Sparse Quotient space roadmap planner (SPQR)*](\ref SPQR)<br> A
     generalization of SPARS to multi-level planning.

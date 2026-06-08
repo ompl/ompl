@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(ompl_cmake_export LANGUAGES CXX)
 
-include("${CMAKE_CURRENT_LIST_DIR}/../../CMakeModules/CompilerSettings.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/../../CMakeModules/OMPLCompilerSettings.cmake")
 
 # Use NO_SYSTEM_ENVIRONMENT_PATH to avoid finding /opt/ros/humble/include/ompl-1.6
 # We only want ompl from the prefix path.
@@ -12,7 +12,6 @@ message("* OMPL_FOUND: ${OMPL_FOUND}")
 message("* ompl_FOUND: ${ompl_FOUND}")
 message("* OMPL_INCLUDE_DIRS: ${OMPL_INCLUDE_DIRS}")
 message("* OMPL_LIBRARIES: ${OMPL_LIBRARIES}")
-message("* OMPLAPP_LIBRARIES: ${OMPLAPP_LIBRARIES}")
 message("* OMPL_VERSION: ${OMPL_VERSION}")
 message("* OMPL_MAJOR_VERSION: ${OMPL_MAJOR_VERSION}")
 message("* OMPL_MINOR_VERSION: ${OMPL_MINOR_VERSION}")

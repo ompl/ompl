@@ -99,8 +99,9 @@ BundleSpaceGraph::BundleSpaceGraph(const ompl::base::SpaceInformationPtr &si, Bu
     specs_.approximateSolutions = false;
     specs_.optimizingPaths = false;
 
-    Planner::declareParam<double>("range", this, &BundleSpaceGraph::setRange, &BundleSpaceGraph::getRange, "0.:1.:"
-                                                                                                           "10000.");
+    Planner::declareParam<double>("range", this, &BundleSpaceGraph::setRange, &BundleSpaceGraph::getRange,
+                                  "0.:1.:"
+                                  "10000.");
 
     Planner::declareParam<double>("goal_bias", this, &BundleSpaceGraph::setGoalBias, &BundleSpaceGraph::getGoalBias,
                                   "0.:.1:1.");
@@ -134,8 +135,8 @@ void BundleSpaceGraph::setup()
             //(non-symmetric metric), so we cannot use NN structures like GNAT
             nearestDatastructure_.reset(new NearestNeighborsSqrtApprox<Configuration *>());
         }
-        nearestDatastructure_->setDistanceFunction(
-            [this](const Configuration *a, const Configuration *b) { return distance(a, b); });
+        nearestDatastructure_->setDistanceFunction([this](const Configuration *a, const Configuration *b)
+                                                   { return distance(a, b); });
     }
 
     if (hasBaseSpace() && getProjection()->isFibered())
@@ -690,18 +691,18 @@ ompl::base::PathPtr BundleSpaceGraph::getPath(const Vertex &start, const Vertex 
 
     try
     {
-        boost::astar_search(graph, start, [this, goal](const Vertex v) { return costHeuristic(v, goal); },
-                            boost::predecessor_map(&prev[0])
-                                .weight_map(weight)
-                                .distance_compare([this](EdgeInternalState c1, EdgeInternalState c2) {
-                                    return getOptimizationObjectivePtr()->isCostBetterThan(c1.getCost(), c2.getCost());
-                                })
-                                .distance_combine([this](EdgeInternalState c1, EdgeInternalState c2) {
-                                    return getOptimizationObjectivePtr()->combineCosts(c1.getCost(), c2.getCost());
-                                })
-                                .distance_inf(getOptimizationObjectivePtr()->infiniteCost())
-                                .distance_zero(getOptimizationObjectivePtr()->identityCost())
-                                .visitor(BundleSpaceGraphGoalVisitor<Vertex>(goal)));
+        boost::astar_search(
+            graph, start, [this, goal](const Vertex v) { return costHeuristic(v, goal); },
+            boost::predecessor_map(&prev[0])
+                .weight_map(weight)
+                .distance_compare(
+                    [this](EdgeInternalState c1, EdgeInternalState c2)
+                    { return getOptimizationObjectivePtr()->isCostBetterThan(c1.getCost(), c2.getCost()); })
+                .distance_combine([this](EdgeInternalState c1, EdgeInternalState c2)
+                                  { return getOptimizationObjectivePtr()->combineCosts(c1.getCost(), c2.getCost()); })
+                .distance_inf(getOptimizationObjectivePtr()->infiniteCost())
+                .distance_zero(getOptimizationObjectivePtr()->identityCost())
+                .visitor(BundleSpaceGraphGoalVisitor<Vertex>(goal)));
     }
     catch (BundleSpaceGraphFoundGoal &)
     {

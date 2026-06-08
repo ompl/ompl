@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>ompl</name>
-  <version>1.7.0</version>
+  <version>2.0.0</version>
   <description>OMPL is a free sampling-based motion planning library.</description>
-  <maintainer email="mmoll@rice.edu">Mark Moll</maintainer>
-  <maintainer email="marq.razz@gmail.com">Marq Rasumessen</maintainer>
+  <maintainer email="mark@moll.ai">Mark Moll</maintainer>
+  <maintainer email="marq.razz@gmail.com">Marq Rasmussen</maintainer>
   <maintainer email="jafar.uruc@gmail.com">Jafar Uruc</maintainer>
   <license>BSD</license>
 
@@ -15,16 +16,20 @@
   <author>Kavraki Lab</author>
 
   <buildtool_depend>cmake</buildtool_depend>
+  <buildtool_depend>pkg-config</buildtool_depend>
 
-  <build_depend>cmake</build_depend>
-  <build_depend>boost</build_depend>
+  <depend>yaml-cpp</depend>
+
   <build_depend>eigen</build_depend>
-  <build_depend>pkg-config</build_depend>
+  <build_depend>libboost-program-options-dev</build_depend>
+  <build_depend>libboost-serialization-dev</build_depend>
+  <build_depend>libboost-system-dev</build_depend>
   <build_depend>libflann-dev</build_depend>
+  <build_depend>python3-dev</build_depend>
 
-  <exec_depend>boost</exec_depend>
-  <exec_depend>eigen</exec_depend>
-  <exec_depend>libflann-dev</exec_depend>
+  <exec_depend>libboost-program-options</exec_depend>
+  <exec_depend>libboost-serialization</exec_depend>
+  <exec_depend>libflann</exec_depend>
 
   <export>
     <build_type>cmake</build_type>

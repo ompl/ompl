@@ -94,14 +94,9 @@ void ompl::geometric::STRIDE::setupTree()
         new NearestNeighborsGNAT<Motion *>(degree_, minDegree_, maxDegree_, maxNumPtsPerLeaf_, estimatedDimension_));
     if (useProjectedDistance_)
         tree_->setDistanceFunction([this](const Motion *a, const Motion *b)
-                                   {
-                                       return projectedDistanceFunction(a, b);
-                                   });
+                                   { return projectedDistanceFunction(a, b); });
     else
-        tree_->setDistanceFunction([this](const Motion *a, const Motion *b)
-                                   {
-                                       return distanceFunction(a, b);
-                                   });
+        tree_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 }
 
 void ompl::geometric::STRIDE::clear()

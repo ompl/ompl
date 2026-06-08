@@ -513,9 +513,8 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
 
     // Sort so highest costs are first
     std::sort(distCostIndices.begin(), distCostIndices.end(),
-              [this](std::tuple<double, base::Cost, unsigned int> a, std::tuple<double, base::Cost, unsigned int> b) {
-                  return obj_->isCostBetterThan(std::get<1>(b), std::get<1>(a));
-              });
+              [this](std::tuple<double, base::Cost, unsigned int> a, std::tuple<double, base::Cost, unsigned int> b)
+              { return obj_->isCostBetterThan(std::get<1>(b), std::get<1>(a)); });
 
     double threshold = dists.back() * snapToVertex;
 
@@ -694,9 +693,8 @@ bool ompl::geometric::PathSimplifier::perturbPath(PathGeometric &path, double st
             // Sort so highest costs are first
             std::sort(
                 distCostIndices.begin(), distCostIndices.end(),
-                [this](std::tuple<double, base::Cost, unsigned int> a, std::tuple<double, base::Cost, unsigned int> b) {
-                    return obj_->isCostBetterThan(std::get<1>(b), std::get<1>(a));
-                });
+                [this](std::tuple<double, base::Cost, unsigned int> a, std::tuple<double, base::Cost, unsigned int> b)
+                { return obj_->isCostBetterThan(std::get<1>(b), std::get<1>(a)); });
             threshold = dists.back() * snapToVertex;
             result = true;
             nochange = 0;

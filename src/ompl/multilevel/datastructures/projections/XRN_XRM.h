@@ -64,7 +64,7 @@ namespace ompl
             ompl::base::StateSpacePtr computeFiberSpace() override;
             unsigned int dimensionBaseFirstSubspace{0};
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 #endif

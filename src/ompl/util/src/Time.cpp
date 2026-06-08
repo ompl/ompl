@@ -39,13 +39,14 @@
 ompl::time::ProgressDisplay::ProgressDisplay(std::ostream &os) : out_(os)
 {
     out_ << "0%   10   20   30   40   50   60   70   80   90   100%\n"
-         << "|----|----|----|----|----|----|----|----|----|----|"
-         << std::endl;
+         << "|----|----|----|----|----|----|----|----|----|----|" << std::endl;
 }
 
 unsigned int ompl::time::ProgressDisplay::operator++()
 {
-    if (++count_ & 1) out_ << '*' << std::flush;
-    if (count_ == 100u) out_ << '*' << std::endl;
+    if (++count_ & 1)
+        out_ << '*' << std::flush;
+    if (count_ == 100u)
+        out_ << '*' << std::endl;
     return count_;
 }

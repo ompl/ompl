@@ -127,7 +127,8 @@ namespace ompl
                     boost::scoped_ptr<std::thread> t;
                     if (planner->getPlannerProgressProperties().size() > 0)
                         t.reset(new std::thread(
-                            [this, &planner, timeBetweenUpdates] {
+                            [this, &planner, timeBetweenUpdates]
+                            {
                                 collectProgressProperties(planner->getPlannerProgressProperties(), timeBetweenUpdates);
                             }));
                     status_ = planner->solve(ptc, 0.1);
@@ -193,13 +194,13 @@ namespace ompl
 /// @endcond
 
 ompl::tools::Benchmark::Benchmark(geometric::SimpleSetup &setup, const std::string &name)
-    : gsetup_(&setup), csetup_(nullptr)
+  : gsetup_(&setup), csetup_(nullptr)
 {
     exp_.name = name;
 }
 
 ompl::tools::Benchmark::Benchmark(control::SimpleSetup &setup, const std::string &name)
-    : gsetup_(nullptr), csetup_(&setup)
+  : gsetup_(nullptr), csetup_(&setup)
 {
     exp_.name = name;
 }

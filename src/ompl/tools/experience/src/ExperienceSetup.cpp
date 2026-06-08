@@ -39,8 +39,7 @@
 #include "ompl/tools/experience/ExperienceSetup.h"
 #include "ompl/tools/multiplan/ParallelPlan.h"
 
-ompl::tools::ExperienceSetup::ExperienceSetup(const base::SpaceInformationPtr &si)
-  : ompl::geometric::SimpleSetup(si)
+ompl::tools::ExperienceSetup::ExperienceSetup(const base::SpaceInformationPtr &si) : ompl::geometric::SimpleSetup(si)
 {
     logInitialize();
 };

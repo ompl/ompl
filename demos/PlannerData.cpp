@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2012, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2012, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ryan Luna, Luis G. Torres */
 
@@ -61,9 +61,8 @@ bool isStateValid(const ob::State *state)
 
     // check validity of state defined by pos & rot
 
-
     // return a value that is always true but uses the two variables we define, so we avoid compiler warnings
-    return (const void*)rot != (const void*)pos;
+    return (const void *)rot != (const void *)pos;
 }
 
 void planWithSimpleSetup()
@@ -105,9 +104,10 @@ void planWithSimpleSetup()
         og::PathGeometric slnPath = ss.getSolutionPath();
 
         std::cout << std::endl;
-        std::cout << "Found solution with " << slnPath.getStateCount() << " states and length " << slnPath.length() << std::endl;
+        std::cout << "Found solution with " << slnPath.getStateCount() << " states and length " << slnPath.length()
+                  << std::endl;
         // print the path to screen
-        //slnPath.print(std::cout);
+        // slnPath.print(std::cout);
 
         std::cout << "Writing PlannerData to file './myPlannerData'" << std::endl;
         ob::PlannerData data(ss.getSpaceInformation());
@@ -121,11 +121,9 @@ void planWithSimpleSetup()
 }
 
 // Used for A* search.  Computes the heuristic distance from vertex v1 to the goal
-ob::Cost distanceHeuristic(ob::PlannerData::Graph::Vertex v1,
-                           const ob::GoalState* goal,
-                           const ob::OptimizationObjective* obj,
-                           const boost::property_map<ob::PlannerData::Graph::Type,
-                           vertex_type_t>::type& plannerDataVertices)
+ob::Cost
+distanceHeuristic(ob::PlannerData::Graph::Vertex v1, const ob::GoalState *goal, const ob::OptimizationObjective *obj,
+                  const boost::property_map<ob::PlannerData::Graph::Type, vertex_type_t>::type &plannerDataVertices)
 {
     return ob::Cost(obj->costToGo(plannerDataVertices[v1]->getState(), goal));
 }
@@ -156,7 +154,7 @@ void readPlannerData()
         data.computeEdgeWeights(opt);
 
         // Getting a handle to the raw Boost.Graph data
-        ob::PlannerData::Graph::Type& graph = data.toBoostGraph();
+        ob::PlannerData::Graph::Type &graph = data.toBoostGraph();
 
         // Now we can apply any Boost.Graph algorithm.  How about A*!
 
@@ -171,19 +169,19 @@ void readPlannerData()
         goal.setState(data.getGoalVertex(0).getState());
         ob::PlannerData::Graph::Vertex start = boost::vertex(data.getStartIndex(0), graph);
         boost::astar_visitor<boost::null_visitor> dummy_visitor;
-        boost::astar_search(graph, start,
-            [&goal, &opt, &vertices](ob::PlannerData::Graph::Vertex v1) { return distanceHeuristic(v1, &goal, &opt, vertices); },
-            boost::predecessor_map(prev).
-            distance_compare([&opt](ob::Cost c1, ob::Cost c2) { return opt.isCostBetterThan(c1, c2); }).
-            distance_combine([&opt](ob::Cost c1, ob::Cost c2) { return opt.combineCosts(c1, c2); }).
-            distance_inf(opt.infiniteCost()).
-            distance_zero(opt.identityCost()).
-            visitor(dummy_visitor));
+        boost::astar_search(
+            graph, start, [&goal, &opt, &vertices](ob::PlannerData::Graph::Vertex v1)
+            { return distanceHeuristic(v1, &goal, &opt, vertices); },
+            boost::predecessor_map(prev)
+                .distance_compare([&opt](ob::Cost c1, ob::Cost c2) { return opt.isCostBetterThan(c1, c2); })
+                .distance_combine([&opt](ob::Cost c1, ob::Cost c2) { return opt.combineCosts(c1, c2); })
+                .distance_inf(opt.infiniteCost())
+                .distance_zero(opt.identityCost())
+                .visitor(dummy_visitor));
 
         // Extracting the path
         og::PathGeometric path(si);
-        for (ob::PlannerData::Graph::Vertex pos = boost::vertex(data.getGoalIndex(0), graph);
-             prev[pos] != pos;
+        for (ob::PlannerData::Graph::Vertex pos = boost::vertex(data.getGoalIndex(0), graph); prev[pos] != pos;
              pos = prev[pos])
         {
             path.append(vertices[pos]->getState());
@@ -192,8 +190,9 @@ void readPlannerData()
         path.reverse();
 
         // print the path to screen
-        //path.print(std::cout);
-        std::cout << "Found stored solution with " << path.getStateCount() << " states and length " << path.length() << std::endl;
+        // path.print(std::cout);
+        std::cout << "Found stored solution with " << path.getStateCount() << " states and length " << path.length()
+                  << std::endl;
     }
 }
 

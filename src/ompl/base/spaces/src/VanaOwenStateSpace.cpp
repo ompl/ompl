@@ -35,10 +35,7 @@
 /* Author: Mark Moll */
 
 #include "ompl/base/spaces/VanaOwenStateSpace.h"
-#include "ompl/base/SpaceInformation.h"
 #include "ompl/tools/config/MagicConstants.h"
-#include "ompl/util/Exception.h"
-#include <queue>
 #include <boost/math/tools/toms748_solve.hpp>
 
 using namespace ompl::base;
@@ -134,7 +131,7 @@ DubinsStateSpace::StateType *VanaOwenStateSpace::get2DPose(double x, double y, d
     return state;
 }
 
-bool VanaOwenStateSpace::isValid(DubinsStateSpace::DubinsPath const &path, StateType const *state) const
+bool VanaOwenStateSpace::isValid(DubinsStateSpace::PathType const &path, StateType const *state) const
 {
     // in three cases the result is invalid:
     // 1. path of type CCC (i.e., RLR or LRL)
@@ -157,7 +154,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
     result.verticalRadius_ = 1. / std::sqrt(1. / (rho_ * rho_) - 1. / (radius * radius));
     result.deltaZ_ = (*to)[2] - (*from)[2];
     // note that we are exploiting properties of the memory layout of state types
-    result.pathXY_ = dubinsSpace_.dubins(from, to, radius);
+    result.pathXY_ = dubinsSpace_.getPath(from, to, radius);
     result.phi_ = 0.;
     result.numTurns_ = 0;
 
@@ -166,9 +163,11 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
     {
         if (std::abs(result.deltaZ_) < 1e-8 && std::abs(to->pitch() - from->pitch()) < 1e-8)
         {
-            result.pathSZ_.type_ = &DubinsStateSpace::dubinsPathType[0]; // LSL type
+            result.pathSZ_.type_ = &DubinsStateSpace::dubinsPathType()[0];  // LSL type
             result.pathSZ_.length_[0] = result.pathSZ_.length_[2] = 0.;
             result.pathSZ_.length_[1] = result.deltaZ_;
+            // don't break length() and interpolation()
+            result.verticalRadius_ = 0.;
             return true;
         }
         else
@@ -182,7 +181,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
     startSZ->setYaw(from->pitch());
     endSZ->setXY(len, (*to)[2]);
     endSZ->setYaw(to->pitch());
-    result.pathSZ_ = dubinsSpace_.dubins(startSZ, endSZ, result.verticalRadius_);
+    result.pathSZ_ = dubinsSpace_.getPath(startSZ, endSZ, result.verticalRadius_);
     if (isValid(result.pathSZ_, from))
     {
         // low altitude path
@@ -198,7 +197,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
         {
             result.horizontalRadius_ = r;
             result.verticalRadius_ = 1. / std::sqrt(1. / (rho_ * rho_) - 1. / (r * r));
-            result.pathXY_ = dubinsSpace_.dubins(from, to, result.horizontalRadius_);
+            result.pathXY_ = dubinsSpace_.getPath(from, to, result.horizontalRadius_);
         }
         endSZ->setX((result.pathXY_.length() + twopi * result.numTurns_) * r);
         turn(startSZ, result.verticalRadius_, pitch - from->pitch(), s1b);
@@ -221,7 +220,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
         auto radiusFun = [&, this](double r)
         {
             update(r);
-            result.pathSZ_ = dubinsSpace_.dubins(startSZ, endSZ, result.verticalRadius_);
+            result.pathSZ_ = dubinsSpace_.getPath(startSZ, endSZ, result.verticalRadius_);
             return ((result.pathXY_.length() + twopi * result.numTurns_) * r - turnS) * tanPitch + turnZ -
                    result.deltaZ_;
         };
@@ -234,7 +233,7 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
                 OMPL_WARN("Maximum number of iterations exceeded for high altitude Vana-Owen path");
             return std::abs(rval) < 1e-4;
         }
-        catch (std::domain_error& e)
+        catch (std::domain_error &e)
         {
             return false;
         }
@@ -245,10 +244,11 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
         auto zi = scratch[1];
         auto phiFun = [&, this](double phi)
         {
-            if (std::abs(phi)>twopi)
+            if (std::abs(phi) > twopi)
                 throw std::domain_error("phi too large");
             turn(from, radius, phi, zi);
-            return (std::abs(phi) + dubinsSpace_.dubins(zi, to).length()) * radius * std::abs(tanPitch) - std::abs(result.deltaZ_);
+            return (std::abs(phi) + dubinsSpace_.getPath(zi, to).length()) * radius * std::abs(tanPitch) -
+                   std::abs(result.deltaZ_);
         };
 
         try
@@ -262,7 +262,8 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
         }
         catch (...)
         {
-            try {
+            try
+            {
                 std::uintmax_t iter = MAX_ITER;
                 result.phi_ = -.1;
                 auto root = boost::math::tools::bracket_and_solve_root(phiFun, result.phi_, 2., true, TOLERANCE, iter);
@@ -270,13 +271,13 @@ bool VanaOwenStateSpace::decoupled(const StateType *from, const StateType *to, d
             }
             catch (...)
             {
-                //OMPL_ERROR("this shouldn't be happening!");
+                // OMPL_ERROR("this shouldn't be happening!");
                 return false;
             }
         }
-        result.pathXY_ = dubinsSpace_.dubins(zi, to, radius);
+        result.pathXY_ = dubinsSpace_.getPath(zi, to, radius);
         endSZ->setX((result.pathXY_.length() + result.phi_) * radius);
-        result.pathSZ_ = dubinsSpace_.dubins(startSZ, endSZ, result.verticalRadius_);
+        result.pathSZ_ = dubinsSpace_.getPath(startSZ, endSZ, result.verticalRadius_);
         return std::abs(phiFun(result.phi_)) < .01 && isValid(result.pathSZ_, from);
     }
     return true;
@@ -343,9 +344,8 @@ void VanaOwenStateSpace::interpolate(const State *from, const State *to, const d
 {
     if (auto path = getPath(from, to))
         interpolate(from, to, t, *path, state);
-    else
-        if (from != state)
-            copyState(state, from);
+    else if (from != state)
+        copyState(state, from);
 }
 
 void VanaOwenStateSpace::interpolate(const State *from, const State *to, const double t, PathType &path,
@@ -464,7 +464,7 @@ VanaOwenStateSpace::PathType &VanaOwenStateSpace::PathType::operator=(const Vana
 
 double VanaOwenStateSpace::PathType::length() const
 {
-    return verticalRadius_ * pathSZ_.length();
+    return verticalRadius_ > 0. ? verticalRadius_ * pathSZ_.length() : horizontalRadius_ * pathXY_.length();
 }
 
 VanaOwenStateSpace::PathCategory VanaOwenStateSpace::PathType::category() const

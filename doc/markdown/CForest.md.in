@@ -85,7 +85,7 @@ When implementing CForest, the focus was to modify the underlying planner as lit
 
 ## Results {#cf_results}
 
-CForest produces many interesting results. All these results are obtained with the alpha 1.5 puzzle benchmark configuration included in OMPL.app. The following figure shows the results of running CForest in 2 and 16 threads in a **16-core** machine. Also, the standard RRT* and the pruned version are included in the benchmark.
+CForest produces many interesting results. All these results are obtained with the alpha 1.5 puzzle benchmark configuration included in (the now deprecated) OMPL.app. The following figure shows the results of running CForest in 2 and 16 threads in a **16-core** machine. Also, the standard RRT* and the pruned version are included in the benchmark.
 
 \htmlonly
 <div class="row">

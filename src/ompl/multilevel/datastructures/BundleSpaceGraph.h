@@ -75,7 +75,7 @@ namespace ompl
         /** \brief Forward declaration of * ompl::multilevel::PathRestriction */
         OMPL_CLASS_FORWARD(PathRestriction);
         /// @endcond
-    }
+    }  // namespace multilevel
     namespace geometric
     {
         OMPL_CLASS_FORWARD(PathSimplifier);
@@ -161,12 +161,12 @@ namespace ompl
             {
             public:
                 EdgeInternalState() = default;
-                EdgeInternalState(ompl::base::Cost cost_) : cost(cost_){};
+                EdgeInternalState(ompl::base::Cost cost_) : cost(cost_) {};
                 EdgeInternalState(const EdgeInternalState &eis)
                 {
                     cost = eis.cost;
                 }
-                EdgeInternalState& operator=(const EdgeInternalState &eis)
+                EdgeInternalState &operator=(const EdgeInternalState &eis)
                 {
                     cost = eis.cost;
                     return *this;

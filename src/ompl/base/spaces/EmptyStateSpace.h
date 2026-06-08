@@ -50,8 +50,7 @@ namespace ompl
         class EmptyStateSpace : public RealVectorStateSpace
         {
         public:
-            EmptyStateSpace()
-              : RealVectorStateSpace(0)
+            EmptyStateSpace() : RealVectorStateSpace(0)
             {
                 setName("EmptySpace");
             }
@@ -59,26 +58,25 @@ namespace ompl
 
             double getMeasure() const override
             {
-              return 0;
+                return 0;
             }
 
             void setup() override
             {
-              return;
+                return;
             }
 
             unsigned int getDimension() const override
             {
-              return 0;
+                return 0;
             }
 
             double getMaximumExtent() const override
             {
-              return 0;
+                return 0;
             }
-
         };
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 
 #endif

@@ -1,11 +1,9 @@
 # Demos {#demos}
 
-\defgroup demos Demos
-\ingroup demos
-@{
-
 - [Rigid body planning](RigidBodyPlanning_8cpp_source.html) [[Python version]](RigidBodyPlanning_8py_source.html). This demo is essentially the same example described in the first tutorial. It illustrates how to use the main classes.
 - [State sampling](StateSampling_8cpp_source.html) [[Python version]](StateSampling_8py_source.html). This is the demo program used in the last beginner tutorial.
+- [VAMP planning in C++](VAMPPlanning_8cpp_source.html). This demo shows how to use [VAMP](https://github.com/KavrakiLab/vamp) for SIMD-accelerated motion planning with OMPL.
+- [VAMP planning in Python](vampPlanningTutorial.html). A tutorial that walks through using VAMP with OMPL's Python bindings for a Panda arm navigating sphere obstacles.
 - [Analyze and visualize planner data in Python.](PlannerData_8py_source.html) This demo relies on the [graph-tool](https://graph-tool.skewed.de) package.
 - [Rigid body planning with controls](RigidBodyPlanningWithControls_8cpp_source.html) [[Python version]](RigidBodyPlanningWithControls_8py_source.html). This demo shows how to perform planning under differential constraints for a simple car-like vehicle.
 - [Rigid body planning with integration and controls.](RigidBodyPlanningWithIntegrationAndControls_8cpp_source.html) This example extends the previous example by showing how one can plan for systems of ordinary differential equations in a generic way. This example uses simple Euler integration. For higher accuracy it is recommended to use the ODESolver class described in the next demo.
@@ -39,5 +37,5 @@
   - [Multilevel Rigid Body in 2D](MultiLevelPlanningRigidBody2D_8cpp_source.html). Two-level planning for a rigid body in \f$SE(2)\f$ with simplified space \f$\mathbb{R}^2\f$.
   - [Multilevel Rigid Body in 3D](MultiLevelPlanningRigidBody3D_8cpp_source.html). Two-level planning for a rigid body in \f$SE(3)\f$ with simplified space \f$\mathbb{R}^3\f$.
   - [Multilevel HyperCube](MultiLevelPlanningHyperCube_8cpp_source.html). N-level hypercube benchmark using a point robot moving in a cube \f$\mathbb{[0,1]}^N\f$ (This is a modified version of the [Hypercube benchmark](HypercubeBenchmark_8cpp_source.html)).
-  - [Multilevel HyperCube Benchmark](MultiLevelPlanningHyperCubeBenchmark_8cpp_source.html). Benchmark version of Multilevel Hypercube 
+  - [Multilevel HyperCube Benchmark](MultiLevelPlanningHyperCubeBenchmark_8cpp_source.html). Benchmark version of Multilevel Hypercube
   - [Multilevel KinematicChain](MultiLevelPlanningKinematicChain_8cpp_source.html). Multilevel version of Kinematic Chain benchmark.

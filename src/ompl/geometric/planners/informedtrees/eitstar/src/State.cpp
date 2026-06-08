@@ -256,9 +256,9 @@ namespace ompl
 
             void State::removeFromSourcesOfIncomingEdgesInForwardQueue(const std::shared_ptr<State> &state) const
             {
-                const auto iter = std::find_if(
-                    sourcesOfIncomingEdgesInForwardQueue_.begin(), sourcesOfIncomingEdgesInForwardQueue_.end(),
-                    [&state](const auto &source) { return state->getId() == source.lock()->getId(); });
+                const auto iter = std::find_if(sourcesOfIncomingEdgesInForwardQueue_.begin(),
+                                               sourcesOfIncomingEdgesInForwardQueue_.end(), [&state](const auto &source)
+                                               { return state->getId() == source.lock()->getId(); });
 
                 if (iter != sourcesOfIncomingEdgesInForwardQueue_.end())
                 {

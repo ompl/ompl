@@ -101,9 +101,9 @@ namespace ompl
             Eigen::Vector3f toVector(const State *state) const;
 
         private:
-            double radius_{1.0};       // radius of inner circle
+            double radius_{1.0};  // radius of inner circle
         };
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 
 #endif

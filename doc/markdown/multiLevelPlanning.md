@@ -10,7 +10,7 @@ instead plan on different levels of abstractions. To plan on different levels of
 abstractions, we develop the multilevel planning framework. In this framework we
 use internally the language of [Fiber
 Bundles](https://en.wikipedia.org/wiki/Fiber_bundle) to model abstractions as
-sequences of admissible lower-dimensional projections of the state space. 
+sequences of admissible lower-dimensional projections of the state space.
 
 ## High-level introduction
 
@@ -91,7 +91,7 @@ Check out the [tutorial](multiLevelPlanningTutorial.html).
 
 ### Demos
 
-Check out the [demos](group__demos.html).
+Check out the [demos](demos.html).
 
 ### Papers
 

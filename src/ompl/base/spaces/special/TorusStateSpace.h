@@ -114,7 +114,7 @@ namespace ompl
 
             double minorRadius_;
         };
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 
 #endif

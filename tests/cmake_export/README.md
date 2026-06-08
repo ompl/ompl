@@ -1,4 +1,4 @@
-This folder is for testing the CMake export of ompl is working. 
+This folder is for testing the CMake export of ompl is working.
 
 ```bash
 cd ompl

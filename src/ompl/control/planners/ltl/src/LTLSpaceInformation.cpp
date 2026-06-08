@@ -15,7 +15,7 @@ namespace
     // Helper method to take a robot state space and product graph and return
     // the hybrid state space representing their product.
     static ob::StateSpacePtr extendStateSpace(const ob::StateSpacePtr &lowSpace, const oc::ProductGraphPtr &prod);
-}
+}  // namespace
 
 oc::LTLSpaceInformation::LTLSpaceInformation(const oc::SpaceInformationPtr &si, const oc::ProductGraphPtr &prod)
   : oc::SpaceInformation(extendStateSpace(si->getStateSpace(), prod), si->getControlSpace()), prod_(prod), lowSpace_(si)
@@ -161,4 +161,4 @@ namespace
 
         return compound;
     }
-}
+}  // namespace

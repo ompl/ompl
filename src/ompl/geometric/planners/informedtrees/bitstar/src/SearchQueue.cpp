@@ -78,9 +78,10 @@ namespace ompl
         // Public functions:
         BITstar::SearchQueue::SearchQueue(NameFunc nameFunc)
           : nameFunc_(std::move(nameFunc))
-          , edgeQueue_([this](const SortKeyAndVertexPtrPair &lhs, const SortKeyAndVertexPtrPair &rhs) {
-              return lexicographicalBetterThan(lhs.first, rhs.first);
-          })  // This tells the edgeQueue_ to use lexicographical comparison for sorting.
+          , edgeQueue_(
+                [this](const SortKeyAndVertexPtrPair &lhs, const SortKeyAndVertexPtrPair &rhs)
+                { return lexicographicalBetterThan(lhs.first, rhs.first); })  // This tells the edgeQueue_ to use
+                                                                              // lexicographical comparison for sorting.
           , searchId_(std::make_shared<unsigned int>(1u))
         {
         }
@@ -324,10 +325,10 @@ namespace ompl
                                       "vertices.");
             }
 #endif  // BITSTAR_DEBUG
-            inconsistentVertices_.erase(
-                std::remove_if(inconsistentVertices_.begin(), inconsistentVertices_.end(),
-                               [vertex](const VertexPtr &element) { return vertex->getId() == element->getId(); }),
-                inconsistentVertices_.end());
+            inconsistentVertices_.erase(std::remove_if(inconsistentVertices_.begin(), inconsistentVertices_.end(),
+                                                       [vertex](const VertexPtr &element)
+                                                       { return vertex->getId() == element->getId(); }),
+                                        inconsistentVertices_.end());
         }
 
         void BITstar::SearchQueue::clear()
@@ -649,9 +650,8 @@ namespace ompl
                                                              const std::array<ompl::base::Cost, 3> &rhs) const
         {
             return std::lexicographical_compare(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend(),
-                                                [this](const ompl::base::Cost &a, const ompl::base::Cost &b) {
-                                                    return costHelpPtr_->isCostBetterThan(a, b);
-                                                });
+                                                [this](const ompl::base::Cost &a, const ompl::base::Cost &b)
+                                                { return costHelpPtr_->isCostBetterThan(a, b); });
         }
 
         void BITstar::SearchQueue::assertSetup() const

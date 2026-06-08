@@ -25,6 +25,23 @@ If you use OMPL in your research, we kindly ask you to include the following cit
 \endhtmlonly
 </ul>
 
+If you use the OMPL Python bindings, then we kindly ask you to include the following citation in your publications:
+<ul>
+<li> Weihang Guo, Theodoros Tyrovouzis, and Lydia E. Kavraki, Python Bindings for a Large C++ Robotics Library: The Case of OMPL, _2026 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE, 2026.
+\htmlonly
+<br><div class="btn-group btn-group-xs">
+  <a class="btn btn-primary" href="https://arxiv.org/abs/2603.04668"> pdf </a>
+  <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#guo2026ompl-python"> bibtex </button>
+</div>
+<div class="modal fade" tabindex="-1" id="guo2026ompl-python"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h4 class="modal-title">BibTeX</h4><button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button></div><div class="modal-body"><pre>@inproceedings{guo2026ompl-python,
+    Author = {Weihang Guo and Theodoros Tyrovouzis and Lydia E. Kavraki},
+    Title = {Python Bindings for a Large C++ Robotics Library: The Case of OMPL},
+    Booktitle = {IEEE International Conference on Robotics and Automation (ICRA)},
+    Year = {2026}
+}</pre></div></div></div></div>
+\endhtmlonly
+</ul>
+
 If you use the OMPL [benchmarking facilities](benchmark.html) or [Planner Arena](http://plannerarena.org), then we kindly ask you to include the following citation in your publications:
 <ul>
 <li> Mark Moll, Ioan A. Șucan, Lydia E. Kavraki, Benchmarking Motion Planning Algorithms: An Extensible Infrastructure for Analysis and Visualization, _IEEE Robotics & Automation Magazine,_ 22(3):96--102, September 2015.
@@ -68,6 +85,27 @@ If you use the [constrained planning](constrainedPlanning.html) capabilities of 
   title = "Exploring Implicit Spaces for Constrained Sampling-Based Planning",
   volume = "38",
   year = "2019"
+}</pre></div></div></div></div>
+\endhtmlonly
+</ul>
+
+If you use the VAMP SIMD acceleration feature, then we kindly ask you to include the following citation in your publications:
+<ul>
+
+<li> Wil Thomason, Zachary Kingston, and Lydia E. Kavraki, “Motions in Microseconds via Vectorized Sampling-Based Planning,” in _IEEE International Conference on Robotics and Automation (ICRA),_ 2024, pp. 8749–8756.
+\htmlonly
+<br><div class="btn-group btn-group-xs">
+  <a class="btn btn-primary" href="https://www.kavrakilab.org/publications/thomason2024vamp.pdf> pdf </a>
+  <a class="btn btn-primary" href="http://dx.doi.org/10.1109/ICRA57147.2024.10611190"> publisher </a>
+  <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#thomason2024vamp"> bibtex </button>
+</div>
+<div class="modal fade" tabindex="-1" id="thomason2024vamp"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h4 class="modal-title">BibTeX</h4><button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button></div><div class="modal-body"><pre>@inproceedings{thomason2024vamp,
+  author = "Thomason, Wil and Kingston, Zachary and Kavraki, Lydia E.",
+  booktitle = "IEEE Intl.\ Conf.\ on Robotics and Automation (ICRA)",
+  title = "Motions in Microseconds via Vectorized Sampling-Based Planning",
+  year = "2024",
+  pages = "8749-8756",
+  doi = "10.1109/ICRA57147.2024.10611190"
 }</pre></div></div></div></div>
 \endhtmlonly
 </ul>

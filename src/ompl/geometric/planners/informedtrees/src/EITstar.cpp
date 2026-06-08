@@ -574,8 +574,7 @@ namespace ompl
                     if (!graph_.isGoal(edge.target))
                     {
                         auto edges = expand(edge.target);
-                        edges.erase(std::remove_if(edges.begin(), edges.end(),
-                                                   [&edge](const auto &e)
+                        edges.erase(std::remove_if(edges.begin(), edges.end(), [&edge](const auto &e)
                                                    { return e.target->getId() == edge.source->getId(); }),
                                     edges.end());
                         forwardQueue_->insertOrUpdate(edges);
@@ -628,8 +627,7 @@ namespace ompl
             if (isInReverseTree(edge))
             {
                 auto outgoingEdges = expand(target);
-                outgoingEdges.erase(std::remove_if(outgoingEdges.begin(), outgoingEdges.end(),
-                                                   [&source](const auto &e)
+                outgoingEdges.erase(std::remove_if(outgoingEdges.begin(), outgoingEdges.end(), [&source](const auto &e)
                                                    { return e.target->getId() == source->getId(); }),
                                     outgoingEdges.end());
 
@@ -1063,7 +1061,7 @@ namespace ompl
                 // If enabled, pass the intermediate solution back through the callback:
                 if (static_cast<bool>(pdef_->getIntermediateSolutionCallback()))
                 {
-                    const auto& path = solution.path_->as<ompl::geometric::PathGeometric>()->getStates();
+                    const auto &path = solution.path_->as<ompl::geometric::PathGeometric>()->getStates();
                     // the callback requires a vector with const elements
                     std::vector<const base::State *> const_path(path.begin(), path.end());
                     pdef_->getIntermediateSolutionCallback()(this, const_path, solutionCost_);
@@ -1524,10 +1522,9 @@ namespace ompl
                     auto forwardParentState = forwardVertex->getParent().lock()->getState();
 
                     // Add the edge to the forward tree parent if it has not already being added.
-                    if (std::find_if(outgoingEdges.cbegin(), outgoingEdges.cend(),
-                                     [&forwardParentState](const auto &edge) {
-                                         return edge.target->getId() == forwardParentState->getId();
-                                     }) == outgoingEdges.cend())
+                    if (std::find_if(
+                            outgoingEdges.cbegin(), outgoingEdges.cend(), [&forwardParentState](const auto &edge)
+                            { return edge.target->getId() == forwardParentState->getId(); }) == outgoingEdges.cend())
                     {
                         outgoingEdges.emplace_back(state, forwardParentState);
                     }
@@ -1540,10 +1537,9 @@ namespace ompl
                     auto forwardChildState = child->getState();
 
                     // Add the edge to the forward tree child if it has not already being added.
-                    if (std::find_if(outgoingEdges.cbegin(), outgoingEdges.cend(),
-                                     [&forwardChildState](const auto &edge) {
-                                         return edge.target->getId() == forwardChildState->getId();
-                                     }) == outgoingEdges.cend())
+                    if (std::find_if(
+                            outgoingEdges.cbegin(), outgoingEdges.cend(), [&forwardChildState](const auto &edge)
+                            { return edge.target->getId() == forwardChildState->getId(); }) == outgoingEdges.cend())
                     {
                         outgoingEdges.emplace_back(state, forwardChildState);
                     }
@@ -1566,10 +1562,9 @@ namespace ompl
                     auto reverseParentState = reverseVertex->getParent().lock()->getState();
 
                     // Add the edge to the reverse tree parent if it has not already being added.
-                    if (std::find_if(outgoingEdges.cbegin(), outgoingEdges.cend(),
-                                     [&reverseParentState](const auto &edge) {
-                                         return edge.target->getId() == reverseParentState->getId();
-                                     }) == outgoingEdges.cend())
+                    if (std::find_if(
+                            outgoingEdges.cbegin(), outgoingEdges.cend(), [&reverseParentState](const auto &edge)
+                            { return edge.target->getId() == reverseParentState->getId(); }) == outgoingEdges.cend())
                     {
                         outgoingEdges.emplace_back(state, reverseParentState);
                     }
@@ -1582,10 +1577,9 @@ namespace ompl
                     auto reverseChildState = child->getState();
 
                     // Add the edge to the reverse tree parent if it has not already being added.
-                    if (std::find_if(outgoingEdges.cbegin(), outgoingEdges.cend(),
-                                     [&reverseChildState](const auto &edge) {
-                                         return edge.target->getId() == reverseChildState->getId();
-                                     }) == outgoingEdges.cend())
+                    if (std::find_if(
+                            outgoingEdges.cbegin(), outgoingEdges.cend(), [&reverseChildState](const auto &edge)
+                            { return edge.target->getId() == reverseChildState->getId(); }) == outgoingEdges.cend())
                     {
                         outgoingEdges.emplace_back(state, reverseChildState);
                     }

@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2015, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2015, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ryan Luna */
 
@@ -129,14 +129,8 @@ void ompl::geometric::BiTRRT::setup()
         tStart_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
     if (!tGoal_)
         tGoal_.reset(tools::SelfConfig::getDefaultNearestNeighbors<Motion *>(this));
-    tStart_->setDistanceFunction([this](const Motion *a, const Motion *b)
-                                 {
-                                     return distanceFunction(a, b);
-                                 });
-    tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b)
-                                {
-                                    return distanceFunction(a, b);
-                                });
+    tStart_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
+    tGoal_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
 
     // Setup the optimization objective, if it isn't specified
     if (!pdef_ || !pdef_->hasOptimizationObjective())
@@ -232,8 +226,8 @@ ompl::geometric::BiTRRT::GrowResult ompl::geometric::BiTRRT::extendTree(Motion *
 
     // Compute the state to extend toward
     bool treeIsStart = (tree == tStart_);
-    double d = (treeIsStart ? si_->distance(nearest->state, toMotion->state)
-                            : si_->distance(toMotion->state, nearest->state));
+    double d =
+        (treeIsStart ? si_->distance(nearest->state, toMotion->state) : si_->distance(toMotion->state, nearest->state));
     // Truncate the random state to be no more than maxDistance_ from nearest neighbor
     if (d > maxDistance_)
     {
@@ -253,9 +247,9 @@ ompl::geometric::BiTRRT::GrowResult ompl::geometric::BiTRRT::extendTree(Motion *
     bool validMotion =
         (tree == tStart_ ? si_->checkMotion(nearest->state, toMotion->state) :
                            si_->isValid(toMotion->state) && si_->checkMotion(toMotion->state, nearest->state)) &&
-                               transitionTest(tree == tStart_ ? opt_->motionCost(nearest->state, toMotion->state)
-                                                              : opt_->motionCost(toMotion->state, nearest->state)) &&
-                               minExpansionControl(d);
+        transitionTest(tree == tStart_ ? opt_->motionCost(nearest->state, toMotion->state) :
+                                         opt_->motionCost(toMotion->state, nearest->state)) &&
+        minExpansionControl(d);
 
     if (validMotion)
     {
@@ -279,8 +273,8 @@ bool ompl::geometric::BiTRRT::connectTrees(Motion *nmotion, TreeData &tree, Moti
     // Get the nearest state to nmotion in tree (nmotion is NOT in tree)
     Motion *nearest = tree->nearest(nmotion);
     bool treeIsStart = tree == tStart_;
-    double dist = (treeIsStart ? si_->distance(nearest->state, nmotion->state)
-                               : si_->distance(nmotion->state, nearest->state));
+    double dist =
+        (treeIsStart ? si_->distance(nearest->state, nmotion->state) : si_->distance(nmotion->state, nearest->state));
 
     // Do not attempt a connection if the trees are far apart
     if (dist > connectionRange_)

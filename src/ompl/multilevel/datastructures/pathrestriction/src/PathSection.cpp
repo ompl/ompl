@@ -126,9 +126,9 @@ bool PathSection::checkMotion(HeadPtr &head)
             double locationOnBasePath =
                 restriction_->getLengthBasePathUntil(lastValidIndexOnBasePath_) + distBaseSegment;
 
-            //############################################################################
-            // Get Last valid
-            //############################################################################
+            // ############################################################################
+            //  Get Last valid
+            // ############################################################################
             if (lastValid_.second > 0)
             {
                 // add last valid into the bundle graph
@@ -425,5 +425,5 @@ namespace ompl
             s.print(out);
             return out;
         }
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl

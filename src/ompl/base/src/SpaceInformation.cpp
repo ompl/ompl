@@ -45,7 +45,9 @@
 #include "ompl/base/spaces/VanaStateSpace.h"
 #include "ompl/base/spaces/VanaOwenStateSpace.h"
 #include "ompl/base/spaces/Dubins3DMotionValidator.h"
+#include "ompl/base/spaces/DubinsMotionValidator.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
+#include "ompl/base/spaces/TrochoidStateSpace.h"
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include "ompl/util/Exception.h"
@@ -113,9 +115,11 @@ void ompl::base::SpaceInformation::setStateValidityChecker(const StateValidityCh
 void ompl::base::SpaceInformation::setDefaultMotionValidator()
 {
     if (dynamic_cast<ReedsSheppStateSpace *>(stateSpace_.get()))
-        motionValidator_ = std::make_shared<ReedsSheppMotionValidator>(this);
+        motionValidator_ = std::make_shared<DubinsMotionValidator<ReedsSheppStateSpace>>(this);
     else if (dynamic_cast<DubinsStateSpace *>(stateSpace_.get()))
-        motionValidator_ = std::make_shared<DubinsMotionValidator>(this);
+        motionValidator_ = std::make_shared<DubinsMotionValidator<DubinsStateSpace>>(this);
+    else if (dynamic_cast<TrochoidStateSpace *>(stateSpace_.get()))
+        motionValidator_ = std::make_shared<DubinsMotionValidator<TrochoidStateSpace>>(this);
     else if (dynamic_cast<OwenStateSpace *>(stateSpace_.get()))
         motionValidator_ = std::make_shared<Dubins3DMotionValidator<OwenStateSpace>>(this);
     else if (dynamic_cast<VanaStateSpace *>(stateSpace_.get()))

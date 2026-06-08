@@ -3,7 +3,7 @@
 ######################################################################
 # Software License Agreement (BSD License)
 #
-#  Copyright (c) 2010, Rice University
+#  Copyright (c) 2025, Rice University
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -34,25 +34,18 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 ######################################################################
 
-# Author: Mark Moll
+# Author: Mark Moll, Weihang Guo
 
-try:
-    from ompl import base as ob
-    from ompl import geometric as og
-except ImportError:
-    # if the ompl module is not in the PYTHONPATH assume it is installed in a
-    # subdirectory of the parent directory called "py-bindings."
-    from os.path import abspath, dirname, join
-    import sys
-    sys.path.insert(0, join(dirname(dirname(abspath(__file__))), 'py-bindings'))
-    from ompl import base as ob
-    from ompl import geometric as og
+from ompl import base as ob
+from ompl import geometric as og
+
 
 def isStateValid(state):
     # Some arbitrary condition on the state (note that thanks to
     # dynamic type checking we can just call getX() and do not need
     # to convert state to an SE2State.)
-    return state.getX() < .6
+    return state.getX() < 0.6
+
 
 def planWithSimpleSetup():
     # create an SE2 state space
@@ -66,19 +59,20 @@ def planWithSimpleSetup():
 
     # create a simple setup object
     ss = og.SimpleSetup(space)
-    ss.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
+    ss.setStateValidityChecker(isStateValid)
 
-    start = ob.State(space)
+    sampler = ss.getStateSpace().allocDefaultStateSampler()
+    start = ss.getStateSpace().allocState()
     # we can pick a random start state...
-    start.random()
+    sampler.sampleUniform(start)
     # ... or set specific values
-    start().setX(.5)
+    start.setX(0.5)
 
-    goal = ob.State(space)
+    goal = ss.getStateSpace().allocState()
     # we can pick a random goal state...
-    goal.random()
+    sampler.sampleUniform(goal)
     # ... or set specific values
-    goal().setX(-.5)
+    goal.setX(-0.5)
 
     ss.setStartAndGoalStates(start, goal)
 
@@ -104,13 +98,15 @@ def planTheHardWay():
     # construct an instance of space information from this state space
     si = ob.SpaceInformation(space)
     # set state validity checking for this space
-    si.setStateValidityChecker(ob.StateValidityCheckerFn(isStateValid))
+    si.setStateValidityChecker(isStateValid)
+
+    sampler = si.getStateSpace().allocDefaultStateSampler()
     # create a random start state
-    start = ob.State(space)
-    start.random()
+    start = si.getStateSpace().allocState()
+    sampler.sampleUniform(start)
     # create a random goal state
-    goal = ob.State(space)
-    goal.random()
+    goal = si.getStateSpace().allocState()
+    sampler.sampleUniform(goal)
     # create a problem instance
     pdef = ob.ProblemDefinition(si)
     # set the start and goal states
@@ -122,7 +118,7 @@ def planTheHardWay():
     # perform setup steps for the planner
     planner.setup()
     # print the settings for this space
-    print(si.settings())
+    si.printSettings()
     # print the problem settings
     print(pdef)
     # attempt to solve the problem within one second of planning time

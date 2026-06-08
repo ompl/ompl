@@ -44,7 +44,6 @@
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include "ompl/geometric/planners/xxl/XXLDecomposition.h"
 
-
 namespace ompl
 {
     namespace geometric
@@ -52,7 +51,15 @@ namespace ompl
         /**
         @anchor gXXL
 
-        \ref gXXL "XXL" is a probabilistically complete sampling-based algorithm designed to plan the motions of high-dimensional mobile manipulators and related platforms. Using a novel sampling and connection strategy that guides a set of points mapped on the robot through the workspace, XXL scales to realistic manipulator platforms with dozens of joints by focusing the search of the robot's configuration space to specific degrees-of-freedom that affect motion in particular portions of the workspace. Simulated planning scenarios with the Robonaut2 platform and planar kinematic chains confirm that XXL exhibits competitive solution times relative to many existing works while obtaining execution-quality solution paths. Solutions from XXL are of comparable quality to costaware methods even though XXL does not explicitly optimize over any particular criteria, and are computed in an order of magnitude less time.
+        \ref gXXL "XXL" is a probabilistically complete sampling-based algorithm designed to plan the motions of
+        high-dimensional mobile manipulators and related platforms. Using a novel sampling and connection strategy that
+        guides a set of points mapped on the robot through the workspace, XXL scales to realistic manipulator platforms
+        with dozens of joints by focusing the search of the robot's configuration space to specific degrees-of-freedom
+        that affect motion in particular portions of the workspace. Simulated planning scenarios with the Robonaut2
+        platform and planar kinematic chains confirm that XXL exhibits competitive solution times relative to many
+        existing works while obtaining execution-quality solution paths. Solutions from XXL are of comparable quality to
+        costaware methods even though XXL does not explicitly optimize over any particular criteria, and are computed in
+        an order of magnitude less time.
 
         @par Associated publication:
         R. Luna, M. Moll, J. Badger, and L. E. Kavraki,
@@ -366,7 +373,7 @@ namespace ompl
                 std::vector<int> connections;  // Number of times the search has tried internal connections in this
                                                // region
                 std::vector<int> selections;   // Number of times the search has selected this region for expansion
-                std::vector<int> leads;          // Number of times each region has appeared in a lead
+                std::vector<int> leads;        // Number of times each region has appeared in a lead
                 std::vector<std::vector<int>> goalStates;  // A list of goal states in each region
                 PerfectSet connectionPoints;  // The set of regions we have tried to do internal connections on
 

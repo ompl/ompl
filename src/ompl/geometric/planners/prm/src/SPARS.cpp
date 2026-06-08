@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2013, Rutgers the State University of New Jersey, New Brunswick
-*  All Rights Reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of Rutgers University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2013, Rutgers the State University of New Jersey, New Brunswick
+ *  All Rights Reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of Rutgers University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Andrew Dobson */
 
@@ -71,14 +71,16 @@ ompl::geometric::SPARS::SPARS(const base::SpaceInformationPtr &si)
     psimp_ = std::make_shared<PathSimplifier>(si_);
     psimp_->freeStates(false);
 
-    Planner::declareParam<double>("stretch_factor", this, &SPARS::setStretchFactor, &SPARS::getStretchFactor, "1.1:0.1:"
-                                                                                                              "3.0");
+    Planner::declareParam<double>("stretch_factor", this, &SPARS::setStretchFactor, &SPARS::getStretchFactor,
+                                  "1.1:0.1:"
+                                  "3.0");
     Planner::declareParam<double>("sparse_delta_fraction", this, &SPARS::setSparseDeltaFraction,
                                   &SPARS::getSparseDeltaFraction, "0.0:0.01:1.0");
     Planner::declareParam<double>("dense_delta_fraction", this, &SPARS::setDenseDeltaFraction,
                                   &SPARS::getDenseDeltaFraction, "0.0:0.0001:0.1");
-    Planner::declareParam<unsigned int>("max_failures", this, &SPARS::setMaxFailures, &SPARS::getMaxFailures, "100:10:"
-                                                                                                              "3000");
+    Planner::declareParam<unsigned int>("max_failures", this, &SPARS::setMaxFailures, &SPARS::getMaxFailures,
+                                        "100:10:"
+                                        "3000");
 
     addPlannerProgressProperty("iterations INTEGER", [this] { return getIterationCount(); });
     addPlannerProgressProperty("best cost REAL", [this] { return getBestCost(); });
@@ -97,8 +99,8 @@ void ompl::geometric::SPARS::setup()
     nn_->setDistanceFunction([this](const DenseVertex a, const DenseVertex b) { return distanceFunction(a, b); });
     if (!snn_)
         snn_.reset(tools::SelfConfig::getDefaultNearestNeighbors<SparseVertex>(this));
-    snn_->setDistanceFunction(
-        [this](const SparseVertex a, const SparseVertex b) { return sparseDistanceFunction(a, b); });
+    snn_->setDistanceFunction([this](const SparseVertex a, const SparseVertex b)
+                              { return sparseDistanceFunction(a, b); });
     if (!connectionStrategy_)
         connectionStrategy_ =
             KStarStrategy<DenseVertex>([this] { return milestoneCount(); }, nn_, si_->getStateDimension());
@@ -999,8 +1001,9 @@ void ompl::geometric::SPARS::computeDensePath(const DenseVertex start, const Den
 
     try
     {
-        boost::astar_search(g_, start, [this, goal](const DenseVertex a) { return distanceFunction(a, goal); },
-                            boost::predecessor_map(prev).visitor(AStarGoalVisitor<DenseVertex>(goal)));
+        boost::astar_search(
+            g_, start, [this, goal](const DenseVertex a) { return distanceFunction(a, goal); },
+            boost::predecessor_map(prev).visitor(AStarGoalVisitor<DenseVertex>(goal)));
     }
     catch (AStarFoundGoal &)
     {

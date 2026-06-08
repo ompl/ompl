@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2010, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2010, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -49,12 +49,10 @@
 namespace ob = ompl::base;
 namespace oc = ompl::control;
 
-
 /// Model defining the motion of the robot
 class KinematicCarModel
 {
 public:
-
     KinematicCarModel(const ob::StateSpace *space) : space_(space), carLength_(0.2)
     {
     }
@@ -82,19 +80,15 @@ public:
     }
 
 private:
-
     const ob::StateSpace *space_;
-    const double          carLength_;
-
+    const double carLength_;
 };
 
-
 /// Simple integrator: Euclidean method
-template<typename F>
+template <typename F>
 class EulerIntegrator
 {
 public:
-
     EulerIntegrator(const ob::StateSpace *space, double timeStep) : space_(space), timeStep_(timeStep), ode_(space)
     {
     }
@@ -104,7 +98,7 @@ public:
         double t = 0;
         std::valarray<double> dstate;
         space_->copyState(result, start);
-        while (t+timeStep_ < duration + std::numeric_limits<double>::epsilon())
+        while (t + timeStep_ < duration + std::numeric_limits<double>::epsilon())
         {
             ode_(result, control, dstate);
             ode_.update(result, timeStep_ * dstate);
@@ -113,7 +107,7 @@ public:
         if (t + std::numeric_limits<double>::epsilon() < duration)
         {
             ode_(result, control, dstate);
-            ode_.update(result, (duration-t) * dstate);
+            ode_.update(result, (duration - t) * dstate);
         }
     }
 
@@ -128,12 +122,10 @@ public:
     }
 
 private:
-
     const ob::StateSpace *space_;
-    double                   timeStep_;
-    F                        ode_;
+    double timeStep_;
+    F ode_;
 };
-
 
 bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 {
@@ -149,16 +141,14 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 
     /// check validity of state defined by pos & rot
 
-
     // return a value that is always true but uses the two variables we define, so we avoid compiler warnings
-    return si->satisfiesBounds(state) && (const void*)rot != (const void*)pos;
+    return si->satisfiesBounds(state) && (const void *)rot != (const void *)pos;
 }
 
 /// @cond IGNORE
 class DemoControlSpace : public oc::RealVectorControlSpace
 {
 public:
-
     DemoControlSpace(const ob::StateSpacePtr &stateSpace) : oc::RealVectorControlSpace(stateSpace, 2)
     {
     }
@@ -167,13 +157,12 @@ public:
 class DemoStatePropagator : public oc::StatePropagator
 {
 public:
-
-    DemoStatePropagator(oc::SpaceInformation *si) : oc::StatePropagator(si),
-                                                    integrator_(si->getStateSpace().get(), 0.0)
+    DemoStatePropagator(oc::SpaceInformation *si) : oc::StatePropagator(si), integrator_(si->getStateSpace().get(), 0.0)
     {
     }
 
-    void propagate(const ob::State *state, const oc::Control* control, const double duration, ob::State *result) const override
+    void propagate(const ob::State *state, const oc::Control *control, const double duration,
+                   ob::State *result) const override
     {
         integrator_.propagate(state, control, duration, result);
     }
@@ -220,8 +209,7 @@ void planWithSimpleSetup()
 
     /// set state validity checking for this space
     oc::SpaceInformation *si = ss.getSpaceInformation().get();
-    ss.setStateValidityChecker(
-        [si](const ob::State *state) { return isStateValid(si, state); });
+    ss.setStateValidityChecker([si](const ob::State *state) { return isStateValid(si, state); });
 
     /// set the propagation routine for this space
     auto propagator(std::make_shared<DemoStatePropagator>(si));

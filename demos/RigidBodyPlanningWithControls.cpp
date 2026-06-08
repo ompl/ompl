@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2010, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2010, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -56,18 +56,18 @@ namespace oc = ompl::control;
 class MyDecomposition : public oc::GridDecomposition
 {
 public:
-    MyDecomposition(const int length, const ob::RealVectorBounds& bounds)
-        : GridDecomposition(length, 2, bounds)
+    MyDecomposition(const int length, const ob::RealVectorBounds &bounds) : GridDecomposition(length, 2, bounds)
     {
     }
-    void project(const ob::State* s, std::vector<double>& coord) const override
+    void project(const ob::State *s, std::vector<double> &coord) const override
     {
         coord.resize(2);
         coord[0] = s->as<ob::SE2StateSpace::StateType>()->getX();
         coord[1] = s->as<ob::SE2StateSpace::StateType>()->getY();
     }
 
-    void sampleFullState(const ob::StateSamplerPtr& sampler, const std::vector<double>& coord, ob::State* s) const override
+    void sampleFullState(const ob::StateSamplerPtr &sampler, const std::vector<double> &coord,
+                         ob::State *s) const override
     {
         sampler->sampleUniform(s);
         s->as<ob::SE2StateSpace::StateType>()->setXY(coord[0], coord[1]);
@@ -88,28 +88,24 @@ bool isStateValid(const oc::SpaceInformation *si, const ob::State *state)
 
     // check validity of state defined by pos & rot
 
-
     // return a value that is always true but uses the two variables we define, so we avoid compiler warnings
-    return si->satisfiesBounds(state) && (const void*)rot != (const void*)pos;
+    return si->satisfiesBounds(state) && (const void *)rot != (const void *)pos;
 }
 
 void propagate(const ob::State *start, const oc::Control *control, const double duration, ob::State *result)
 {
     const auto *se2state = start->as<ob::SE2StateSpace::StateType>();
-    const double* pos = se2state->as<ob::RealVectorStateSpace::StateType>(0)->values;
+    const double *pos = se2state->as<ob::RealVectorStateSpace::StateType>(0)->values;
     const double rot = se2state->as<ob::SO2StateSpace::StateType>(1)->value;
-    const double* ctrl = control->as<oc::RealVectorControlSpace::ControlType>()->values;
+    const double *ctrl = control->as<oc::RealVectorControlSpace::ControlType>()->values;
 
-    result->as<ob::SE2StateSpace::StateType>()->setXY(
-        pos[0] + ctrl[0] * duration * cos(rot),
-        pos[1] + ctrl[0] * duration * sin(rot));
-    result->as<ob::SE2StateSpace::StateType>()->setYaw(
-        rot    + ctrl[1] * duration);
+    result->as<ob::SE2StateSpace::StateType>()->setXY(pos[0] + ctrl[0] * duration * cos(rot),
+                                                      pos[1] + ctrl[0] * duration * sin(rot));
+    result->as<ob::SE2StateSpace::StateType>()->setYaw(rot + ctrl[1] * duration);
 }
 
 void plan()
 {
-
     // construct the state space we are planning in
     auto space(std::make_shared<ob::SE2StateSpace>());
 
@@ -134,8 +130,7 @@ void plan()
     auto si(std::make_shared<oc::SpaceInformation>(space, cspace));
 
     // set state validity checking for this space
-    si->setStateValidityChecker(
-        [&si](const ob::State *state) { return isStateValid(si.get(), state); });
+    si->setStateValidityChecker([&si](const ob::State *state) { return isStateValid(si.get(), state); });
 
     // set the state propagation routine
     si->setStatePropagator(propagate);
@@ -157,19 +152,18 @@ void plan()
     pdef->setStartAndGoalStates(start, goal, 0.1);
 
     // create a planner for the defined space
-    //auto planner(std::make_shared<oc::RRT>(si));
-    //auto planner(std::make_shared<oc::EST>(si));
-    //auto planner(std::make_shared<oc::KPIECE1>(si));
+    // auto planner(std::make_shared<oc::RRT>(si));
+    // auto planner(std::make_shared<oc::EST>(si));
+    // auto planner(std::make_shared<oc::KPIECE1>(si));
     auto decomp(std::make_shared<MyDecomposition>(32, bounds));
     auto planner(std::make_shared<oc::SyclopEST>(si, decomp));
-    //auto planner(std::make_shared<oc::SyclopRRT>(si, decomp));
+    // auto planner(std::make_shared<oc::SyclopRRT>(si, decomp));
 
     // set the problem we are trying to solve for the planner
     planner->setProblemDefinition(pdef);
 
     // perform setup steps for the planner
     planner->setup();
-
 
     // print the settings for this space
     si->printSettings(std::cout);
@@ -193,7 +187,6 @@ void plan()
     else
         std::cout << "No solution found" << std::endl;
 }
-
 
 void planWithSimpleSetup()
 {
@@ -224,8 +217,8 @@ void planWithSimpleSetup()
     ss.setStatePropagator(propagate);
 
     // set state validity checking for this space
-    ss.setStateValidityChecker(
-        [&ss](const ob::State *state) { return isStateValid(ss.getSpaceInformation().get(), state); });
+    ss.setStateValidityChecker([&ss](const ob::State *state)
+                               { return isStateValid(ss.getSpaceInformation().get(), state); });
 
     // create a start state
     ob::ScopedState<ob::SE2StateSpace> start(space);
@@ -238,7 +231,6 @@ void planWithSimpleSetup()
     (*goal)[0]->as<ob::RealVectorStateSpace::StateType>()->values[0] = 0.0;
     (*goal)[0]->as<ob::RealVectorStateSpace::StateType>()->values[1] = 0.5;
     (*goal)[1]->as<ob::SO2StateSpace::StateType>()->value = 0.0;
-
 
     // set the start and goal states
     ss.setStartAndGoalStates(start, goal, 0.05);

@@ -58,6 +58,9 @@ if (OMPL_BUILD_TESTS)
     # Test constrained planning
     add_ompl_test(test_constraint_sphere geometric/constraint/test_sphere.cpp)
 
+    # Test space-time planning
+    add_ompl_test(test_spacetime_STRRTstar geometric/spacetime/STRRTstar_test.cpp)
+
     # Test planning with controls on a 2D map
     add_ompl_test(test_2dmap_control control/2dmap/2dmap.cpp)
     add_ompl_test(test_planner_data_control control/planner_data.cpp)
@@ -65,28 +68,24 @@ if (OMPL_BUILD_TESTS)
     # Test experience based planning
     add_ompl_test(test_experience_planning tools/test_experience_planning.cpp)
 
-    # Python unit tests
-    if(PYTHON_FOUND AND OMPL_BUILD_PYTESTS)
-        if (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/../py-bindings/bindings")
-            add_ompl_python_test(util/test_util.py)
-            add_ompl_python_test(base/test_base.py)
-            add_ompl_python_test(geometric/test_geometric.py)
-            add_ompl_python_test(geometric/test_geometric_compoundstate.py)
-            add_ompl_python_test(control/test_control.py)
+    # Test VAMP integration
+    if(OMPL_HAVE_VAMP)
+        add_ompl_test(test_vamp_integration vamp/test_vamp_integration.cpp)
+        add_ompl_test(test_vamp_planning vamp/vamp_test.cpp)
+        if(TARGET vamp_cpp)
+            target_link_libraries(test_vamp_integration vamp_cpp)
+            target_link_libraries(test_vamp_planning vamp_cpp)
+
+            # Apply VAMP SIMD flags to the test to ensure SIMD functionality works
+            if(DEFINED VAMP_SIMD_FLAGS)
+                target_compile_options(test_vamp_integration PRIVATE ${VAMP_SIMD_FLAGS})
+                message(STATUS "Applied VAMP SIMD flags to test_vamp_integration: ${VAMP_SIMD_FLAGS}")
+            endif()
+
+            message(STATUS "VAMP integration test configured with vamp_cpp target and SIMD flags")
+        else()
+            message(WARNING "OMPL_HAVE_VAMP is TRUE but vamp_cpp target not found")
         endif()
-
-        # test the python function to std::function conversion utility functions
-        include_directories(${PYTHON_INCLUDE_DIRS})
-        add_library(py_std_function MODULE util/test_py_std_function.cpp)
-        target_link_libraries(py_std_function ompl ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARIES})
-        if(WIN32)
-            set_target_properties(py_std_function PROPERTIES OUTPUT_NAME py_std_function SUFFIX .pyd)
-        endif(WIN32)
-        add_custom_command(TARGET py_std_function POST_BUILD
-            COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:py_std_function>"
-            "${CMAKE_CURRENT_SOURCE_DIR}/util")
-        add_ompl_python_test(util/test_py_std_function.py)
     endif()
-
     add_subdirectory(regression_tests)
 endif()

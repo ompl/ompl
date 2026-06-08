@@ -169,7 +169,7 @@ namespace ompl
 
         };  // end of class LightningDB
 
-    }  // end of namespace
+    }  // namespace tools
 
-}  // end of namespace
+}  // namespace ompl
 #endif

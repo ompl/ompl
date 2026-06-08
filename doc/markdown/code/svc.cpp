@@ -2,20 +2,19 @@
 class myStateValidityCheckerClass : public base::StateValidityChecker
 {
 public:
-     myStateValidityCheckerClass(const base::SpaceInformationPtr &si) :
-       base::StateValidityChecker(si)
-        {
-     }
+    myStateValidityCheckerClass(const base::SpaceInformationPtr &si) : base::StateValidityChecker(si)
+    {
+    }
 
-     virtual bool isValid(const base::State *state) const
-     {
-             return ...;
-     }
+    virtual bool isValid(const base::State *state) const
+    {
+        return ...;
+    }
 };
 // or this function:
 bool myStateValidityCheckerFunction(const base::State *state)
 {
-     return ...;
+    return ...;
 }
 
 base::SpaceInformationPtr si(space);
@@ -23,5 +22,5 @@ base::SpaceInformationPtr si(space);
 si->setStateValidityChecker(std::make_shared<myStateValidityCheckerClass>(si));
 // or this call:
 si->setStateValidityChecker(myStateValidityCheckerFunction);
-si->setStateValidityCheckingResolution(0.03); // 3%
+si->setStateValidityCheckingResolution(0.03);  // 3%
 si->setup();

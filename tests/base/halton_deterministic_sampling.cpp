@@ -1,41 +1,41 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2019, Robert Bosch GmbH
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Robert Bosch GmbH nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2019, Robert Bosch GmbH
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Robert Bosch GmbH nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Luigi Palmieri */
 #define BOOST_TEST_MODULE "HaltonDeterministicSampling"
 #include <boost/test/unit_test.hpp>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <ompl/config.h>
 #include <ompl/base/samplers/deterministic/HaltonSequence.h>
@@ -47,7 +47,7 @@ namespace ob = ompl::base;
 
 BOOST_AUTO_TEST_CASE(Halton_1D)
 {
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    std::filesystem::path path(TEST_RESOURCES_DIR);
     // Reading sequence from file
     HaltonXD hd1 = HaltonXD(1);
     hd1.loadSequence((path / "halton/halton_1d.txt").string().c_str());
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(Halton_1D)
 
 BOOST_AUTO_TEST_CASE(Halton_2D)
 {
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    std::filesystem::path path(TEST_RESOURCES_DIR);
     // Reading sequence from file
     HaltonXD hd2 = HaltonXD(2);
     hd2.loadSequence((path / "halton/halton_2d.txt").string().c_str());
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(Halton_2D)
 
 BOOST_AUTO_TEST_CASE(Halton_5D)
 {
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    std::filesystem::path path(TEST_RESOURCES_DIR);
     // Reading sequence from file
     HaltonXD hd5 = HaltonXD(5);
     hd5.loadSequence((path / "halton/halton_5d.txt").string().c_str());
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(Halton_5D)
 
 BOOST_AUTO_TEST_CASE(Halton_10D)
 {
-    boost::filesystem::path path(TEST_RESOURCES_DIR);
+    std::filesystem::path path(TEST_RESOURCES_DIR);
     // Reading sequence from file
     HaltonXD hd10 = HaltonXD(10);
     hd10.loadSequence((path / "halton/halton_10d.txt").string().c_str());

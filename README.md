@@ -1,11 +1,21 @@
 The Open Motion Planning Library (OMPL)
 =======================================
 
-Continuous Integration Status
------------------------------
+**OMPL** is an open source sampling-based motion planning library
 
-[![Build](https://github.com/ompl/ompl/actions/workflows/build.yml/badge.svg?branch=pr-github-actions)](https://github.com/ompl/ompl/actions/workflows/build.yml)
-[![Format](https://github.com/ompl/ompl/actions/workflows/format.yml/badge.svg?branch=pr-github-actions)](https://github.com/ompl/ompl/actions/workflows/format.yml?branch=pr-github-actions)
+- Over 40 sampling-based planning algorithms (RRT-Connect, PRM, KPIECE, RRT*, and **many more**) across more than 20 state spaces (SE(3), Euclidean space, and others)
+- Easily extensible to custom planners (Python and C++) and state spaces (C++)
+- SIMD-accelerated planning with VAMP for **millisecond planning** in both Python and C++
+
+[![Build](https://github.com/ompl/ompl/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/ompl/ompl/actions/workflows/build.yml)
+[![Format](https://github.com/ompl/ompl/actions/workflows/format.yml/badge.svg?branch=main)](https://github.com/ompl/ompl/actions/workflows/format.yml)
+[![PyPI](https://img.shields.io/pypi/v/ompl?color=orange)](https://pypi.org/project/ompl/)
+
+[![Paper](https://img.shields.io/badge/RA--M-OMPL-blue)](https://dx.doi.org/10.1109/MRA.2012.2205651)
+[![Paper](https://img.shields.io/badge/ICRA-OMPL_Python-blue)](https://arxiv.org/abs/2603.04668)
+[![Paper](https://img.shields.io/badge/RA--M-Benchmarking-blue)](https://dx.doi.org/10.1109/MRA.2015.2448276)
+[![Paper](https://img.shields.io/badge/IJRR-Constrained_Planning-blue)](https://dx.doi.org/10.1177/0278364919868530)
+[![Paper](https://img.shields.io/badge/ICRA-VAMP-blue)](https://dx.doi.org/10.1109/ICRA57147.2024.10611190)
 
 Installation
 ------------
@@ -21,19 +31,25 @@ OMPL has the following required dependencies:
 
 The following dependencies are optional:
 
-* [Py++](https://github.com/ompl/ompl/blob/main/doc/markdown/installPyPlusPlus.md) (needed to generate Python bindings)
+* [**VAMP**](https://github.com/KavrakiLab/vamp) (enabled by default) - Vector-Accelerated Motion Planning for high-performance collision checking with SIMD optimization
 * [Doxygen](http://www.doxygen.org) (needed to create a local copy of the documentation at
   https://ompl.kavrakilab.org/core)
 * [Flann](https://github.com/flann-lib/flann/tree/1.9.2) (FLANN can be used for nearest neighbor queries by OMPL)
 * [Spot](http://spot.lrde.epita.fr) (Used for constructing finite automata from LTL formulae.)
+* [yaml-cpp](https://github.com/jbeder/yaml-cpp) (Used for reading and writing YAML world descriptions in the PlanarManipulator demos)
 
 Once dependencies are installed, you can build OMPL on Linux, macOS,
 and MS Windows. Go to the top-level directory of OMPL and type the
 following commands:
 
+    git submodule update --init --recursive
     mkdir -p build/Release
     cd build/Release
     cmake ../..
-    # next step is optional
-    make -j 4 update_bindings # if you want Python bindings
-    make -j 4 # replace "4" with the number of cores on your machine
+    make -j <num_cores> # replace <num_cores> with the number of cores on your machine
+
+To install the Python bindings, go to the top-level directory of OMPL and type the following commands:
+```
+git submodule update --init --recursive
+pip install ./py-bindings
+```

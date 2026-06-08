@@ -58,7 +58,7 @@ namespace ompl
          * of the base path states and information about the fiber space and
          * fiber element at the current location. Can be used to interpolate
          * from current location to goal of path restriction.
-        */
+         */
 
         class Head
         {
@@ -134,7 +134,7 @@ namespace ompl
             Configuration *xTarget_{nullptr};
             base::State *xFiberTarget_{nullptr};
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 #endif

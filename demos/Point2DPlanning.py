@@ -3,7 +3,7 @@
 ######################################################################
 # Software License Agreement (BSD License)
 #
-#  Copyright (c) 2010, Rice University
+#  Copyright (c) 2025, Rice University
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -34,22 +34,14 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 ######################################################################
 
-# Author: Ioan Sucan, Mark Moll
+# Author: Ioan Sucan, Mark Moll, Weihang Guo
 
 from os.path import abspath, dirname, join
-import sys
-try:
-    from ompl import util as ou
-    from ompl import base as ob
-    from ompl import geometric as og
-except ImportError:
-    # if the ompl module is not in the PYTHONPATH assume it is installed in a
-    # subdirectory of the parent directory called "py-bindings."
-    sys.path.insert(0, join(dirname(dirname(abspath(__file__))), 'py-bindings'))
-    from ompl import util as ou
-    from ompl import base as ob
-    from ompl import geometric as og
+from ompl import util as ou
+from ompl import base as ob
+from ompl import geometric as og
 from functools import partial
+
 
 class Plane2DEnvironment:
     def __init__(self, ppm_file):
@@ -63,22 +55,22 @@ class Plane2DEnvironment:
         self.ss_ = og.SimpleSetup(space)
 
         # set state validity checking for this space
-        self.ss_.setStateValidityChecker(ob.StateValidityCheckerFn(
-            partial(Plane2DEnvironment.isStateValid, self)))
+        self.ss_.setStateValidityChecker(partial(Plane2DEnvironment.isStateValid, self))
         space.setup()
-        self.ss_.getSpaceInformation().setStateValidityCheckingResolution( \
-            1.0 / space.getMaximumExtent())
+        self.ss_.getSpaceInformation().setStateValidityCheckingResolution(
+            1.0 / space.getMaximumExtent()
+        )
         #      self.ss_.setPlanner(og.RRTConnect(self.ss_.getSpaceInformation()))
 
     def plan(self, start_row, start_col, goal_row, goal_col):
         if not self.ss_:
             return False
-        start = ob.State(self.ss_.getStateSpace())
-        start()[0] = start_row
-        start()[1] = start_col
-        goal = ob.State(self.ss_.getStateSpace())
-        goal()[0] = goal_row
-        goal()[1] = goal_col
+        start = self.ss_.getStateSpace().allocState()
+        start[0] = start_row
+        start[1] = start_col
+        goal = self.ss_.getStateSpace().allocState()
+        goal[0] = goal_row
+        goal[1] = goal_col
         self.ss_.setStartAndGoalStates(start, goal)
         # generate a few solutions; all will be added to the goal
         for _ in range(10):
@@ -123,8 +115,15 @@ class Plane2DEnvironment:
 
 
 if __name__ == "__main__":
-    fname = join(join(join(join(dirname(dirname(abspath(__file__))), \
-        'tests'), 'resources'), 'ppm'), 'floor.ppm')
+    fname = join(
+        join(
+            join(
+                join(dirname(dirname(dirname(abspath(__file__)))), "tests"), "resources"
+            ),
+            "ppm",
+        ),
+        "floor.ppm",
+    )
     env = Plane2DEnvironment(fname)
 
     if env.plan(0, 0, 777, 1265):

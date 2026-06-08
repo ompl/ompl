@@ -53,9 +53,9 @@ namespace ompl
     public:
         Parameter() = default;
 
-        Parameter(double valueInit) : valueInit_(valueInit){};
+        Parameter(double valueInit) : valueInit_(valueInit) {};
 
-        Parameter(double valueInit, double valueTarget) : valueInit_(valueInit), valueTarget_(valueTarget){};
+        Parameter(double valueInit, double valueTarget) : valueInit_(valueInit), valueTarget_(valueTarget) {};
 
         /** \brief Set initial value (default: 0.0) */
         void setValueInit(double valueInit)
@@ -140,5 +140,5 @@ namespace ompl
         unsigned long long counterInit_{0};
         unsigned long long counterTarget_{100};
     };
-}
+}  // namespace ompl
 #endif

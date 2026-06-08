@@ -19,7 +19,7 @@ See also the extensive documentation [here](CForest.html). This also describes h
 
 - M. Otte, N. Correll, C-FOREST: Parallel Shortest Path Planning With
 Superlinear Speedup, IEEE Transactions on Robotics, Vol 20, No 3, 2013.
-DOI: [10.1109/TRO.2013.2240176](https://dx.doi.org/10.1109/TRO.2013.2240176)  
+DOI: [10.1109/TRO.2013.2240176](https://dx.doi.org/10.1109/TRO.2013.2240176)
 [[PDF]](https://dx.doi.org/10.1109/TRO.2013.2240176)
 
 ## Fast Marching Tree algorithm (FMT∗)
@@ -73,7 +73,7 @@ _arXiv_, 2013 [[PDF]](https://arxiv.org/pdf/1308.0189.pdf)
 
 ### Authors: Ioan Sucan and Sachin Chitta (Willow Garage)
 
-- [MoveIt!](https://moveit.ros.org) wraps OMPL as a planning plugin.
+- [MoveIt](https://moveit.ai) wraps OMPL as a planning plugin.
 
 ## RRT* and extensions
 
@@ -99,7 +99,7 @@ _arXiv_, 2013 [[PDF]](https://arxiv.org/pdf/1308.0189.pdf)
 
 ### Author: Andreas Orthey (MPI-IS)
 
-- [QRRT](\ref QRRT) A generalization of RRT to plan on different abstraction levels. See also our [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](group__demos.html).
+- [QRRT](\ref QRRT) A generalization of RRT to plan on different abstraction levels. See also our [guide](multiLevelPlanning.html), [tutorial](multiLevelPlanningTutorial.html) and [demos](demos.html).
 
   - A Orthey, S Akbar and M Toussaint, _Multilevel Motion Planning: A Fiber Bundle Approach_, 2020. Under review.
 

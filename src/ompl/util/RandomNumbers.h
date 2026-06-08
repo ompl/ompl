@@ -154,23 +154,23 @@ namespace ompl
 
         /** \brief Uniform random sampling of the surface of a prolate hyperspheroid, a special symmetric type of
         n-dimensional ellipse. The return variable \e value is expected to already exist.
-        @par J. D. Gammell, T. D. Barfoot, S. S. Srinivasa, "Informed sampling for asymptotically optimal path planning."
-        IEEE Transactions on Robotics (T-RO), 34(4): 966-984, Aug. 2018.
-        DOI: <a href="https://doi.org/10.1109/TRO.2018.2830331">TRO.2018.2830331</a>.
-        arXiv: <a href="https://arxiv.org/pdf/1706.06454">1706.06454 [cs.RO]</a>
-        <a href="https://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
-        <a href="https://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
+        @par J. D. Gammell, T. D. Barfoot, S. S. Srinivasa, "Informed sampling for asymptotically optimal path
+        planning." IEEE Transactions on Robotics (T-RO), 34(4): 966-984, Aug. 2018. DOI: <a
+        href="https://doi.org/10.1109/TRO.2018.2830331">TRO.2018.2830331</a>. arXiv: <a
+        href="https://arxiv.org/pdf/1706.06454">1706.06454 [cs.RO]</a> <a
+        href="https://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>. <a
+        href="https://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
         void uniformProlateHyperspheroidSurface(const std::shared_ptr<const ProlateHyperspheroid> &phsPtr,
                                                 double value[]);
 
         /** \brief Uniform random sampling of a prolate hyperspheroid, a special symmetric type of
         n-dimensional ellipse. The return variable \e value is expected to already exist.
-        @par J. D. Gammell, T. D. Barfoot, S. S. Srinivasa, "Informed sampling for asymptotically optimal path planning."
-        IEEE Transactions on Robotics (T-RO), 34(4): 966-984, Aug. 2018.
-        DOI: <a href="https://doi.org/10.1109/TRO.2018.2830331">TRO.2018.2830331</a>.
-        arXiv: <a href="https://arxiv.org/pdf/1706.06454">1706.06454 [cs.RO]</a>.
-        <a href="https://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>.
-        <a href="https://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
+        @par J. D. Gammell, T. D. Barfoot, S. S. Srinivasa, "Informed sampling for asymptotically optimal path
+        planning." IEEE Transactions on Robotics (T-RO), 34(4): 966-984, Aug. 2018. DOI: <a
+        href="https://doi.org/10.1109/TRO.2018.2830331">TRO.2018.2830331</a>. arXiv: <a
+        href="https://arxiv.org/pdf/1706.06454">1706.06454 [cs.RO]</a>. <a
+        href="https://www.youtube.com/watch?v=d7dX5MvDYTc">Illustration video</a>. <a
+        href="https://www.youtube.com/watch?v=nsl-5MZfwu4">Short description video</a>. */
         void uniformProlateHyperspheroid(const std::shared_ptr<const ProlateHyperspheroid> &phsPtr, double value[]);
 
         /** \brief randomly rearrange elements in the range [first, last) */

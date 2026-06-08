@@ -56,10 +56,8 @@ namespace ompl
                                       const ompl::base::ProblemDefinitionPtr &problemDefinition,
                                       ompl::base::PlannerInputStates *inputStates)
             {
-                vertices_.setDistanceFunction(
-                    [this](const std::shared_ptr<Vertex> &a, const std::shared_ptr<Vertex> &b) {
-                        return spaceInformation_->distance(a->getState(), b->getState());
-                    });
+                vertices_.setDistanceFunction([this](const std::shared_ptr<Vertex> &a, const std::shared_ptr<Vertex> &b)
+                                              { return spaceInformation_->distance(a->getState(), b->getState()); });
                 spaceInformation_ = spaceInformation;
                 problemDefinition_ = problemDefinition;
                 objective_ = problemDefinition->getOptimizationObjective();
@@ -267,8 +265,7 @@ namespace ompl
                     // Allocate a state sampler if we have at least one start and one goal.
                     if (!startVertices_.empty() && !goalVertices_.empty())
                     {
-                        sampler_ = objective_->allocInformedStateSampler(problemDefinition_,
-                                                                         std::numeric_limits<unsigned int>::max());
+                        sampler_ = objective_->allocInformedStateSampler(problemDefinition_, 100u);
                     }
                 }
 
@@ -339,7 +336,8 @@ namespace ompl
                         ++numSampledStates_;
 
                         // Check if the sample is valid.
-                        foundValidSample = spaceInformation_->getStateValidityChecker()->isValid(newSamples_.back()->getState());
+                        foundValidSample =
+                            spaceInformation_->getStateValidityChecker()->isValid(newSamples_.back()->getState());
                     } while (!foundValidSample && !terminationCondition);
 
                     // The sample can be invalid if the termination condition is met.

@@ -94,5 +94,5 @@ namespace ompl
         /** \brief Decay parameter */
         double lambda_{0.1};
     };
-}
+}  // namespace ompl
 #endif

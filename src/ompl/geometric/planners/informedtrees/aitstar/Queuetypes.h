@@ -66,7 +66,7 @@ namespace ompl
                 ompl::BinaryHeap<KeyVertexPair, std::function<bool(const KeyVertexPair &, const KeyVertexPair &)>>;
 
         }  // namespace aitstar
-    }      // namespace geometric
+    }  // namespace geometric
 }  // namespace ompl
 
 #endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_AITSTAR_QUEUETYPES_

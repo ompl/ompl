@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2012, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2012, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Matt Maly */
 
@@ -50,10 +50,7 @@
 #include <cstdio>
 
 ompl::control::LTLPlanner::LTLPlanner(const LTLSpaceInformationPtr &ltlsi, ProductGraphPtr a, double exploreTime)
-  : ompl::base::Planner(ltlsi, "LTLPlanner")
-  , ltlsi_(ltlsi.get())
-  , abstraction_(std::move(a))
-  , exploreTime_(exploreTime)
+  : ompl::base::Planner(ltlsi, "LTLPlanner"), ltlsi_(ltlsi.get()), abstraction_(std::move(a)), exploreTime_(exploreTime)
 {
     specs_.approximateSolutions = true;
 }
@@ -96,10 +93,7 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
     updateWeight(prodStart_);
     availDist_.add(prodStart_, abstractInfo_[prodStart_].weight);
 
-    abstraction_->buildGraph(prodStart_, [this](ProductGraph::State *as)
-                             {
-                                 initAbstractInfo(as);
-                             });
+    abstraction_->buildGraph(prodStart_, [this](ProductGraph::State *as) { initAbstractInfo(as); });
 
     if (!sampler_)
         sampler_ = si_->allocStateSampler();
@@ -111,11 +105,8 @@ ompl::base::PlannerStatus ompl::control::LTLPlanner::solve(const ompl::base::Pla
 
     while (ptc() == false && !solved)
     {
-        const std::vector<ProductGraph::State *> lead =
-            abstraction_->computeLead(prodStart_, [this](ProductGraph::State *a, ProductGraph::State *b)
-                                      {
-                                          return abstractEdgeWeight(a, b);
-                                      });
+        const std::vector<ProductGraph::State *> lead = abstraction_->computeLead(
+            prodStart_, [this](ProductGraph::State *a, ProductGraph::State *b) { return abstractEdgeWeight(a, b); });
         buildAvail(lead);
         solved = explore(lead, soln, exploreTime_);
     }
@@ -171,7 +162,6 @@ ompl::control::LTLPlanner::Motion::Motion(const SpaceInformation *si)
 }
 
 ompl::control::LTLPlanner::Motion::~Motion() = default;
-
 
 void ompl::control::LTLPlanner::ProductGraphStateInfo::addMotion(Motion *m)
 {

@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2014, University of Toronto
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the University of Toronto nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2014, University of Toronto
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the University of Toronto nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Authors: Jonathan Gammell, Marlin Strub */
 
@@ -44,7 +44,6 @@
 #include "ompl/base/OptimizationObjective.h"
 // For exceptions:
 #include "ompl/util/Exception.h"
-
 
 // BIT*:
 // I am member class of the BITstar class (i.e., I am in it's namespace), so I need to include it's definition to be
@@ -62,8 +61,8 @@ namespace ompl
     {
         /** @anchor CostHelper
         \par Short Description
-        A header-only class that consolidates all the various heuristic calculations for vertices/edges in a graph into one place.
-        Most of these functions are simply combinatorial pass-throughs to the OptimizationObjective. */
+        A header-only class that consolidates all the various heuristic calculations for vertices/edges in a graph into
+        one place. Most of these functions are simply combinatorial pass-throughs to the OptimizationObjective. */
 
         /** \brief A helper class to handle the various heuristic functions in one place. */
         class BITstar::CostHelper
@@ -108,7 +107,7 @@ namespace ompl
                 {
                     throw ompl::Exception("Computing the lower bound heuristic through a pruned vertex.");
                 }
-#endif // BITSTAR_DEBUG
+#endif  // BITSTAR_DEBUG
                 return this->combineCosts(this->costToComeHeuristic(vertex), this->costToGoHeuristic(vertex));
             };
 
@@ -162,18 +161,18 @@ namespace ompl
                 {
                     throw ompl::Exception("Computing the cost to come heuristic to a pruned vertex.");
                 }
-#endif // BITSTAR_DEBUG
-                // Variable
-                // The current best cost to the state, initialize to infinity
+#endif  // BITSTAR_DEBUG
+        // Variable
+        // The current best cost to the state, initialize to infinity
                 ompl::base::Cost curBest = this->infiniteCost();
 
                 // Iterate over the vector of starts, finding the minimum estimated cost-to-come to the state
-                for (auto startIter = graphPtr_->startVerticesBeginConst(); startIter != graphPtr_->startVerticesEndConst();
-                     ++startIter)
+                for (auto startIter = graphPtr_->startVerticesBeginConst();
+                     startIter != graphPtr_->startVerticesEndConst(); ++startIter)
                 {
                     // Update the cost-to-come as the better of the best so far and the new one
-                    curBest = this->betterCost(curBest,
-                                               this->motionCostHeuristic((*startIter)->state(), vertex->state()));
+                    curBest =
+                        this->betterCost(curBest, this->motionCostHeuristic((*startIter)->state(), vertex->state()));
                 }
 
                 // Return
@@ -198,8 +197,8 @@ namespace ompl
                      ++goalIter)
                 {
                     // Update the cost-to-go as the better of the best so far and the new one
-                    curBest = this->betterCost(curBest,
-                                               this->motionCostHeuristic(vertex->state(), (*goalIter)->state()));
+                    curBest =
+                        this->betterCost(curBest, this->motionCostHeuristic(vertex->state(), (*goalIter)->state()));
                 }
 
                 // Return
@@ -217,7 +216,7 @@ namespace ompl
 
             /** \brief Combine multiple costs. */
             template <typename... Costs>
-            inline ompl::base::Cost combineCosts(const ompl::base::Cost &cost, const Costs&... costs) const
+            inline ompl::base::Cost combineCosts(const ompl::base::Cost &cost, const Costs &...costs) const
             {
                 return this->combineCosts(cost, this->combineCosts(costs...));
             }
@@ -340,6 +339,6 @@ namespace ompl
             ImplicitGraph *graphPtr_;
             ////////////////////////////////
         };  // class CostHelper
-    }       // geometric
-}  // ompl
+    }  // namespace geometric
+}  // namespace ompl
 #endif  // OMPL_GEOMETRIC_PLANNERS_INFORMEDTREES_BITSTAR_COSTHELPER_

@@ -56,7 +56,7 @@ namespace ompl
 
             virtual double eval() override;
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 #endif

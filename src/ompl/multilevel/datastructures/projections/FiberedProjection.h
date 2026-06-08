@@ -53,7 +53,7 @@ namespace ompl
         /** \brief Forward declaration of ompl::base::StateSpace */
         OMPL_CLASS_FORWARD(StateSpace);
         /// @endcond
-    }
+    }  // namespace base
     namespace multilevel
     {
         /* \brief A bundle projection with an explicit fiber space representation
@@ -101,7 +101,7 @@ namespace ompl
             // \brief A temporary state on Fiber space
             ompl::base::State *xFiberTmp_{nullptr};
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 #endif

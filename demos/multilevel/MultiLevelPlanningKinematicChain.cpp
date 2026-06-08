@@ -153,9 +153,9 @@ int main()
     ompl::tools::Benchmark benchmark(ss, "KinematicChain");
     benchmark.addExperimentParameter("num_links", "INTEGER", std::to_string(numLinks));
 
-    //############################################################################
-    // Compare QRRT with different QuotientSpace sequences to other OMPL planner
-    //############################################################################
+    // ############################################################################
+    //  Compare QRRT with different QuotientSpace sequences to other OMPL planner
+    // ############################################################################
     SpaceInformationPtr si = ss.getSpaceInformation();
     ProblemDefinitionPtr pdef = ss.getProblemDefinition();
 

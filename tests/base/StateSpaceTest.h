@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Ioan Sucan */
 
@@ -54,13 +54,13 @@ namespace ompl
     class StateSpaceTest
     {
     public:
-
         /** \brief Construct a testing setup for state space \e
             space. When samples need to be taken to ensure certain
             functionality works, \e n samples are to be drawn. For
             distance comparisons, use an error margin of \e eps. */
-        StateSpaceTest(const base::StateSpacePtr &space, int n = 1000, double eps = std::numeric_limits<double>::epsilon() * 10.0) :
-            space_(space), n_(n), eps_(eps)
+        StateSpaceTest(const base::StateSpacePtr &space, int n = 1000,
+                       double eps = std::numeric_limits<double>::epsilon() * 10.0)
+          : space_(space), n_(n), eps_(eps)
         {
         }
 
@@ -74,7 +74,7 @@ namespace ompl
             base::ScopedState<> s1(space_);
             base::ScopedState<> s2(space_);
 
-            for (int i = 0 ; i < n_ ; ++i)
+            for (int i = 0; i < n_; ++i)
             {
                 s1.random();
                 BOOST_OMPL_EXPECT_NEAR(s1.distance(s1), 0.0, eps_);
@@ -96,9 +96,11 @@ namespace ompl
             base::ScopedState<> s2(space_);
             base::ScopedState<> s3(space_);
 
-            for (int i = 0 ; i < n_ ; ++i)
+            for (int i = 0; i < n_; ++i)
             {
-                s1.random(); s2.random(); s3.random();
+                s1.random();
+                s2.random();
+                s3.random();
 
                 space_->interpolate(s1.get(), s2.get(), 0.0, s3.get());
                 BOOST_OMPL_EXPECT_NEAR(s1.distance(s3), 0.0, eps_);
@@ -114,16 +116,16 @@ namespace ompl
                 BOOST_OMPL_EXPECT_NEAR(s2.distance(s3), 0.0, eps_);
             }
         }
-        
+
         /** \brief Test that states are correctly cloned*/
         void testCloneState()
         {
             base::ScopedState<> source(space_);
             source.random();
-            const base::State* clonedState = space_->cloneState(source.get());
-            //Make sure the cloned state is actually a new state in memory.
+            const base::State *clonedState = space_->cloneState(source.get());
+            // Make sure the cloned state is actually a new state in memory.
             BOOST_CHECK(clonedState != source.get());
-            //Make sure the states are the same.
+            // Make sure the states are the same.
             BOOST_CHECK(space_->equalStates(clonedState, source.get()));
         }
 
@@ -136,11 +138,10 @@ namespace ompl
         }
 
     private:
+        base::StateSpacePtr space_;
+        RNG rng_;
 
-        base::StateSpacePtr           space_;
-        RNG                           rng_;
-
-        int                           n_;
-        double                        eps_;
+        int n_;
+        double eps_;
     };
-}
+}  // namespace ompl

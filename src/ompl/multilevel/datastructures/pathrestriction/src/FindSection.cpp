@@ -50,7 +50,7 @@ namespace ompl
     {
         static const unsigned int PATH_SECTION_MAX_FIBER_SAMPLING = 10;
     }
-}
+}  // namespace ompl
 
 using namespace ompl::multilevel;
 

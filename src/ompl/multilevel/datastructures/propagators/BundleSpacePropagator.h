@@ -25,7 +25,7 @@ namespace ompl
         protected:
             BundleSpaceGraph *bundleSpaceGraph_;
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 #endif

@@ -641,9 +641,8 @@ namespace ompl
 
             // Erase the vertices that are not in the reverse search tree.
             vertices.erase(std::remove_if(vertices.begin(), vertices.end(),
-                                          [this](const std::shared_ptr<Vertex> &vertex) {
-                                              return !graph_.isGoal(vertex) && !vertex->hasReverseParent();
-                                          }),
+                                          [this](const std::shared_ptr<Vertex> &vertex)
+                                          { return !graph_.isGoal(vertex) && !vertex->hasReverseParent(); }),
                            vertices.end());
             return vertices;
         }
@@ -835,9 +834,9 @@ namespace ompl
             else
             {
                 // Otherwise it's a regular lexicographical comparison of the keys.
-                return std::lexicographical_compare(
-                    lhs.first.cbegin(), lhs.first.cend(), rhs.first.cbegin(), rhs.first.cend(),
-                    [this](const auto &a, const auto &b) { return objective_->isCostBetterThan(a, b); });
+                return std::lexicographical_compare(lhs.first.cbegin(), lhs.first.cend(), rhs.first.cbegin(),
+                                                    rhs.first.cend(), [this](const auto &a, const auto &b)
+                                                    { return objective_->isCostBetterThan(a, b); });
             }
         }
 
@@ -1002,19 +1001,17 @@ namespace ompl
         {
             // Check if the edge is already in the queue and can be updated.
             const auto lookup = edge.getChild()->getForwardQueueIncomingLookup();
-            const auto it = std::find_if(lookup.begin(), lookup.end(), [&edge](const auto element) {
-                return element->data.getParent()->getId() == edge.getParent()->getId();
-            });
+            const auto it = std::find_if(lookup.begin(), lookup.end(), [&edge](const auto element)
+                                         { return element->data.getParent()->getId() == edge.getParent()->getId(); });
 
             if (it != lookup.end())
             {
                 // We used the incoming lookup of the child. Assert that it is already in the outgoing lookup of the
                 // parent.
                 assert(std::find_if(edge.getParent()->getForwardQueueOutgoingLookup().begin(),
-                                    edge.getParent()->getForwardQueueOutgoingLookup().end(),
-                                    [&edge](const auto element) {
-                                        return element->data.getChild()->getId() == edge.getChild()->getId();
-                                    }) != edge.getParent()->getForwardQueueOutgoingLookup().end());
+                                    edge.getParent()->getForwardQueueOutgoingLookup().end(), [&edge](const auto element)
+                                    { return element->data.getChild()->getId() == edge.getChild()->getId(); }) !=
+                       edge.getParent()->getForwardQueueOutgoingLookup().end());
 
                 // This edge exists in the queue. If the new sort key is better than the old, we update it.
                 if (isEdgeBetter(edge, (*it)->data))
@@ -1162,7 +1159,7 @@ namespace ompl
                     // If enabled, pass the intermediate solution back through the callback:
                     if (static_cast<bool>(pdef_->getIntermediateSolutionCallback()))
                     {
-                        const auto& path = solution.path_->as<ompl::geometric::PathGeometric>()->getStates();
+                        const auto &path = solution.path_->as<ompl::geometric::PathGeometric>()->getStates();
                         // the callback requires a vector with const elements
                         std::vector<const base::State *> const_path(path.begin(), path.end());
                         pdef_->getIntermediateSolutionCallback()(this, const_path, solutionCost_);

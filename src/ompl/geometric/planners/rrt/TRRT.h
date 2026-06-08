@@ -324,7 +324,7 @@ namespace ompl
             /** \brief The optimization objective being optimized by TRRT */
             ompl::base::OptimizationObjectivePtr opt_;
         };
-    }
-}
+    }  // namespace geometric
+}  // namespace ompl
 
 #endif

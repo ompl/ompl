@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2010, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2010, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Mark Moll */
 
@@ -71,14 +71,15 @@ namespace ompl
             };
 
             /** \brief Dubins path types */
-            static const std::vector<std::vector<DubinsPathSegmentType>> dubinsPathType;
+            static const std::vector<std::vector<DubinsPathSegmentType>> &dubinsPathType();
+
             /** \brief Complete description of a Dubins path */
-            class DubinsPath
+            class PathType
             {
             public:
-              DubinsPath(const std::vector<DubinsPathSegmentType> *type = &dubinsPathType[0],
-                  double t = 0., double p = std::numeric_limits<double>::max(), double q = 0.)
-                   : type_(type)
+                PathType(const std::vector<DubinsPathSegmentType> &type = dubinsPathType()[0], double t = 0.,
+                         double p = std::numeric_limits<double>::max(), double q = 0.)
+                  : type_(&type)
                 {
                     length_[0] = t;
                     length_[1] = p;
@@ -92,7 +93,7 @@ namespace ompl
                     return length_[0] + length_[1] + length_[2];
                 }
 
-                friend std::ostream& operator<<(std::ostream& os, const DubinsPath& path);
+                friend std::ostream &operator<<(std::ostream &os, const PathType &path);
                 /** Path segment types */
                 const std::vector<DubinsPathSegmentType> *type_;
                 /** Path segment lengths */
@@ -118,9 +119,10 @@ namespace ompl
             static double symmetricDistance(const State *state1, const State *state2, double radius);
 
             void interpolate(const State *from, const State *to, double t, State *state) const override;
-            virtual void interpolate(const State *from, const State *to, double t, bool &firstTime,
-                                     DubinsPath &path, State *state) const;
-            virtual void interpolate(const State *from, const DubinsPath &path, double t, State *state, double radius) const;
+            virtual void interpolate(const State *from, const State *to, double t, bool &firstTime, PathType &path,
+                                     State *state) const;
+            virtual void interpolate(const State *from, const PathType &path, double t, State *state,
+                                     double radius) const;
 
             bool hasSymmetricDistance() const override
             {
@@ -145,9 +147,9 @@ namespace ompl
             }
 
             /** \brief Return a shortest Dubins path from SE(2) state state1 to SE(2) state state2 */
-            DubinsPath dubins(const State *state1, const State *state2) const;
+            PathType getPath(const State *state1, const State *state2) const;
             /** \brief Return a shortest Dubins path for a vehicle with given turning radius */
-            static DubinsPath dubins(const State *state1, const State *state2, double radius);
+            static PathType getPath(const State *state1, const State *state2, double radius);
 
         protected:
             /** \brief Turning radius */
@@ -162,33 +164,7 @@ namespace ompl
                 triangle inequality. */
             bool isSymmetric_;
         };
-
-        /** \brief A Dubins motion validator that only uses the state validity checker.
-            Motions are checked for validity at a specified resolution.
-
-            This motion validator is almost identical to the DiscreteMotionValidator
-            except that it remembers the optimal DubinsPath between different calls to
-            interpolate. */
-        class DubinsMotionValidator : public MotionValidator
-        {
-        public:
-            DubinsMotionValidator(SpaceInformation *si) : MotionValidator(si)
-            {
-                defaultSettings();
-            }
-            DubinsMotionValidator(const SpaceInformationPtr &si) : MotionValidator(si)
-            {
-                defaultSettings();
-            }
-            ~DubinsMotionValidator() override = default;
-            bool checkMotion(const State *s1, const State *s2) const override;
-            bool checkMotion(const State *s1, const State *s2, std::pair<State *, double> &lastValid) const override;
-
-        private:
-            DubinsStateSpace *stateSpace_;
-            void defaultSettings();
-        };
-    }
-}
+    }  // namespace base
+}  // namespace ompl
 
 #endif

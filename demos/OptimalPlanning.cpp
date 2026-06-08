@@ -1,36 +1,36 @@
 /*********************************************************************
-* Software License Agreement (BSD License)
-*
-*  Copyright (c) 2011, Rice University
-*  All rights reserved.
-*
-*  Redistribution and use in source and binary forms, with or without
-*  modification, are permitted provided that the following conditions
-*  are met:
-*
-*   * Redistributions of source code must retain the above copyright
-*     notice, this list of conditions and the following disclaimer.
-*   * Redistributions in binary form must reproduce the above
-*     copyright notice, this list of conditions and the following
-*     disclaimer in the documentation and/or other materials provided
-*     with the distribution.
-*   * Neither the name of the Rice University nor the names of its
-*     contributors may be used to endorse or promote products derived
-*     from this software without specific prior written permission.
-*
-*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-*  POSSIBILITY OF SUCH DAMAGE.
-*********************************************************************/
+ * Software License Agreement (BSD License)
+ *
+ *  Copyright (c) 2011, Rice University
+ *  All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions
+ *  are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   * Neither the name of the Rice University nor the names of its
+ *     contributors may be used to endorse or promote products derived
+ *     from this software without specific prior written permission.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ *  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ *  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ *  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ *  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ *  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *  POSSIBILITY OF SUCH DAMAGE.
+ *********************************************************************/
 
 /* Author: Luis G. Torres, Jonathan Gammell */
 
@@ -43,7 +43,9 @@
 #include "ompl/util/Console.h"
 
 // The supported optimal planners, in alphabetical order
+#include <ompl/geometric/planners/lazyinformedtrees/BLITstar.h>
 #include <ompl/geometric/planners/informedtrees/AITstar.h>
+#include <ompl/geometric/planners/rrt/AORRTC.h>
 #include <ompl/geometric/planners/informedtrees/BITstar.h>
 #include <ompl/geometric/planners/informedtrees/EITstar.h>
 #include <ompl/geometric/planners/informedtrees/EIRMstar.h>
@@ -72,8 +74,10 @@ namespace og = ompl::geometric;
 enum optimalPlanner
 {
     PLANNER_AITSTAR,
+    PLANNER_AORRTC,
     PLANNER_BFMTSTAR,
     PLANNER_BITSTAR,
+    PLANNER_BLITSTAR,
     PLANNER_CFOREST,
     PLANNER_EITSTAR,
     PLANNER_EIRMSTAR,
@@ -154,6 +158,11 @@ ob::PlannerPtr allocatePlanner(ob::SpaceInformationPtr si, optimalPlanner planne
             return std::make_shared<og::AITstar>(si);
             break;
         }
+        case PLANNER_AORRTC:
+        {
+            return std::make_shared<og::AORRTC>(si);
+            break;
+        }
         case PLANNER_BFMTSTAR:
         {
             return std::make_shared<og::BFMT>(si);
@@ -162,6 +171,11 @@ ob::PlannerPtr allocatePlanner(ob::SpaceInformationPtr si, optimalPlanner planne
         case PLANNER_BITSTAR:
         {
             return std::make_shared<og::BITstar>(si);
+            break;
+        }
+        case PLANNER_BLITSTAR:
+        {
+            return std::make_shared<og::BLITstar>(si);
             break;
         }
         case PLANNER_CFOREST:
@@ -435,14 +449,14 @@ bool argParse(int argc, char **argv, double *runTimePtr, optimalPlanner *planner
 
     // Declare the supported options.
     bpo::options_description desc("Allowed options");
-    desc.add_options()("help,h", "produce help message")(
-        "runtime,t", bpo::value<double>()->default_value(1.0),
-        "(Optional) Specify the runtime in seconds. Defaults to 1 and "
-        "must be greater than 0.")("planner,p", bpo::value<std::string>()->default_value("RRTstar"),
-                                   "(Optional) Specify the optimal planner to use, defaults to RRTstar if not given. "
-                                   "Valid options are AITstar, "
-                                   "BFMTstar, BITstar, CForest, EITstar, EIRMstar, FMTstar, InformedRRTstar, PRMstar, RRTstar, "
-                                   "and SORRTstar.")  // Alphabetical order
+    desc.add_options()("help,h", "produce help message")("runtime,t", bpo::value<double>()->default_value(1.0),
+                                                         "(Optional) Specify the runtime in seconds. Defaults to 1 and "
+                                                         "must be greater than 0.")(
+        "planner,p", bpo::value<std::string>()->default_value("BLITstar"),
+        "(Optional) Specify the optimal planner to use, defaults to RRTstar if not given. "
+        "Valid options are AITstar, "
+        "AORRTC, BFMTstar, BITstar, BLITstar, CForest, EITstar, EIRMstar, FMTstar, InformedRRTstar, PRMstar, RRTstar, "
+        "and SORRTstar.")  // Alphabetical order
         ("objective,o", bpo::value<std::string>()->default_value("PathLength"),
          "(Optional) Specify the optimization objective, defaults to PathLength if not given. Valid options are "
          "PathClearance, PathLength, ThresholdPathLength, and WeightedLengthAndClearanceCombo.")  // Alphabetical order
@@ -501,6 +515,10 @@ bool argParse(int argc, char **argv, double *runTimePtr, optimalPlanner *planner
     {
         *plannerPtr = PLANNER_AITSTAR;
     }
+    else if (boost::iequals("AORRTC", plannerStr))
+    {
+        *plannerPtr = PLANNER_AORRTC;
+    }
     else if (boost::iequals("BFMTstar", plannerStr))
     {
         *plannerPtr = PLANNER_BFMTSTAR;
@@ -508,6 +526,10 @@ bool argParse(int argc, char **argv, double *runTimePtr, optimalPlanner *planner
     else if (boost::iequals("BITstar", plannerStr))
     {
         *plannerPtr = PLANNER_BITSTAR;
+    }
+    else if (boost::iequals("BLITstar", plannerStr))
+    {
+        *plannerPtr = PLANNER_BLITSTAR;
     }
     else if (boost::iequals("CForest", plannerStr))
     {

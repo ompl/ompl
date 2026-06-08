@@ -47,7 +47,7 @@
 #include <random>
 
 // Allow hooks for visualizing planner
-//#define OMPL_THUNDER_DEBUG
+// #define OMPL_THUNDER_DEBUG
 
 #define foreach BOOST_FOREACH
 #define foreach_reverse BOOST_REVERSE_FOREACH
@@ -297,7 +297,7 @@ bool ompl::geometric::SPARSdb::getPaths(const std::vector<Vertex> &candidateStar
             }
 
         }  // foreach
-    }      // foreach
+    }  // foreach
 
     return false;
 }
@@ -1551,8 +1551,8 @@ void ompl::geometric::SPARSdb::distanceCheck(Vertex rep, const base::State *q, V
             }
             else  // We know both of these points exist, so we can check some distances
                 if (si_->distance(q, d.pointB_) < si_->distance(d.pointA_, d.pointB_))
-                // Distance with the new point is good, so set it.
-                d.setFirst(q, s, si_);
+                    // Distance with the new point is good, so set it.
+                    d.setFirst(q, s, si_);
         }
     }
     else  // SECOND points represent r (the guy discovered through sampling)

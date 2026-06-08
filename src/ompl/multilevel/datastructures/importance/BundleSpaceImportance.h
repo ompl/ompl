@@ -55,18 +55,18 @@ namespace ompl
         public:
             using Configuration = BundleSpaceGraph::Configuration;
             BundleSpaceImportance() = delete;
-            BundleSpaceImportance(BundleSpaceGraph *graph) : bundleSpaceGraph_(graph){};
+            BundleSpaceImportance(BundleSpaceGraph *graph) : bundleSpaceGraph_(graph) {};
 
             virtual ~BundleSpaceImportance() = default;
 
             virtual double eval() = 0;
 
-            virtual void clear(){};
+            virtual void clear() {};
 
         protected:
             BundleSpaceGraph *bundleSpaceGraph_;
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 #endif

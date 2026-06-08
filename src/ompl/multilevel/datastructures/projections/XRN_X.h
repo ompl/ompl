@@ -58,7 +58,7 @@ namespace ompl
         protected:
             ompl::base::StateSpacePtr computeFiberSpace() override;
         };
-    }
-}
+    }  // namespace multilevel
+}  // namespace ompl
 
 #endif
