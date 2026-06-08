@@ -483,7 +483,7 @@ namespace ompl
             Motion *lastGoalMotion_;
 
             /** \brief Goal state caching to accelerate cost to go heuristic computation */
-            base::State *goalState_;
+            base::State *goalState_{nullptr};
 
             /** \brief Add new samples if the tree was not able to find a solution. */
             bool extendedFMT_{true};
