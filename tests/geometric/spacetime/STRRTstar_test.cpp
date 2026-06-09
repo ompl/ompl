@@ -25,7 +25,7 @@ bool isStateValidHyperball(const ompl::base::State *state)
     double s = 0.0;
     for (unsigned int i = 0; i < 6; ++i)
         s += values[i] * values[i];
-    return (s > 0.1) && (s < 24);
+    return (s > 0.1);
 }
 
 class SpaceTimeMotionValidator : public base::MotionValidator
@@ -514,7 +514,7 @@ BOOST_AUTO_TEST_CASE(spacetime_pruned_goal_solution_uses_rewired_goal_motion)
     BOOST_CHECK_NO_THROW(planner.constructPrunedRecursiveSolution());
 }
 
-// Test case with fixed tree for broken recursive and use-after-free in constructSolution
+// Test case with fixed tree for wrong root in descendants and wrong numConnections in ascendants in rewireGoalTree
 BOOST_AUTO_TEST_CASE(spacetime_rewore_goal_tree_updates_descendant_roots)
 {
     STRRTstarTestAccess planner;
@@ -524,20 +524,20 @@ BOOST_AUTO_TEST_CASE(spacetime_rewore_goal_tree_updates_descendant_roots)
 
 
 // // Stress test for pruning and final time optimising with different seeds
-// BOOST_AUTO_TEST_CASE(spacetime_planning_stress)
-// {
-//     const unsigned int runs = 100;
+BOOST_AUTO_TEST_CASE(spacetime_planning_stress)
+{
+    const unsigned int runs = 100;
 
-//     for (unsigned int i = 0; i < runs; ++i)
-//     {
-//         BOOST_TEST_CONTEXT("stress run " << i)
-//         {
-//             runSpaceTimePlanner(0.0, 20.0, 0.5, 6, {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0},
-//                                 {1.0, 1.0, 1.0, 1.0, 1.0, 1.0}, true, 0.99,
-//                                 true);  // 6D diagonal movement with goal time optimisation
-//         }
-//     }
-// }
+    for (unsigned int i = 0; i < runs; ++i)
+    {
+        BOOST_TEST_CONTEXT("stress run " << i)
+        {
+            runSpaceTimePlanner(0.0, 20.0, 0.5, 6, {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0},
+                                {1.0, 1.0, 1.0, 1.0, 1.0, 1.0}, true, 0.99,
+                                true);  // 6D diagonal movement with goal time optimisation
+        }
+    }
+}
 
 
 BOOST_AUTO_TEST_SUITE_END()

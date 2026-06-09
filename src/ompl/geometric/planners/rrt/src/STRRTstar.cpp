@@ -1025,7 +1025,7 @@ bool ompl::geometric::STRRTstar::rewireGoalTree(Motion *addedMotion)
             otherMotion->parent = addedMotion;
             otherMotion->root = addedMotion->root;
             addedMotion->children.push_back(otherMotion);
-            // change root state of descendents
+            // change root state of descendants
             std::queue<Motion *> queue;
             queue.push(otherMotion);
             while (!queue.empty())
