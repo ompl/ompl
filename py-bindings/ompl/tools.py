@@ -1,4 +1,7 @@
-from ._ompl.tools import *
+try:
+    from ._ompl.tools import * 
+except ModuleNotFoundError:
+    pass
 
 # Import benchmark statistics functions
 from ._benchmark_statistics import (
