@@ -1,5 +1,5 @@
 try:
-    from ._ompl.tools import * 
+    from ._ompl.tools import *
 except ModuleNotFoundError:
     pass
 
