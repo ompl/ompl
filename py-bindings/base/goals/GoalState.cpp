@@ -1,4 +1,8 @@
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/string.h>
+#include <sstream>
+
 #include "ompl/base/goals/GoalState.h"
 #include "../init.h"
 

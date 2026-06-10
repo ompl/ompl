@@ -43,6 +43,9 @@ void ompl::binding::base::initGoals_GoalSampleableRegion(nb::module_ &m)
         .def("getThreshold", &ob::GoalRegion::getThreshold)
         .def("setThreshold", &ob::GoalRegion::setThreshold, nb::arg("threshold"))
 
+        .def("sampleGoal", &ob::GoalSampleableRegion::sampleGoal, nb::arg("state"))
+        .def("maxSampleCount", &ob::GoalSampleableRegion::maxSampleCount)
+
         // optional override in Python
         .def("couldSample", &ob::GoalSampleableRegion::couldSample)
 

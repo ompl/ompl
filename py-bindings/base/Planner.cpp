@@ -106,11 +106,28 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
             { return pl.solve(fn, checkInterval); }, nb::arg("terminationConditionFn"), nb::arg("checkInterval") = 0.0)
         .def("clearQuery", &ob::Planner::clearQuery)
         .def("clear", &ob::Planner::clear)
+        .def("setup", &ob::Planner::setup)
+        .def("checkValidity", &ob::Planner::checkValidity)
         .def("getName", &ob::Planner::getName)
         .def("setName", &ob::Planner::setName, nb::arg("name"))
         .def("getSpecs", &ob::Planner::getSpecs, nb::rv_policy::reference_internal)
+        .def("getPlannerData", &ob::Planner::getPlannerData, nb::arg("data"))
         .def("params", static_cast<ob::ParamSet &(ob::Planner::*)()>(&ob::Planner::params),
              nb::rv_policy::reference_internal)
         .def("getPlannerProgressProperties", &ob::Planner::getPlannerProgressProperties,
-             nb::rv_policy::reference_internal);
+             nb::rv_policy::reference_internal)
+        .def("printProperties",
+             [](const ob::Planner &p)
+             {
+                 std::ostringstream oss;
+                 p.printProperties(oss);
+                 return oss.str();
+             })
+        .def("printSettings",
+             [](const ob::Planner &p)
+             {
+                 std::ostringstream oss;
+                 p.printSettings(oss);
+                 return oss.str();
+             });
 }

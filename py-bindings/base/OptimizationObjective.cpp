@@ -3,6 +3,8 @@
 #include <nanobind/trampoline.h>
 #include <nanobind/stl/string.h>
 
+#include <sstream>
+
 #include "ompl/base/OptimizationObjective.h"
 #include "init.h"
 
@@ -142,6 +144,32 @@ void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
         // setters
         .def("setCostThreshold", &ob::OptimizationObjective::setCostThreshold, nb::arg("cost"))
         .def("setCostToGoHeuristic", &ob::OptimizationObjective::setCostToGoHeuristic, nb::arg("costToGoFn"))
+        // virtual methods
+        .def("isSatisfied", &ob::OptimizationObjective::isSatisfied, nb::arg("cost"))
+        .def("isCostBetterThan", &ob::OptimizationObjective::isCostBetterThan, nb::arg("c1"), nb::arg("c2"))
+        .def("isCostEquivalentTo", &ob::OptimizationObjective::isCostEquivalentTo, nb::arg("c1"), nb::arg("c2"))
+        .def("isFinite", &ob::OptimizationObjective::isFinite, nb::arg("cost"))
+        .def("betterCost", &ob::OptimizationObjective::betterCost, nb::arg("c1"), nb::arg("c2"))
+        .def("stateCost", &ob::OptimizationObjective::stateCost, nb::arg("state"))
+        .def("motionCost", &ob::OptimizationObjective::motionCost, nb::arg("s1"), nb::arg("s2"))
+        .def("controlCost", &ob::OptimizationObjective::controlCost, nb::arg("control"), nb::arg("steps"))
+        .def("combineCosts", &ob::OptimizationObjective::combineCosts, nb::arg("c1"), nb::arg("c2"))
+        .def("subtractCosts", &ob::OptimizationObjective::subtractCosts, nb::arg("c1"), nb::arg("c2"))
+        .def("identityCost", &ob::OptimizationObjective::identityCost)
+        .def("infiniteCost", &ob::OptimizationObjective::infiniteCost)
+        .def("initialCost", &ob::OptimizationObjective::initialCost, nb::arg("state"))
+        .def("terminalCost", &ob::OptimizationObjective::terminalCost, nb::arg("state"))
+        .def("isSymmetric", &ob::OptimizationObjective::isSymmetric)
+        .def("averageStateCost", &ob::OptimizationObjective::averageStateCost, nb::arg("numStates"))
+        .def("motionCostHeuristic", &ob::OptimizationObjective::motionCostHeuristic, nb::arg("s1"), nb::arg("s2"))
+        .def("motionCostBestEstimate", &ob::OptimizationObjective::motionCostBestEstimate, nb::arg("s1"), nb::arg("s2"))
+        .def("print",
+             [](const ob::OptimizationObjective &obj)
+             {
+                 std::ostringstream oss;
+                 obj.print(oss);
+                 return oss.str();
+             })
         .def("__repr__",
              [](const ob::OptimizationObjective &obj)
              {

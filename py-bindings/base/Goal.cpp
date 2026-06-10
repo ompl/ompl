@@ -41,5 +41,15 @@ void ompl::binding::base::init_Goal(nb::module_ &m)
         // getters
         .def("getType", &ob::Goal::getType)
         .def("hasType", &ob::Goal::hasType, nb::arg("type"))
-        .def("getSpaceInformation", &ob::Goal::getSpaceInformation, nb::rv_policy::reference_internal);
+        .def("getSpaceInformation", &ob::Goal::getSpaceInformation, nb::rv_policy::reference_internal)
+        // virtual methods
+        .def("isSatisfied", nb::overload_cast<const ob::State *>(&ob::Goal::isSatisfied, nb::const_), nb::arg("state"))
+        .def("isStartGoalPairValid", &ob::Goal::isStartGoalPairValid, nb::arg("start"), nb::arg("goal"))
+        .def("print",
+             [](const ob::Goal &g)
+             {
+                 std::ostringstream oss;
+                 g.print(oss);
+                 return oss.str();
+             });
 }

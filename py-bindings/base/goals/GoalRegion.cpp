@@ -28,6 +28,7 @@ void ompl::binding::base::initGoals_GoalRegion(nb::module_ &m)
              nb::arg("state"))
         .def("isSatisfied", nb::overload_cast<const ob::State *, double *>(&ob::GoalRegion::isSatisfied, nb::const_),
              nb::arg("state"), nb::arg("distance"))
+        .def("distanceGoal", &ob::GoalRegion::distanceGoal, nb::arg("state"))
         .def("setThreshold", &ob::GoalRegion::setThreshold, nb::arg("threshold"))
         .def("getThreshold", &ob::GoalRegion::getThreshold)
         .def("print", [](const ob::GoalRegion &self) { self.print(std::cout); })

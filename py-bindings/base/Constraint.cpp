@@ -51,7 +51,13 @@ void ompl::binding::base::init_Constraint(nb::module_ &m)
         .def("getMaxIterations", &ob::Constraint::getMaxIterations)
         .def("setTolerance", &ob::Constraint::setTolerance, nb::arg("tolerance"))
         .def("setMaxIterations", &ob::Constraint::setMaxIterations, nb::arg("iterations"))
-        // .def("jacobian", &ob::Constraint::jacobian, nb::arg("x"), nb::arg("out"))
+        .def("jacobian",
+             nb::overload_cast<const Eigen::Ref<const Eigen::VectorXd> &, Eigen::Ref<Eigen::MatrixXd>>(
+                 &ob::Constraint::jacobian, nb::const_),
+             nb::arg("x"), nb::arg("out"))
+        .def("jacobian",
+             nb::overload_cast<const ob::State *, Eigen::Ref<Eigen::MatrixXd>>(&ob::Constraint::jacobian, nb::const_),
+             nb::arg("state"), nb::arg("out"))
         .def("project", nb::overload_cast<Eigen::Ref<Eigen::VectorXd>>(&ob::Constraint::project, nb::const_),
              nb::arg("x"))
         .def("project", nb::overload_cast<ob::State *>(&ob::Constraint::project, nb::const_), nb::arg("x"))
