@@ -39,6 +39,7 @@
 
 #include "ompl/datastructures/NearestNeighbors.h"
 #include "ompl/base/OptimizationObjective.h"
+#include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/geometric/planners/PlannerIncludes.h"
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 
@@ -195,9 +196,39 @@ namespace ompl
             /** \brief Free the memory allocated by this planner */
             void freeMemory();
 
-            /** \brief Compute euclidian distance between motions */
+            /** \brief Compute euclidian distance between motions
+             *
+             * For compound state spaces, this extracts the position components and
+             * computes actual Euclidean distance, rather than using the state space's
+             * distance() which may return path-based non-metric distances.
+             */
             double euclideanDistanceFunction(const Motion *a, const Motion *b) const
             {
+                // Try to get actual Euclidean distance for compound state spaces
+                auto *stateSpace = si_->getStateSpace().get();
+                if (stateSpace->isCompound())
+                {
+                    auto *compoundSpace = stateSpace->as<base::CompoundStateSpace>();
+                    // Get the first subspace which should be the position component (RealVectorStateSpace)
+                    auto *subspace = compoundSpace->getSubspace(0).get();
+                    if (subspace->getType() == base::STATE_SPACE_REAL_VECTOR)
+                    {
+                        auto *rvSpace = subspace->as<base::RealVectorStateSpace>();
+                        const auto *aCompound = a->state->as<base::CompoundStateSpace::StateType>();
+                        const auto *bCompound = b->state->as<base::CompoundStateSpace::StateType>();
+                        const double *aVals = aCompound->as<base::RealVectorStateSpace::StateType>(0)->values;
+                        const double *bVals = bCompound->as<base::RealVectorStateSpace::StateType>(0)->values;
+                        unsigned int dim = rvSpace->getDimension();
+                        double dist = 0.0;
+                        for (unsigned int i = 0; i < dim; ++i)
+                        {
+                            double diff = aVals[i] - bVals[i];
+                            dist += diff * diff;
+                        }
+                        return std::sqrt(dist);
+                    }
+                }
+                // Fallback to state space distance for non-compound spaces
                 return si_->distance(a->state, b->state);
             }
 
