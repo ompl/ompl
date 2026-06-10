@@ -101,7 +101,7 @@ public:
         base::SpaceInformationPtr si = std::make_shared<base::SpaceInformation>(space);
 
         // Set state validity checking for this space
-        if(addObstacle)
+        if (addObstacle)
         {
             si->setStateValidityChecker([](const base::State *state) { return isStateValidHyperball(state); });
         }
@@ -165,17 +165,16 @@ protected:
 class STRRTstarTestAccess : public geometric::STRRTstar
 {
 public:
-
     static std::shared_ptr<base::SpaceInformation> makeSpaceTimeStateSpace()
     {
         double vMax = 1.0;
         std::shared_ptr<ompl::base::RealVectorStateSpace> vectorSpace(std::make_shared<base::RealVectorStateSpace>(1));
-                base::RealVectorBounds bounds(1);
+        base::RealVectorBounds bounds(1);
         bounds.setLow(-1.0);
         bounds.setHigh(1.0);
         vectorSpace->setBounds(bounds);
-        std::shared_ptr<base::SpaceTimeStateSpace> timeSpace = std::make_shared<base::SpaceTimeStateSpace>(vectorSpace, vMax);
-
+        std::shared_ptr<base::SpaceTimeStateSpace> timeSpace =
+            std::make_shared<base::SpaceTimeStateSpace>(vectorSpace, vMax);
 
         timeSpace->setTimeBounds(0.0, 10.0);
 
@@ -193,13 +192,13 @@ public:
     // create such tree that will trigger recursion in the constructSolution() and segfault
     void constructPrunedRecursiveSolution()
     {
-        std::cout<<"Simulated recusion in constructSolution() test"<<std::endl;
+        std::cout << "Simulated recusion in constructSolution() test" << std::endl;
         setRange(1.0);
-        setOptimumApproxFactor(0.6);// so 4.0 > 5.0*0.6 > 2.0 
+        setOptimumApproxFactor(0.6);  // so 4.0 > 5.0*0.6 > 2.0
         setup();
 
         minimumTime_ = 0.0;
-        upperTimeBound_ = 5.0; // must be > then invalidGoal time
+        upperTimeBound_ = 5.0;  // must be > then invalidGoal time
         isTimeBounded_ = true;
 
         startMotion_ = makeMotion(0.0, 0.0);
@@ -227,7 +226,6 @@ public:
         invalidGoal->children.push_back(connectedInvalidDescendant);
         tGoal_->add(connectedInvalidDescendant);
 
-
         // Nodes:
         // S   = startMotion_                 (x=0.0, t=0.0)
         // CID = connectedInvalidDescendant   (x=0.9, t=1.5)
@@ -242,33 +240,30 @@ public:
         //   4.0 |                                      IG   [invalid goal root]
         //       |                                     /
         //       |                                    /
-        //       |                                   / 
+        //       |                                   /
         //       |                                  /
         //       |                                 |
         //   2.0 |                                 |    VG   [valid goal]
-        //       |                                 |    
+        //       |                                 |
         //       |                                 |
         //   1.5 |                              __CID
-        //       |                             / 
-        //       |                      ______/   
+        //       |                             /
+        //       |                      ______/
         //       |           __________/
         //       | _________/
-        //       |/        
+        //       |/
         //   0.0 *------------------------------------------> coordinate x
         //     S (0.0)                              0.9  1.0
         //    start
 
-                
         constructSolution(startMotion_, invalidGoal, base::ReportIntermediateSolutionFn(),
                           base::plannerNonTerminatingCondition());
-                         
     }
 
-
-    // test to check the bug: ascendants if the rewired node will not have updated ->root. 
+    // test to check the bug: ascendants if the rewired node will not have updated ->root.
     void rewireGoalTreeUpdatesDescendantRoots()
     {
-        std::cout<<"Check ascendats root after rewire test"<<std::endl;
+        std::cout << "Check ascendats root after rewire test" << std::endl;
         setRange(1.0);
         setOptimumApproxFactor(1);
         setup();
@@ -288,7 +283,6 @@ public:
         newValidGoalancestor->parent = validGoal;
         validGoal->children.push_back(newValidGoalancestor);
         tGoal_->add(newValidGoalancestor);
-
 
         auto *invalidGoal = makeMotion(1.0, 4.0);
         invalidGoal->root = invalidGoal->state;
@@ -317,7 +311,6 @@ public:
         staleRootGrandchild->numConnections = 5;
         tGoal_->add(staleRootGrandchild);
 
-
         auto *staleRootGrandGrandchild = makeMotion(0.3, 0.5);
         staleRootGrandGrandchild->parent = staleRootGrandchild;
         staleRootGrandGrandchild->root = invalidGoal->state;
@@ -326,7 +319,6 @@ public:
         tGoal_->add(staleRootGrandGrandchild);
 
         rewireGoalTree(newValidGoalancestor);
-  
 
         // Goal-tree layout for rewireGoalTreeUpdatesDescendantRoots()
         // (We assume, that staleRootGrandGrandchild num connections = 5)
@@ -349,8 +341,8 @@ public:
         //     |                                          /
         // 3.0 |                                      IGA
         //     |                                     /
-        //     |                                  __/ 
-        //     |                                 |  
+        //     |                                  __/
+        //     |                                 |
         // 2.0 |                                 |      VG
         //     |                                 |     /
         // 1.5 |                                 |   NVGA
@@ -382,9 +374,9 @@ public:
         //     |                                           /
         //     |                                          / [old branch]
         // 3.0 |                                       IGA
-        //     |                                      
-        //     |                                      
-        //     |                                    
+        //     |
+        //     |
+        //     |
         // 2.0 |                                        VG
         //     |                                       /
         // 1.5 |                                     NVGA
@@ -410,7 +402,6 @@ public:
         BOOST_CHECK(newValidGoalancestor->parent == validGoal);
         BOOST_CHECK(newValidGoalancestor->children.size() == 1);
 
-
         BOOST_CHECK(invalidGoal->numConnections == 0);
 
         BOOST_CHECK(invalidGoalancestor->root == invalidGoal->state);
@@ -432,8 +423,8 @@ public:
         BOOST_CHECK(staleRootGrandGrandchild->numConnections == 5);
         BOOST_CHECK(staleRootGrandGrandchild->parent == staleRootGrandchild);
         BOOST_CHECK(staleRootGrandGrandchild->children.size() == 0);
-
     }
+
 private:
     Motion *makeMotion(double position, double time)
     {
@@ -444,10 +435,6 @@ private:
         return motion;
     }
 };
-
-
-
-
 
 // Define the test suite
 BOOST_FIXTURE_TEST_SUITE(SpaceTimePlanningTestFixture, SpaceTimeTestFixture)
@@ -522,7 +509,6 @@ BOOST_AUTO_TEST_CASE(spacetime_rewore_goal_tree_updates_descendant_roots)
     BOOST_CHECK_NO_THROW(planner.rewireGoalTreeUpdatesDescendantRoots());
 }
 
-
 // // Stress test for pruning and final time optimising with different seeds
 BOOST_AUTO_TEST_CASE(spacetime_planning_stress)
 {
@@ -532,12 +518,11 @@ BOOST_AUTO_TEST_CASE(spacetime_planning_stress)
     {
         BOOST_TEST_CONTEXT("stress run " << i)
         {
-            runSpaceTimePlanner(0.0, 20.0, 0.5, 6, {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0},
-                                {1.0, 1.0, 1.0, 1.0, 1.0, 1.0}, true, 0.99,
+            runSpaceTimePlanner(0.0, 20.0, 0.5, 6, {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0}, {1.0, 1.0, 1.0, 1.0, 1.0, 1.0},
+                                true, 0.99,
                                 true);  // 6D diagonal movement with goal time optimisation
         }
     }
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()
