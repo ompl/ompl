@@ -87,7 +87,7 @@ public:
 
         std::vector<double> lifted_angles;
         if (!manip_->FABRIK(lifted_angles, seed_angles, end_frame, /*xyTol=*/1e-4,
-                            /*thetaTol=*/2.0 * M_PI))
+                            /*thetaTol=*/2.0 * boost::math::constants::pi<double>()))
         {
             return false;
         }
