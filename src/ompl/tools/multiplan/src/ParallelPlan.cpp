@@ -61,6 +61,12 @@ void ompl::tools::ParallelPlan::addPlannerAllocator(const base::PlannerAllocator
     planners_.push_back(planner);
 }
 
+void ompl::tools::ParallelPlan::clear()
+{
+    for(base::PlannerPtr &planner : planners_)
+        planner->clear();
+}
+
 void ompl::tools::ParallelPlan::clearPlanners()
 {
     planners_.clear();
