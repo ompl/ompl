@@ -193,7 +193,7 @@ void PlanarManipulator::FK(const double *joints, Eigen::Affine2d &eeFrame) const
 // Returns false if no solution exists to the given pose.
 bool PlanarManipulator::IK(std::vector<double> &solution, const Eigen::Affine2d &eeFrame) const
 {
-    std::vector<double> seed(numLinks_, M_PI / 2.0);
+    std::vector<double> seed(numLinks_, boost::math::constants::pi<double>() / 2.0);
     return IK(solution, seed, eeFrame);
 }
 
@@ -295,10 +295,10 @@ bool PlanarManipulator::IK(std::vector<double> &solution, const std::vector<doub
     for (size_t i = 0; i < solution.size(); ++i)
     {
         double angle = joints(i);
-        while (angle > M_PI)
-            angle -= 2.0 * M_PI;
-        while (angle < -M_PI)
-            angle += 2.0 * M_PI;
+        while (angle > boost::math::constants::pi<double>())
+            angle -= 2.0 * boost::math::constants::pi<double>();
+        while (angle < -boost::math::constants::pi<double>())
+            angle += 2.0 * boost::math::constants::pi<double>();
         solution[i] = angle;
     }
 
@@ -308,7 +308,7 @@ bool PlanarManipulator::IK(std::vector<double> &solution, const std::vector<doub
 bool PlanarManipulator::FABRIK(std::vector<double> &solution, const Eigen::Affine2d &eeFrame, double xyTol,
                                double thetaTol) const
 {
-    std::vector<double> seed(numLinks_, M_PI / 2.0);
+    std::vector<double> seed(numLinks_, boost::math::constants::pi<double>() / 2.0);
     return FABRIK(solution, seed, eeFrame, xyTol, thetaTol);
 }
 

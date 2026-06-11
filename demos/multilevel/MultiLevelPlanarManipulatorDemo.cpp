@@ -59,6 +59,7 @@
 
 #include <ompl/multilevel/datastructures/Projection.h>
 #include <ompl/multilevel/datastructures/projections/SE2_R2.h>
+#include <boost/math/constants/constants.hpp>
 
 using namespace ompl::geometric;
 
@@ -136,8 +137,8 @@ int main()
     // #########################################################################
     ompl::base::StateSpacePtr space(new PlanarManipulatorStateSpace(numLinks));
     ompl::base::RealVectorBounds bounds(numLinks);
-    bounds.setLow(-M_PI);
-    bounds.setHigh(M_PI);
+    bounds.setLow(-boost::math::constants::pi<double>());
+    bounds.setHigh(boost::math::constants::pi<double>());
     space->as<PlanarManipulatorStateSpace>()->setBounds(bounds);
     manipulator.setBounds(bounds.low, bounds.high);
 
