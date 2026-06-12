@@ -104,7 +104,7 @@ For new submodules (Phase 6 multilevel), also verify `.pyi` stubs under the buil
 
 ## Current Status
 
-Verified on WSL (2026-06-12): `pip install ./py-bindings` succeeds, import smoke test passes (including `multilevel`), and `pytest tests/pytests/test_geo_planners.py tests/pytests/test_multilevel_planners.py` passes (10 tests). Deprecated tests under `tests/pytests/deprecated/` still fail due to missing resource files and legacy API expectations.
+Verified on WSL (2026-06-12): `pip install ./py-bindings` succeeds, import smoke test passes (including `multilevel`), gap audit reports zero unintentional gaps (`python scripts/list_binding_gaps.py --fail-on-gap`), and target pytest modules pass. Deprecated tests under `tests/pytests/deprecated/` still fail due to missing resource files and legacy API expectations.
 
 | Phase | Status |
 |-------|--------|

@@ -10,16 +10,16 @@
 
 OMPL 2.x uses **Nanobind** with a single extension module `_ompl` and five Python submodules (`base`, `geometric`, `control`, `util`, `tools`) registered in [`py-bindings/python.cpp`](../../py-bindings/python.cpp). New `.cpp` files under [`py-bindings/`](../../py-bindings/) are auto-discovered by CMake `GLOB_RECURSE` in [`py-bindings/CMakeLists.txt`](../../py-bindings/CMakeLists.txt).
 
-| Area             | C++ headers (approx) | Binding `.cpp` files | Coverage                                                   |
-| ---------------- | -------------------- | -------------------- | ---------------------------------------------------------- |
-| `base`           | 95                   | 54                   | Core framework done; samplers/objectives/spaces incomplete |
-| `geometric`      | 86 (many internal)   | 18                   | 15 planners bound; ~40 public planners/utilities missing   |
-| `control`        | 36                   | 22                   | Core done; ODE/LTL/Hy* missing                             |
-| `tools`          | 15                   | 1                    | Benchmark only                                             |
-| `util`           | 11                   | 3                    | Console/PPM/RNG only                                       |
-| `multilevel`     | 61                   | **0**                | Entire module unbound                                      |
-| `datastructures` | 16                   | 0                    | Internal; skip unless exposed via API                      |
-| `vamp`           | 4                    | 0                    | Optional separate build                                    |
+| Area             | C++ headers (approx) | Binding `.cpp` files | Coverage                                      |
+| ---------------- | -------------------- | -------------------- | --------------------------------------------- |
+| `base`           | 95                   | 87+                  | Public API complete; intentional template gaps |
+| `geometric`      | 86 (many internal)   | 53+                  | All bindable planners/utilities bound         |
+| `control`        | 36                   | 36+                  | Complete except `ODEAdaptiveSolver` (Boost)   |
+| `tools`          | 15                   | 11+                  | Bindable API complete; GIL orchestrators out  |
+| `util`           | 11                   | 7+                   | Complete                                      |
+| `multilevel`     | 61                   | 34+                  | Submodule + planners + infrastructure           |
+| `datastructures` | 16                   | 0                    | Internal; skip unless exposed via API         |
+| `vamp`           | 4                    | 0                    | Optional separate build                       |
 
 **Binding pattern to follow:** mirror C++ header path, implement `init*` in namespace `ompl::binding::<module>`, declare in `init.h`, register in `python.cpp` **after base types** (inheritance order matters — see Nanobind note in [`py-bindings/README.md`](../../py-bindings/README.md)). Planner template from [`py-bindings/geometric/planners/rrt/RRT.cpp`](../../py-bindings/geometric/planners/rrt/RRT.cpp): constructor, dual-typed `solve()`, `getPlannerData`, `clear`, `setup`, planner-specific setters.
 
@@ -221,27 +221,27 @@ Phase 6 (multilevel) is the highest-risk commit — land it only after Phases 1�
 
 ### Phase 0 — Tooling and policy (1–2 days)
 
-- [ ] Add maintenance script `scripts/list_binding_gaps.py` that diffs `src/ompl/**/*.h` vs `py-bindings/**/*.cpp` (excluding `*Impl.h`, internal dirs) and prints the gap list; run in CI to prevent drift.
-- [ ] Document GIL exclusion list in [`doc/markdown/python.md`](../../doc/markdown/python.md) under a new **"Excluded from Python bindings"** section.
-- [ ] Establish code-gen helper: copy [`RRT.cpp`](../../py-bindings/geometric/planners/rrt/RRT.cpp) as planner skeleton to reduce boilerplate.
+- [x] Add maintenance script `scripts/list_binding_gaps.py` that diffs `src/ompl/**/*.h` vs `py-bindings/**/*.cpp` (excluding `*Impl.h`, internal dirs) and prints the gap list; run in CI to prevent drift.
+- [x] Document GIL exclusion list in [`doc/markdown/python.md`](../../doc/markdown/python.md) under a new **"Excluded from Python bindings"** section.
+- [x] Establish code-gen helper: copy [`RRT.cpp`](../../py-bindings/geometric/planners/rrt/RRT.cpp) as planner skeleton to reduce boilerplate.
 
 ### Phase 1 — High-value base + util (1 week)
 
-- [ ] `ProlateHyperspheroid`
-- [ ] Remaining optimization objectives + termination conditions
-- [ ] Informed samplers (`PathLengthDirectInfSampler`, etc.)
-- [ ] Additional valid-state samplers
-- [ ] `HybridStateSpace`, `HybridTimeStateSpace`, special topologies
-- [ ] Fix `GoalLazySamples` + tests
+- [x] `ProlateHyperspheroid`
+- [x] Remaining optimization objectives + termination conditions
+- [x] Informed samplers (`PathLengthDirectInfSampler`, etc.)
+- [x] Additional valid-state samplers
+- [x] `HybridStateSpace`, `HybridTimeStateSpace`, special topologies
+- [x] Fix `GoalLazySamples` + tests
 
 ### Phase 2 — Geometric planners batch 1 (1–2 weeks)
 
 Bind in dependency-safe sub-batches within the Phase 2 commit:
 
-- [ ] **Classic:** EST, BiEST, ProjEST, SST, SBL, PDST, STRIDE
-- [ ] **RRT variants:** LazyRRT, LBTRRT, TRRT family, STRRTstar, etc.
-- [ ] **PRM variants:** LazyPRM*, SPARS* (with warnings)
-- [ ] **Path tools:** PathHybridization, HillClimbing, GeneticSearch
+- [x] **Classic:** EST, BiEST, ProjEST, SST, SBL, PDST, STRIDE
+- [x] **RRT variants:** LazyRRT, LBTRRT, TRRT family, STRRTstar, etc.
+- [x] **PRM variants:** LazyPRM*, SPARS* (with warnings)
+- [x] **Path tools:** PathHybridization, HillClimbing, GeneticSearch
 
 Each planner: binding file + one smoke test in [`tests/pytests/test_geo_planners.py`](../../tests/pytests/test_geo_planners.py).
 
@@ -253,35 +253,37 @@ Strict registration order in `python.cpp`:
 BITstar (existing) → ABITstar → AITstar → EITstar → EIRMstar → BLITstar
 ```
 
-- [ ] ABITstar, AITstar, EITstar, EIRMstar, BLITstar
+- [x] ABITstar, AITstar, EITstar, EIRMstar, BLITstar
 
 ### Phase 4 — Control extensions (1 week)
 
-- [ ] `DiscreteControlSpace`, `SteeredControlSampler`, `PlannerDataStorage`
-- [ ] ODE solver hierarchy with GIL-aware trampolines; port [`demos/deprecated/RigidBodyPlanningWithODESolverAndControls.py`](../../demos/deprecated/RigidBodyPlanningWithODESolverAndControls.py) to active demo
-- [ ] `HyRRT`, `HySST`
-- [ ] LTL stack
+- [x] `DiscreteControlSpace`, `SteeredControlSampler`, `PlannerDataStorage`
+- [x] ODE solver hierarchy with GIL-aware trampolines; port [`demos/deprecated/RigidBodyPlanningWithODESolverAndControls.py`](../../demos/deprecated/RigidBodyPlanningWithODESolverAndControls.py) to active demo (`demos/RigidBodyPlanningWithODESolverAndControls.py`)
+- [x] `HyRRT`, `HySST`
+- [x] LTL stack
+
+> **Note:** `ODEAdaptiveSolver` is intentionally excluded (Boost 1.83 `make_controlled` compile failure). Use `ODEBasicSolver` / `ODEErrorSolver` from Python instead.
 
 ### Phase 5 — Tools (3–4 days)
 
-- [ ] `SelfConfig`, `MagicConstants`
-- [ ] Experience DB classes (`LightningDB`, `ThunderDB`, `SPARSdb`, `DynamicTimeWarp`) without binding orchestrators that use `ParallelPlan`
-- [ ] `LightningRetrieveRepair`, `ThunderRetrieveRepair` in geometric
-- [ ] `XXL` decomposition types
+- [x] `SelfConfig`, `MagicConstants`
+- [x] Experience DB classes (`LightningDB`, `ThunderDB`, `SPARSdb`, `DynamicTimeWarp`) without binding orchestrators that use `ParallelPlan`
+- [x] `LightningRetrieveRepair`, `ThunderRetrieveRepair` in geometric
+- [x] `XXL` decomposition types
 
 ### Phase 6 — Multilevel submodule (2–3 weeks, highest complexity)
 
-- [ ] Scaffold `py-bindings/multilevel/` module infrastructure
-- [ ] Bind `Projection` hierarchy + `ProjectionFactory`
-- [ ] Explicitly instantiate and bind `BundleSpaceSequence<QRRTImpl>`, etc. as concrete Python classes named `QRRT`, `QRRTStar`, `QMP`, `QMPStar`
-- [ ] Revive/update [`demos/multilevel/`](../../demos/multilevel/) demos to use `from ompl import multilevel`
-- [ ] Dedicated `tests/pytests/test_multilevel_planners.py`
+- [x] Scaffold `py-bindings/multilevel/` module infrastructure
+- [x] Bind `Projection` hierarchy + `ProjectionFactory`
+- [x] Explicitly instantiate and bind `BundleSpaceSequence<QRRTImpl>`, etc. as concrete Python classes named `QRRT`, `QRRTStar`, `QMP`, `QMPStar`
+- [x] Revive/update [`demos/multilevel/`](../../demos/multilevel/) demos to use `from ompl import multilevel` (`demos/multilevel/MultiLevelPlanningRigidBody2D.py`)
+- [x] Dedicated `tests/pytests/test_multilevel_planners.py`
 
 ### Phase 7 — CI, stubs, docs (ongoing)
 
-- [ ] Expand [`tests/pytests/`](../../tests/pytests/) for every new binding (target: import + construct + `solve` smoke test)
-- [ ] Verify `.pyi` stub generation still passes `fix_pyi_imports.cmake`
-- [ ] Update [`doc/markdown/pybindingsPlanner.md`](../../doc/markdown/pybindingsPlanner.md) with multilevel and ODE examples
+- [x] Expand [`tests/pytests/`](../../tests/pytests/) for every new binding (target: import + construct + `solve` smoke test)
+- [x] Verify `.pyi` stub generation still passes `fix_pyi_imports.cmake`
+- [x] Update [`doc/markdown/pybindingsPlanner.md`](../../doc/markdown/pybindingsPlanner.md) with multilevel and ODE examples
 
 ---
 

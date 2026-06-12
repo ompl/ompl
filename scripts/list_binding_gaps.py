@@ -23,6 +23,16 @@ SKIP_HEADER_PARTS = (
     "String.h",
     "PlannerIncludes.h",
     "ConnectionStrategy.h",
+    "ImplicitGraph.h",
+    "Queuetypes.h",
+    "CostHelper.h",
+    "HelperFunctions.h",
+    "IdGenerator.h",
+    "SearchQueue.h",
+    "Direction.h",
+    "ForwardQueue.h",
+    "ReverseQueue.h",
+    "RandomGeometricGraph.h",
 )
 
 EXCLUDED_CLASSES = {
@@ -39,9 +49,23 @@ EXCLUDED_CLASSES = {
     "ExperienceSetup",
     "Profiler",
     "PlannerMonitor",
+    # Boost 1.83 template issue; see py-bindings/control/ODESolver.cpp
+    "ODEAdaptiveSolver",
+}
+
+# Public headers intentionally left unbound (templates, typedef-only, or C++-only helpers).
+INTENTIONAL_UNBOUND = {
+    "ScopedState",
+    "SolutionNonExistenceProof",
+    "StateSamplerArray",
+    "StateSpaceTypes",
+    "TypedSpaceInformation",
+    "TypedStateValidityChecker",
 }
 
 MODULES = ("base", "geometric", "control", "util", "tools", "multilevel")
+
+INCLUDE_RE = re.compile(r'#include\s+"ompl/[^"]+/([^"/]+)\.h"')
 
 
 def repo_root() -> Path:
@@ -58,6 +82,12 @@ def binding_stems(bindings_dir: Path) -> set[str]:
         if cpp.name == "python.cpp":
             continue
         stems.add(cpp.stem)
+        try:
+            text = cpp.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for match in INCLUDE_RE.finditer(text):
+            stems.add(match.group(1))
     return stems
 
 
@@ -75,6 +105,8 @@ def collect_headers(src_ompl: Path, module: str) -> list[Path]:
         if should_skip_header(path):
             continue
         if path.stem in EXCLUDED_CLASSES:
+            continue
+        if path.stem in INTENTIONAL_UNBOUND:
             continue
         headers.append(path)
     return headers

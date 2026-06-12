@@ -13,7 +13,9 @@ namespace og = ompl::geometric;
 
 void ompl::binding::geometric::initPlannersPrm_LazyPRMstar(nb::module_ &m)
 {
-    nb::class_<og::LazyPRMstar, og::LazyPRM>(m, "LazyPRMstar")
+    nb::class_<og::LazyPRMstar, og::LazyPRM>(m, "LazyPRMstar",
+        "Warning: LazyPRMstar may use internal threads for solution checking. "
+        "Avoid Python StateValidityChecker trampolines when multithreading is enabled.")
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
         .def(nb::init<const ob::PlannerData &>(), nb::arg("data"))
         .def("solve",
