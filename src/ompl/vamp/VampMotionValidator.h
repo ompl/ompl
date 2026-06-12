@@ -43,8 +43,8 @@ namespace ompl::vamp
         auto checkMotion(const ob::State *s1, const ob::State *s2, std::pair<ob::State *, double> &last_valid) const
             -> bool override
         {
-            // throw ompl::Exception("VampMotionValidator::checkMotion with lastValid not implemented");
-            // TODO: VAMP does not support returning the last valid state, but it may become available in the future
+            // VAMP's swept-edge validator returns only a single bool, not the last
+            // valid fraction along the motion, so we leave last_valid empty.
             last_valid.first = nullptr;
             last_valid.second = 0.0;
             return ::vamp::planning::validate_motion<Robot, rake, Robot::resolution>(ompl_to_vamp<Robot>(s1),
