@@ -15,7 +15,8 @@ void ompl::binding::base::initSpaces_SpaceTimeStateSpace(nb::module_ &m)
 
         .def("distance", &ob::SpaceTimeStateSpace::distance, nb::arg("state1"), nb::arg("state2"))
 
-        .def("timeToCoverDistance", &ob::SpaceTimeStateSpace::timeToCoverDistance, nb::arg("state1"), nb::arg("state2"))
+        .def("timeToCoverDistance", &ob::SpaceTimeStateSpace::timeToCoverDistance, nb::arg("state1"), nb::arg("state2"),
+             nb::arg("distance"))
 
         .def("distanceSpace", &ob::SpaceTimeStateSpace::distanceSpace, nb::arg("state1"), nb::arg("state2"))
 
