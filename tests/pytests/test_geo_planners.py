@@ -60,6 +60,32 @@ def test_prm():
     ss.getPlanner().clear()
 
 
+def test_est():
+    ss = create_simple_setup()
+    si = ss.getSpaceInformation()
+    planner = og.EST(si)
+    planner.setRange(0.2)
+    solution_path = solve_with_planner(ss, planner)
+    assert solution_path is not None
+
+
+def test_lazy_rrt():
+    ss = create_simple_setup()
+    si = ss.getSpaceInformation()
+    planner = og.LazyRRT(si)
+    planner.setRange(0.2)
+    solution_path = solve_with_planner(ss, planner)
+    assert solution_path is not None
+
+
+def test_abitstar():
+    ss = create_simple_setup()
+    si = ss.getSpaceInformation()
+    planner = og.ABITstar(si)
+    solution_path = solve_with_planner(ss, planner, timeout=2.0)
+    assert solution_path is not None
+
+
 def test_prm_star():
     # 1) Create SimpleSetup from environment
     ss = create_simple_setup()

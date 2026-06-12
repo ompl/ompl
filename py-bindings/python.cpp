@@ -1,6 +1,7 @@
 #include "base/init.h"
 #include "control/init.h"
 #include "geometric/init.h"
+#include "multilevel/init.h"
 #include "util/init.h"
 #include "tools/init.h"
 
@@ -19,14 +20,20 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::init_Goal(base);
     ompl::binding::base::init_GoalTypes(base);
     ompl::binding::base::init_MotionValidator(base);
+    ompl::binding::base::init_DubinsMotionValidator(base);
+    ompl::binding::base::init_Dubins3DMotionValidator(base);
+    ompl::binding::base::init_DiscreteMotionValidator(base);
     ompl::binding::base::init_ValidStateSampler(base);
     ompl::binding::base::init_Constraint(base);
     ompl::binding::base::init_Path(base);
     ompl::binding::base::init_Planner(base);
     ompl::binding::base::init_PlannerData(base);
+    ompl::binding::base::init_PlannerDataGraph(base);
     ompl::binding::base::init_PlannerDataStorage(base);
     ompl::binding::base::init_PlannerStatus(base);
     ompl::binding::base::init_PlannerTerminationCondition(base);
+    ompl::binding::base::initTerminationconditions_IterationTerminationCondition(base);
+    ompl::binding::base::initTerminationconditions_CostConvergenceTerminationCondition(base);
     ompl::binding::base::init_StateSampler(base);
     ompl::binding::base::init_ProblemDefinition(base);
     ompl::binding::base::init_ProjectionEvaluator(base);
@@ -43,10 +50,31 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::init_OptimizationObjective(base);
     ompl::binding::base::initObjectives_PathLengthOptimizationObjective(base);
     ompl::binding::base::initObjectives_StateCostIntegralObjective(base);
+    ompl::binding::base::initObjectives_MinimizeArrivalTime(base);
+    ompl::binding::base::initObjectives_MechanicalWorkOptimizationObjective(base);
+    ompl::binding::base::initObjectives_VFMechanicalWorkOptimizationObjective(base);
+    ompl::binding::base::initObjectives_MinimaxObjective(base);
+    ompl::binding::base::initObjectives_MaximizeMinClearanceObjective(base);
+    ompl::binding::base::initObjectives_ControlDurationObjective(base);
+    ompl::binding::base::initObjectives_VFUpstreamCriterionOptimizationObjective(base);
     ompl::binding::base::init_ConstrainedSpaceInformation(base);
+    ompl::binding::base::init_GenericParam(base);
+    ompl::binding::base::init_StateStorage(base);
+    ompl::binding::base::init_PrecomputedStateSampler(base);
 
     ompl::binding::base::initSamplers_UniformValidStateSampler(base);
     ompl::binding::base::initSamplers_ObstacleBasedValidStateSampler(base);
+    ompl::binding::base::initSamplers_GaussianValidStateSampler(base);
+    ompl::binding::base::initSamplers_BridgeTestValidStateSampler(base);
+    ompl::binding::base::initSamplers_MinimumClearanceValidStateSampler(base);
+    ompl::binding::base::initSamplers_MaximizeClearanceValidStateSampler(base);
+    ompl::binding::base::initSamplers_ConditionalStateSampler(base);
+    ompl::binding::base::initSamplers_InformedStateSampler(base);
+    ompl::binding::base::initSamplers_RejectionInfSampler(base);
+    ompl::binding::base::initSamplers_OrderedInfSampler(base);
+    ompl::binding::base::initSamplers_PathLengthDirectInfSampler(base);
+    ompl::binding::base::initSamplersDeterministic_DeterministicSequence(base);
+    ompl::binding::base::initSamplers_DeterministicStateSampler(base);
 
     ompl::binding::base::initSpaces_DiscreteStateSpace(base);
     ompl::binding::base::initSpaces_RealVectorBounds(base);
@@ -64,8 +92,14 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initSpaces_SO3StateSpace(base);
     ompl::binding::base::initSpaces_SpaceTimeStateSpace(base);
     ompl::binding::base::initSpaces_TimeStateSpace(base);
+    ompl::binding::base::initSpaces_HybridTimeStateSpace(base);
+    ompl::binding::base::initSpaces_HybridStateSpace(base);
     ompl::binding::base::initSpaces_WrapperStateSpace(base);
     ompl::binding::base::initSpaces_EmptyStateSpace(base);
+    ompl::binding::base::initSpacesSpecial_SphereStateSpace(base);
+    ompl::binding::base::initSpacesSpecial_TorusStateSpace(base);
+    ompl::binding::base::initSpacesSpecial_MobiusStateSpace(base);
+    ompl::binding::base::initSpacesSpecial_KleinBottleStateSpace(base);
 
     ompl::binding::base::initSpacesConstraint_ConstrainedStateSpace(base);
     ompl::binding::base::initSpacesConstraint_ProjectedStateSpace(base);
@@ -75,24 +109,64 @@ NB_MODULE(_ompl, m)
 
     nb::module_ geometric = m.def_submodule("geometric");
     ompl::binding::geometric::init_PathGeometric(geometric);
+    ompl::binding::geometric::init_PathHybridization(geometric);
+    ompl::binding::geometric::init_HillClimbing(geometric);
+    ompl::binding::geometric::init_GeneticSearch(geometric);
     ompl::binding::geometric::init_PathSimplifier(geometric);
     ompl::binding::geometric::init_SimpleSetup(geometric);
 
     ompl::binding::geometric::initPlannersPrm_PRM(geometric);
     ompl::binding::geometric::initPlannersPrm_PRMstar(geometric);
+    ompl::binding::geometric::initPlannersPrm_LazyPRM(geometric);
+    ompl::binding::geometric::initPlannersPrm_LazyPRMstar(geometric);
+    ompl::binding::geometric::initPlannersPrm_SPARS(geometric);
+    ompl::binding::geometric::initPlannersPrm_SPARStwo(geometric);
     ompl::binding::geometric::initPlannersRrt_RRT(geometric);
     ompl::binding::geometric::initPlannersRrt_RRTConnect(geometric);
     ompl::binding::geometric::initPlannersRrt_RRTstar(geometric);
     ompl::binding::geometric::initPlannersRrt_InformedRRTstar(geometric);
     ompl::binding::geometric::initPlannersRrt_SORRTstar(geometric);
     ompl::binding::geometric::initPlannersRrt_AORRTC(geometric);
+    ompl::binding::geometric::initPlannersRrt_LazyRRT(geometric);
+    ompl::binding::geometric::initPlannersRrt_LBTRRT(geometric);
+    ompl::binding::geometric::initPlannersRrt_LazyLBTRRT(geometric);
+    ompl::binding::geometric::initPlannersRrt_TRRT(geometric);
+    ompl::binding::geometric::initPlannersRrt_TRRTstar(geometric);
+    ompl::binding::geometric::initPlannersRrt_BiTRRT(geometric);
+    ompl::binding::geometric::initPlannersRrt_TSRRT(geometric);
+    ompl::binding::geometric::initPlannersRrt_ATRRT(geometric);
+    ompl::binding::geometric::initPlannersRrt_VFRRT(geometric);
+    ompl::binding::geometric::initPlannersRrt_STRRTstar(geometric);
+    ompl::binding::geometric::initPlannersRrt_RRTXstatic(geometric);
+    ompl::binding::geometric::initPlannersRrt_RRTsharp(geometric);
+    ompl::binding::geometric::initPlannersRrt_AOXRRTConnect(geometric);
+    ompl::binding::geometric::initPlannersRlrt_RLRT(geometric);
+    ompl::binding::geometric::initPlannersRlrt_BiRLRT(geometric);
+    ompl::binding::geometric::initPlannersEst_EST(geometric);
+    ompl::binding::geometric::initPlannersEst_BiEST(geometric);
+    ompl::binding::geometric::initPlannersEst_ProjEST(geometric);
+    ompl::binding::geometric::initPlannersSst_SST(geometric);
+    ompl::binding::geometric::initPlannersSbl_SBL(geometric);
+    ompl::binding::geometric::initPlannersPdst_PDST(geometric);
+    ompl::binding::geometric::initPlannersStride_STRIDE(geometric);
     ompl::binding::geometric::initPlannersInformedtrees_BITstar(geometric);
+    ompl::binding::geometric::initPlannersInformedtrees_ABITstar(geometric);
+    ompl::binding::geometric::initPlannersInformedtrees_AITstar(geometric);
+    ompl::binding::geometric::initPlannersInformedtrees_EITstar(geometric);
+    ompl::binding::geometric::initPlannersInformedtrees_EIRMstar(geometric);
+    ompl::binding::geometric::initPlannersLazyinformedtrees_BLITstar(geometric);
     ompl::binding::geometric::initPlannersFmt_FMT(geometric);
     ompl::binding::geometric::initPlannersFmt_BFMT(geometric);
     ompl::binding::geometric::initPlannersKpiece_KPIECE1(geometric);
     ompl::binding::geometric::initPlannersKpiece_BKPIECE1(geometric);
     ompl::binding::geometric::initPlannersKpiece_LBKPIECE1(geometric);
     ompl::binding::geometric::initPlannersKpiece_Discretization(geometric);
+    ompl::binding::geometric::initPlannersExperience_LightningRetrieveRepair(geometric);
+    ompl::binding::geometric::initPlannersExperience_ThunderRetrieveRepair(geometric);
+    ompl::binding::geometric::initPlannersXxl_XXLDecomposition(geometric);
+    ompl::binding::geometric::initPlannersXxl_XXLPlanarDecomposition(geometric);
+    ompl::binding::geometric::initPlannersXxl_XXLPositionDecomposition(geometric);
+    ompl::binding::geometric::initPlannersXxl_XXL(geometric);
 
     nb::module_ control = m.def_submodule("control");
     ompl::binding::control::init_Control(control);
@@ -100,29 +174,89 @@ NB_MODULE(_ompl, m)
     ompl::binding::control::init_ControlSpace(control);
     ompl::binding::control::init_ControlSpaceTypes(control);
     ompl::binding::control::init_DirectedControlSampler(control);
+    ompl::binding::control::init_ODESolver(control);
     ompl::binding::control::init_PathControl(control);
     ompl::binding::control::init_PlannerData(control);
+    ompl::binding::control::init_PlannerDataStorage(control);
     ompl::binding::control::init_SimpleDirectedControlSampler(control);
     ompl::binding::control::init_SimpleSetup(control);
     ompl::binding::control::init_SpaceInformation(control);
     ompl::binding::control::init_StatePropagator(control);
+    ompl::binding::control::init_SteeredControlSampler(control);
     ompl::binding::control::initPlannersEst_EST(control);
     ompl::binding::control::initPlannersKpiece_KPIECE1(control);
     ompl::binding::control::initPlannersPdst_PDST(control);
     ompl::binding::control::initPlannersRrt_RRT(control);
+    ompl::binding::control::initPlannersRrt_HyRRT(control);
     ompl::binding::control::initPlannersSst_SST(control);
+    ompl::binding::control::initPlannersSst_HySST(control);
     ompl::binding::control::initPlannersSyclop_Decomposition(control);
     ompl::binding::control::initPlannersSyclop_GridDecomposition(control);
     ompl::binding::control::initPlannersSyclop_Syclop(control);
     ompl::binding::control::initPlannersSyclop_SyclopEST(control);
     ompl::binding::control::initPlannersSyclop_SyclopRRT(control);
+    ompl::binding::control::initSpaces_DiscreteControlSpace(control);
     ompl::binding::control::initSpaces_RealVectorControlSpace(control);
+    ompl::binding::control::initPlannersLtl_World(control);
+    ompl::binding::control::initPlannersLtl_Automaton(control);
+    ompl::binding::control::initPlannersLtl_PropositionalDecomposition(control);
+    ompl::binding::control::initPlannersLtl_ProductGraph(control);
+    ompl::binding::control::initPlannersLtl_LTLSpaceInformation(control);
+    ompl::binding::control::initPlannersLtl_LTLProblemDefinition(control);
+    ompl::binding::control::initPlannersLtl_LTLPlanner(control);
 
     nb::module_ util = m.def_submodule("util");
+    ompl::binding::util::init_Exception(util);
     ompl::binding::util::init_Console(util);
+    ompl::binding::util::init_GeometricEquations(util);
     ompl::binding::util::init_PPM(util);
+    ompl::binding::util::init_ProlateHyperspheroid(util);
     ompl::binding::util::init_RandomNumbers(util);
+    ompl::binding::util::init_Time(util);
 
     nb::module_ tools = m.def_submodule("tools");
     ompl::binding::tools::initBenchmark_Benchmark(tools);
+    ompl::binding::tools::initBenchmark_MachineSpecs(tools);
+    ompl::binding::tools::initConfig_SelfConfig(tools);
+    ompl::binding::tools::initConfig_MagicConstants(tools);
+    ompl::binding::tools::initLightning_LightningDB(tools);
+    ompl::binding::tools::initLightning_DynamicTimeWarp(tools);
+    ompl::binding::tools::initThunder_ThunderDB(tools);
+    ompl::binding::tools::initThunder_SPARSdb(tools);
+
+    nb::module_ multilevel = m.def_submodule("multilevel");
+    ompl::binding::multilevel::init_FindSectionType(multilevel);
+    ompl::binding::multilevel::init_ProjectionTypes(multilevel);
+    ompl::binding::multilevel::init_Projection(multilevel);
+    ompl::binding::multilevel::initProjections_Identity(multilevel);
+    ompl::binding::multilevel::initProjections_SE2_R2(multilevel);
+    ompl::binding::multilevel::initProjections_SE2RN_R2(multilevel);
+    ompl::binding::multilevel::initProjections_SE3_R3(multilevel);
+    ompl::binding::multilevel::initProjections_SE3RN_R3(multilevel);
+    ompl::binding::multilevel::initProjections_RN_RM(multilevel);
+    ompl::binding::multilevel::init_ProjectionFactory(multilevel);
+    ompl::binding::multilevel::init_Parameter(multilevel);
+    ompl::binding::multilevel::init_ParameterExponentialDecay(multilevel);
+    ompl::binding::multilevel::init_ParameterSmoothStep(multilevel);
+    ompl::binding::multilevel::init_BundleSpace(multilevel);
+    ompl::binding::multilevel::init_BundleSpaceGraph(multilevel);
+    ompl::binding::multilevel::initMetrics_BundleSpaceMetric(multilevel);
+    ompl::binding::multilevel::initMetrics_Geodesic(multilevel);
+    ompl::binding::multilevel::initPropagators_BundleSpacePropagator(multilevel);
+    ompl::binding::multilevel::initPropagators_Geometric(multilevel);
+    ompl::binding::multilevel::initImportance_BundleSpaceImportance(multilevel);
+    ompl::binding::multilevel::initImportance_Exponential(multilevel);
+    ompl::binding::multilevel::initImportance_Greedy(multilevel);
+    ompl::binding::multilevel::initImportance_Uniform(multilevel);
+    ompl::binding::multilevel::initGraphsampler_GraphSampler(multilevel);
+    ompl::binding::multilevel::initGraphsampler_RandomEdge(multilevel);
+    ompl::binding::multilevel::initGraphsampler_RandomVertex(multilevel);
+    ompl::binding::multilevel::initGraphsampler_RandomDegreeVertex(multilevel);
+    ompl::binding::multilevel::init_PlannerDataVertexAnnotated(multilevel);
+    ompl::binding::multilevel::init_PlannerMultiLevel(multilevel);
+    ompl::binding::multilevel::initPlanners_QRRT(multilevel);
+    ompl::binding::multilevel::initPlanners_QRRTStar(multilevel);
+    ompl::binding::multilevel::initPlanners_QMP(multilevel);
+    ompl::binding::multilevel::initPlanners_QMPStar(multilevel);
+    ompl::binding::multilevel::init_BundleSpaceSequence(multilevel);
 }
