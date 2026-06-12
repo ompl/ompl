@@ -2,7 +2,6 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/optional.h>
 #include "ompl/base/spaces/VanaStateSpace.h"
-#include "ompl/base/spaces/Dubins3DMotionValidator.h"
 #include "ompl/base/SpaceInformation.h"
 #include "../init.h"
 
@@ -40,7 +39,4 @@ void ompl::binding::base::initSpaces_VanaStateSpace(nb::module_ &m)
         .def("validSegmentCount", &ob::VanaStateSpace::validSegmentCount)
         .def("allocState", &ob::VanaStateSpace::allocState)
         .def("registerProjections", &ob::VanaStateSpace::registerProjections);
-
-    nb::class_<ob::Dubins3DMotionValidator<ob::VanaStateSpace>, ob::MotionValidator>(m, "VanaMotionValidator")
-        .def(nb::init<ob::SpaceInformation *>());
 }
