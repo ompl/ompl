@@ -41,6 +41,7 @@
 #include <Eigen/Dense>
 #include <cmath>
 #include <vector>
+#include <boost/math/constants/constants.hpp>
 
 // Create the 'corridor' environment for a unit-length planar manipulator with
 // n links.  The chain must navigate a narrow gap.
@@ -54,7 +55,7 @@ PolyWorld createCorridorProblem(int n, Eigen::Affine2d &basePose, Eigen::Affine2
     PolyWorld world("corridor", {minX, maxX}, {minY, maxY});
 
     const double len = 1.0 / n;
-    const double gap = len * (1.1 * M_PI + log(n) / (double)n);
+    const double gap = len * (1.1 * boost::math::constants::pi<double>() + log(n) / (double)n);
 
     std::vector<Point> pts(4);
 

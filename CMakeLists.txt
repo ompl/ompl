@@ -8,7 +8,16 @@ option(VAMP_BUILD_PYTHON_BINDINGS "Build VAMP Python bindings (requires OMPL_BUI
 add_feature_info(VAMP_BUILD_PYTHON_BINDINGS "${VAMP_BUILD_PYTHON_BINDINGS}" "Whether to build VAMP Python bindings.")
 option(OMPL_BUILD_VAMP "Build VAMP submodule" ON)
 add_feature_info(OMPL_BUILD_VAMP "${OMPL_BUILD_VAMP}" "Whether to build VAMP submodule.")
-option(VAMP_PORTABLE_BUILD "Build VAMP with portable SIMD settings for distribution (package maintainers)" OFF)
+# Default to portable SIMD when invoked from a Debian/dpkg build (DEB_BUILD_OPTIONS
+# is exported by dpkg-buildpackage / debhelper, so this catches the ROS buildfarm
+# and any apt-builds-from-source automatically). Direct `cmake ..` developer
+# builds keep the native-ISA default.
+if(DEFINED ENV{DEB_BUILD_OPTIONS} OR SKBUILD)
+    set(_VAMP_PORTABLE_DEFAULT ON)
+else()
+    set(_VAMP_PORTABLE_DEFAULT OFF)
+endif()
+option(VAMP_PORTABLE_BUILD "Build VAMP with portable SIMD settings for distribution (package maintainers)" ${_VAMP_PORTABLE_DEFAULT})
 add_feature_info(VAMP_PORTABLE_BUILD "${VAMP_PORTABLE_BUILD}" "Whether to build VAMP with portable SIMD settings for distribution (package maintainers).")
 
 option(OMPL_BUILD_PYTHON_BINDINGS "Build OMPL Python bindings" ON)
@@ -147,9 +156,10 @@ if(NOT SKBUILD)
       "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/cmake_uninstall.cmake.in"
       "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
       IMMEDIATE @ONLY)
-    add_custom_target(uninstall
-      COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
-
+    if(NOT TARGET uninstall)
+        add_custom_target(uninstall
+            COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+    endif()
     include(CPackSettings)
 
     # install catkin package.xml (needed for ROS installation)
