@@ -43,10 +43,9 @@ ompl::base::CostConvergenceTerminationCondition::CostConvergenceTerminationCondi
   , solutionsWindow_(solutionsWindow)
   , epsilon_(epsilon)
 {
-    auto &c = *this;
     pdef_->setIntermediateSolutionCallback(
-        [c](const Planner * /*planner*/, const std::vector<const State *> & /*states*/, const Cost cost) mutable
-        { c.processNewSolution(cost); });
+        [this](const Planner * /*planner*/, const std::vector<const State *> & /*states*/, const Cost cost) mutable
+        { this->processNewSolution(cost); });
 }
 
 void ompl::base::CostConvergenceTerminationCondition::processNewSolution(const ompl::base::Cost solutionCost)
