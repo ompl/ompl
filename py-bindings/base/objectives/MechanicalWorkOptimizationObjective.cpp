@@ -10,8 +10,8 @@ namespace ob = ompl::base;
 
 void ompl::binding::base::initObjectives_MechanicalWorkOptimizationObjective(nb::module_ &m)
 {
-    nb::class_<ob::MechanicalWorkOptimizationObjective, ob::OptimizationObjective>(m,
-                                                                                   "MechanicalWorkOptimizationObjective")
+    nb::class_<ob::MechanicalWorkOptimizationObjective, ob::OptimizationObjective>(
+        m, "MechanicalWorkOptimizationObjective")
         .def(nb::init<const ob::SpaceInformationPtr &, double>(), nb::arg("si"), nb::arg("pathLengthWeight") = 0.00001)
         .def("getPathLengthWeight", &ob::MechanicalWorkOptimizationObjective::getPathLengthWeight)
         .def("stateCost", &ob::MechanicalWorkOptimizationObjective::stateCost, nb::arg("s"))

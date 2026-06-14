@@ -1,9 +1,9 @@
 # Complete Missing OMPL Python Bindings Plan
 
-> **Repository:** `/home/joao/my_repos/forks/ompl` (`git@github.com:joao-pm-santos96/ompl.git`)  
-> **Work branch:** `feat/python-bindings-gap`  
-> **Status:** Implemented on `feat/python-bindings-gap` (eight phase commits)  
-> **Delivery:** single PR to `main`, one commit per phase (0–7)  
+> **Repository:** `/home/joao/my_repos/forks/ompl` (`git@github.com:joao-pm-santos96/ompl.git`)
+> **Work branch:** `feat/python-bindings-gap`
+> **Status:** Implemented on `feat/python-bindings-gap` (eight phase commits)
+> **Delivery:** single PR to `main`, one commit per phase (0–7)
 > **Upstream reference:** OMPL main (Nanobind bindings in `py-bindings/`)
 
 ## Current State

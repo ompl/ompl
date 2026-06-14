@@ -68,7 +68,9 @@ def plan():
     cspace.setBounds(cbounds)
 
     ss = oc.SimpleSetup(cspace)
-    ss.setStateValidityChecker(lambda state: is_state_valid(ss.getSpaceInformation(), state))
+    ss.setStateValidityChecker(
+        lambda state: is_state_valid(ss.getSpaceInformation(), state)
+    )
     ode = oc.ODE(kinematic_car_ode)
     ode_solver = oc.ODEBasicSolver(ss.getSpaceInformation(), ode)
     ss.setStatePropagator(oc.ODESolver.getStatePropagator(ode_solver))

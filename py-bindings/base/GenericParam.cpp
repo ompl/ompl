@@ -74,39 +74,35 @@ void ompl::binding::base::init_GenericParam(nb::module_ &m)
             },
             nb::arg("key"))
         .def("setParams", &ob::ParamSet::setParams, nb::arg("kv"), nb::arg("ignoreUnknown") = false)
-        .def(
-            "getParams",
-            [](const ob::ParamSet &ps)
-            {
-                std::map<std::string, std::string> params;
-                ps.getParams(params);
-                return params;
-            })
-        .def(
-            "getParamNames",
-            [](const ob::ParamSet &ps)
-            {
-                std::vector<std::string> names;
-                ps.getParamNames(names);
-                return names;
-            })
-        .def(
-            "getParamValues",
-            [](const ob::ParamSet &ps)
-            {
-                std::vector<std::string> vals;
-                ps.getParamValues(vals);
-                return vals;
-            })
+        .def("getParams",
+             [](const ob::ParamSet &ps)
+             {
+                 std::map<std::string, std::string> params;
+                 ps.getParams(params);
+                 return params;
+             })
+        .def("getParamNames",
+             [](const ob::ParamSet &ps)
+             {
+                 std::vector<std::string> names;
+                 ps.getParamNames(names);
+                 return names;
+             })
+        .def("getParamValues",
+             [](const ob::ParamSet &ps)
+             {
+                 std::vector<std::string> vals;
+                 ps.getParamValues(vals);
+                 return vals;
+             })
         .def("hasParam", &ob::ParamSet::hasParam, nb::arg("key"))
         .def("size", &ob::ParamSet::size)
         .def("clear", &ob::ParamSet::clear)
-        .def(
-            "print",
-            [](const ob::ParamSet &ps)
-            {
-                std::ostringstream oss;
-                ps.print(oss);
-                return oss.str();
-            });
+        .def("print",
+             [](const ob::ParamSet &ps)
+             {
+                 std::ostringstream oss;
+                 ps.print(oss);
+                 return oss.str();
+             });
 }

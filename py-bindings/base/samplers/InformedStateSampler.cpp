@@ -55,23 +55,20 @@ void ompl::binding::base::initSamplers_InformedStateSampler(nb::module_ &m)
     };
 
     nb::class_<ob::InformedSampler, PyInformedSampler>(m, "InformedSampler")
-        .def(nb::init<const ob::ProblemDefinitionPtr &, unsigned int>(), nb::arg("probDefn"),
-             nb::arg("maxNumberCalls"))
-        .def("sampleUniform",
-             nb::overload_cast<ob::State *, const ob::Cost &>(&ob::InformedSampler::sampleUniform),
+        .def(nb::init<const ob::ProblemDefinitionPtr &, unsigned int>(), nb::arg("probDefn"), nb::arg("maxNumberCalls"))
+        .def("sampleUniform", nb::overload_cast<ob::State *, const ob::Cost &>(&ob::InformedSampler::sampleUniform),
              nb::arg("statePtr"), nb::arg("maxCost"))
         .def("sampleUniform",
-             nb::overload_cast<ob::State *, const ob::Cost &, const ob::Cost &>(
-                 &ob::InformedSampler::sampleUniform),
+             nb::overload_cast<ob::State *, const ob::Cost &, const ob::Cost &>(&ob::InformedSampler::sampleUniform),
              nb::arg("statePtr"), nb::arg("minCost"), nb::arg("maxCost"))
         .def("hasInformedMeasure", &ob::InformedSampler::hasInformedMeasure)
         .def("getInformedMeasure",
              nb::overload_cast<const ob::Cost &>(&ob::InformedSampler::getInformedMeasure, nb::const_),
              nb::arg("currentCost"))
-        .def("getInformedMeasure",
-             nb::overload_cast<const ob::Cost &, const ob::Cost &>(&ob::InformedSampler::getInformedMeasure,
-                                                                   nb::const_),
-             nb::arg("minCost"), nb::arg("maxCost"))
+        .def(
+            "getInformedMeasure",
+            nb::overload_cast<const ob::Cost &, const ob::Cost &>(&ob::InformedSampler::getInformedMeasure, nb::const_),
+            nb::arg("minCost"), nb::arg("maxCost"))
         .def("heuristicSolnCost", &ob::InformedSampler::heuristicSolnCost, nb::arg("statePtr"))
         .def("getProblemDefn", &ob::InformedSampler::getProblemDefn)
         .def("getMaxNumberOfIters", &ob::InformedSampler::getMaxNumberOfIters);
@@ -81,17 +78,13 @@ void ompl::binding::base::initSamplers_InformedStateSampler(nb::module_ &m)
             "__init__",
             [](ob::InformedStateSampler *self, const ob::ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls,
                ob::InformedStateSampler::GetCurrentCostFunc costFunc)
-            {
-                new (self) ob::InformedStateSampler(probDefn, maxNumberCalls, wrapCostFunc(std::move(costFunc)));
-            },
+            { new (self) ob::InformedStateSampler(probDefn, maxNumberCalls, wrapCostFunc(std::move(costFunc))); },
             nb::arg("probDefn"), nb::arg("maxNumberCalls"), nb::arg("costFunc"))
         .def(
             "__init__",
             [](ob::InformedStateSampler *self, const ob::ProblemDefinitionPtr &probDefn,
                ob::InformedStateSampler::GetCurrentCostFunc costFunc, const ob::InformedSamplerPtr &infSampler)
-            {
-                new (self) ob::InformedStateSampler(probDefn, wrapCostFunc(std::move(costFunc)), infSampler);
-            },
+            { new (self) ob::InformedStateSampler(probDefn, wrapCostFunc(std::move(costFunc)), infSampler); },
             nb::arg("probDefn"), nb::arg("costFunc"), nb::arg("infSampler"))
         .def("sampleUniform", &ob::InformedStateSampler::sampleUniform, nb::arg("statePtr"))
         .def("sampleUniformNear", &ob::InformedStateSampler::sampleUniformNear, nb::arg("statePtr"), nb::arg("near"),

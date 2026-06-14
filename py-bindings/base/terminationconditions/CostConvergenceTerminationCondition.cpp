@@ -15,8 +15,8 @@ void ompl::binding::base::initTerminationconditions_CostConvergenceTerminationCo
         m, "CostConvergenceTerminationCondition")
         .def(
             "__init__",
-            [](ob::CostConvergenceTerminationCondition *self, ob::ProblemDefinitionPtr pdef, std::size_t solutionsWindow,
-               double epsilon)
+            [](ob::CostConvergenceTerminationCondition *self, ob::ProblemDefinitionPtr pdef,
+               std::size_t solutionsWindow, double epsilon)
             { new (self) ob::CostConvergenceTerminationCondition(pdef, solutionsWindow, epsilon); },
             nb::arg("pdef"), nb::arg("solutionsWindow") = 10, nb::arg("epsilon") = 0.1)
         .def("processNewSolution", &ob::CostConvergenceTerminationCondition::processNewSolution,

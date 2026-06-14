@@ -30,7 +30,6 @@ void ompl::binding::tools::initLightning_LightningDB(nb::module_ &m)
         .def("getStatesCount", &ot::LightningDB::getStatesCount)
         .def("getNumUnsavedPaths", &ot::LightningDB::getNumUnsavedPaths)
         .def("isEmpty", &ot::LightningDB::isEmpty)
-        .def(
-            "findNearestStartGoal", &ot::LightningDB::findNearestStartGoal, nb::arg("nearestK"), nb::arg("start"),
-            nb::arg("goal"));
+        .def("findNearestStartGoal", &ot::LightningDB::findNearestStartGoal, nb::arg("nearestK"), nb::arg("start"),
+             nb::arg("goal"));
 }

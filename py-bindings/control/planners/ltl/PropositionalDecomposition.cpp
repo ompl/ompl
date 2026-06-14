@@ -28,8 +28,8 @@ void ompl::binding::control::initPlannersLtl_PropositionalDecomposition(nb::modu
     };
 
     nb::class_<oc::PropositionalDecomposition, oc::Decomposition, PyPropositionalDecomposition>(m,
-                                                                                                 "PropositionalDecompos"
-                                                                                                 "ition")
+                                                                                                "PropositionalDecompos"
+                                                                                                "ition")
         .def(nb::init<const oc::DecompositionPtr &>(), nb::arg("decomp"))
         .def("worldAtRegion", &oc::PropositionalDecomposition::worldAtRegion, nb::arg("rid"))
         .def("getNumProps", &oc::PropositionalDecomposition::getNumProps)

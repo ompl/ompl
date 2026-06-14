@@ -38,9 +38,7 @@ void ompl::binding::base::initGoals_GoalLazySamples(nb::module_ &m)
             "__init__",
             [](ob::GoalLazySamples *self, const ob::SpaceInformationPtr &si, ob::GoalSamplingFn samplerFunc,
                bool autoStart, double minDist)
-            {
-                new (self) ob::GoalLazySamples(si, wrapGoalSamplingFn(std::move(samplerFunc)), autoStart, minDist);
-            },
+            { new (self) ob::GoalLazySamples(si, wrapGoalSamplingFn(std::move(samplerFunc)), autoStart, minDist); },
             nb::arg("si"), nb::arg("samplerFunc"), nb::arg("autoStart") = true,
             nb::arg("minDist") = std::numeric_limits<double>::epsilon())
         .def("sampleGoal", &ob::GoalLazySamples::sampleGoal, nb::arg("state"))
@@ -56,10 +54,8 @@ void ompl::binding::base::initGoals_GoalLazySamples(nb::module_ &m)
              "Require new samples to be at least this far from all existing ones.")
         .def("getMinNewSampleDistance", &ob::GoalLazySamples::getMinNewSampleDistance)
         .def(
-            "setNewStateCallback",
-            [](ob::GoalLazySamples &gls, ob::GoalLazySamples::NewStateCallbackFn callback)
-            { gls.setNewStateCallback(wrapNewStateCallback(std::move(callback))); },
-            nb::arg("callback"))
+            "setNewStateCallback", [](ob::GoalLazySamples &gls, ob::GoalLazySamples::NewStateCallbackFn callback)
+            { gls.setNewStateCallback(wrapNewStateCallback(std::move(callback))); }, nb::arg("callback"))
         .def("addStateIfDifferent", &ob::GoalLazySamples::addStateIfDifferent, nb::arg("state"), nb::arg("minDistance"))
         .def("couldSample", &ob::GoalLazySamples::couldSample)
         .def("hasStates", &ob::GoalLazySamples::hasStates)

@@ -9,6 +9,5 @@ namespace ob = ompl::base;
 
 void ompl::binding::base::init_PlannerDataGraph(nb::module_ &m)
 {
-    nb::class_<ob::PlannerData::Graph>(m, "PlannerDataGraph")
-        .def(nb::init<>());
+    nb::class_<ob::PlannerData::Graph>(m, "PlannerDataGraph").def(nb::init<>());
 }

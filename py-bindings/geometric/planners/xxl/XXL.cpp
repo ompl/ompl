@@ -16,17 +16,16 @@ void ompl::binding::geometric::initPlannersXxl_XXL(nb::module_ &m)
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
         .def(nb::init<const ob::SpaceInformationPtr &, const og::XXLDecompositionPtr &>(), nb::arg("si"),
              nb::arg("decomp"))
-        .def(
-            "solve",
-            [](og::XXL &self, nb::object what)
-            {
-                if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                    return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                if (nb::isinstance<double>(what))
-                    return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                throw nb::type_error(
-                    "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-            })
+        .def("solve",
+             [](og::XXL &self, nb::object what)
+             {
+                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
+                 if (nb::isinstance<double>(what))
+                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
+                 throw nb::type_error(
+                     "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
+             })
         .def(
             "getPlannerData", [](const og::XXL &self, ob::PlannerData &data) { self.getPlannerData(data); },
             nb::arg("data"))

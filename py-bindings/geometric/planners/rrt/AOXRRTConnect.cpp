@@ -33,10 +33,8 @@ void ompl::binding::geometric::initPlannersRrt_AOXRRTConnect(nb::module_ &m)
                  }
              })
         .def(
-            "getPlannerData",
-            [](const og::AOXRRTConnect &self, ob::PlannerData &data)
-            { static_cast<const ob::Planner &>(self).getPlannerData(data); },
-            nb::arg("data"))
+            "getPlannerData", [](const og::AOXRRTConnect &self, ob::PlannerData &data)
+            { static_cast<const ob::Planner &>(self).getPlannerData(data); }, nb::arg("data"))
         .def("clear", [](og::AOXRRTConnect &self) { self.clear(); })
         .def("setup", &og::AOXRRTConnect::setup)
         .def("setFoundPath", &og::AOXRRTConnect::setFoundPath, nb::arg("p"))

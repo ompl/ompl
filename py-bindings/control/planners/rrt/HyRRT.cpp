@@ -14,17 +14,16 @@ void ompl::binding::control::initPlannersRrt_HyRRT(nb::module_ &m)
 {
     nb::class_<oc::HyRRT, ob::Planner>(m, "HyRRT")
         .def(nb::init<const oc::SpaceInformationPtr &>(), nb::arg("si"))
-        .def(
-            "solve",
-            [](oc::HyRRT &self, nb::object what)
-            {
-                if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                    return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                if (nb::isinstance<double>(what))
-                    return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                throw nb::type_error(
-                    "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-            })
+        .def("solve",
+             [](oc::HyRRT &self, nb::object what)
+             {
+                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
+                 if (nb::isinstance<double>(what))
+                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
+                 throw nb::type_error(
+                     "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
+             })
         .def(
             "getPlannerData", [](const oc::HyRRT &self, ob::PlannerData &data) { self.getPlannerData(data); },
             nb::arg("data"))

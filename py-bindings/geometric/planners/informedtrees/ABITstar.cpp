@@ -16,17 +16,16 @@ void ompl::binding::geometric::initPlannersInformedtrees_ABITstar(nb::module_ &m
     nb::class_<og::ABITstar, og::BITstar>(m, "ABITstar")
         .def(nb::init<const ob::SpaceInformationPtr &, const std::string &>(), nb::arg("si"),
              nb::arg("name") = "ABITstar")
-        .def(
-            "solve",
-            [](og::ABITstar &self, nb::object what)
-            {
-                if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                    return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                if (nb::isinstance<double>(what))
-                    return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                throw nb::type_error(
-                    "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-            })
+        .def("solve",
+             [](og::ABITstar &self, nb::object what)
+             {
+                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
+                 if (nb::isinstance<double>(what))
+                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
+                 throw nb::type_error(
+                     "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
+             })
         .def(
             "getPlannerData", [](const og::ABITstar &self, ob::PlannerData &data) { self.getPlannerData(data); },
             nb::arg("data"))

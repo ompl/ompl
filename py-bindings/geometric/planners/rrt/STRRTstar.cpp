@@ -51,6 +51,5 @@ void ompl::binding::geometric::initPlannersRrt_STRRTstar(nb::module_ &m)
         .def("setBatchSize", &og::STRRTstar::setBatchSize, nb::arg("v"))
         .def("setTimeBoundFactorIncrease", &og::STRRTstar::setTimeBoundFactorIncrease, nb::arg("f"))
         .def("setInitialTimeBoundFactor", &og::STRRTstar::setInitialTimeBoundFactor, nb::arg("f"))
-        .def("setSampleUniformForUnboundedTime", &og::STRRTstar::setSampleUniformForUnboundedTime,
-             nb::arg("uniform"));
+        .def("setSampleUniformForUnboundedTime", &og::STRRTstar::setSampleUniformForUnboundedTime, nb::arg("uniform"));
 }

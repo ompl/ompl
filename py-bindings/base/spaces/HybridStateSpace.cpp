@@ -20,10 +20,8 @@ void ompl::binding::base::initSpaces_HybridStateSpace(nb::module_ &m)
         .def_static("setStateJumps", &ob::HybridStateSpace::setStateJumps, nb::arg("state"), nb::arg("jumps"))
         .def_static("setStateTime", &ob::HybridStateSpace::setStateTime, nb::arg("state"), nb::arg("time"))
         .def(
-            "setTimeBounds",
-            [](ob::HybridStateSpace &self, double lower, double upper)
-            { self.getTimeComponent()->setTimeBounds(lower, upper); },
-            nb::arg("lower"), nb::arg("upper"))
+            "setTimeBounds", [](ob::HybridStateSpace &self, double lower, double upper)
+            { self.getTimeComponent()->setTimeBounds(lower, upper); }, nb::arg("lower"), nb::arg("upper"))
         .def("getSpaceComponent", &ob::HybridStateSpace::getSpaceComponent, nb::rv_policy::reference_internal)
         .def("getTimeComponent", &ob::HybridStateSpace::getTimeComponent, nb::rv_policy::reference_internal)
         .def("isMetricSpace", &ob::HybridStateSpace::isMetricSpace)

@@ -41,21 +41,19 @@ void ompl::binding::base::init_StateStorage(nb::module_ &m)
              nb::arg("after"))
         .def("getStateSamplerAllocatorRange", &ob::StateStorage::getStateSamplerAllocatorRange, nb::arg("from"),
              nb::arg("to"))
-        .def(
-            "print",
-            [](const ob::StateStorage &storage)
-            {
-                std::ostringstream oss;
-                storage.print(oss);
-                return oss.str();
-            });
+        .def("print",
+             [](const ob::StateStorage &storage)
+             {
+                 std::ostringstream oss;
+                 storage.print(oss);
+                 return oss.str();
+             });
 
     nb::class_<ob::GraphStateStorage, ob::StateStorage>(m, "GraphStateStorage")
         .def(nb::init<const ob::StateSpacePtr &>(), nb::arg("space"))
-        .def(
-            "addState",
-            nb::overload_cast<const ob::State *, const std::vector<std::size_t> &>(&ob::GraphStateStorage::addState),
-            nb::arg("state"), nb::arg("metadata"))
+        .def("addState",
+             nb::overload_cast<const ob::State *, const std::vector<std::size_t> &>(&ob::GraphStateStorage::addState),
+             nb::arg("state"), nb::arg("metadata"))
         .def("getMetadata", nb::overload_cast<unsigned int>(&ob::GraphStateStorage::getMetadata, nb::const_),
              nb::arg("index"), nb::rv_policy::reference_internal);
 }

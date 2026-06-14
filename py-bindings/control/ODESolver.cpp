@@ -90,8 +90,7 @@ using ErrorSolver = oc::ODEErrorSolver<>;
 
 void ompl::binding::control::init_ODESolver(nb::module_ &m)
 {
-    nb::class_<ODEWrapper>(m, "ODE")
-        .def(nb::init<nb::callable>(), nb::arg("fn"));
+    nb::class_<ODEWrapper>(m, "ODE").def(nb::init<nb::callable>(), nb::arg("fn"));
 
     nb::class_<oc::ODESolver>(m, "ODESolver")
         .def("setODE", &oc::ODESolver::setODE, nb::arg("ode"))
@@ -111,16 +110,14 @@ void ompl::binding::control::init_ODESolver(nb::module_ &m)
 
     nb::class_<BasicSolver, oc::ODESolver>(m, "ODEBasicSolver")
         .def(
-            "__init__",
-            [](BasicSolver *self, const oc::SpaceInformationPtr &si, nb::object ode, double intStep)
-            { new (self) BasicSolver(si, resolveODE(si, ode), intStep); },
-            nb::arg("si"), nb::arg("ode"), nb::arg("intStep") = 1e-2);
+            "__init__", [](BasicSolver *self, const oc::SpaceInformationPtr &si, nb::object ode, double intStep)
+            { new (self) BasicSolver(si, resolveODE(si, ode), intStep); }, nb::arg("si"), nb::arg("ode"),
+            nb::arg("intStep") = 1e-2);
 
     nb::class_<ErrorSolver, oc::ODESolver>(m, "ODEErrorSolver")
         .def(
-            "__init__",
-            [](ErrorSolver *self, const oc::SpaceInformationPtr &si, nb::object ode, double intStep)
-            { new (self) ErrorSolver(si, resolveODE(si, ode), intStep); },
-            nb::arg("si"), nb::arg("ode"), nb::arg("intStep") = 1e-2)
+            "__init__", [](ErrorSolver *self, const oc::SpaceInformationPtr &si, nb::object ode, double intStep)
+            { new (self) ErrorSolver(si, resolveODE(si, ode), intStep); }, nb::arg("si"), nb::arg("ode"),
+            nb::arg("intStep") = 1e-2)
         .def("getError", &ErrorSolver::getError);
 }

@@ -16,7 +16,6 @@ void ompl::binding::base::initSamplers_MaximizeClearanceValidStateSampler(nb::mo
         .def("sample", &ob::MaximizeClearanceValidStateSampler::sample, nb::arg("state"))
         .def("sampleNear", &ob::MaximizeClearanceValidStateSampler::sampleNear, nb::arg("state"), nb::arg("near"),
              nb::arg("distance"))
-        .def("setNrImproveAttempts", &ob::MaximizeClearanceValidStateSampler::setNrImproveAttempts,
-             nb::arg("attempts"))
+        .def("setNrImproveAttempts", &ob::MaximizeClearanceValidStateSampler::setNrImproveAttempts, nb::arg("attempts"))
         .def("getNrImproveAttempts", &ob::MaximizeClearanceValidStateSampler::getNrImproveAttempts);
 }

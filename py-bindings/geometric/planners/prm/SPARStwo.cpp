@@ -18,25 +18,26 @@ void ompl::binding::geometric::initPlannersPrm_SPARStwo(nb::module_ &m)
         "Warning: SPARStwo may use internal threads for solution checking. "
         "Avoid Python StateValidityChecker trampolines when multithreading is enabled.")
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
-        .def("constructRoadmap",
-             [](og::SPARStwo &self, nb::object what, bool stopOnMaxFail)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                 {
-                     return self.constructRoadmap(nb::cast<ob::PlannerTerminationCondition>(what), stopOnMaxFail);
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.constructRoadmap(ob::timedPlannerTerminationCondition(nb::cast<double>(what)),
-                                                  stopOnMaxFail);
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for constructRoadmap. Expected PlannerTerminationCondition or double.");
-                 }
-             },
-             nb::arg("ptc"), nb::arg("stopOnMaxFail") = false)
+        .def(
+            "constructRoadmap",
+            [](og::SPARStwo &self, nb::object what, bool stopOnMaxFail)
+            {
+                if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                {
+                    return self.constructRoadmap(nb::cast<ob::PlannerTerminationCondition>(what), stopOnMaxFail);
+                }
+                else if (nb::isinstance<double>(what))
+                {
+                    return self.constructRoadmap(ob::timedPlannerTerminationCondition(nb::cast<double>(what)),
+                                                 stopOnMaxFail);
+                }
+                else
+                {
+                    throw nb::type_error(
+                        "Invalid argument type for constructRoadmap. Expected PlannerTerminationCondition or double.");
+                }
+            },
+            nb::arg("ptc"), nb::arg("stopOnMaxFail") = false)
         .def("solve",
              [](og::SPARStwo &self, nb::object what)
              {

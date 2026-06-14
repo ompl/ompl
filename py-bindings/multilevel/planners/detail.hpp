@@ -33,23 +33,19 @@ namespace ompl::binding::multilevel::detail
     void bindBundleSpaceSequencePlanner(nb::module_ &m, const char *pythonName)
     {
         nb::class_<PlannerT, ob::Planner>(m, pythonName)
-            .def(
-                nb::new_([](ob::SpaceInformationPtr si, const std::string &type)
-                          { return new PlannerT(si, type); }),
-                nb::arg("si"), nb::arg("type") = "BundleSpacePlannerNonMultilevel")
-            .def(
-                nb::new_([](std::vector<ob::SpaceInformationPtr> siVec, const std::string &type)
+            .def(nb::new_([](ob::SpaceInformationPtr si, const std::string &type) { return new PlannerT(si, type); }),
+                 nb::arg("si"), nb::arg("type") = "BundleSpacePlannerNonMultilevel")
+            .def(nb::new_([](std::vector<ob::SpaceInformationPtr> siVec, const std::string &type)
                           { return new PlannerT(siVec, type); }),
-                nb::arg("si_vec"), nb::arg("type") = "BundleSpacePlanner")
-            .def(
-                nb::new_([](std::vector<ob::SpaceInformationPtr> siVec,
-                            std::vector<ompl::multilevel::ProjectionPtr> &projVec, const std::string &type)
+                 nb::arg("si_vec"), nb::arg("type") = "BundleSpacePlanner")
+            .def(nb::new_([](std::vector<ob::SpaceInformationPtr> siVec,
+                             std::vector<ompl::multilevel::ProjectionPtr> &projVec, const std::string &type)
                           { return new PlannerT(siVec, projVec, type); }),
-                nb::arg("si_vec"), nb::arg("proj_vec"), nb::arg("type") = "BundleSpacePlannerCustomProjection")
+                 nb::arg("si_vec"), nb::arg("proj_vec"), nb::arg("type") = "BundleSpacePlannerCustomProjection")
             .def("solve", plannerSolveOverload())
             .def(
-                "getPlannerData",
-                [](const PlannerT &self, ob::PlannerData &data) { self.getPlannerData(data); }, nb::arg("data"))
+                "getPlannerData", [](const PlannerT &self, ob::PlannerData &data) { self.getPlannerData(data); },
+                nb::arg("data"))
             .def("clear", &PlannerT::clear)
             .def("setup", &PlannerT::setup)
             .def("setProblemDefinition", &PlannerT::setProblemDefinition, nb::arg("pdef"))

@@ -17,21 +17,19 @@ void ompl::binding::geometric::initPlannersExperience_ThunderRetrieveRepair(nb::
 {
     nb::class_<og::ThunderRetrieveRepair, ob::Planner>(m, "ThunderRetrieveRepair")
         .def(nb::init<const ob::SpaceInformationPtr &, ot::ThunderDBPtr>(), nb::arg("si"), nb::arg("experienceDB"))
+        .def("solve",
+             [](og::ThunderRetrieveRepair &self, nb::object what)
+             {
+                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
+                 if (nb::isinstance<double>(what))
+                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
+                 throw nb::type_error(
+                     "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
+             })
         .def(
-            "solve",
-            [](og::ThunderRetrieveRepair &self, nb::object what)
-            {
-                if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                    return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                if (nb::isinstance<double>(what))
-                    return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                throw nb::type_error(
-                    "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-            })
-        .def(
-            "getPlannerData",
-            [](const og::ThunderRetrieveRepair &self, ob::PlannerData &data) { self.getPlannerData(data); },
-            nb::arg("data"))
+            "getPlannerData", [](const og::ThunderRetrieveRepair &self, ob::PlannerData &data)
+            { self.getPlannerData(data); }, nb::arg("data"))
         .def("clear", &og::ThunderRetrieveRepair::clear)
         .def("setup", &og::ThunderRetrieveRepair::setup)
         .def("setExperienceDB", &og::ThunderRetrieveRepair::setExperienceDB, nb::arg("experienceDB"))

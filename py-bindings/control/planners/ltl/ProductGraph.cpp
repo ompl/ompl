@@ -32,15 +32,16 @@ void ompl::binding::control::initPlannersLtl_ProductGraph(nb::module_ &m)
         .def("getRegionVolume", &oc::ProductGraph::getRegionVolume, nb::arg("s"))
         .def("getCosafeAutDistance", &oc::ProductGraph::getCosafeAutDistance, nb::arg("s"))
         .def("getSafeAutDistance", &oc::ProductGraph::getSafeAutDistance, nb::arg("s"))
-        .def("getState", nb::overload_cast<const ob::State *>(&oc::ProductGraph::getState, nb::const_),
-             nb::arg("cs"), nb::rv_policy::reference_internal)
+        .def("getState", nb::overload_cast<const ob::State *>(&oc::ProductGraph::getState, nb::const_), nb::arg("cs"),
+             nb::rv_policy::reference_internal)
         .def("getState", nb::overload_cast<const ob::State *, int, int>(&oc::ProductGraph::getState, nb::const_),
              nb::arg("cs"), nb::arg("cosafe"), nb::arg("safe"), nb::rv_policy::reference_internal)
-        .def("getState", nb::overload_cast<const oc::ProductGraph::State *, int>(&oc::ProductGraph::getState,
-                                                                                  nb::const_),
+        .def("getState",
+             nb::overload_cast<const oc::ProductGraph::State *, int>(&oc::ProductGraph::getState, nb::const_),
              nb::arg("parent"), nb::arg("nextRegion"), nb::rv_policy::reference_internal)
-        .def("getState", nb::overload_cast<const oc::ProductGraph::State *, const ob::State *>(
-                              &oc::ProductGraph::getState, nb::const_),
+        .def("getState",
+             nb::overload_cast<const oc::ProductGraph::State *, const ob::State *>(&oc::ProductGraph::getState,
+                                                                                   nb::const_),
              nb::arg("parent"), nb::arg("cs"), nb::rv_policy::reference_internal)
         .def("getState", nb::overload_cast<int, int, int>(&oc::ProductGraph::getState, nb::const_), nb::arg("region"),
              nb::arg("cosafe"), nb::arg("safe"), nb::rv_policy::reference_internal)

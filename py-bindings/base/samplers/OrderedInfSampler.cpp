@@ -12,12 +12,10 @@ void ompl::binding::base::initSamplers_OrderedInfSampler(nb::module_ &m)
 {
     nb::class_<ob::OrderedInfSampler, ob::InformedSampler>(m, "OrderedInfSampler")
         .def(nb::init<const ob::InformedSamplerPtr &, unsigned int>(), nb::arg("infSampler"), nb::arg("batchSize"))
-        .def("sampleUniform",
-             nb::overload_cast<ob::State *, const ob::Cost &>(&ob::OrderedInfSampler::sampleUniform),
+        .def("sampleUniform", nb::overload_cast<ob::State *, const ob::Cost &>(&ob::OrderedInfSampler::sampleUniform),
              nb::arg("statePtr"), nb::arg("maxCost"))
         .def("sampleUniform",
-             nb::overload_cast<ob::State *, const ob::Cost &, const ob::Cost &>(
-                 &ob::OrderedInfSampler::sampleUniform),
+             nb::overload_cast<ob::State *, const ob::Cost &, const ob::Cost &>(&ob::OrderedInfSampler::sampleUniform),
              nb::arg("statePtr"), nb::arg("minCost"), nb::arg("maxCost"))
         .def("hasInformedMeasure", &ob::OrderedInfSampler::hasInformedMeasure)
         .def("getInformedMeasure",

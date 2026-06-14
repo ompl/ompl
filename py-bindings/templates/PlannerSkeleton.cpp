@@ -18,21 +18,20 @@ void ompl::binding::geometric::initPlannersRrt_RRT(nb::module_ &m)
 {
     nb::class_<og::RRT, ob::Planner>(m, "RRT")
         .def(nb::init<const ob::SpaceInformationPtr &, bool>(), nb::arg("si"), nb::arg("addIntermediateStates") = false)
-        .def(
-            "solve",
-            [](og::RRT &self, nb::object what)
-            {
-                if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                    return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                if (nb::isinstance<double>(what))
-                    return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                throw nb::type_error(
-                    "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-            })
+        .def("solve",
+             [](og::RRT &self, nb::object what)
+             {
+                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
+                 if (nb::isinstance<double>(what))
+                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
+                 throw nb::type_error(
+                     "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
+             })
         .def(
             "getPlannerData", [](const og::RRT &self, ob::PlannerData &data) { self.getPlannerData(data); },
             nb::arg("data"))
         .def("clear", &og::RRT::clear)
         .def("setup", &og::RRT::setup);
-        // Add planner-specific setters/getters here.
+    // Add planner-specific setters/getters here.
 }

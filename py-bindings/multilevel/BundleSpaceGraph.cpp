@@ -15,12 +15,12 @@ void ompl::binding::multilevel::init_BundleSpaceGraph(nb::module_ &m)
     nb::class_<om::BundleSpaceGraph, om::BundleSpace>(m, "BundleSpaceGraph")
         .def("getNumberOfVertices", &om::BundleSpaceGraph::getNumberOfVertices)
         .def("getNumberOfEdges", &om::BundleSpaceGraph::getNumberOfEdges)
-        .def("sampleFromDatastructure",
-             [](om::BundleSpaceGraph &self, ob::State *xRandom) { self.sampleFromDatastructure(xRandom); },
-             nb::arg("xRandom"))
-        .def("sampleBundleGoalBias",
-             [](om::BundleSpaceGraph &self, ob::State *xRandom) { self.sampleBundleGoalBias(xRandom); },
-             nb::arg("xRandom"))
+        .def(
+            "sampleFromDatastructure", [](om::BundleSpaceGraph &self, ob::State *xRandom)
+            { self.sampleFromDatastructure(xRandom); }, nb::arg("xRandom"))
+        .def(
+            "sampleBundleGoalBias", [](om::BundleSpaceGraph &self, ob::State *xRandom)
+            { self.sampleBundleGoalBias(xRandom); }, nb::arg("xRandom"))
         .def("getSolution",
              [](om::BundleSpaceGraph &self)
              {

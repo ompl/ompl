@@ -13,30 +13,30 @@ namespace og = ompl::geometric;
 
 void ompl::binding::geometric::initPlannersPrm_SPARS(nb::module_ &m)
 {
-    nb::class_<og::SPARS, ob::Planner>(
-        m, "SPARS",
-        "Warning: SPARS may use internal threads for solution checking. "
-        "Avoid Python StateValidityChecker trampolines when multithreading is enabled.")
+    nb::class_<og::SPARS, ob::Planner>(m, "SPARS",
+                                       "Warning: SPARS may use internal threads for solution checking. "
+                                       "Avoid Python StateValidityChecker trampolines when multithreading is enabled.")
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
-        .def("constructRoadmap",
-             [](og::SPARS &self, nb::object what, bool stopOnMaxFail)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                 {
-                     return self.constructRoadmap(nb::cast<ob::PlannerTerminationCondition>(what), stopOnMaxFail);
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.constructRoadmap(ob::timedPlannerTerminationCondition(nb::cast<double>(what)),
-                                                  stopOnMaxFail);
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for constructRoadmap. Expected PlannerTerminationCondition or double.");
-                 }
-             },
-             nb::arg("ptc"), nb::arg("stopOnMaxFail") = false)
+        .def(
+            "constructRoadmap",
+            [](og::SPARS &self, nb::object what, bool stopOnMaxFail)
+            {
+                if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                {
+                    return self.constructRoadmap(nb::cast<ob::PlannerTerminationCondition>(what), stopOnMaxFail);
+                }
+                else if (nb::isinstance<double>(what))
+                {
+                    return self.constructRoadmap(ob::timedPlannerTerminationCondition(nb::cast<double>(what)),
+                                                 stopOnMaxFail);
+                }
+                else
+                {
+                    throw nb::type_error(
+                        "Invalid argument type for constructRoadmap. Expected PlannerTerminationCondition or double.");
+                }
+            },
+            nb::arg("ptc"), nb::arg("stopOnMaxFail") = false)
         .def("solve",
              [](og::SPARS &self, nb::object what)
              {

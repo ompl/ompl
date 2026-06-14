@@ -20,8 +20,7 @@ void ompl::binding::geometric::initPlannersRrt_VFRRT(nb::module_ &m)
             [](og::VFRRT *self, const ob::SpaceInformationPtr &si, nb::callable vf, double exploration,
                double initial_lambda, unsigned int update_freq)
             {
-                og::VFRRT::VectorField field =
-                    [vf = std::move(vf)](const ob::State *state) mutable -> Eigen::VectorXd
+                og::VFRRT::VectorField field = [vf = std::move(vf)](const ob::State *state) mutable -> Eigen::VectorXd
                 {
                     nb::gil_scoped_acquire gil;
                     return nb::cast<Eigen::VectorXd>(vf(state));

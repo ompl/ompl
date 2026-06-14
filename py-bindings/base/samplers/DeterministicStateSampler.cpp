@@ -15,8 +15,8 @@ void ompl::binding::base::initSamplers_DeterministicStateSampler(nb::module_ &m)
         .value("HALTON", ob::DeterministicStateSampler::HALTON);
 
     nb::class_<ob::DeterministicStateSampler, ob::StateSampler>(m, "DeterministicStateSampler")
-        .def(nb::init<const ob::StateSpace *, ob::DeterministicStateSampler::DeterministicSamplerType>(), nb::arg("space"),
-             nb::arg("type") = ob::DeterministicStateSampler::HALTON)
+        .def(nb::init<const ob::StateSpace *, ob::DeterministicStateSampler::DeterministicSamplerType>(),
+             nb::arg("space"), nb::arg("type") = ob::DeterministicStateSampler::HALTON)
         .def(nb::init<const ob::StateSpace *, std::shared_ptr<ob::DeterministicSequence>>(), nb::arg("space"),
              nb::arg("sequence"))
         .def("sampleUniform", &ob::DeterministicStateSampler::sampleUniform, nb::arg("state"))
@@ -26,8 +26,8 @@ void ompl::binding::base::initSamplers_DeterministicStateSampler(nb::module_ &m)
              nb::arg("stdDev"));
 
     nb::class_<ob::SO2DeterministicStateSampler, ob::DeterministicStateSampler>(m, "SO2DeterministicStateSampler")
-        .def(nb::init<const ob::StateSpace *, ob::DeterministicStateSampler::DeterministicSamplerType>(), nb::arg("space"),
-             nb::arg("type") = ob::DeterministicStateSampler::HALTON)
+        .def(nb::init<const ob::StateSpace *, ob::DeterministicStateSampler::DeterministicSamplerType>(),
+             nb::arg("space"), nb::arg("type") = ob::DeterministicStateSampler::HALTON)
         .def(nb::init<const ob::StateSpace *, std::shared_ptr<ob::DeterministicSequence>>(), nb::arg("space"),
              nb::arg("sequence"))
         .def("sampleUniform", &ob::SO2DeterministicStateSampler::sampleUniform, nb::arg("state"))
@@ -49,8 +49,8 @@ void ompl::binding::base::initSamplers_DeterministicStateSampler(nb::module_ &m)
              nb::arg("mean"), nb::arg("stdDev"));
 
     nb::class_<ob::SE2DeterministicStateSampler, ob::DeterministicStateSampler>(m, "SE2DeterministicStateSampler")
-        .def(nb::init<const ob::StateSpace *, ob::DeterministicStateSampler::DeterministicSamplerType>(), nb::arg("space"),
-             nb::arg("type") = ob::DeterministicStateSampler::HALTON)
+        .def(nb::init<const ob::StateSpace *, ob::DeterministicStateSampler::DeterministicSamplerType>(),
+             nb::arg("space"), nb::arg("type") = ob::DeterministicStateSampler::HALTON)
         .def(nb::init<const ob::StateSpace *, std::shared_ptr<ob::DeterministicSequence>, bool, bool>(),
              nb::arg("space"), nb::arg("sequence"), nb::arg("stretch_rv") = true, nb::arg("stretch_so2") = true)
         .def("sampleUniform", &ob::SE2DeterministicStateSampler::sampleUniform, nb::arg("state"))

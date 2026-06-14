@@ -15,17 +15,16 @@ void ompl::binding::geometric::initPlannersLazyinformedtrees_BLITstar(nb::module
 {
     nb::class_<og::BLITstar, ob::Planner>(m, "BLITstar")
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
-        .def(
-            "solve",
-            [](og::BLITstar &self, nb::object what)
-            {
-                if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                    return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                if (nb::isinstance<double>(what))
-                    return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                throw nb::type_error(
-                    "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-            })
+        .def("solve",
+             [](og::BLITstar &self, nb::object what)
+             {
+                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
+                 if (nb::isinstance<double>(what))
+                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
+                 throw nb::type_error(
+                     "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
+             })
         .def(
             "getPlannerData", [](const og::BLITstar &self, ob::PlannerData &data) { self.getPlannerData(data); },
             nb::arg("data"))

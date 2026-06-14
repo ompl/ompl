@@ -27,8 +27,6 @@ void ompl::binding::tools::initThunder_ThunderDB(nb::module_ &m)
             },
             nb::arg("solutionPath"))
         .def(
-            "setSPARSdb",
-            [](ot::ThunderDB &db, ot::SPARSdbPtr prm) { db.setSPARSdb(prm); },
-            nb::arg("prm"))
+            "setSPARSdb", [](ot::ThunderDB &db, ot::SPARSdbPtr prm) { db.setSPARSdb(prm); }, nb::arg("prm"))
         .def("getSPARSdb", &ot::ThunderDB::getSPARSdb, nb::rv_policy::reference_internal);
 }

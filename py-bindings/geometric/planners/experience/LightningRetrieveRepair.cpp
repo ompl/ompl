@@ -17,21 +17,19 @@ void ompl::binding::geometric::initPlannersExperience_LightningRetrieveRepair(nb
 {
     nb::class_<og::LightningRetrieveRepair, ob::Planner>(m, "LightningRetrieveRepair")
         .def(nb::init<const ob::SpaceInformationPtr &, ot::LightningDBPtr>(), nb::arg("si"), nb::arg("experienceDB"))
+        .def("solve",
+             [](og::LightningRetrieveRepair &self, nb::object what)
+             {
+                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
+                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
+                 if (nb::isinstance<double>(what))
+                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
+                 throw nb::type_error(
+                     "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
+             })
         .def(
-            "solve",
-            [](og::LightningRetrieveRepair &self, nb::object what)
-            {
-                if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                    return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                if (nb::isinstance<double>(what))
-                    return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                throw nb::type_error(
-                    "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-            })
-        .def(
-            "getPlannerData",
-            [](const og::LightningRetrieveRepair &self, ob::PlannerData &data) { self.getPlannerData(data); },
-            nb::arg("data"))
+            "getPlannerData", [](const og::LightningRetrieveRepair &self, ob::PlannerData &data)
+            { self.getPlannerData(data); }, nb::arg("data"))
         .def("clear", &og::LightningRetrieveRepair::clear)
         .def("setup", &og::LightningRetrieveRepair::setup)
         .def("setLightningDB", &og::LightningRetrieveRepair::setLightningDB, nb::arg("experienceDB"))
