@@ -24,7 +24,7 @@ void ompl::binding::base::init_StateStorage(nb::module_ &m)
         .def("size", &ob::StateStorage::size)
         .def("getStates", &ob::StateStorage::getStates, nb::rv_policy::reference_internal)
         .def("getState", nb::overload_cast<unsigned int>(&ob::StateStorage::getState, nb::const_), nb::arg("index"),
-             nb::rv_policy::reference)
+             nb::rv_policy::reference_internal)
         .def("hasMetadata", &ob::StateStorage::hasMetadata)
         .def(
             "sort",

@@ -20,9 +20,9 @@ void ompl::binding::multilevel::init_PlannerDataVertexAnnotated(nb::module_ &m)
         .def("getComponent", &om::PlannerDataVertexAnnotated::getComponent)
         .def("setTotalState", &om::PlannerDataVertexAnnotated::setTotalState, nb::arg("state"), nb::arg("si"))
         .def("setBaseState", &om::PlannerDataVertexAnnotated::setBaseState, nb::arg("state"))
-        .def("getState", &om::PlannerDataVertexAnnotated::getState, nb::rv_policy::reference)
-        .def("getStateNonConst", &om::PlannerDataVertexAnnotated::getStateNonConst, nb::rv_policy::reference)
-        .def("getBaseState", &om::PlannerDataVertexAnnotated::getBaseState, nb::rv_policy::reference)
+        .def("getState", &om::PlannerDataVertexAnnotated::getState, nb::rv_policy::reference_internal)
+        .def("getStateNonConst", &om::PlannerDataVertexAnnotated::getStateNonConst, nb::rv_policy::reference_internal)
+        .def("getBaseState", &om::PlannerDataVertexAnnotated::getBaseState, nb::rv_policy::reference_internal)
         .def("getSpaceInformationPtr", &om::PlannerDataVertexAnnotated::getSpaceInformationPtr)
         .def("clone", &om::PlannerDataVertexAnnotated::clone);
 }

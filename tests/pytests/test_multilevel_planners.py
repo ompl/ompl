@@ -56,3 +56,5 @@ def test_qrrt_multilevel():
     planner.setup()
     result = planner.solve(2.0)
     assert result
+    assert pdef.hasSolution()
+    assert pdef.getSolutionPath() is not None

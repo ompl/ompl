@@ -41,9 +41,9 @@ void ompl::binding::multilevel::init_BundleSpace(nb::module_ &m)
         .def("getCoDimension", &om::BundleSpace::getCoDimension)
         .def("getBundleSamplerPtr", &om::BundleSpace::getBundleSamplerPtr)
         .def("getBaseSamplerPtr", &om::BundleSpace::getBaseSamplerPtr)
-        .def("getChild", &om::BundleSpace::getChild, nb::rv_policy::reference)
+        .def("getChild", &om::BundleSpace::getChild, nb::rv_policy::reference_internal)
         .def("setChild", &om::BundleSpace::setChild, nb::arg("child"))
-        .def("getParent", &om::BundleSpace::getParent, nb::rv_policy::reference)
+        .def("getParent", &om::BundleSpace::getParent, nb::rv_policy::reference_internal)
         .def("setParent", &om::BundleSpace::setParent, nb::arg("parent"))
         .def("hasParent", &om::BundleSpace::hasParent)
         .def("hasBaseSpace", &om::BundleSpace::hasBaseSpace)
@@ -59,5 +59,5 @@ void ompl::binding::multilevel::init_BundleSpace(nb::module_ &m)
              nb::arg("xBase"), nb::arg("xBundle"))
         .def("getOptimizationObjectivePtr", &om::BundleSpace::getOptimizationObjectivePtr)
         .def("isDynamic", &om::BundleSpace::isDynamic)
-        .def("getGoalPtr", &om::BundleSpace::getGoalPtr, nb::rv_policy::reference);
+        .def("getGoalPtr", &om::BundleSpace::getGoalPtr, nb::rv_policy::reference_internal);
 }
