@@ -130,4 +130,14 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
                  p.printSettings(oss);
                  return oss.str();
              });
+
+    nb::class_<ob::PlannerSpecs>(m, "PlannerSpecs")
+        .def(nb::init<>())
+        .def_rw("recognizedGoal", &ob::PlannerSpecs::recognizedGoal)
+        .def_rw("multithreaded", &ob::PlannerSpecs::multithreaded)
+        .def_rw("approximateSolutions", &ob::PlannerSpecs::approximateSolutions)
+        .def_rw("optimizingPaths", &ob::PlannerSpecs::optimizingPaths)
+        .def_rw("directed", &ob::PlannerSpecs::directed)
+        .def_rw("provingSolutionNonExistence", &ob::PlannerSpecs::provingSolutionNonExistence)
+        .def_rw("canReportIntermediateSolutions", &ob::PlannerSpecs::canReportIntermediateSolutions);
 }
