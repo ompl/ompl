@@ -116,3 +116,28 @@ def test_log_level_filtering():
 
     # Restore original log level
     util.setLogLevel(original_level)
+
+
+def test_python_output_handler_trampoline():
+    """Custom OutputHandler subclasses must receive C++ log() calls via nanobind trampoline."""
+    original_handler = util.getOutputHandler()
+    original_level = util.getLogLevel()
+
+    class CapturingHandler(util.OutputHandlerSTD):
+        def __init__(self):
+            super().__init__()
+            self.messages = []
+
+        def log(self, text, level, filename, line):
+            self.messages.append(text)
+
+    handler = CapturingHandler()
+    util.useOutputHandler(handler)
+    util.setLogLevel(util.LogLevel.LOG_INFO)
+
+    try:
+        util.OMPL_INFORM("hello from c++")
+        assert "hello from c++" in handler.messages
+    finally:
+        util.setLogLevel(original_level)
+        util.useOutputHandler(original_handler)
