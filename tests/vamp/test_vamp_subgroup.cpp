@@ -35,25 +35,18 @@
 #define BOOST_TEST_MODULE VampSubgroupTest
 #include <boost/test/unit_test.hpp>
 
-#include <Eigen/Core>
-
 #include <array>
 #include <cmath>
 #include <limits>
 #include <memory>
 #include <vector>
 
-#include <ompl/base/Constraint.h>
-#include <ompl/base/ConstrainedSpaceInformation.h>
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/spaces/RealVectorBounds.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/SubspaceStateSpace.h>
-#include <ompl/base/spaces/constraint/AtlasStateSpace.h>
-#include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
-#include <ompl/base/spaces/constraint/TangentBundleStateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
@@ -135,27 +128,6 @@ namespace
         si->setup();
         return std::pair{subspace, si};
     }
-
-    // Trivial constraint: pin the first active coordinate to zero. Linear,
-    // so VAMP's linear edge interpolation stays on the manifold.
-    class FirstCoordZero : public ob::Constraint
-    {
-    public:
-        explicit FirstCoordZero(unsigned int dim) : ob::Constraint(dim, 1)
-        {
-        }
-
-        void function(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::VectorXd> out) const override
-        {
-            out[0] = x[0];
-        }
-
-        void jacobian(const Eigen::Ref<const Eigen::VectorXd> & /*x*/, Eigen::Ref<Eigen::MatrixXd> out) const override
-        {
-            out.setZero();
-            out(0, 0) = 1.0;
-        }
-    };
 }  // namespace
 
 BOOST_AUTO_TEST_SUITE(VampSubgroup)
@@ -473,215 +445,6 @@ BOOST_AUTO_TEST_CASE(SetFrozenValues_LiveUpdatePicksUpInValidator)
     // full-body check evaluated at the new frozen pose.
     subspace->setFrozenValues(toFrozen(kGoalFull));
     BOOST_CHECK_EQUAL(sub_si->isValid(sub_state.get()), fullCheck(kGoalFull));
-}
-
-// ---------------------------------------------------------------------------
-// Compose with ConstrainedStateSpace — the design driver for inheriting
-// from the state space rather than swapping the StateSampler.
-// ---------------------------------------------------------------------------
-
-namespace
-{
-    // Constrain the *second* active coordinate (joint 4 in ambient) to zero.
-    // Linear, so kStartFull / kGoalFull (both joint-4 = 0) lie on the manifold
-    // and linear interpolation stays on it.
-    class SecondCoordZero : public ob::Constraint
-    {
-    public:
-        explicit SecondCoordZero(unsigned int dim) : ob::Constraint(dim, 1)
-        {
-        }
-        void function(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::VectorXd> out) const override
-        {
-            out[0] = x[1];
-        }
-        void jacobian(const Eigen::Ref<const Eigen::VectorXd> & /*x*/, Eigen::Ref<Eigen::MatrixXd> out) const override
-        {
-            out.setZero();
-            out(0, 1) = 1.0;
-        }
-    };
-
-    // Nonlinear constraint: ‖x − center‖ = radius (a 3-sphere in 4D),
-    // forcing the planner to walk along a curved manifold. Endpoints are
-    // crafted to sit on this sphere.
-    class WristSphere : public ob::Constraint
-    {
-    public:
-        WristSphere(unsigned int dim, Eigen::VectorXd center, double radius)
-          : ob::Constraint(dim, 1), center_(std::move(center)), radius_(radius)
-        {
-        }
-        void function(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::VectorXd> out) const override
-        {
-            out[0] = (x - center_).norm() - radius_;
-        }
-        void jacobian(const Eigen::Ref<const Eigen::VectorXd> &x, Eigen::Ref<Eigen::MatrixXd> out) const override
-        {
-            const Eigen::VectorXd d = x - center_;
-            const double n = d.norm();
-            if (n > 0.0)
-                out = (d / n).transpose();
-            else
-                out.setZero();
-        }
-
-    private:
-        Eigen::VectorXd center_;
-        double radius_;
-    };
-
-    struct ManifoldResult
-    {
-        ob::PlannerStatus status;
-        double worst_residual;      // max ‖constraint(x)‖ over the path
-        double worst_frozen_drift;  // max |ambient[i] - frozen[i]| over frozen indices i
-    };
-
-    // Plan over the wrist subgroup under a manifold constraint with the
-    // requested constrained state-space flavor (Projected / Atlas / Tangent
-    // Bundle). Returns the planning status, the worst constraint residual,
-    // and the worst drift in any frozen ambient joint across the interpolated
-    // solution path. The constraint residual confirms the trajectory follows
-    // the manifold; the frozen drift confirms the subspace machinery never
-    // perturbs the joints we promised not to move.
-    template <typename CSS>
-    auto planManifold(const Environment &env, const std::shared_ptr<ob::Constraint> &constraint,
-                      const std::array<double, 4> &start_active, const std::array<double, 4> &goal_active,
-                      double time_limit = 10.0) -> ManifoldResult
-    {
-        std::vector<std::size_t> active{3, 4, 5, 6};
-        auto frozen = toFrozen(kStartFull);
-        auto subspace = std::make_shared<ob::SubspaceStateSpace>(makePandaBounds(), active, frozen);
-        auto css = std::make_shared<CSS>(subspace, constraint);
-        auto csi = std::make_shared<ob::ConstrainedSpaceInformation>(css);
-        css->setup();
-        // Only the state validity checker — the constrained SI provides
-        // ConstrainedMotionValidator which discretizes along the manifold and
-        // delegates per-step validity to our checker.
-        csi->setStateValidityChecker(std::make_shared<ompl::vamp::VampSubgroupStateValidityChecker<Robot>>(csi, env));
-        // Install our motion validator instead of the default
-        // ConstrainedMotionValidator. Our validator detects the constrained
-        // wrapper, walks the manifold via the constrained state space's own
-        // ``discreteGeodesic``, and batch-validates the resulting samples
-        // through VAMP's ``Robot::fkcc<rake>``, restoring the rake-wide SIMD
-        // throughput that the default per-state path forfeits.
-        csi->setMotionValidator(std::make_shared<ompl::vamp::VampSubgroupMotionValidator<Robot>>(csi, env));
-        csi->setup();
-
-        og::SimpleSetup ss(csi);
-        ob::ScopedState<> start(css), goal(css);
-        for (std::size_t i = 0; i < active.size(); ++i)
-        {
-            start[i] = start_active[i];
-            goal[i] = goal_active[i];
-        }
-        // Atlas-based spaces need at least one chart anchored before sampling;
-        // anchor at both endpoints to seed the manifold approximation.
-        if (auto *atlas = dynamic_cast<ob::AtlasStateSpace *>(css.get()))
-        {
-            atlas->anchorChart(start.get());
-            atlas->anchorChart(goal.get());
-        }
-        ss.setStartAndGoalStates(start, goal);
-        ss.setPlanner(std::make_shared<og::RRTConnect>(csi));
-
-        ManifoldResult result{ss.solve(time_limit), 0.0, 0.0};
-        if (result.status == ob::PlannerStatus::EXACT_SOLUTION)
-        {
-            auto path = ss.getSolutionPath();
-            path.interpolate();
-            Eigen::VectorXd x(css->getDimension());
-            Eigen::VectorXd r(constraint->getCoDimension());
-            for (std::size_t i = 0; i < path.getStateCount(); ++i)
-            {
-                const auto *rv = path.getState(i)->as<ob::ConstrainedStateSpace::StateType>();
-                for (unsigned int j = 0; j < css->getDimension(); ++j)
-                    x[j] = (*rv)[j];
-                constraint->function(x, r);
-                result.worst_residual = std::max(result.worst_residual, r.norm());
-
-                // Lift to ambient and confirm the frozen joints never moved.
-                // ``subspace->expandToFull`` reads the active values from the
-                // underlying real-vector state held by the wrapper.
-                auto full = subspace->expandToFull(path.getState(i));
-                for (std::size_t k = 0; k < full.size(); ++k)
-                {
-                    const bool is_active = std::find(active.begin(), active.end(), k) != active.end();
-                    if (!is_active)
-                        result.worst_frozen_drift = std::max(result.worst_frozen_drift, std::abs(full[k] - frozen[k]));
-                }
-            }
-        }
-        return result;
-    }
-}  // namespace
-
-BOOST_AUTO_TEST_CASE(ManifoldPlanning_LinearConstraint_ProjectedStateSpace)
-{
-    auto env = makeEnvironment();
-    auto constraint = std::make_shared<SecondCoordZero>(4);
-    std::array<double, 4> start_a{kStartFull[3], kStartFull[4], kStartFull[5], kStartFull[6]};
-    std::array<double, 4> goal_a{kGoalFull[3], kGoalFull[4], kGoalFull[5], kGoalFull[6]};
-    auto r = planManifold<ob::ProjectedStateSpace>(env, constraint, start_a, goal_a);
-    BOOST_REQUIRE_EQUAL(r.status, ob::PlannerStatus::EXACT_SOLUTION);
-    BOOST_CHECK_LE(r.worst_residual, constraint->getTolerance());
-    BOOST_CHECK_SMALL(r.worst_frozen_drift, 1e-9);
-}
-
-BOOST_AUTO_TEST_CASE(ManifoldPlanning_LinearConstraint_AtlasStateSpace)
-{
-    auto env = makeEnvironment();
-    auto constraint = std::make_shared<SecondCoordZero>(4);
-    std::array<double, 4> start_a{kStartFull[3], kStartFull[4], kStartFull[5], kStartFull[6]};
-    std::array<double, 4> goal_a{kGoalFull[3], kGoalFull[4], kGoalFull[5], kGoalFull[6]};
-    auto r = planManifold<ob::AtlasStateSpace>(env, constraint, start_a, goal_a);
-    BOOST_REQUIRE_EQUAL(r.status, ob::PlannerStatus::EXACT_SOLUTION);
-    BOOST_CHECK_LE(r.worst_residual, constraint->getTolerance());
-    BOOST_CHECK_SMALL(r.worst_frozen_drift, 1e-9);
-}
-
-BOOST_AUTO_TEST_CASE(ManifoldPlanning_LinearConstraint_TangentBundleStateSpace)
-{
-    auto env = makeEnvironment();
-    auto constraint = std::make_shared<SecondCoordZero>(4);
-    std::array<double, 4> start_a{kStartFull[3], kStartFull[4], kStartFull[5], kStartFull[6]};
-    std::array<double, 4> goal_a{kGoalFull[3], kGoalFull[4], kGoalFull[5], kGoalFull[6]};
-    auto r = planManifold<ob::TangentBundleStateSpace>(env, constraint, start_a, goal_a);
-    BOOST_REQUIRE_EQUAL(r.status, ob::PlannerStatus::EXACT_SOLUTION);
-    // TangentBundle is lazy — its produced waypoints can sit slightly off the
-    // manifold by design, so allow a small multiple of the constraint tolerance.
-    BOOST_CHECK_LE(r.worst_residual, 10.0 * constraint->getTolerance());
-    BOOST_CHECK_SMALL(r.worst_frozen_drift, 1e-9);
-}
-
-BOOST_AUTO_TEST_CASE(ManifoldPlanning_NonlinearConstraint_ProjectedStateSpace)
-{
-    auto env = makeEnvironment();
-    // 3-sphere of radius 0.5 in the 4D active subspace centred at the start
-    // wrist pose. Place start and goal on the sphere along two orthogonal
-    // coordinate axes so they're geometrically far apart but feasible.
-    Eigen::Vector4d center(kStartFull[3], kStartFull[4], kStartFull[5], kStartFull[6]);
-    const double radius = 0.5;
-    const Eigen::Vector4d start_vec = center + Eigen::Vector4d(radius, 0.0, 0.0, 0.0);
-    const Eigen::Vector4d goal_vec = center + Eigen::Vector4d(0.0, 0.0, radius, 0.0);
-
-    auto constraint = std::make_shared<WristSphere>(4, center, radius);
-    std::array<double, 4> start_a{start_vec[0], start_vec[1], start_vec[2], start_vec[3]};
-    std::array<double, 4> goal_a{goal_vec[0], goal_vec[1], goal_vec[2], goal_vec[3]};
-
-    // Sanity-check: both endpoints lie on the sphere.
-    Eigen::VectorXd rr(1);
-    Eigen::VectorXd vs = start_vec, vg = goal_vec;
-    constraint->function(vs, rr);
-    BOOST_REQUIRE_LE(std::abs(rr[0]), constraint->getTolerance());
-    constraint->function(vg, rr);
-    BOOST_REQUIRE_LE(std::abs(rr[0]), constraint->getTolerance());
-
-    auto r = planManifold<ob::ProjectedStateSpace>(env, constraint, start_a, goal_a, 15.0);
-    BOOST_REQUIRE_EQUAL(r.status, ob::PlannerStatus::EXACT_SOLUTION);
-    BOOST_CHECK_LE(r.worst_residual, constraint->getTolerance());
-    BOOST_CHECK_SMALL(r.worst_frozen_drift, 1e-9);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

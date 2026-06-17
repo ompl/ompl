@@ -4,7 +4,6 @@
 #include <ompl/base/State.h>
 #include <ompl/base/StateValidityChecker.h>
 #include <ompl/base/spaces/SubspaceStateSpace.h>
-#include <ompl/base/spaces/WrapperStateSpace.h>
 #include <ompl/util/Exception.h>
 
 #include <ompl/vamp/Utils.h>
@@ -26,16 +25,10 @@ namespace ompl::vamp
     // VAMP's SIMD collision validator. The subspace handles the reduced-DOF
     // bookkeeping (active indices, frozen ambient pose); this checker simply
     // expands each reduced-DOF state to a full Robot::Configuration and
-    // forwards to ``vamp::planning::validate_motion``. Works for both
-    // unconstrained planning (SpaceInformation directly over the subspace)
-    // and constrained planning (the subspace wrapped by a
-    // ConstrainedStateSpace / ProjectedStateSpace) — the wrapper walk in
-    // ``resolveSubspace`` peels both layers.
+    // forwards to ``vamp::planning::validate_motion``.
     //
     // Performance notes:
-    //  * The subspace pointer and the "is this SI's state space wrapped?" flag
-    //    are resolved once at construction. The per-call hot path then skips
-    //    the ``dynamic_cast`` for the common unconstrained case.
+    //  * The subspace pointer is resolved once at construction.
     //  * The frozen pose is cached as a pre-cast single-precision array on the
     //    checker itself and refreshed lazily when the subspace's frozen
     //    version counter advances. The per-call hot path then writes the
@@ -57,26 +50,20 @@ namespace ompl::vamp
         using Configuration = typename Robot::Configuration;
 
         VampSubgroupStateValidityChecker(ob::SpaceInformation *si, const Environment &env)
-          : ob::StateValidityChecker(si)
-          , env_(env)
-          , subspace_(resolveSubspace(si->getStateSpace().get()))
-          , wrapped_(static_cast<const ob::StateSpace *>(subspace_) != si->getStateSpace().get())
+          : ob::StateValidityChecker(si), env_(env), subspace_(resolveSubspace(si->getStateSpace().get()))
         {
             primeCaches();
         }
 
         VampSubgroupStateValidityChecker(const ob::SpaceInformationPtr &si, const Environment &env)
-          : ob::StateValidityChecker(si)
-          , env_(env)
-          , subspace_(resolveSubspace(si->getStateSpace().get()))
-          , wrapped_(static_cast<const ob::StateSpace *>(subspace_) != si->getStateSpace().get())
+          : ob::StateValidityChecker(si), env_(env), subspace_(resolveSubspace(si->getStateSpace().get()))
         {
             primeCaches();
         }
 
         auto isValid(const ob::State *state) const -> bool override
         {
-            const auto *rv = wrapped_ ? extract_real_state(state) : state->as<ob::RealVectorStateSpace::StateType>();
+            const auto *rv = state->as<ob::RealVectorStateSpace::StateType>();
             auto configuration = expand(rv);
             return ::vamp::planning::validate_motion<Robot, rake, 1>(configuration, configuration, env_);
         }
@@ -118,33 +105,22 @@ namespace ompl::vamp
 
         static auto resolveSubspace(ob::StateSpace *space) -> const ob::SubspaceStateSpace *
         {
-            ob::StateSpace *current = space;
-            while (current != nullptr)
+            auto *sub = dynamic_cast<const ob::SubspaceStateSpace *>(space);
+            if (sub == nullptr)
             {
-                if (auto *sub = dynamic_cast<const ob::SubspaceStateSpace *>(current))
-                {
-                    if (sub->getAmbientDimension() != Robot::dimension)
-                    {
-                        throw ompl::Exception("VampSubgroupStateValidityChecker: SubspaceStateSpace ambient "
-                                              "dimension does not match Robot::dimension");
-                    }
-                    return sub;
-                }
-                if (auto *wrapper = dynamic_cast<ob::WrapperStateSpace *>(current))
-                {
-                    current = wrapper->getSpace().get();
-                    continue;
-                }
-                break;
+                throw ompl::Exception(
+                    "VampSubgroupStateValidityChecker: SpaceInformation's state space is not a SubspaceStateSpace");
             }
-            throw ompl::Exception(
-                "VampSubgroupStateValidityChecker: SpaceInformation's state space is not (or does not wrap) a "
-                "SubspaceStateSpace");
+            if (sub->getAmbientDimension() != Robot::dimension)
+            {
+                throw ompl::Exception("VampSubgroupStateValidityChecker: SubspaceStateSpace ambient "
+                                      "dimension does not match Robot::dimension");
+            }
+            return sub;
         }
 
         const Environment &env_;
         const ob::SubspaceStateSpace *subspace_;
-        bool wrapped_;
         std::size_t active_count_{0};
         std::array<std::size_t, Robot::dimension> active_indices_{};
         mutable std::array<float, Robot::dimension> frozen_float_{};

@@ -59,13 +59,11 @@ namespace ompl
          *
          * Because the class is just a RealVectorStateSpace with extra
          * bookkeeping, every OMPL planner that consumes a real-vector space
-         * works on it directly, and it can be wrapped by ConstrainedStateSpace
-         * or ProjectedStateSpace for manifold-constrained planning. State
-         * validity checkers and motion validators that bridge to backends
-         * operating on the ambient configuration (e.g. VAMP, FCL, MoveIt)
-         * read the active indices and frozen values from this space and use
-         * \c expandToFull to lift a reduced-DOF state back to the ambient
-         * configuration before running their checks.
+         * works on it directly. State validity checkers and motion validators
+         * that bridge to backends operating on the ambient configuration
+         * (e.g. VAMP, FCL, MoveIt) read the active indices and frozen values
+         * from this space and use \c expandToFull to lift a reduced-DOF state
+         * back to the ambient configuration before running their checks.
          *
          * Sample use:
          * \code
