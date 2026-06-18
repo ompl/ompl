@@ -1,6 +1,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/optional.h>
+#include <nanobind/stl/pair.h>
 #include "ompl/base/spaces/VanaStateSpace.h"
 #include "ompl/base/SpaceInformation.h"
 #include "../init.h"

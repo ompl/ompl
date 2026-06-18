@@ -1,9 +1,12 @@
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/pair.h>
+#include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
 
 #include <utility>
 
 #include <ompl/multilevel/datastructures/BundleSpaceGraph.h>
+#include <ompl/multilevel/datastructures/graphsampler/GraphSampler.h>
 #include "init.h"
 
 namespace nb = nanobind;
