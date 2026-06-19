@@ -46,7 +46,7 @@
 #include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/base/spaces/RealVectorBounds.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
-#include <ompl/base/spaces/SubspaceStateSpace.h>
+#include <ompl/base/spaces/IndexedSubStateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
@@ -90,7 +90,7 @@ namespace
     }
 
     // Project the full Panda joint bounds onto a RealVectorBounds for the
-    // SubspaceStateSpace constructor.
+    // IndexedSubStateSpace constructor.
     auto makePandaBounds() -> ob::RealVectorBounds
     {
         return ompl::vamp::getRobotBounds<Robot>();
@@ -121,7 +121,7 @@ namespace
     auto makeSubgroupSI(const Environment &env, const std::vector<std::size_t> &active,
                         const std::vector<double> &frozen)
     {
-        auto subspace = std::make_shared<ob::SubspaceStateSpace>(makePandaBounds(), active, frozen);
+        auto subspace = std::make_shared<ob::IndexedSubStateSpace>(makePandaBounds(), active, frozen);
         auto si = std::make_shared<ob::SpaceInformation>(subspace);
         si->setStateValidityChecker(std::make_shared<ompl::vamp::VampSubgroupStateValidityChecker<Robot>>(si, env));
         si->setMotionValidator(std::make_shared<ompl::vamp::VampSubgroupMotionValidator<Robot>>(si, env));
@@ -147,17 +147,17 @@ BOOST_AUTO_TEST_CASE(Validator_RejectsMismatchedAmbientDimension)
         wrong.setHigh(i, 1.0);
     }
     auto subspace =
-        std::make_shared<ob::SubspaceStateSpace>(wrong, std::vector<std::size_t>{0, 1}, std::vector<double>(5, 0.0));
+        std::make_shared<ob::IndexedSubStateSpace>(wrong, std::vector<std::size_t>{0, 1}, std::vector<double>(5, 0.0));
     auto si = std::make_shared<ob::SpaceInformation>(subspace);
 
     BOOST_CHECK_THROW(ompl::vamp::VampSubgroupStateValidityChecker<Robot>(si, env), ompl::Exception);
     BOOST_CHECK_THROW(ompl::vamp::VampSubgroupMotionValidator<Robot>(si, env), ompl::Exception);
 }
 
-BOOST_AUTO_TEST_CASE(Validator_RejectsNonSubspaceStateSpace)
+BOOST_AUTO_TEST_CASE(Validator_RejectsNonIndexedSubStateSpace)
 {
     auto env = makeEnvironment();
-    // A bare VampStateSpace is not a SubspaceStateSpace.
+    // A bare VampStateSpace is not a IndexedSubStateSpace.
     auto space = std::make_shared<ompl::vamp::VampStateSpace<Robot>>();
     auto si = std::make_shared<ob::SpaceInformation>(space);
 
@@ -247,7 +247,7 @@ BOOST_AUTO_TEST_CASE(Plan_RRTConnect_FindsSolutionOverSubgroup)
 {
     auto env = makeEnvironment();
     std::vector<std::size_t> active{3, 4, 5, 6};
-    auto subspace = std::make_shared<ob::SubspaceStateSpace>(makePandaBounds(), active, toFrozen(kStartFull));
+    auto subspace = std::make_shared<ob::IndexedSubStateSpace>(makePandaBounds(), active, toFrozen(kStartFull));
 
     og::SimpleSetup ss(subspace);
     auto si = ss.getSpaceInformation();
@@ -271,7 +271,7 @@ BOOST_AUTO_TEST_CASE(SimplifyAndInterpolate_OperateOnSubgroupPath)
 {
     auto env = makeEnvironment();
     std::vector<std::size_t> active{3, 4, 5, 6};
-    auto subspace = std::make_shared<ob::SubspaceStateSpace>(makePandaBounds(), active, toFrozen(kStartFull));
+    auto subspace = std::make_shared<ob::IndexedSubStateSpace>(makePandaBounds(), active, toFrozen(kStartFull));
 
     og::SimpleSetup ss(subspace);
     auto si = ss.getSpaceInformation();
@@ -314,7 +314,7 @@ BOOST_AUTO_TEST_CASE(OptimizationObjective_PathLengthIntegratesOverSubgroup)
 {
     auto env = makeEnvironment();
     std::vector<std::size_t> active{3, 4, 5, 6};
-    auto subspace = std::make_shared<ob::SubspaceStateSpace>(makePandaBounds(), active, toFrozen(kStartFull));
+    auto subspace = std::make_shared<ob::IndexedSubStateSpace>(makePandaBounds(), active, toFrozen(kStartFull));
 
     og::SimpleSetup ss(subspace);
     auto si = ss.getSpaceInformation();
@@ -345,7 +345,7 @@ BOOST_AUTO_TEST_CASE(Plan_FrozenIndicesAreExactlyFixedAlongSolutionPath)
     auto env = makeEnvironment();
     std::vector<std::size_t> active{3, 4, 5, 6};
     auto frozen = toFrozen(kStartFull);
-    auto subspace = std::make_shared<ob::SubspaceStateSpace>(makePandaBounds(), active, frozen);
+    auto subspace = std::make_shared<ob::IndexedSubStateSpace>(makePandaBounds(), active, frozen);
 
     og::SimpleSetup ss(subspace);
     auto si = ss.getSpaceInformation();
@@ -392,7 +392,7 @@ BOOST_AUTO_TEST_CASE(SwitchSubgroup_ReplanWithDifferentActiveSet)
 
     auto plan = [&](const std::vector<std::size_t> &active)
     {
-        auto subspace = std::make_shared<ob::SubspaceStateSpace>(makePandaBounds(), active, toFrozen(kStartFull));
+        auto subspace = std::make_shared<ob::IndexedSubStateSpace>(makePandaBounds(), active, toFrozen(kStartFull));
 
         og::SimpleSetup ss(subspace);
         auto si = ss.getSpaceInformation();

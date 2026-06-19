@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#define BOOST_TEST_MODULE SubspaceStateSpaceTest
+#define BOOST_TEST_MODULE IndexedSubStateSpaceTest
 #include <boost/test/unit_test.hpp>
 
 #include <Eigen/Core>
@@ -44,7 +44,7 @@
 #include <ompl/base/Constraint.h>
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/spaces/RealVectorBounds.h>
-#include <ompl/base/spaces/SubspaceStateSpace.h>
+#include <ompl/base/spaces/IndexedSubStateSpace.h>
 #include <ompl/base/spaces/constraint/ProjectedStateSpace.h>
 #include <ompl/util/Exception.h>
 
@@ -64,7 +64,7 @@ namespace
         return b;
     }
 
-    // Trivial constraint used to verify SubspaceStateSpace composes with
+    // Trivial constraint used to verify IndexedSubStateSpace composes with
     // ProjectedStateSpace: pins the first active coordinate to 0.
     class FirstCoordZero : public ob::Constraint
     {
@@ -86,35 +86,35 @@ namespace
     };
 }  // namespace
 
-BOOST_AUTO_TEST_SUITE(SubspaceStateSpace)
+BOOST_AUTO_TEST_SUITE(IndexedSubStateSpace)
 
 BOOST_AUTO_TEST_CASE(Construct_RejectsEmptyActiveIndices)
 {
-    BOOST_CHECK_THROW(ob::SubspaceStateSpace(makeAmbientBounds(), {}, std::vector<double>(7, 0.0)), ompl::Exception);
+    BOOST_CHECK_THROW(ob::IndexedSubStateSpace(makeAmbientBounds(), {}, std::vector<double>(7, 0.0)), ompl::Exception);
 }
 
 BOOST_AUTO_TEST_CASE(Construct_RejectsDuplicateActiveIndices)
 {
-    BOOST_CHECK_THROW(ob::SubspaceStateSpace(makeAmbientBounds(), {1, 2, 2}, std::vector<double>(7, 0.0)),
+    BOOST_CHECK_THROW(ob::IndexedSubStateSpace(makeAmbientBounds(), {1, 2, 2}, std::vector<double>(7, 0.0)),
                       ompl::Exception);
 }
 
 BOOST_AUTO_TEST_CASE(Construct_RejectsOutOfRangeActiveIndex)
 {
-    BOOST_CHECK_THROW(ob::SubspaceStateSpace(makeAmbientBounds(), {0, 7}, std::vector<double>(7, 0.0)),
+    BOOST_CHECK_THROW(ob::IndexedSubStateSpace(makeAmbientBounds(), {0, 7}, std::vector<double>(7, 0.0)),
                       ompl::Exception);
 }
 
 BOOST_AUTO_TEST_CASE(Construct_RejectsFrozenLengthMismatch)
 {
-    BOOST_CHECK_THROW(ob::SubspaceStateSpace(makeAmbientBounds(), {0, 1}, std::vector<double>(6, 0.0)),
+    BOOST_CHECK_THROW(ob::IndexedSubStateSpace(makeAmbientBounds(), {0, 1}, std::vector<double>(6, 0.0)),
                       ompl::Exception);
 }
 
 BOOST_AUTO_TEST_CASE(Bounds_ProjectedOntoActiveIndicesInOrder)
 {
     // Active indices given out of order — the subspace bounds must follow the same order.
-    auto subspace = ob::SubspaceStateSpace(makeAmbientBounds(), {5, 2, 6}, std::vector<double>(7, 0.0));
+    auto subspace = ob::IndexedSubStateSpace(makeAmbientBounds(), {5, 2, 6}, std::vector<double>(7, 0.0));
 
     BOOST_CHECK_EQUAL(subspace.getDimension(), 3u);
     BOOST_CHECK_EQUAL(subspace.getAmbientDimension(), 7u);
@@ -131,7 +131,7 @@ BOOST_AUTO_TEST_CASE(ExpandToFull_WritesActiveSlotsAndPreservesFrozen)
 {
     std::vector<double> frozen{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7};
     std::vector<std::size_t> active{1, 4, 6};
-    auto subspace = std::make_shared<ob::SubspaceStateSpace>(makeAmbientBounds(), active, frozen);
+    auto subspace = std::make_shared<ob::IndexedSubStateSpace>(makeAmbientBounds(), active, frozen);
 
     ob::ScopedState<> state(subspace);
     state[0] = -1.5;  // → ambient[1]
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(SetFrozenValues_UpdatesExpansion)
 {
     std::vector<double> frozen(7, 0.0);
     std::vector<std::size_t> active{0, 2};
-    auto subspace = std::make_shared<ob::SubspaceStateSpace>(makeAmbientBounds(), active, frozen);
+    auto subspace = std::make_shared<ob::IndexedSubStateSpace>(makeAmbientBounds(), active, frozen);
 
     std::vector<double> updated{9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0};
     subspace->setFrozenValues(updated);
@@ -186,8 +186,8 @@ BOOST_AUTO_TEST_CASE(ComposesWith_ProjectedStateSpace)
     // ConstrainedStateSpace::setup() requires a SpaceInformation be
     // associated first — ConstrainedSpaceInformation's constructor does that
     // wiring, so we go through it like real planning code would.
-    auto subspace = std::make_shared<ob::SubspaceStateSpace>(makeAmbientBounds(), std::vector<std::size_t>{0, 1, 2},
-                                                             std::vector<double>(7, 0.0));
+    auto subspace = std::make_shared<ob::IndexedSubStateSpace>(makeAmbientBounds(), std::vector<std::size_t>{0, 1, 2},
+                                                               std::vector<double>(7, 0.0));
     auto constraint = std::make_shared<FirstCoordZero>(subspace->getDimension());
     auto projected = std::make_shared<ob::ProjectedStateSpace>(subspace, constraint);
     auto csi = std::make_shared<ob::ConstrainedSpaceInformation>(projected);

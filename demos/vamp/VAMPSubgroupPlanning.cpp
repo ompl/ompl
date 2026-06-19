@@ -3,7 +3,7 @@
 // Demonstrates subgroup planning: plan over a user-selected subset of a
 // VAMP robot's DOFs while the remaining joints are pinned to a frozen
 // reference pose. The subspace itself is a general
-// ompl::base::SubspaceStateSpace (not VAMP-specific) so the same idea
+// ompl::base::IndexedSubStateSpace (not VAMP-specific) so the same idea
 // applies to any OMPL setup whose ambient space is real-vector and whose
 // collision backend can operate on the lifted ambient configuration.
 // The two VAMP-specific pieces are the subgroup-aware state validity
@@ -16,7 +16,7 @@
 #include <vector>
 
 #include <ompl/base/SpaceInformation.h>
-#include <ompl/base/spaces/SubspaceStateSpace.h>
+#include <ompl/base/spaces/IndexedSubStateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 
@@ -57,7 +57,7 @@ int main()
     std::vector<std::size_t> active_indices{3, 4, 5, 6};
 
     auto subspace =
-        std::make_shared<ob::SubspaceStateSpace>(ompl::vamp::getRobotBounds<Robot>(), active_indices, frozen);
+        std::make_shared<ob::IndexedSubStateSpace>(ompl::vamp::getRobotBounds<Robot>(), active_indices, frozen);
 
     std::cout << "Planning over " << subspace->getDimension() << " of " << subspace->getAmbientDimension() << " DOFs"
               << std::endl;

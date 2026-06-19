@@ -3,7 +3,7 @@
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/State.h>
 #include <ompl/base/StateValidityChecker.h>
-#include <ompl/base/spaces/SubspaceStateSpace.h>
+#include <ompl/base/spaces/IndexedSubStateSpace.h>
 #include <ompl/util/Exception.h>
 
 #include <ompl/vamp/Utils.h>
@@ -18,30 +18,29 @@ namespace ompl::vamp
 {
     namespace ob = ompl::base;
 
-    //==========================================================================
-    // VAMP Subgroup State Validity Checker for OMPL
-    //
-    // Adapter that bridges a general ``ompl::base::SubspaceStateSpace`` into
-    // VAMP's SIMD collision validator. The subspace handles the reduced-DOF
-    // bookkeeping (active indices, frozen ambient pose); this checker simply
-    // expands each reduced-DOF state to a full Robot::Configuration and
-    // forwards to ``vamp::planning::validate_motion``.
-    //
-    // Performance notes:
-    //  * The subspace pointer is resolved once at construction.
-    //  * The frozen pose is cached as a pre-cast single-precision array on the
-    //    checker itself and refreshed lazily when the subspace's frozen
-    //    version counter advances. The per-call hot path then writes the
-    //    frozen part as a single SIMD-friendly memcpy and only casts the (few)
-    //    active DOFs.
-    //  * Active indices are mirrored into a fixed-size array of length
-    //    Robot::dimension so the per-call loop reads from contiguous, cache-
-    //    resident storage instead of chasing a vector indirection.
-    //  * The subspace's ambient dimension must equal ``Robot::dimension``; we
-    //    verify that at construction so misuse fails loudly rather than
-    //    producing silently-wrong collision checks.
-    //==========================================================================
-
+    /** \brief State validity checker that bridges an
+     * ompl::base::IndexedSubStateSpace into VAMP's SIMD collision checker.
+     *
+     * The subspace owns the reduced-DOF bookkeeping (active indices and frozen
+     * ambient pose); this checker expands each reduced-DOF state to a full
+     * \c Robot::Configuration and forwards to \c vamp::planning::validate_motion.
+     *
+     * \tparam Robot VAMP robot model supplying \c Configuration, \c dimension,
+     *         and the SIMD forward-kinematics/collision kernels.
+     * \tparam rake SIMD lane width used for collision checking.
+     *
+     * \par Performance notes
+     * - The subspace pointer is resolved once at construction.
+     * - The frozen pose is cached as a pre-cast single-precision array on the
+     *   checker itself and refreshed lazily when the subspace's frozen version
+     *   counter advances. The per-call hot path then writes the frozen part as a
+     *   single SIMD-friendly memcpy and only casts the (few) active DOFs.
+     * - Active indices are mirrored into a fixed-size array of length
+     *   \c Robot::dimension so the per-call loop reads from contiguous,
+     *   cache-resident storage instead of chasing a vector indirection.
+     * - The subspace's ambient dimension must equal \c Robot::dimension; this is
+     *   verified at construction so misuse fails loudly rather than producing
+     *   silently-wrong collision checks. */
     template <typename Robot, std::size_t rake = ::vamp::FloatVectorWidth>
     class VampSubgroupStateValidityChecker : public ob::StateValidityChecker
     {
@@ -49,18 +48,30 @@ namespace ompl::vamp
         using Environment = ::vamp::collision::Environment<::vamp::FloatVector<rake>>;
         using Configuration = typename Robot::Configuration;
 
+        /** \brief Construct from a raw SpaceInformation.
+         *
+         * \param si Space information whose state space must be an
+         *        ompl::base::IndexedSubStateSpace of ambient dimension
+         *        \c Robot::dimension.
+         * \param env VAMP collision environment used for all checks; stored by
+         *        reference and must outlive the checker. */
         VampSubgroupStateValidityChecker(ob::SpaceInformation *si, const Environment &env)
           : ob::StateValidityChecker(si), env_(env), subspace_(resolveSubspace(si->getStateSpace().get()))
         {
             primeCaches();
         }
 
+        /** \brief Construct from a SpaceInformationPtr; \a si must own an
+         * ompl::base::IndexedSubStateSpace of ambient dimension
+         * \c Robot::dimension, and \a env must outlive the checker. */
         VampSubgroupStateValidityChecker(const ob::SpaceInformationPtr &si, const Environment &env)
           : ob::StateValidityChecker(si), env_(env), subspace_(resolveSubspace(si->getStateSpace().get()))
         {
             primeCaches();
         }
 
+        /** \brief Expand \a state to a full configuration and report whether it
+         * is collision-free. */
         auto isValid(const ob::State *state) const -> bool override
         {
             const auto *rv = state->as<ob::RealVectorStateSpace::StateType>();
@@ -69,10 +80,12 @@ namespace ompl::vamp
         }
 
     private:
-        // Lift a reduced-DOF state into a full VAMP Configuration using the
-        // cached frozen-float buffer and the cached active-index array. Lazily
-        // refreshes the frozen cache when the subspace reports a new version
-        // so ``setFrozenValues`` is picked up live without per-call rebuilds.
+        /** \brief Lift a reduced-DOF state into a full VAMP \c Configuration.
+         *
+         * Writes the cached frozen ambient pose, then overwrites the active DOFs
+         * from \a rv. Lazily refreshes the frozen cache when the subspace reports
+         * a new version, so ompl::base::IndexedSubStateSpace::setFrozenValues is
+         * picked up live without per-call rebuilds. */
         auto expand(const ob::RealVectorStateSpace::StateType *rv) const -> Configuration
         {
             const std::size_t v = subspace_->getFrozenVersion();
@@ -86,6 +99,8 @@ namespace ompl::vamp
             return Configuration(buf.data());
         }
 
+        /** \brief Cache the active-index array and frozen pose from the subspace
+         * at construction. */
         void primeCaches()
         {
             const auto &active = subspace_->getActiveIndices();
@@ -95,6 +110,8 @@ namespace ompl::vamp
             refreshFrozenCache(subspace_->getFrozenVersion());
         }
 
+        /** \brief Re-cast the subspace's frozen ambient pose into the
+         * single-precision cache and record \a version as current. */
         void refreshFrozenCache(std::size_t version) const
         {
             const auto &frozen = subspace_->getFrozenValues();
@@ -103,27 +120,36 @@ namespace ompl::vamp
             frozen_version_ = version;
         }
 
-        static auto resolveSubspace(ob::StateSpace *space) -> const ob::SubspaceStateSpace *
+        /** \brief Return \a space cast to ompl::base::IndexedSubStateSpace,
+         * throwing if it is not one or if its ambient dimension does not match
+         * \c Robot::dimension. */
+        static auto resolveSubspace(ob::StateSpace *space) -> const ob::IndexedSubStateSpace *
         {
-            auto *sub = dynamic_cast<const ob::SubspaceStateSpace *>(space);
+            auto *sub = dynamic_cast<const ob::IndexedSubStateSpace *>(space);
             if (sub == nullptr)
             {
                 throw ompl::Exception(
-                    "VampSubgroupStateValidityChecker: SpaceInformation's state space is not a SubspaceStateSpace");
+                    "VampSubgroupStateValidityChecker: SpaceInformation's state space is not an IndexedSubStateSpace");
             }
             if (sub->getAmbientDimension() != Robot::dimension)
             {
-                throw ompl::Exception("VampSubgroupStateValidityChecker: SubspaceStateSpace ambient "
+                throw ompl::Exception("VampSubgroupStateValidityChecker: IndexedSubStateSpace ambient "
                                       "dimension does not match Robot::dimension");
             }
             return sub;
         }
 
+        /** \brief VAMP collision environment used for every check (not owned). */
         const Environment &env_;
-        const ob::SubspaceStateSpace *subspace_;
+        /** \brief Subspace queried for the active indices and frozen ambient pose. */
+        const ob::IndexedSubStateSpace *subspace_;
+        /** \brief Number of active (planner-varied) DOFs. */
         std::size_t active_count_{0};
+        /** \brief Ambient index of each active DOF (first \c active_count_ entries used). */
         std::array<std::size_t, Robot::dimension> active_indices_{};
+        /** \brief Frozen ambient pose pre-cast to single precision for the SIMD hot path. */
         mutable std::array<float, Robot::dimension> frozen_float_{};
+        /** \brief Frozen-pose version mirrored by \c frozen_float_; starts stale to force the first refresh. */
         mutable std::size_t frozen_version_{static_cast<std::size_t>(-1)};
     };
 

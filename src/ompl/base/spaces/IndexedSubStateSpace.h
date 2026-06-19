@@ -32,8 +32,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef OMPL_BASE_SPACES_SUBSPACE_STATE_SPACE_
-#define OMPL_BASE_SPACES_SUBSPACE_STATE_SPACE_
+#ifndef OMPL_BASE_SPACES_INDEXED_SUB_STATE_SPACE_
+#define OMPL_BASE_SPACES_INDEXED_SUB_STATE_SPACE_
 
 #include "ompl/base/spaces/RealVectorBounds.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
@@ -71,10 +71,10 @@ namespace ompl
          * full.setLow(-3.14); full.setHigh(3.14);
          * std::vector<std::size_t> active{3, 4, 5, 6};    // distal 4 joints
          * std::vector<double> frozen{0, -0.785, 0, -2.356, 0, 1.571, 0.785};
-         * auto subspace = std::make_shared<SubspaceStateSpace>(full, active, frozen);
+         * auto subspace = std::make_shared<IndexedSubStateSpace>(full, active, frozen);
          * \endcode
          */
-        class SubspaceStateSpace : public RealVectorStateSpace
+        class IndexedSubStateSpace : public RealVectorStateSpace
         {
         public:
             /** \brief Construct a subspace.
@@ -93,8 +93,8 @@ namespace ompl
              *        ambient dimension. Entries at active indices are
              *        ignored.
              */
-            SubspaceStateSpace(const RealVectorBounds &ambient_bounds, std::vector<std::size_t> active_indices,
-                               std::vector<double> frozen_values)
+            IndexedSubStateSpace(const RealVectorBounds &ambient_bounds, std::vector<std::size_t> active_indices,
+                                 std::vector<double> frozen_values)
               : RealVectorStateSpace(active_indices.size())
               , ambient_dim_(ambient_bounds.low.size())
               , active_indices_(std::move(active_indices))
@@ -102,22 +102,22 @@ namespace ompl
             {
                 if (active_indices_.empty())
                 {
-                    throw Exception("SubspaceStateSpace: active_indices must be non-empty");
+                    throw Exception("IndexedSubStateSpace: active_indices must be non-empty");
                 }
                 if (frozen_values_.size() != ambient_dim_)
                 {
-                    throw Exception("SubspaceStateSpace: frozen_values length must equal the ambient dimension");
+                    throw Exception("IndexedSubStateSpace: frozen_values length must equal the ambient dimension");
                 }
 
                 std::vector<std::size_t> sorted(active_indices_);
                 std::sort(sorted.begin(), sorted.end());
                 if (std::adjacent_find(sorted.begin(), sorted.end()) != sorted.end())
                 {
-                    throw Exception("SubspaceStateSpace: active_indices contains duplicates");
+                    throw Exception("IndexedSubStateSpace: active_indices contains duplicates");
                 }
                 if (sorted.back() >= ambient_dim_)
                 {
-                    throw Exception("SubspaceStateSpace: active_indices contains an out-of-range entry");
+                    throw Exception("IndexedSubStateSpace: active_indices contains an out-of-range entry");
                 }
 
                 RealVectorBounds projected(active_indices_.size());
@@ -129,11 +129,11 @@ namespace ompl
                 }
                 setBounds(projected);
 
-                setName("Subspace[" + std::to_string(active_indices_.size()) + "/" + std::to_string(ambient_dim_) +
+                setName("IndexedSub[" + std::to_string(active_indices_.size()) + "/" + std::to_string(ambient_dim_) +
                         "]");
             }
 
-            ~SubspaceStateSpace() override = default;
+            ~IndexedSubStateSpace() override = default;
 
             /** \brief Dimension of the ambient space the subspace was projected from. */
             std::size_t getAmbientDimension() const
@@ -180,7 +180,7 @@ namespace ompl
             {
                 if (frozen_values.size() != ambient_dim_)
                 {
-                    throw Exception("SubspaceStateSpace::setFrozenValues: length must equal the ambient dimension");
+                    throw Exception("IndexedSubStateSpace::setFrozenValues: length must equal the ambient dimension");
                 }
                 frozen_values_ = std::move(frozen_values);
                 ++frozen_version_;
