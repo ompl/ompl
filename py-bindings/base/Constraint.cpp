@@ -55,6 +55,8 @@ void ompl::binding::base::init_Constraint(nb::module_ &m)
             "jacobian",
             [](const ob::Constraint &c, const Eigen::Ref<const Eigen::VectorXd> &x, nb::DRef<Eigen::MatrixXd> out)
             {
+                if (out.rows() != c.getCoDimension() || out.cols() != c.getAmbientDimension())
+                    throw nb::value_error("jacobian: out must be shaped (coDim, ambientDim)");
                 Eigen::MatrixXd j(c.getCoDimension(), c.getAmbientDimension());
                 c.jacobian(x, j);
                 out = j;
@@ -64,6 +66,8 @@ void ompl::binding::base::init_Constraint(nb::module_ &m)
             "jacobian",
             [](const ob::Constraint &c, const ob::State *state, nb::DRef<Eigen::MatrixXd> out)
             {
+                if (out.rows() != c.getCoDimension() || out.cols() != c.getAmbientDimension())
+                    throw nb::value_error("jacobian: out must be shaped (coDim, ambientDim)");
                 Eigen::MatrixXd j(c.getCoDimension(), c.getAmbientDimension());
                 c.jacobian(state, j);
                 out = j;
