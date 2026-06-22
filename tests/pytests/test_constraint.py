@@ -17,8 +17,8 @@ def test_constraint_jacobian_default():
     assert constraint.getCoDimension() == 1
 
     x = np.array([1.0, 0.0, 0.0])
-    # Eigen::Ref<MatrixXd> output must be column-major
-    out = np.zeros((1, 3), order="F")
+    # the output array is accepted regardless of memory layout (C- or F-order)
+    out = np.zeros((1, 3))
     # jacobian is not overridden, so it falls through to the C++ default (numerical
     # differentiation); the gradient of x^2 + y^2 + z^2 - 1 at (1, 0, 0) is [2, 0, 0]
     constraint.jacobian(x, out)
