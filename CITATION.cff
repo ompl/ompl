@@ -18,6 +18,32 @@ url: "https://ompl.kavrakilab.org"
 references:
   - type: article
     authors:
+    - family-names: "Guo"
+      given-names: "Weihang"
+    - family-names: "Tyrovouzis"
+      given-names: "Theodoros"
+    - family-names: "Flores"
+      given-names: "Emiliano"
+    - family-names: "Ramsey"
+      given-names: "Clayton W."
+    - family-names: "Kingston"
+      given-names: "Zachary K."
+      orcid: https://orcid.org/0000-0002-3896-5110
+    - family-names: "Șucan"
+      given-names: "Ioan A."
+    - family-names: "Moll"
+      given-names: "Mark"
+      orcid: "https://orcid.org/0000-0002-0451-2797"
+    - family-names: "Kavraki"
+      given-names: "Lydia E."
+      orcid: https://orcid.org/0000-0003-0699-8038
+    title: "The Open Motion Planning Library 2.0"
+    year: 2026
+    url: "https://arxiv.org/abs/2605.29301"
+    notes: "arXiv preprint arXiv:2605.29301"
+    scope: "Publication describing OMPL 2.0"
+  - type: article
+    authors:
     - family-names: "Șucan"
       given-names: "Ioan A."
     - family-names: "Moll"
@@ -112,6 +138,17 @@ references:
 preferred-citation:
   type: article
   authors:
+  - family-names: "Guo"
+    given-names: "Weihang"
+  - family-names: "Tyrovouzis"
+    given-names: "Theodoros"
+  - family-names: "Flores"
+    given-names: "Emiliano"
+  - family-names: "Ramsey"
+    given-names: "Clayton W."
+  - family-names: "Kingston"
+    given-names: "Zachary K."
+    orcid: https://orcid.org/0000-0002-3896-5110
   - family-names: "Șucan"
     given-names: "Ioan A."
   - family-names: "Moll"
@@ -120,12 +157,7 @@ preferred-citation:
   - family-names: "Kavraki"
     given-names: "Lydia E."
     orcid: https://orcid.org/0000-0003-0699-8038
-  doi: "10.1109/MRA.2012.2205651"
-  journal: "IEEE Robotics & Automation Magazine"
-  month: 12
-  start: 72
-  end: 82
-  title: "The Open Motion Planning Library"
-  issue: 4
-  volume: 19
-  year: 2012
+  title: "The Open Motion Planning Library 2.0"
+  year: 2026
+  url: "https://arxiv.org/abs/2605.29301"
+  notes: "arXiv preprint arXiv:2605.29301"

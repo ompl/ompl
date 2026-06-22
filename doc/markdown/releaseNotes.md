@@ -1,5 +1,13 @@
 # Release Notes {#releaseNotes}
 
+## OMPL 2.0.1 (June 19, 2026)
+
+- More Python bindings (complete bindings for _everything_ are currently under review)
+- Fixes for existing bindings so that Python classes can derive from C++ classes
+- Binary wheel for Python 3.14 (in addition to versions 3.10-3.13)
+- Make binary builds portable by default when built for Debian or with `scikit-build`
+- Bug fixes (update to this version if you use FMT or ST-RRT*)
+
 ## OMPL 2.0.0 (April 6, 2026)
 
 - Completely rewritten Python bindings.

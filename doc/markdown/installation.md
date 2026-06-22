@@ -54,7 +54,7 @@ sudo apt-get install ros-`rosversion -d`-ompl</pre>
   <!-- Linux (generic) -->
   <div class="tab-pane fade" id="linux" role="tabpanel" aria-labelledby="linux-tab">
     <h2>Linux (generic)</h2>
-    <p>OMPL requires <a href="https://www.boost.org">Boost</a> (version 1.68 or higher), <a href="https://www.cmake.org">CMake</a> (version 3.12 or higher), <a href="http://eigen.tuxfamily.org">Eigen</a> (version 3.3 or higher), and <a href="https://github.com/jbeder/yaml-cpp">yaml-cpp</a> (for parsing YAML configuration files, required for VAMP demos).
+    <p>OMPL requires <a href="https://www.boost.org">Boost</a> (version 1.68 or higher), <a href="https://www.cmake.org">CMake</a> (version 3.12 or higher), <a href="https://libeigen.gitlab.io">Eigen</a> (version 3.3 or higher), and <a href="https://github.com/jbeder/yaml-cpp">yaml-cpp</a> (for parsing YAML configuration files, required for VAMP demos).
     To be able to generate python bindings you need to install the <a href="https://www.python.org">Python</a> library and header files.
     Finally, you need a C++17 compiler (g++-7 or newer).</p>
     <p><strong>Note:</strong> OMPL includes VAMP (Vector-Accelerated Motion Planning) by default, which requires <code>git</code> for submodule initialization.</p>

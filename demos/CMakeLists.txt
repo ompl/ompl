@@ -97,11 +97,8 @@ if (OMPL_BUILD_DEMOS)
 endif(OMPL_BUILD_DEMOS)
 
 if(NOT SKBUILD)
-    file(GLOB OMPL_DEMO_CXX_FILES "*.cpp")
-    install(FILES ${OMPL_DEMO_CXX_FILES}
+    install(DIRECTORY .
         DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
-        COMPONENT ompl)
-    install(DIRECTORY constraint Koules multilevel PlanarManipulator VFRRT
-        DESTINATION "${OMPL_DEMO_INSTALL_DIR}"
-        COMPONENT ompl)
+        COMPONENT ompl
+        PATTERN "deprecated" EXCLUDE)
 endif()

@@ -7,8 +7,7 @@
 //
 //  Modified by Beverly Xu on 2.21.24 FIXME: Proper MIT Licensing
 //
-//  Use the Eigen library for fitting: http://eigen.tuxfamily.org
-//  See https://eigen.tuxfamily.org/dox/group__TutorialLinearAlgebra.html for different methods
+//  Use the Eigen library for fitting: https://libeigen.gitlab.io
 
 // TODO: Add function to get derivative coefficients
 
