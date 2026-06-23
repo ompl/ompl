@@ -633,23 +633,21 @@ ompl::base::PlannerStatus ompl::geometric::GreedyRRTstar::solve(const base::Plan
     {
         iterations_++;
 
-        TreeData &tree = startTree_ ? tStart_ : tGoal_;
-        tgi.start = startTree_;
-        startTree_ = !startTree_;
-        TreeData &otherTree = startTree_ ? tStart_ : tGoal_;
-
-        if (useBalancedBiDirectionalSearch_)
+        // Balanced bidirectional search
         {
-            if ((std::abs(static_cast<float>(tree->size() - otherTree->size())) / tree->size()) < 1.f)
+            TreeData &curTree = startTree_ ? tStart_ : tGoal_;
+            TreeData &curOther = startTree_ ? tGoal_ : tStart_;
+            const auto asize = static_cast<float>(curTree->size());
+            const auto bsize = static_cast<float>(curOther->size());
+            if (!useBalancedBiDirectionalSearch_ ||
+                (std::abs(asize - bsize) / std::max(asize, 1.0f)) < 1.f)
             {
                 startTree_ = !startTree_;
-
-                TreeData &tree = startTree_ ? tStart_ : tGoal_;
-                tgi.start = startTree_;
-                startTree_ = !startTree_;
-                TreeData &otherTree = startTree_ ? tStart_ : tGoal_;
             }
         }
+        TreeData &tree = startTree_ ? tStart_ : tGoal_;
+        tgi.start = startTree_;
+        TreeData &otherTree = startTree_ ? tGoal_ : tStart_;
 
         if (tGoal_->size() == 0 || pis_.getSampledGoalsCount() < tGoal_->size() / 2)
         {
@@ -688,8 +686,11 @@ ompl::base::PlannerStatus ompl::geometric::GreedyRRTstar::solve(const base::Plan
             /* if reached, it means we used rstate directly, no need top copy again */
             if (gs != REACHED)
                 si_->copyState(rmotion->state, tgi.xstate);
-
-            tgi.start = startTree_;
+            
+            // The connect phase grows otherTree (the opposite of the grown tree), so
+            // tgi.start must be otherTree's identity here. tree was grown above with
+            // tgi.start = startTree_; flip it for the connect.
+            tgi.start = !startTree_;
 
             if (!tgi.checkForSolution)
             {
