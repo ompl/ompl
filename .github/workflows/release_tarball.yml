@@ -209,37 +209,28 @@ jobs:
           set -euo pipefail
           TAG="${{ steps.tag.outputs.name }}"
           BASE="ompl-${TAG}"
+          LST=$(mktemp)
+          tar -tzf "${BASE}.tar.gz" > "$LST"
+
           # Vendored submodule CMakeLists must be present.
-          tar -tzf "${BASE}.tar.gz" | grep -E \
-            "^${BASE}/external/(vamp|nanobind)/CMakeLists.txt$" \
+          grep -qE "^${BASE}/external/(vamp|nanobind)/CMakeLists.txt$" "$LST" \
             || { echo "::error::vendored submodule CMakeLists not in tarball"; exit 1; }
+
           # VAMP's CPM transitive deps must be vendored for offline builds.
-          # Don't hardcode names — discover from the tarball itself.
-          vendored=$(tar -tzf "${BASE}.tar.gz" \
-            | grep -oE "^${BASE}/external/vamp/external/[^/]+/$" | sort -u)
+          vendored=$(grep -oE "^${BASE}/external/vamp/external/[^/]+/$" "$LST" | sort -u)
           if [ -z "$vendored" ]; then
             echo "::error::no entries found under external/vamp/external/ in tarball"; exit 1;
           fi
           echo "vendored deps in tarball:"; echo "$vendored" | sed 's/^/  /'
+
           # CPM.cmake itself must be vendored.
-          tar -tzf "${BASE}.tar.gz" | grep -q "^${BASE}/external/vamp/cmake/CPM.cmake$" \
+          grep -q "^${BASE}/external/vamp/cmake/CPM.cmake$" "$LST" \
             || { echo "::error::external/vamp/cmake/CPM.cmake missing from tarball"; exit 1; }
-          # Patched vamp cmake files must reference the vendored paths.
-          for f in $(tar -tzf "${BASE}.tar.gz" \
-                       | grep -E "^${BASE}/external/vamp/cmake/[^/]+\.cmake$" \
-                       | grep -vE "/CPM\.cmake$"); do
-            tar -xzOf "${BASE}.tar.gz" "$f" | grep -q 'vendored' \
-              || echo "::warning::${f#${BASE}/} contains no 'vendored' marker (may not have had any CPM calls)"
-          done
-          # At least one of the patched files must contain the marker.
-          marker_files=$(for f in $(tar -tzf "${BASE}.tar.gz" \
-                       | grep -E "^${BASE}/external/vamp/cmake/[^/]+\.cmake$"); do
-            tar -xzOf "${BASE}.tar.gz" "$f" | grep -l 'Using vendored' >/dev/null 2>&1 \
-              && echo "$f"
-          done)
-          # Stronger check: confirm "Using vendored CPM.cmake" + at least one dep marker exist
-          tar -xzOf "${BASE}.tar.gz" "${BASE}/external/vamp/cmake/FetchInitCPM.cmake" \
-            | grep -q 'Using vendored CPM.cmake' \
+
+          # FetchInitCPM.cmake must be patched to prefer the vendored copy.
+          FIC=$(mktemp)
+          tar -xzOf "${BASE}.tar.gz" "${BASE}/external/vamp/cmake/FetchInitCPM.cmake" > "$FIC"
+          grep -q 'Using vendored CPM.cmake' "$FIC" \
             || { echo "::error::FetchInitCPM.cmake was not patched"; exit 1; }
 
       - name: Upload to GitHub Release
