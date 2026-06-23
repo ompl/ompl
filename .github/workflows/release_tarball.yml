@@ -42,17 +42,12 @@ jobs:
           find external -mindepth 2 -name '.git' -print0 | xargs -0 -r rm -rf
 
       - name: Vendor and patch VAMP's transitive deps for offline builds
-        # VAMP fetches deps from the network at configure time — every
-        # CPMAddPackage("gh:org/repo#sha") in external/vamp/cmake/*.cmake, plus
-        # a raw file(DOWNLOAD ...) for CPM.cmake itself in FetchInitCPM.cmake.
-        # Discover every such call by parsing VAMP's own cmake files (so we
-        # auto-track whatever pins VAMP uses without hardcoding shas here),
-        # vendor each into external/vamp/external/<name>/ or
-        # external/vamp/cmake/CPM.cmake, and patch each call site with a
-        # vendor-first conditional that falls back to the original network
-        # fetch when not vendored. A defensive check fails the workflow if
-        # any unguarded fetch pattern remains (e.g. VAMP starts using a
-        # different CPM call shape that the regex doesn't recognise).
+        # Parse every CPMAddPackage("gh:org/repo#sha") in
+        # external/vamp/cmake/*.cmake and the file(DOWNLOAD ...) in
+        # FetchInitCPM.cmake, vendor each into external/vamp/external/<name>/
+        # or external/vamp/cmake/CPM.cmake, and patch each call site with a
+        # vendor-first conditional. A final defensive grep fails the workflow
+        # if any unguarded fetch pattern remains.
         run: |
           python3 - <<'PY'
           import pathlib, re, subprocess, sys
@@ -93,12 +88,11 @@ jobs:
               subprocess.run(['git', 'clone', '--filter=blob:none',
                               '--no-checkout', url, str(dest)], check=True)
               subprocess.run(['git', '-C', str(dest), 'checkout', sha], check=True)
-              # Populate nested submodules at the checked-out commit
-              # (e.g. nanobind's ext/robin_map).
+              # Populate nested submodules (e.g. nanobind's ext/robin_map).
               subprocess.run(['git', '-C', str(dest), 'submodule', 'update',
                               '--init', '--recursive', '--filter=blob:none'],
                              check=True)
-              # Strip all .git/.gitmodules so the tree looks like a flat checkout.
+              # Flatten: strip .git metadata and .gitmodules pointers.
               for g in dest.rglob('.git'):
                   subprocess.run(['rm', '-rf', str(g)], check=True)
               for g in dest.rglob('.gitmodules'):
@@ -127,15 +121,17 @@ jobs:
           print('::endgroup::')
 
           # --- Patch every CPMAddPackage("gh:...") to prefer the vendored copy ---
+          CMAKE_CLR = '$' + '{CMAKE_CURRENT_LIST_DIR}'
           def repl(m):
               ind, org, name, sha = m.groups()
+              src_dir_var = '$' + '{' + name + '_SOURCE_DIR}'
               return '\n'.join([
-                  f'{ind}if(EXISTS "${{CMAKE_CURRENT_LIST_DIR}}/../external/{name}")',
-                  f'{ind}  set({name}_SOURCE_DIR "${{CMAKE_CURRENT_LIST_DIR}}/../external/{name}" CACHE INTERNAL "")',
-                  f'{ind}  message(STATUS "Using vendored {name} from ${{{name}_SOURCE_DIR}}")',
-                  f'{ind}else()',
-                  f'{ind}  CPMAddPackage("gh:{org}/{name}#{sha}")',
-                  f'{ind}endif()',
+                  ind + 'if(EXISTS "' + CMAKE_CLR + '/../external/' + name + '")',
+                  ind + '  set(' + name + '_SOURCE_DIR "' + CMAKE_CLR + '/../external/' + name + '" CACHE INTERNAL "")',
+                  ind + '  message(STATUS "Using vendored ' + name + ' from ' + src_dir_var + '")',
+                  ind + 'else()',
+                  ind + '  CPMAddPackage("gh:' + org + '/' + name + '#' + sha + '")',
+                  ind + 'endif()',
               ])
           print('::group::Patching cmake files')
           for f in cmake_files:
