@@ -130,9 +130,8 @@ ompl::base::Cost ompl::control::PathControl::cost(const base::OptimizationObject
     const double dt = si->getPropagationStepSize();
     for (std::size_t i = 1; i < states_.size(); ++i)
     {
-        cost = opt->combineCosts(cost, opt->motionCost(states_[i - 1], states_[i]));
         const auto steps = static_cast<unsigned int>(std::llround(controlDurations_[i - 1] / dt));
-        cost = opt->combineCosts(cost, opt->controlCost(controls_[i - 1], steps));
+        cost = opt->combineCosts(cost, opt->controlMotionCost(states_[i - 1], controls_[i - 1], steps, states_[i]));
     }
     cost = opt->combineCosts(cost, opt->terminalCost(states_.back()));
     return cost;

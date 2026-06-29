@@ -93,6 +93,12 @@ ompl::base::Cost ompl::base::OptimizationObjective::controlCost(const control::C
     return identityCost();
 }
 
+ompl::base::Cost ompl::base::OptimizationObjective::controlMotionCost(const State *s1, const control::Control *c,
+                                                                      unsigned int steps, const State *s2) const
+{
+    return combineCosts(motionCost(s1, s2), controlCost(c, steps));
+}
+
 ompl::base::Cost ompl::base::OptimizationObjective::combineCosts(Cost c1, Cost c2) const
 {
     return Cost(c1.value() + c2.value());
