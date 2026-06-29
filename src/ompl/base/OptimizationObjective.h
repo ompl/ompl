@@ -120,6 +120,13 @@ namespace ompl
              * steps. The default implementation uses the identityCost. */
             virtual Cost controlCost(const control::Control *c, unsigned int steps) const;
 
+            /** \brief Get the cost of the motion that starts at state \e s1, applies control \e c for \e steps
+             * propagation steps, and arrives at state \e s2.
+             * The default implementation combines the costs of motionCost(s1, s2) and controlCost(c, steps).
+             * Control planners should prefer this method over calling motionCost() and controlCost() separately.*/
+            virtual Cost controlMotionCost(const State *s1, const control::Control *c, unsigned int steps,
+                                           const State *s2) const;
+
             /** \brief Get the cost that corresponds to combining the costs \e c1 and \e c2. Default implementation
              * defines this combination as an addition. */
             virtual Cost combineCosts(Cost c1, Cost c2) const;

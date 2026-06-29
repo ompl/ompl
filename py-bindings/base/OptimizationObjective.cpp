@@ -16,7 +16,7 @@ void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
 {
     struct PyOptimizationObjective : ob::OptimizationObjective
     {
-        NB_TRAMPOLINE(ob::OptimizationObjective, 19);
+        NB_TRAMPOLINE(ob::OptimizationObjective, 20);
         // Optional override
         bool isSatisfied(ob::Cost c) const override
         {
@@ -63,6 +63,13 @@ void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
         ob::Cost controlCost(const oc::Control *c, unsigned int steps) const override
         {
             NB_OVERRIDE(controlCost, c, steps);
+        }
+
+        // Optional override
+        ob::Cost controlMotionCost(const ob::State *s1, const oc::Control *c, unsigned int steps,
+                                   const ob::State *s2) const override
+        {
+            NB_OVERRIDE(controlMotionCost, s1, c, steps, s2);
         }
 
         // Optional override
