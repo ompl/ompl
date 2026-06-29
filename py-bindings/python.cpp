@@ -110,6 +110,7 @@ NB_MODULE(_ompl, m)
     ompl::binding::control::initPlannersKpiece_KPIECE1(control);
     ompl::binding::control::initPlannersPdst_PDST(control);
     ompl::binding::control::initPlannersRrt_RRT(control);
+    ompl::binding::control::initPlannersRrt_AORRT(control);
     ompl::binding::control::initPlannersSst_SST(control);
     ompl::binding::control::initPlannersSyclop_Decomposition(control);
     ompl::binding::control::initPlannersSyclop_GridDecomposition(control);
