@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2015, Rutgers the State University of New Jersey, New Brunswick
+ *  Copyright (c) 2026, Worcester Polytechnic Institute ELPIS Lab
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -14,9 +14,10 @@
  *     copyright notice, this list of conditions and the following
  *     disclaimer in the documentation and/or other materials provided
  *     with the distribution.
- *   * Neither the name of Rutgers University nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
+ *   * Neither the name of the Worcester Polytechnic Institute nor the
+ *     names of its contributors may be used to endorse or promote
+ *     products derived from this software without specific prior
+ *     written permission.
  *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -32,10 +33,11 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Authors: Zakary Littlefield */
+/* Authors: Zhuoyun Zhong */
+/* Adapted from: ompl/control/planners/sst/SST.h by Zakary Littlefield */
 
-#ifndef OMPL_CONTROL_PLANNERS_SST_SST_
-#define OMPL_CONTROL_PLANNERS_SST_SST_
+#ifndef OMPL_CONTROL_PLANNERS_SST_SSTSTAR_
+#define OMPL_CONTROL_PLANNERS_SST_SSTSTAR_
 
 #include "ompl/control/planners/PlannerIncludes.h"
 #include "ompl/datastructures/NearestNeighbors.h"
@@ -45,9 +47,9 @@ namespace ompl
     namespace control
     {
         /**
-           @anchor cSST
+           @anchor cSSTstar
            @par Short description
-           \ref cSST "SST" (Stable Sparse RRT) is a asymptotically near-optimal incremental
+           \ref cSSTstar "SST*" (Stable Sparse RRT) is a asymptotically optimal incremental
            sampling-based motion planning algorithm for systems with dynamics. It makes use
            of random control inputs to perform a search for the best control inputs to explore
            the state space.
@@ -56,13 +58,13 @@ namespace ompl
            Asymptotically Optimal Sampling-based Kinodynamic Planning.
            [[PDF]](https://arxiv.org/abs/1407.2896)
         */
-        class SST : public base::Planner
+        class SSTstar : public base::Planner
         {
         public:
             /** \brief Constructor */
-            SST(const SpaceInformationPtr &si);
+            SSTstar(const SpaceInformationPtr &si);
 
-            ~SST() override;
+            ~SSTstar() override;
 
             void setup() override;
 
@@ -144,6 +146,30 @@ namespace ompl
                 nn_ = std::make_shared<NN<Motion *>>();
                 witnesses_ = std::make_shared<NN<Motion *>>();
                 setup();
+            }
+
+            /** \brief Set the initial search iteration before radius starts to shrink */
+            void setInitialIteration(unsigned int initialN)
+            {
+                initialN_ = initialN;
+            }
+
+            /** \brief Get the initial search iteration before radius starts to shrink */
+            unsigned int getInitialIteration() const
+            {
+                return initialN_;
+            }
+
+            /** \brief Set the shrink factor. */
+            void setShrinkFactor(double shrinkFactor)
+            {
+                shrinkFactor_ = shrinkFactor;
+            }
+
+            /** \brief Get the shrink factor. */
+            double getShrinkFactor() const
+            {
+                return shrinkFactor_;
             }
 
         protected:
@@ -258,6 +284,12 @@ namespace ompl
 
             /** \brief The radius for determining the size of the pruning region. */
             double pruningRadius_{0.1};
+
+            /** \brief The initial search iteration before radius starts to shrink */
+            unsigned int initialN_{1000};
+
+            /** \brief Radius shrink factor */
+            double shrinkFactor_{0.99};
 
             /** \brief The random number generator */
             RNG rng_;
