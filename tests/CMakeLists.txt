@@ -68,6 +68,9 @@ if (OMPL_BUILD_TESTS)
     # Test experience based planning
     add_ompl_test(test_experience_planning tools/test_experience_planning.cpp)
 
+    # Test the (environment-agnostic) signed distance field module
+    add_ompl_test(test_sdf sdf/test_sdf.cpp)
+
     # Test VAMP integration
     if(OMPL_HAVE_VAMP)
         add_ompl_test(test_vamp_integration vamp/test_vamp_integration.cpp)

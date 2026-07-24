@@ -8,7 +8,7 @@ endif()
 file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp
   geometric/*.cpp control/*.cpp multilevel/*.cpp tools/*.cpp)
 file(GLOB_RECURSE OMPL_HEADERS datastructures/*.h util/*.h base/*.h
-  geometric/*.h control/*.h multilevel/*.h tools/*.h)
+  geometric/*.h control/*.h multilevel/*.h tools/*.h sdf/*.h)
 
 #############################################
 # Add enabled extensions to the source code #
