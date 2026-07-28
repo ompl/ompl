@@ -224,6 +224,10 @@ namespace
         std::size_t validityChecks{0};
         double minClearance{0.0};
         Propagator::Statistics statistics;
+        // Rollout work the FilteredStateSpace avoided repeating; geometric rows only.
+        std::size_t rollouts{0};
+        std::size_t stepsSaved{0};
+        std::size_t certified{0};
     };
 
     /// The bar. `geometric::RRTConnect` with the same SDF-backed collision checker is
@@ -372,10 +376,14 @@ namespace
         outcome.seconds = ompl::time::seconds(ompl::time::now() - begin);
         outcome.solved = (status == ob::PlannerStatus::EXACT_SOLUTION);
 
+        // Read before the audit below, so these are the planner's numbers alone.
         const ompl::cbf::FilteredStateSpace::Statistics stats = space->statistics();
         outcome.statistics.propagations = stats.steps;
         outcome.statistics.filtered = stats.filtered;
         outcome.statistics.blocked = stats.blocked;
+        outcome.rollouts = stats.rollouts;
+        outcome.stepsSaved = stats.stepsSaved;
+        outcome.certified = stats.certified;
 
         ob::PlannerData data(si);
         planner->getPlannerData(data);
@@ -491,9 +499,13 @@ namespace
         int solved = 0, verified = 0;
         std::vector<double> seconds, vertices, steps, checks;
         std::size_t propagations = 0, filtered = 0, blocked = 0, audited = 0, unsafe = 0;
+        std::size_t rollouts = 0, stepsSaved = 0, certified = 0;
         double worstClearance = std::numeric_limits<double>::infinity();
         for (const Outcome &r : runs)
         {
+            rollouts += r.rollouts;
+            stepsSaved += r.stepsSaved;
+            certified += r.certified;
             solved += r.solved ? 1 : 0;
             verified += r.verified ? 1 : 0;
             seconds.push_back(r.seconds);
@@ -517,6 +529,15 @@ namespace
             std::printf(" %9.4f %6zu/%-7zu\n", worstClearance, unsafe, audited);
         else
             std::printf(" %9s %14s\n", "-", "-");
+
+        // What the rollout memo saved, for the rows that have one. A planner extension
+        // rolls to produce a state and then asks the validator about that state, and
+        // densification walks the same trajectory once per state it emits; "steps" above
+        // is what survived after both were deduplicated.
+        if (rollouts > 0)
+            std::printf("%14s %zu rollouts, %zu steps saved by prefix reuse, %zu extensions "
+                        "certified without re-rolling\n",
+                        "", rollouts, stepsSaved, certified);
     }
 
     /// The per-step question, measured directly rather than inferred from planner

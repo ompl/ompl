@@ -162,26 +162,113 @@ Reproduce with `./build/demos/demo_UR5CBFPlanning`.
 
 | setup | ms | vertices | steps | collision checks | unsafe |
 | --- | --- | --- | --- | --- | --- |
-| `geom-rrtconnect` (ordinary collision checking) | **0.140** | 6 | – | 72 | 0 |
-| control RRT + checker | 38.6 | 2422 | 13404 | 13404 | 0 |
-| control RRT + CBF + checker | 90.2 | 2242 | 12474 | 12475 | 0 |
-| control RRT + CBF, no checker | 42.4 | 1446 | 7928 | **0** | 0 |
-| geometric RRT + CBF rollout | 263.6 | 794 | 62921 | **0** | 0 |
-| **RRTConnect + CBF rollout** | **1.894** | **6** | 446 | **0** | 0 |
+| `geom-rrtconnect` (ordinary collision checking) | **0.149** | 6 | – | 72 | 0 |
+| control RRT + checker | 38.3 | 2422 | 13404 | 13404 | 0 |
+| control RRT + CBF + checker | 76.2 | 2242 | 12474 | 12475 | 0 |
+| control RRT + CBF, no checker | 36.6 | 1446 | 7928 | **0** | 0 |
+| geometric RRT + CBF rollout | 146.4 | 794 | 45186 | **0** | 0 |
+| **RRTConnect + CBF rollout** | **1.368** | **6** | 419 | **0** | 0 |
+
+`steps` counts filter calls, and the two rollout rows only spend that many because
+`FilteredStateSpace` memoizes its last rollout. A tree planner rolls twice per
+extension — once to produce a state, once to ask the validator about the state it
+produced — and densification walks a trajectory once per state it emits, which is
+quadratic. Deduplicating both is transparent: identical trees, identical clearances,
+28% fewer filter calls on `cbf-geom-rrt` (62921 → 45186, 4212 of its 23402 rollouts
+answered by `certifiedByLastRollout()`). The demo prints what each row saved.
+
+Wall clock follows the call count: **27% faster** on `cbf-geom-rrt`, 7% on
+`cbf-geom-rrtc` — medians of five interleaved 20-run passes of both binaries on one
+pinned core, over which the four rows that do not use the rollout moved by ≤3% in
+either direction. The rollout is where that row spends itself.
 
 Per-step cost, over 100k random `(q, u)`:
 
 | | µs | |
 | --- | --- | --- |
-| `isSafe(q)` | 1.62 | one collision check |
-| `filter(q, u)` | 4.45 | barrier rows + QP (**2.75× a check**) |
+| `isSafe(q)` | 1.70 | one collision check |
+| `filter(q, u)` | 3.69 | barrier rows + QP (**2.17× a check**) |
 
-**A filtered step cannot beat a bare collision check** — the barrier computes
-everything `isSafe()` does and then 40 position Jacobians on top. The CBF wins on
-edges it does not waste, not on cost per step. The 13.5× gap that remains to ordinary
-RRTConnect is fully accounted for by 446 filter calls versus 72 collision checks: the
+Where the extra goes, timed as nested stages over 200k random `(q, u)`: FK plus 40
+sphere centers 0.46 µs, plus 40 interpolated SDF values 1.70 (this *is* `isSafe`), plus
+40 interpolated gradients ~2.2, plus 40 constraint rows ~3.1, plus the solve 3.64. So
+roughly **three quarters of the gap is building constraint rows and one quarter is
+qpmad** — the solver is the cheapest part, costing less than half a collision check,
+consistent with safe steps taking 0 inequality iterations. Optimise the rows, not the
+QP: `UR5::barrierGradient()` uses the scalar triple product against
+`Kinematics::jointMoment` rather than forming 40 Jacobians, which is bit-identical and
+was worth 2.5× on that stage (21% end to end).
+
+**A filtered step still cannot beat a bare collision check** — the barrier computes
+everything `isSafe()` does and then the rows on top. The CBF wins on
+edges it does not waste, not on cost per step. The 9.2× gap that remains to ordinary
+RRTConnect is fully accounted for by 419 filter calls versus 72 collision checks: the
 rollout must integrate at `dt`, while a collision checker samples a straight line at
 whatever resolution it likes.
+
+## On a standard benchmark
+
+The scene above is one the bar solves in six vertices, so it cannot show whether the
+rollout earns its cost. `demos/UR5MBMBenchmark.cpp` runs the same comparison over
+**MotionBenchMaker's UR5 set** (689 valid problems, 7 scenes, as shipped by VAMP):
+
+```
+./scripts/mbm_to_scenes.py /path/to/vamp/resources/ur5/problems.json scenes.txt
+./build/demos/demo_UR5MBMBenchmark scenes.txt 15 2.0 0.02 0.05 2.0 0.002 0.006 0.0006
+```
+
+Every obstacle there is a box or a cylinder, both of which have an exact closed-form
+signed distance, so the field is exact up to the grid with no mesh and no FCL.
+
+15 problems per scene, medians, both rows audit-clean at the same 0.02 rad resolution:
+
+| scene | rrtconnect ms | cbf-rrtc ms | rrtc evals | cbf evals | rrtc vertices | cbf vertices |
+| --- | --- | --- | --- | --- | --- | --- |
+| bookshelf_small | 7.44 | **3.63** | 4443 | 940 | 23 | 10 |
+| bookshelf_tall | 12.51 | **8.25** | 7147 | 2004 | 34 | 16 |
+| bookshelf_thin | **5.96** | 7.38 | 3371 | 1833 | 17 | 14 |
+| box | 7.54 | **4.42** | 4058 | 1087 | 21 | 12 |
+| cage | 675.05 | **245.92** | 385881 | 62667 | 2276 | 391 |
+| table_pick | **2.17** | 2.53 | 1301 | 662 | 8 | 8 |
+| table_under_pick | **3.70** | 5.86 | 2189 | 1559 | 12 | 13 |
+| **all (105)** | 6.88 | **5.62** | 4023 | **1455** | 21 | **13** |
+
+Both solve 105/105 with zero unsafe states. The rollout wins 4 scenes of 7, uses fewer
+evaluations on all 7, and is **2.7× faster on `cage`** — the tight one — with 5.8× fewer
+vertices. That is the edges-not-wasted claim, measured on a problem set that was not
+chosen to suit it.
+
+### Two things that flip this result
+
+Both were wrong in earlier runs of this comparison, in the flattering direction, so they
+are worth stating:
+
+- **OMPL's default `longestValidSegmentFraction` is 0.01, which on this space is 0.31 rad
+  between collision checks** — an order of magnitude coarser than the audit. At the
+  default the baseline runs in 1.12 ms and looks 6× faster, while leaving 131 audited
+  states in collision, the worst by 34 mm. It is not safe at that resolution; it just is
+  not being asked. Tighten it (0.0006 here) until the baseline is audit-clean before
+  comparing anything.
+- **Audit both rows at the same resolution.** `PathGeometric::interpolate()` with no
+  argument uses that same fraction, which sampled the rollout 7× more coarsely than the
+  baseline and reported a spurious zero. Pass an explicit state count.
+
+### The margin does not fit this benchmark
+
+MotionBenchMaker endpoints are grasp poses. Measured over the set, `min(start, goal)`
+clearance at zero margin has a **median of ~8 mm** on five of the seven scenes (`cage`
+21 mm, `box` 117 mm). Every problem is feasible at margin 0 — which confirms the sphere
+model and `vampBasePose()` are aligned — but `defaultMargin` (0.06 m) admits only ~15% of
+the set — and the filter's guard buffer (measured at ~1 cm above, and one voxel as
+`interpolationBuffer()` still reports it) is on its own comparable to the 8 mm available.
+
+So the run above uses `margin 0.002`, `buffer 0.006`, `voxel 0.02`, which was audit-clean
+over all 105 problems. Not monotonically, though: 0.004 and 0.008 each left 3 states short
+by a few mm, so which buffer is clean depends on the paths found and this is a sample, not
+a bound. The numbers are therefore *not* a claim about mesh-level safety. Both rows use the same spheres, so the
+under-coverage is orthogonal to the comparison — but closing it needs a tighter sphere
+decomposition, not a bigger margin, since inflating radii and adding margin are the same
+geometry.
 
 ## Validation
 

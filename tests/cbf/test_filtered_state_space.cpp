@@ -238,7 +238,161 @@ BOOST_AUTO_TEST_CASE(RolloutIsDeterministic)
     const UR5::Configuration b = pastObstacle(truth, a);
     const UR5::Configuration first = space->roll(a, b, 1.0).end;
     for (int repeat = 0; repeat < 4; ++repeat)
+    {
+        // Roll a different motion in between, so the repeat re-derives the trajectory
+        // instead of reading it back out of roll()'s memo.
+        space->roll(b, a, 1.0);
         BOOST_CHECK_EQUAL((space->roll(a, b, 1.0).end - first).norm(), 0.0);
+    }
+}
+
+// roll() resumes the previous rollout when asked to carry it further, which is only
+// legitimate if it is indistinguishable from starting over. Checked against a cold space
+// at every fraction, on a motion the filter genuinely deflects -- the counters have to
+// agree as well as the endpoint, because they are what a benchmark reads.
+BOOST_AUTO_TEST_CASE(ResumingAMemoizedRolloutMatchesRestartingIt)
+{
+    const UR5 robot;
+    const Barrier truth(robot, obstacleField(), 0.0);
+    const Barrier guard = Barrier::guarding(robot, obstacleField(), 0.0);
+    const Filter filter(guard, filterParameters());
+
+    const UR5::Configuration a = UR5::Configuration::Zero();
+    const UR5::Configuration b = pastObstacle(truth, a);
+
+    auto warm = makeSpace(filter);
+    const unsigned int total = warm->horizonSteps(a, b);
+    BOOST_REQUIRE_GT(total, 4u);
+    BOOST_REQUIRE_GT(warm->roll(a, b, 1.0).filtered, 0u);
+    warm = makeSpace(filter);
+
+    for (unsigned int i = 0; i <= total; ++i)
+    {
+        const double t = static_cast<double>(i) / total;
+        const Space::Rollout resumed = warm->roll(a, b, t);  // walks forward, resuming
+        const Space::Rollout cold = makeSpace(filter)->roll(a, b, t);
+        BOOST_CHECK_EQUAL((resumed.end - cold.end).norm(), 0.0);
+        BOOST_CHECK_EQUAL(resumed.steps, cold.steps);
+        BOOST_CHECK_EQUAL(resumed.filtered, cold.filtered);
+        BOOST_CHECK_EQUAL(resumed.blocked, cold.blocked);
+        BOOST_CHECK_EQUAL(resumed.reachedTarget, cold.reachedTarget);
+    }
+
+    // And the whole sweep cost one rollout's worth of filter calls, not total^2 / 2.
+    // (Plus at most one for a refusal, which does not advance the rollout.)
+    BOOST_CHECK_LE(warm->statistics().steps, total + 1);
+    BOOST_CHECK_GT(warm->statistics().resumed, 0u);
+}
+
+// A rollout that stopped on a Blocked step stops in the same place next time: the filter
+// would see the identical state and nominal control at that step index. So the memo takes
+// the answer as final rather than paying for the same refusal again -- and the diagnostic
+// counter still moves exactly once.
+BOOST_AUTO_TEST_CASE(ABlockedRolloutIsNotRetried)
+{
+    const UR5 robot;
+    const Barrier barrier(robot, corneringField(), 0.0);
+    const Filter filter(barrier, filterParameters());
+    auto space = makeSpace(filter);
+
+    const UR5::Configuration a = UR5::Configuration::Zero();
+    const UR5::Configuration b = configuration(1.5, 0.0, 0.0, 0.0, 0.0, 0.0);
+
+    const Space::Rollout first = space->roll(a, b, 0.5);
+    BOOST_REQUIRE_EQUAL(first.steps, 0u);
+    BOOST_REQUIRE_EQUAL(first.blocked, 1u);
+    const std::size_t calls = space->statistics().steps;
+
+    const Space::Rollout second = space->roll(a, b, 1.0);
+    BOOST_CHECK_EQUAL(second.steps, 0u);
+    BOOST_CHECK_EQUAL(second.blocked, 1u);
+    BOOST_CHECK_EQUAL(space->statistics().steps, calls);
+    BOOST_CHECK_EQUAL(space->statistics().blocked, 1u);
+}
+
+// Densifying a motion into n states costs one rollout, not n of them.
+// SpaceInformation::getMotionStates -- which is how PathGeometric::interpolate() and the
+// planners' addIntermediateStates mode build their states -- asks for fractions 1/n … n/n
+// in order, and every one of those used to restart from the first waypoint. That is
+// O(n^2) filter calls to walk a trajectory once, and it landed squarely on the demo's
+// audit path.
+BOOST_AUTO_TEST_CASE(DensifyingAMotionCostsOneRolloutNotOnePerState)
+{
+    const UR5 robot;
+    const Barrier barrier(robot, emptyField(), 0.0);
+    const Filter filter(barrier, filterParameters());
+    auto space = makeSpace(filter);
+    auto si = std::make_shared<ob::SpaceInformation>(space);
+    si->setStateValidityChecker(std::make_shared<ob::AllValidStateValidityChecker>(si));
+    si->setMotionValidator(std::make_shared<ompl::cbf::FilteredMotionValidator>(si));
+    si->setup();
+
+    const UR5::Configuration a = configuration(0.0, -1.2, 1.8, -0.6, 1.57, 0.0);
+    const UR5::Configuration b = configuration(1.4, -0.7, 1.2, -0.2, 1.20, 0.5);
+    const unsigned int total = space->horizonSteps(a, b);
+
+    ob::ScopedState<> from(space), to(space);
+    Space::setState(from.get(), a);
+    Space::setState(to.get(), b);
+
+    og::PathGeometric path(si);
+    path.append(from.get());
+    path.append(to.get());
+
+    space->resetStatistics();
+    path.interpolate();
+
+    BOOST_CHECK_GT(path.getStateCount(), 10u);
+    BOOST_CHECK_LE(space->statistics().steps, total);
+    BOOST_CHECK_GT(space->statistics().stepsSaved, space->statistics().steps);
+}
+
+// The other half of the same saving: a tree planner rolls to produce a state and then
+// asks the validator about the state it produced. When the filter never engaged, the
+// first rollout is already the answer -- see certifiedByLastRollout().
+BOOST_AUTO_TEST_CASE(AnUnfilteredExtensionIsCertifiedWithoutRollingAgain)
+{
+    const UR5 robot;
+    const UR5::Configuration a = configuration(0.0, -1.2, 1.8, -0.6, 1.57, 0.0);
+    const UR5::Configuration b = configuration(1.4, -0.7, 1.2, -0.2, 1.20, 0.5);
+
+    const Barrier clear(robot, emptyField(), 0.0);
+    const Filter clearFilter(clear, filterParameters());
+    const Barrier truth(robot, obstacleField(), 0.0);
+    const Barrier guard = Barrier::guarding(robot, obstacleField(), 0.0);
+    const Filter deflectingFilter(guard, filterParameters());
+
+    for (const bool unobstructed : {true, false})
+    {
+        auto space = makeSpace(unobstructed ? clearFilter : deflectingFilter);
+        auto si = std::make_shared<ob::SpaceInformation>(space);
+        si->setStateValidityChecker(std::make_shared<ob::AllValidStateValidityChecker>(si));
+        si->setMotionValidator(std::make_shared<ompl::cbf::FilteredMotionValidator>(si));
+        si->setup();
+
+        ob::ScopedState<> from(space), to(space), reached(space);
+        Space::setState(from.get(), a);
+        Space::setState(to.get(), unobstructed ? b : pastObstacle(truth, a));
+
+        // What RRT.cpp:144 does, followed by what RRT.cpp:148 does.
+        space->interpolate(from.get(), to.get(), 0.5, reached.get());
+        const std::size_t rolled = space->statistics().steps;
+        const bool valid = si->checkMotion(from.get(), reached.get());
+
+        if (unobstructed)
+        {
+            BOOST_CHECK(valid);
+            BOOST_CHECK_EQUAL(space->statistics().steps, rolled);
+            BOOST_CHECK_EQUAL(space->statistics().certified, 1u);
+        }
+        else
+        {
+            // The filter engaged, so the two rollouts aim at different targets and the
+            // motion is checked for real.
+            BOOST_CHECK_GT(space->statistics().steps, rolled);
+            BOOST_CHECK_EQUAL(space->statistics().certified, 0u);
+        }
+    }
 }
 
 // interpolate() must report "nowhere" rather than "sideways" when a rollout makes no

@@ -75,10 +75,13 @@ namespace ompl::cbf
         struct Statistics
         {
             std::size_t rollouts{0};
-            std::size_t steps{0};
+            std::size_t steps{0};  ///< filter calls actually made
             std::size_t filtered{0};
             std::size_t blocked{0};
             std::size_t abandoned{0};  ///< rollouts discarded for making no progress
+            std::size_t resumed{0};    ///< rollouts that continued a memoized prefix
+            std::size_t stepsSaved{0}; ///< filter calls those prefixes stood in for
+            std::size_t certified{0};  ///< motions answered by `certifiedByLastRollout()`
         };
 
         /// \p filter is not copied and must outlive this space. \p stepSize is the
@@ -123,18 +126,50 @@ namespace ompl::cbf
         /// constant. Both choices reduce to a straight line in free space, but
         /// re-aiming also recovers the original intent after the filter deflects it,
         /// which is what makes a long extension useful rather than merely safe.
+        ///
+        /// The rollout state at step i is a function of (`from`, `to`, the full horizon,
+        /// i) alone — that is what the `remaining` term below buys — so a longer rollout
+        /// over the same motion *contains* a shorter one. This exploits that: the last
+        /// rollout is memoized and a call that only carries it further resumes from where
+        /// it stopped. Without that, `base::SpaceInformation::getMotionStates` (and
+        /// therefore `geometric::PathGeometric::interpolate()` and the planners'
+        /// `addIntermediateStates` mode) costs O(n^2) filter calls to produce n states,
+        /// because it asks for fractions 1/n … n/n and each one restarted from `from`.
+        ///
+        /// The memo is single-entry and returns identical results to a cold call, so it
+        /// is invisible apart from `statistics()` and the loss of thread safety —
+        /// which `ControlFilter` already costs anyway, since `CBFControlFilter` solves
+        /// into shared scratch.
         Rollout roll(const Configuration &from, const Configuration &to, double fraction) const
         {
-            Rollout out;
-            out.end = from;
-
             const unsigned int total = horizonSteps(from, to);
             const auto steps = static_cast<unsigned int>(
                 std::llround(std::clamp(fraction, 0.0, 1.0) * static_cast<double>(total)));
 
+            Rollout out;
+            out.end = from;
+
+            // Resume rather than restart when this is the same motion carried further.
+            const bool resumed = memo_.valid && memo_.steps <= steps && memo_.horizon == total &&
+                                 sameConfiguration(memo_.from, from) && sameConfiguration(memo_.to, to);
+            if (resumed)
+            {
+                out.end = memo_.end;
+                out.steps = memo_.steps;
+                out.filtered = memo_.filtered;
+                statistics_.resumed += 1;
+                statistics_.stepsSaved += memo_.steps;
+            }
+            const unsigned int filteredBefore = out.filtered;
+
+            // A rollout that stopped early stops in the same place next time: the block
+            // happened at step index `out.steps` of this same horizon, so the filter
+            // would be handed the identical state and nominal control again.
+            bool terminal = resumed && memo_.terminal;
+
             Control nominal;
             Control applied;
-            for (unsigned int i = 0; i < steps; ++i)
+            for (unsigned int i = out.steps; i < steps && !terminal; ++i)
             {
                 // Time left in the *full* horizon, so a truncated rollout follows the
                 // same trajectory as the prefix of a complete one.
@@ -143,11 +178,12 @@ namespace ompl::cbf
                     nominal[j] = std::clamp((to[j] - out.end[j]) / remaining, -maxSpeed_[j], maxSpeed_[j]);
 
                 const ControlFilter::Status status = filter_.filter(out.end, nominal, stepSize_, applied);
+                ++statistics_.steps;
                 if (status == ControlFilter::Status::Blocked)
                 {
                     // Nothing safe to do. Stop rather than sit still burning steps --
                     // the caller gets a short rollout and can decide.
-                    ++out.blocked;
+                    terminal = true;
                     break;
                 }
                 if (status == ControlFilter::Status::Filtered)
@@ -157,18 +193,64 @@ namespace ompl::cbf
                 ++out.steps;
             }
 
+            // Only a rollout that wanted to go further than the block counts as blocked;
+            // one asked for exactly the safe prefix got everything it asked for.
+            if (terminal && out.steps < steps)
+                out.blocked = 1;
             out.reachedTarget = out.steps == steps && (out.end - to).norm() <= reachTolerance();
 
+            const bool newlyBlocked = out.blocked != 0 && !(resumed && memo_.terminal);
+            memo_ = Memo{from, to, out.end, total, out.steps, out.filtered, terminal, true};
+
             statistics_.rollouts += 1;
-            statistics_.steps += out.steps;
-            statistics_.filtered += out.filtered;
-            statistics_.blocked += out.blocked;
+            statistics_.filtered += out.filtered - filteredBefore;
+            statistics_.blocked += newlyBlocked ? 1 : 0;
             return out;
         }
 
         Rollout roll(const base::State *from, const base::State *to, double fraction) const
         {
             return roll(configurationOf(from), configurationOf(to), fraction);
+        }
+
+        /// True when the memoized rollout is *itself* the proof that a motion from
+        /// \p from to \p to is safe and arrives, so there is nothing to roll.
+        ///
+        /// This exists because a tree planner rolls twice per extension and only needs
+        /// to roll once. `geometric::RRT::solve` interpolates toward a random sample
+        /// (`RRT.cpp:144`) and then calls `checkMotion` on the state that produced
+        /// (`RRT.cpp:148`); `RRTConnect.cpp:130`/`:142` does the same. The second
+        /// rollout re-derives a motion the first one just demonstrated.
+        ///
+        /// The condition is deliberately narrow. It requires the memoized rollout to
+        /// have started at \p from, ended exactly at \p to, taken at least one step, and
+        /// — the load-bearing part — to have been *unfiltered*. An unfiltered rollout is
+        /// the straight line from `from` to its endpoint, so re-rolling with \p to as the
+        /// target retraces the same line through the same free space and arrives; the
+        /// answer is identical and only the work differs.
+        ///
+        /// Widening it to filtered rollouts would roughly double the saving and must not
+        /// be done. Such an extension is still *safe* — the filter certified every state
+        /// it produced — but it would not be **reproducible**: aiming at the deflected
+        /// endpoint is a different motion from aiming at the original sample, so a
+        /// re-derivation that no longer has the memo can land short. That re-derivation
+        /// is exactly what `geometric::PathGeometric::check()` does, and what the demo's
+        /// audit relies on, so certifying by construction here would buy speed by
+        /// accepting edges the audit then rejects. Filtered rollouts get checked for
+        /// real, which is the case worth checking anyway.
+        bool certifiedByLastRollout(const Configuration &from, const Configuration &to) const
+        {
+            const bool certified = memo_.valid && memo_.steps > 0 && memo_.filtered == 0 &&
+                                   !memo_.terminal && sameConfiguration(memo_.from, from) &&
+                                   sameConfiguration(memo_.end, to);
+            if (certified)
+                ++statistics_.certified;
+            return certified;
+        }
+
+        bool certifiedByLastRollout(const base::State *from, const base::State *to) const
+        {
+            return certifiedByLastRollout(configurationOf(from), configurationOf(to));
         }
 
         /// Minimum share of the free-space progress an extension must actually achieve
@@ -257,11 +339,33 @@ namespace ompl::cbf
         }
 
     private:
+        /// The last rollout, kept so the next one need not repeat it. See `roll()` and
+        /// `certifiedByLastRollout()` for the two ways that pays.
+        struct Memo
+        {
+            Configuration from{Configuration::Zero()};
+            Configuration to{Configuration::Zero()};
+            Configuration end{Configuration::Zero()};
+            unsigned int horizon{0};   ///< `horizonSteps(from, to)` when it was taken
+            unsigned int steps{0};
+            unsigned int filtered{0};
+            bool terminal{false};      ///< stopped on a `Blocked` step, so it will again
+            bool valid{false};
+        };
+
+        /// Bitwise equality, because the point is to recognise a state the planner just
+        /// handed back unmodified. A near-miss is a cache miss, which only costs work.
+        static bool sameConfiguration(const Configuration &a, const Configuration &b)
+        {
+            return (a.array() == b.array()).all();
+        }
+
         const ControlFilter &filter_;
         double stepSize_;
         Control maxSpeed_;
         double reachTolerance_{-1.0};
         double minProgressFraction_{0.25};
         mutable Statistics statistics_;
+        mutable Memo memo_;
     };
 }  // namespace ompl::cbf

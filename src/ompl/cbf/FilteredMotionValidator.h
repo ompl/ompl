@@ -35,6 +35,11 @@ namespace ompl::cbf
     /// endpoint `x` it produced. Same start, same obstacle, marginally different target,
     /// so the two rollouts deflect marginally differently and exact equality would
     /// reject perfectly good extensions. See `FilteredStateSpace::reachTolerance()`.
+    ///
+    /// That second rollout is also the long branch's whole cost, and when the filter did
+    /// not engage it is redundant — `FilteredStateSpace::certifiedByLastRollout()` says
+    /// when, and this consults it first. So the tolerance above matters exactly in the
+    /// case that still rolls: the one where the filter deflected something.
     class FilteredMotionValidator : public base::MotionValidator
     {
     public:
@@ -50,7 +55,10 @@ namespace ompl::cbf
 
         bool checkMotion(const base::State *s1, const base::State *s2) const override
         {
-            const bool reached = space_->roll(s1, s2, 1.0).reachedTarget;
+            // The rollout the planner just took to *produce* s2 already answers this;
+            // see FilteredStateSpace::certifiedByLastRollout().
+            const bool reached =
+                space_->certifiedByLastRollout(s1, s2) || space_->roll(s1, s2, 1.0).reachedTarget;
             reached ? ++valid_ : ++invalid_;
             return reached;
         }
@@ -58,6 +66,13 @@ namespace ompl::cbf
         bool checkMotion(const base::State *s1, const base::State *s2,
                          std::pair<base::State *, double> &lastValid) const override
         {
+            if (space_->certifiedByLastRollout(s1, s2))
+            {
+                // lastValid is only ever read on failure, so there is nothing to fill in.
+                ++valid_;
+                return true;
+            }
+
             const FilteredStateSpace::Rollout rollout = space_->roll(s1, s2, 1.0);
             if (rollout.reachedTarget)
             {
