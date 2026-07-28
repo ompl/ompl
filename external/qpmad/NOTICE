@@ -1,0 +1,9 @@
+____ ___  _  _ ____ ___
+|  | |__] |\/| |__| |  \
+|_\| |    |  | |  | |__/
+
+Copyright 2017  Alexander Sherikov
+
+This product makes use of qpmad QP solver.
+The solver is distributed under the terms of Apache 2.0 license and can be
+obtained at http://github.com/asherikov/qpmad/.

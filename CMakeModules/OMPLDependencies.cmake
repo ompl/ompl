@@ -87,6 +87,25 @@ else()
     set(OMPL_HAVE_PYTHON 0)
 endif()
 
+# qpmad — vendored in external/qpmad, header-only, needs nothing but Eigen.
+# See external/qpmad/VENDORED.md for provenance.
+set_package_properties(qpmad PROPERTIES
+    URL "https://github.com/asherikov/qpmad"
+    PURPOSE "Dual active set QP solver used by the CBF steering module.")
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/qpmad/include/qpmad/solver.h")
+    add_library(qpmad INTERFACE)
+    add_library(qpmad::qpmad ALIAS qpmad)
+    target_include_directories(qpmad INTERFACE
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/qpmad/include>")
+    target_link_libraries(qpmad INTERFACE Eigen3::Eigen)
+    set(OMPL_HAVE_QPMAD 1)
+    message(STATUS "Found vendored qpmad in external/qpmad")
+else()
+    set(OMPL_HAVE_QPMAD 0)
+    message(WARNING "Vendored qpmad not found in external/qpmad; CBF steering will be unavailable.")
+endif()
+
 # Nanobind
 set_package_properties(Nanobind PROPERTIES
     URL "https://github.com/wjakob/nanobind"
