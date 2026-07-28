@@ -37,6 +37,7 @@ if (OMPL_BUILD_DEMOS)
 
     add_ompl_demo(demo_SDF SDFDemo.cpp)
     add_ompl_demo(demo_UR5Sphere UR5SphereDemo.cpp)
+    add_ompl_demo(demo_UR5CBFPlanning UR5CBFPlanningDemo.cpp)
 
     add_ompl_demo(demo_OptimalPlanning OptimalPlanning.cpp)
     add_ompl_demo(demo_PlannerProgressProperties PlannerProgressProperties.cpp)

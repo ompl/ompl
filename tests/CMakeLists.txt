@@ -74,6 +74,19 @@ if (OMPL_BUILD_TESTS)
     # Test the UR5 kinematics / collision-sphere model
     add_ompl_test(test_ur5 robots/test_ur5.cpp)
 
+    # Test the CBF barrier assembly (spherized robot + workspace SDF)
+    add_ompl_test(test_clearance_barrier cbf/test_clearance_barrier.cpp)
+
+    # Test the vendored qpmad QP solver behaves as the CBF steering step expects,
+    # and the CBF safety filter built on it
+    if(OMPL_HAVE_QPMAD)
+        add_ompl_test(test_qpmad_vendored cbf/test_qpmad_vendored.cpp)
+        target_link_libraries(test_qpmad_vendored qpmad::qpmad)
+        add_ompl_test(test_cbf_control_filter cbf/test_cbf_control_filter.cpp)
+        add_ompl_test(test_filtered_propagator cbf/test_filtered_propagator.cpp)
+        add_ompl_test(test_filtered_state_space cbf/test_filtered_state_space.cpp)
+    endif()
+
     # Test VAMP integration
     if(OMPL_HAVE_VAMP)
         add_ompl_test(test_vamp_integration vamp/test_vamp_integration.cpp)

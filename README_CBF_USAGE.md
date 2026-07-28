@@ -1,0 +1,265 @@
+# CBF steering (`ompl::cbf`)
+
+A **control barrier function safety filter** for a spherized robot in a workspace
+signed distance field, wired into OMPL so that **collision checking can be removed
+entirely**. Instead of proposing a motion and asking a collision checker whether it
+was allowed, every step is *constructed* to satisfy a barrier condition — so there is
+nothing left to check, and a motion that would have hit an obstacle bends around it
+rather than being thrown away.
+
+- **Headers:** `#include <ompl/cbf/…>` (header-only except `CBFControlFilter`)
+- **Namespace:** `ompl::cbf`
+- **Depends on:** Eigen, [`ompl::sdf`](README_SDF_USAGE.md), `ompl::robots::UR5`,
+  and the vendored [qpmad](external/qpmad/VENDORED.md) QP solver (private — the
+  qpmad include appears only in `cbf/src/CBFControlFilter.cpp`, never in an
+  installed header).
+- **Build flag:** `OMPL_HAVE_QPMAD`, set automatically when `external/qpmad` is
+  present. Without it the module is not compiled.
+
+## The idea
+
+For each collision sphere *i* of the robot, with radius `r_i` and centre `p_i(q)`:
+
+```
+h_i(q) = d(p_i(q)) - r_i - margin          (clearance; safe when h_i >= 0)
+dh_i/dq = (dp_i/dq)^T grad d(p_i)          (chain rule through the sphere Jacobian)
+```
+
+A discrete-time CBF asks each step to retain a fraction of its clearance,
+`h_i(q + u dt) >= (1 - gamma) h_i(q)`, which linearises to one row per sphere:
+
+```
+(dh_i/dq) u >= -gamma h_i(q) / dt
+```
+
+The filter then solves, for a nominal control `u_nom`:
+
+```
+min  ½ (u - u_nom)^T W (u - u_nom)
+s.t. A u >= -gamma h / dt                  (40 rows, one per sphere)
+     u_min <= u <= u_max                   (velocity and joint limits)
+```
+
+qpmad is a **dual active set** solver: it starts from the unconstrained minimum,
+which for diagonal `W` *is* `u_nom`. So a step that was already safe costs **zero
+solver iterations** and returns the nominal control untouched.
+
+## The pieces
+
+| Header | Role |
+| --- | --- |
+| `ClearanceBarrier.h` | Assembles `h(q)` and the constraint rows from a robot + a `GridSDF`. |
+| `ControlFilter.h` | The abstract seam: `filter(q, u_nom, dt) -> u`. `PassthroughFilter` is the identity, which is what makes with/without-CBF comparisons honest. |
+| `CBFControlFilter.h` | The QP filter above. Returns `Unchanged`, `Filtered`, or `Blocked`. |
+| `FilteredStatePropagator.h` | Control-space use: a `control::StatePropagator` that filters before integrating. |
+| `FilteredStateSpace.h` | Geometric use: a state space whose `interpolate()` **is** a CBF rollout. |
+| `FilteredMotionValidator.h` | The validator that goes with it: "did the rollout arrive?", not "is it safe". |
+| `JointSteeringControlSampler.h` | A directed control sampler that actually aims at the target, unlike OMPL's random-shooting default. |
+
+## Two ways to use it
+
+### Geometric (recommended — this is the fast one)
+
+The rollout lives behind `interpolate()`, so a *geometric* planner gets long-range
+extensions while every intermediate state is barrier-certified. In free space the
+rollout **is** linear interpolation to floating-point precision, so the space is a
+drop-in `RealVectorStateSpace`.
+
+```cpp
+auto space = std::make_shared<ompl::cbf::FilteredStateSpace>(filter, stepSize, maxSpeed);
+space->setBounds(jointBounds);
+
+auto si = std::make_shared<ob::SpaceInformation>(space);
+si->setStateValidityChecker(std::make_shared<ob::AllValidStateValidityChecker>(si));  // no checking
+si->setMotionValidator(std::make_shared<ompl::cbf::FilteredMotionValidator>(si));
+si->setup();
+
+auto planner = std::make_shared<og::RRTConnect>(si);   // stock, unmodified
+```
+
+Because the executed motion between two waypoints is *by definition* `interpolate()`
+between them, `PathGeometric::interpolate()` reconstructs the real trajectory rather
+than a straight-line fiction. That self-consistency is why the rollout belongs in the
+state space and not in the motion validator alone.
+
+### Control-space
+
+Filtering inside propagation makes the planned system the *closed-loop* one — the
+robot together with the filter it will actually run. The reached state stays a
+deterministic function of (state, control, steps), which is exactly OMPL's edge
+model, so every stock control planner works unmodified and
+`PathControl::check()` — which re-propagates and compares — passes.
+
+```cpp
+si->setStatePropagator(std::make_shared<ompl::cbf::FilteredStatePropagator>(si, filter));
+si->setDirectedControlSamplerAllocator([](const oc::SpaceInformation *s)
+    { return std::make_shared<ompl::cbf::JointSteeringControlSampler>(s); });
+```
+
+This is correct but **slow** — see the numbers below. A control edge is capped at
+`maxControlDuration * stepSize * maxSpeed` of joint travel, so a wide motion needs
+many short edges and the tree grows deep.
+
+## Removing the collision checker
+
+This is the point of the module, so it is worth stating plainly. A filter that
+certifies every step leaves a `StateValidityChecker` nothing to do, and keeping one
+means paying for the same geometry twice per step: the barrier already runs the
+forward kinematics and queries the field for all 40 spheres to build its rows, and
+`isSafe()` would repeat that to learn what the barrier already knows.
+
+What you give up, all of which becomes yours to handle:
+
+- **Anything outside the barrier's model.** The checker was the last line of defence
+  against errors in the sphere approximation, the SDF, or the step linearisation.
+  `ClearanceBarrier`'s margin is now the only thing covering them.
+- **Start-state validation.** `Planner::checkValidity()` will accept a start state in
+  collision. Check it yourself.
+- **`Blocked` truncation.** A blocked step holds a *valid* state, so
+  `propagateWhileValid` does not truncate — the edge runs to full length having gone
+  nowhere. Counted in `statistics().blocked`.
+
+**Audit instead of assuming.** Interpolate a returned path to every step and evaluate
+an *unbuffered* barrier at each one. The demo does this (`unsafe/audited` column) and
+so do the tests; that is how the buffer below was found to be necessary.
+
+## Margins, and the buffer
+
+`ClearanceBarrier::defaultMargin` (6 cm) absorbs three errors, none optional:
+
+1. **Sphere under-coverage.** VAMP's sphere model does not enclose the UR5's links —
+   mesh vertices sit up to **30.5 mm** outside it (`scripts/ur5_sphere_coverage.py`).
+   Without this term `h_i >= 0` does not imply the real robot is clear.
+2. **SDF discretisation**, up to about a third of a voxel, which can err optimistically.
+3. **Step linearisation**, since the sphere centres travel on arcs.
+
+Separately — and this bit is easy to get wrong — **a filter enforcing `h >= 0` does
+not deliver `h >= 0`.** Riding the boundary overshoots it by a few mm. Use
+`ClearanceBarrier::guarding()`, which buffers what the filter enforces relative to
+what you intend to audit:
+
+```cpp
+const Barrier guard = Barrier::guarding(robot, field, margin);   // what the filter enforces
+const Barrier audit(robot, field, margin);                       // what you hold it to
+```
+
+Measured with a 20-run audit at several buffer values: **0 leaks (7 violations up to
+2.2 mm), 0.5 cm leaks (7 violations), 0.75 cm holds with 1.4 mm to spare, 1 cm holds
+with 3.3 mm.** 1 cm is the default.
+
+> **Known documentation defect.** `interpolationBuffer()` attributes this to SDF
+> interpolation error and returns one voxel. That explanation is wrong: the required
+> buffer is **voxel-independent** — the same 0.5 cm/1 cm boundary appears at 2, 3 and
+> 4 cm grids. It is driven by the step size, not the grid. The default is the measured
+> 1 cm; the doc comment still needs rewriting and the scaling law establishing.
+
+## Measured
+
+UR5, 6-DoF, 40 spheres, 3 cm voxel, `stepSize` 0.05 s, `gamma` 0.4, 20 runs, medians.
+Scene: start and goal are the same arm shape rotated about the base, with obstacles
+where the arm would be at the midpoint — so the direct joint-space motion is blocked.
+Reproduce with `./build/demos/demo_UR5CBFPlanning`.
+
+| setup | ms | vertices | steps | collision checks | unsafe |
+| --- | --- | --- | --- | --- | --- |
+| `geom-rrtconnect` (ordinary collision checking) | **0.140** | 6 | – | 72 | 0 |
+| control RRT + checker | 38.6 | 2422 | 13404 | 13404 | 0 |
+| control RRT + CBF + checker | 90.2 | 2242 | 12474 | 12475 | 0 |
+| control RRT + CBF, no checker | 42.4 | 1446 | 7928 | **0** | 0 |
+| geometric RRT + CBF rollout | 263.6 | 794 | 62921 | **0** | 0 |
+| **RRTConnect + CBF rollout** | **1.894** | **6** | 446 | **0** | 0 |
+
+Per-step cost, over 100k random `(q, u)`:
+
+| | µs | |
+| --- | --- | --- |
+| `isSafe(q)` | 1.62 | one collision check |
+| `filter(q, u)` | 4.45 | barrier rows + QP (**2.75× a check**) |
+
+**A filtered step cannot beat a bare collision check** — the barrier computes
+everything `isSafe()` does and then 40 position Jacobians on top. The CBF wins on
+edges it does not waste, not on cost per step. The 13.5× gap that remains to ordinary
+RRTConnect is fully accounted for by 446 filter calls versus 72 collision checks: the
+rollout must integrate at `dt`, while a collision checker samples a straight line at
+whatever resolution it likes.
+
+## Validation
+
+- Forward kinematics cross-checked three ways: vs `vamp.ur5.fk` **2.67e-06 m**, vs
+  PyBullet **2.62e-07 m**, analytic Jacobian vs central differences **2.51e-10**.
+- 52 test cases across 6 binaries (`test_ur5`, `test_clearance_barrier`,
+  `test_qpmad_vendored`, `test_cbf_control_filter`, `test_filtered_propagator`,
+  `test_filtered_state_space`).
+- Filtered clearance saturates at 0.04369 against a promised floor of 0.04399 —
+  0.3 mm of linearisation error. Single-active-row projections match the closed form
+  `u = â·b/|a|` exactly. Safe steps cost 0 qpmad iterations.
+
+## Modularity
+
+**The environment is genuinely swappable.** `ompl::sdf::GridSDF` depends on Eigen and
+one callback, `std::function<double(const Eigen::Vector3d &)>`. Everything above takes
+`const GridSDF &`, so a new scene is a new lambda — analytic primitives, a mesh/FCL
+signed-distance query, a point cloud, another field. Caveats: the bake is
+all-or-nothing (no incremental update, so a *changing* environment means rebaking),
+and `GridSDF` clamps out-of-bounds queries **optimistically**, which is why
+`inBounds` is a first-class output that the filter treats as "no usable barrier".
+
+**The robot is not.** `ControlFilter::Configuration` is typedef'd directly to
+`robots::UR5::Configuration`, `ClearanceBarrier::Robot` is `robots::UR5`, and 6 joints
+/ 40 spheres are **compile-time template parameters of the solver**
+(`qpmad::SolverTemplate<double, nJoints, 1, nSpheres>`). Changing robots means editing
+four files. `ClearanceBarrier`'s header names the seam — sphere centres, sphere
+Jacobians, radii — but it is not built. In cost order: move joint limits into
+`Parameters` (`CBFControlFilter.cpp:50` reaches past the barrier straight to
+`robots::UR5::lowerBounds()`, which is a wart regardless); parameterise
+`Configuration` by dimension; template `ClearanceBarrier` on the robot; make
+`nSpheres` dynamic in qpmad.
+
+The planner-facing layer *is* modular: `FilteredStatePropagator` and
+`FilteredStateSpace` take a `const ControlFilter &` and never look inside.
+
+## Open items
+
+- **`RRTConnect.cpp:294` is `while (gsc == ADVANCED)` with no termination-condition
+  guard.** It assumes every ADVANCED closes the gap by `maxDistance_` — true of a
+  straight line, false of a rollout that slides along a boundary, which **hangs**
+  rather than timing out. Worked around in `FilteredStateSpace::interpolate()`: an
+  extension achieving less than `minProgressFraction` of its free-space progress is
+  reported as no motion, turning the endless ADVANCED into TRAPPED
+  (`statistics().abandoned`).
+- **A Lipschitz fast path is the obvious next speedup.** Since
+  `|dh_i/dq| <= sqrt(6) · maxReach = 2.768` and `|grad d| <= 1`, a step with
+  `min_i h_i > 2.768 |u| dt` (= 0.17 m) cannot activate any constraint, so the QP
+  provably returns `u_nom` — skip the gradients, the Jacobians and the solve.
+  Measured **61.3% skippable** on a real RRTConnect workload (not the 85.5% that
+  uniform random sampling suggests — the planner concentrates work near obstacles).
+  Worth **1.33×** bolted on, **1.64×** if `evaluate()` is restructured to reuse the
+  values pass. Two things to settle first: `|grad d| <= 1` holds for a true SDF but an
+  interpolated gradient can exceed unit norm, which would make the bound unsound; and
+  `sqrt(6) · maxReach` is crude — the base sphere cannot move at all yet is often the
+  worst sphere, so per-sphere constants precomputed offline would raise the rate for
+  free.
+- **The margin is blunt.** A tighter per-sphere bound follows from the Jacobian column
+  norms, but wants validating against brute-force rollouts first.
+- **Benchmarks are indicative, not rigorous.** OMPL only honours a seed set before the
+  first random draw, so runs **cannot be paired by seed**; these are medians over
+  independent draws with no variance reported.
+
+## Demos, tests, scripts
+
+```sh
+# The comparison table above. [seconds] [runs] [dump.json|-] [obstacleScale] [buffer] [voxel] [stepSize] [maxSteps] [range] [rowMask]
+./build/demos/demo_UR5CBFPlanning 5 20 /tmp/path.json 1.0
+
+# Sphere model, FK, and a barrier preview
+./build/demos/demo_UR5Sphere
+
+# Replay a planned path over the real meshes in PyBullet
+python scripts/ur5_sphere_viz.py /tmp/path.json --gui
+
+# Regenerate the C++ sphere table from ur5_spherized.urdf, validating against vamp
+python scripts/generate_ur5_spheres.py --emit
+
+# How far mesh vertices poke outside their link's spheres (the 30.5 mm above)
+python scripts/ur5_sphere_coverage.py
+```
