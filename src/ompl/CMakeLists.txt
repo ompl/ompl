@@ -7,8 +7,15 @@ endif()
 
 file(GLOB_RECURSE OMPL_SOURCE_CODE datastructures/*.cpp util/*.cpp base/*.cpp
   geometric/*.cpp control/*.cpp multilevel/*.cpp tools/*.cpp)
+
+# The CBF module needs qpmad, which is vendored and kept private: the qpmad
+# include lives only in cbf/src/*.cpp, never in an installed ompl header.
+if(OMPL_HAVE_QPMAD)
+    file(GLOB_RECURSE OMPL_CBF_SOURCE_CODE cbf/*.cpp)
+    list(APPEND OMPL_SOURCE_CODE ${OMPL_CBF_SOURCE_CODE})
+endif()
 file(GLOB_RECURSE OMPL_HEADERS datastructures/*.h util/*.h base/*.h
-  geometric/*.h control/*.h multilevel/*.h tools/*.h sdf/*.h)
+  geometric/*.h control/*.h multilevel/*.h tools/*.h sdf/*.h robots/*.h cbf/*.h)
 
 #############################################
 # Add enabled extensions to the source code #
@@ -53,7 +60,8 @@ target_link_libraries(ompl
         "$<$<BOOL:${OMPL_HAVE_FLANN}>:flann::flann>"
         "$<$<BOOL:${OMPL_EXTENSION_TRIANGLE}>:Triangle::Triangle>"
     PRIVATE
-        "$<$<BOOL:${OMPL_HAVE_SPOT}>:Spot::Spot>")
+        "$<$<BOOL:${OMPL_HAVE_SPOT}>:Spot::Spot>"
+        "$<$<BOOL:${OMPL_HAVE_QPMAD}>:qpmad::qpmad>")
 
 if(NOT SKBUILD)
     set_target_properties(ompl PROPERTIES VERSION "${PROJECT_VERSION}")

@@ -71,6 +71,9 @@ if (OMPL_BUILD_TESTS)
     # Test the (environment-agnostic) signed distance field module
     add_ompl_test(test_sdf sdf/test_sdf.cpp)
 
+    # Test the UR5 kinematics / collision-sphere model
+    add_ompl_test(test_ur5 robots/test_ur5.cpp)
+
     # Test VAMP integration
     if(OMPL_HAVE_VAMP)
         add_ompl_test(test_vamp_integration vamp/test_vamp_integration.cpp)
