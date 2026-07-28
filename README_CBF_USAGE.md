@@ -248,14 +248,15 @@ The planner-facing layer *is* modular: `FilteredStatePropagator` and
 ## Demos, tests, scripts
 
 ```sh
-# The comparison table above. [seconds] [runs] [dump.json|-] [obstacleScale] [buffer] [voxel] [stepSize] [maxSteps] [range] [rowMask]
+# The comparison table above, plus a solution path dumped for the viewer.
 ./build/demos/demo_UR5CBFPlanning 5 20 /tmp/path.json 1.0
 
-# Sphere model, FK, and a barrier preview
+# Sphere model, FK, and a barrier preview at three configurations
 ./build/demos/demo_UR5Sphere
 
 # Replay a planned path over the real meshes in PyBullet
-python scripts/ur5_sphere_viz.py /tmp/path.json --gui
+python scripts/ur5_sphere_viz.py /tmp/path.json --gui --loops 0
+python scripts/ur5_sphere_viz.py /tmp/path.json --screenshot frame.png --config 70
 
 # Regenerate the C++ sphere table from ur5_spherized.urdf, validating against vamp
 python scripts/generate_ur5_spheres.py --emit
@@ -263,3 +264,35 @@ python scripts/generate_ur5_spheres.py --emit
 # How far mesh vertices poke outside their link's spheres (the 30.5 mm above)
 python scripts/ur5_sphere_coverage.py
 ```
+
+Every `demo_UR5CBFPlanning` argument is positional and optional:
+
+| # | argument | default | notes |
+| --- | --- | --- | --- |
+| 1 | seconds | 5 | per-run planning time limit |
+| 2 | runs | 10 | medians are taken over these |
+| 3 | `dump.json` \| `-` | none | writes the densified solution path for the viewer |
+| 4 | obstacleScale | 1.0 | inflates the obstacles; >2 is where the free space gets tight |
+| 5 | buffer | 0.010 | filter margin above the audited one; **0 and 0.005 leak** |
+| 6 | voxel | 0.03 | SDF resolution |
+| 7 | stepSize | 0.05 | rollout/propagation step; a correctness parameter, not a speed knob |
+| 8 | maxSteps | 10 | max propagation steps per control edge |
+| 9 | range | 2.0 | geometric planner extension range; a flat knob, 0.5–8 all work |
+| 10 | rowMask | 63 | bitmask: 1 geom-rrtconnect, 2 collision-check, 4 cbf+check, 8 cbf-only, 16 cbf-geom-rrt, 32 cbf-geom-rrtc |
+
+The row mask matters in practice: `cbf-geom-rrt` is ~250 ms a run, so a sweep over
+one of the other knobs wants `32` (or `33`) rather than all six rows.
+
+### What the viewer shows
+
+Gold spheres are the C++ collision model, grey is the URDF mesh, red is the scene the
+planner avoided. The dump carries an `obstacles` array so the two cannot disagree, and
+the camera frames the whole trajectory plus the obstacles. `--screenshot` renders one
+configuration offscreen with a hand-rolled PNG writer (no imaging dependency), which
+is the useful mode over ssh.
+
+The overlay is also the FK regression check: PyBullet runs its own forward kinematics
+from the same URDF, and the script prints the worst disagreement over every
+configuration × every sphere. It should be ~1e-07 m. Two things are visible by eye at
+the closest approach — the CBF moving joints the nominal control never asked for, and
+grey mesh escaping between the forearm spheres, which is the 30.5 mm the margin covers.

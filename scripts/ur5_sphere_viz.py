@@ -37,6 +37,7 @@ ARM_JOINTS = (
     "wrist_3_joint",
 )
 SPHERE_RGBA = (0.95, 0.80, 0.15, 0.35)
+OBSTACLE_RGBA = (0.85, 0.15, 0.15, 0.55)
 
 
 def movable_joints(body: int) -> dict[str, int]:
@@ -141,6 +142,17 @@ def save_screenshot(path: str, centers, width: int = 900, height: int = 900) -> 
         handle.write(chunk(b"IEND", b""))
 
 
+def make_obstacle_bodies(obstacles) -> list[int]:
+    """Draw the scene the planner avoided. Without these the overlay shows an arm
+    striking poses for no visible reason."""
+    bodies = []
+    for obstacle in obstacles:
+        shape = p.createVisualShape(p.GEOM_SPHERE, radius=obstacle["radius"], rgbaColor=OBSTACLE_RGBA)
+        bodies.append(p.createMultiBody(baseVisualShapeIndex=shape,
+                                        basePosition=list(obstacle["center"])))
+    return bodies
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("dump", help="JSON written by demo_UR5Sphere")
@@ -169,6 +181,11 @@ def main() -> int:
         print(f"URDF is missing links the dump refers to: {missing}", file=sys.stderr)
         return 1
 
+    obstacles = dump.get("obstacles", [])
+    if obstacles:
+        make_obstacle_bodies(obstacles)
+        print(f"{len(obstacles)} obstacle sphere(s) in the scene")
+
     worst = compare_against_pybullet(body, joints, links, dump)
     print(f"max disagreement with PyBullet's forward kinematics: {worst:.2e} m over "
           f"{len(configs)} configurations x {len(radii)} spheres")
@@ -178,7 +195,8 @@ def main() -> int:
         set_configuration(body, joints, config["q"])
         for sphere, center in zip(make_sphere_bodies(radii), config["centers"]):
             p.resetBasePositionAndOrientation(sphere, list(center), [0, 0, 0, 1])
-        save_screenshot(args.screenshot, config["centers"])
+        save_screenshot(args.screenshot,
+                        config["centers"] + [o["center"] for o in obstacles])
         print(f"wrote {args.screenshot} (configuration {args.config}, q = "
               f"{np.round(config['q'], 3).tolist()})")
         p.disconnect()
@@ -188,7 +206,8 @@ def main() -> int:
         p.disconnect()
         return 0
 
-    target, distance = camera_framing(configs[0]["centers"])
+    target, distance = camera_framing(
+        [c for config in configs for c in config["centers"]] + [o["center"] for o in obstacles])
     p.resetDebugVisualizerCamera(cameraDistance=distance, cameraYaw=50, cameraPitch=-25,
                                  cameraTargetPosition=target)
     spheres = make_sphere_bodies(radii)

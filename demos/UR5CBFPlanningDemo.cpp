@@ -91,23 +91,39 @@ namespace
         return (UR5::Configuration() << 2.4, -1.2, 1.8, -0.6, 1.57, 0.0).finished();
     }
 
+    /// One obstacle sphere, kept as data rather than baked into the distance lambda so
+    /// that the SDF the planner sees and the geometry the viewer draws come from the
+    /// same list and cannot drift apart.
+    struct Obstacle
+    {
+        Eigen::Vector3d center;
+        double radius;
+    };
+
     /// Obstacles sitting exactly where the arm would be at the midpoint of the direct
     /// sweep, so the straight joint-space path is blocked and the arm has to reshape
     /// itself to get around. Clearance along the direct path, at this margin, runs
     /// +0.29 (start), +0.14, **-0.24** (midpoint), +0.08, +0.38 (goal).
     ///
-    /// A union of spheres is the min of their distances, which is still an exact
-    /// signed distance field.
     /// \p scale inflates the obstacles, tightening the free space the planner has to
     /// work in. At scale 1 the problem is easy for both planners; larger values are
     /// what actually exercise the filter.
-    sdf::DistanceFn scene(double scale)
+    std::vector<Obstacle> obstacles(double scale)
     {
-        return [scale](const Eigen::Vector3d &p)
+        return {{Eigen::Vector3d(-0.742, 0.121, 1.083), 0.18 * scale},
+                {Eigen::Vector3d(-0.742, 0.121, 1.383), 0.14 * scale}};
+    }
+
+    /// A union of spheres is the min of their distances, which is still an exact
+    /// signed distance field.
+    sdf::DistanceFn scene(const std::vector<Obstacle> &spheres)
+    {
+        return [spheres](const Eigen::Vector3d &p)
         {
-            const double lower = (p - Eigen::Vector3d(-0.742, 0.121, 1.083)).norm() - 0.18 * scale;
-            const double upper = (p - Eigen::Vector3d(-0.742, 0.121, 1.383)).norm() - 0.14 * scale;
-            return std::min(lower, upper);
+            double distance = std::numeric_limits<double>::infinity();
+            for (const Obstacle &sphere : spheres)
+                distance = std::min(distance, (p - sphere.center).norm() - sphere.radius);
+            return distance;
         };
     }
 
@@ -550,7 +566,8 @@ namespace
     /// Dump a solution path in the format scripts/ur5_sphere_viz.py already reads, so
     /// the planned motion can be replayed over the real UR5 meshes in PyBullet.
     void writeViewerJson(const char *path, const UR5 &robot,
-                         const std::vector<UR5::Configuration> &solution)
+                         const std::vector<UR5::Configuration> &solution,
+                         const std::vector<Obstacle> &scenery)
     {
         std::FILE *out = std::fopen(path, "w");
         if (out == nullptr)
@@ -568,6 +585,12 @@ namespace
         std::fprintf(out, "],\n  \"frames\": [");
         for (std::size_t i = 0; i < UR5::nSpheres; ++i)
             std::fprintf(out, "%s%zu", i ? ", " : "", UR5::spheres()[i].frame);
+
+        std::fprintf(out, "],\n  \"obstacles\": [");
+        for (std::size_t i = 0; i < scenery.size(); ++i)
+            std::fprintf(out, "%s{\"center\": [%.9g, %.9g, %.9g], \"radius\": %.9g}", i ? ", " : "",
+                         scenery[i].center.x(), scenery[i].center.y(), scenery[i].center.z(),
+                         scenery[i].radius);
 
         std::fprintf(out, "],\n  \"configs\": [\n");
         for (std::size_t s = 0; s < solution.size(); ++s)
@@ -616,7 +639,8 @@ int main(int argc, char **argv)
     ompl::RNG::setSeed(1);
 
     std::printf("Baking the workspace SDF over the UR5's reachable volume (voxel %.3f m)...\n", voxel);
-    const sdf::GridSDF field(scene(obstacleScale), UR5::reachableBounds(), voxel);
+    const std::vector<Obstacle> scenery = obstacles(obstacleScale);
+    const sdf::GridSDF field(scene(scenery), UR5::reachableBounds(), voxel);
     const Eigen::Vector3i dims = field.dimensions();
     std::printf("  %d x %d x %d nodes, obstacle scale %.2f\n\n", dims.x(), dims.y(), dims.z(),
                 obstacleScale);
@@ -675,8 +699,17 @@ int main(int argc, char **argv)
             cbfGeom.push_back(
                 runFilteredGeometric(field, cbfFilter, margin, false, geomRange, timeLimit, nullptr));
         if (rows & 32)
-            cbfGeomBi.push_back(
-                runFilteredGeometric(field, cbfFilter, margin, true, geomRange, timeLimit, nullptr));
+        {
+            // The dump comes from whichever CBF row ran, preferring this one: it is the
+            // configuration worth looking at, and tying the dump to a single row means a
+            // row mask that skips it silently writes nothing.
+            std::vector<UR5::Configuration> solution;
+            cbfGeomBi.push_back(runFilteredGeometric(field, cbfFilter, margin, true, geomRange,
+                                                     timeLimit,
+                                                     dumpPath != nullptr ? &solution : nullptr));
+            if (dumpPath != nullptr && cbfGeomBi.back().solved && best.empty())
+                best = solution;
+        }
         if (rows & 2)
             plain.push_back(run(field, passthrough, margin, /*collisionChecking=*/true, timeLimit, nullptr));
         if (rows & 4)
@@ -721,7 +754,7 @@ int main(int argc, char **argv)
 
     if (dumpPath != nullptr && !best.empty())
     {
-        writeViewerJson(dumpPath, robot, best);
+        writeViewerJson(dumpPath, robot, best, scenery);
         std::printf("\nwrote %s -- replay it with\n  python scripts/ur5_sphere_viz.py %s --gui\n", dumpPath,
                     dumpPath);
     }
