@@ -165,9 +165,9 @@ Reproduce with `./build/demos/demo_UR5CBFPlanning`.
 | `geom-rrtconnect` (ordinary collision checking) | **0.149** | 6 | – | 72 | 0 |
 | control RRT + checker | 38.3 | 2422 | 13404 | 13404 | 0 |
 | control RRT + CBF + checker | 76.2 | 2242 | 12474 | 12475 | 0 |
-| control RRT + CBF, no checker | 36.6 | 1446 | 7928 | **0** | 0 |
-| geometric RRT + CBF rollout | 146.4 | 794 | 45186 | **0** | 0 |
-| **RRTConnect + CBF rollout** | **1.368** | **6** | 419 | **0** | 0 |
+| control RRT + CBF, no checker | 25.9 | 1446 | 7928 | **0** | 0 |
+| geometric RRT + CBF rollout | 108.2 | 794 | 45186 | **0** | 0 |
+| **RRTConnect + CBF rollout** | **1.134** | **6** | 419 | **0** | 0 |
 
 `steps` counts filter calls, and the two rollout rows only spend that many because
 `FilteredStateSpace` memoizes its last rollout. A tree planner rolls twice per
@@ -187,7 +187,7 @@ Per-step cost, over 100k random `(q, u)`:
 | | µs | |
 | --- | --- | --- |
 | `isSafe(q)` | 1.70 | one collision check |
-| `filter(q, u)` | 3.69 | barrier rows + QP (**2.17× a check**) |
+| `filter(q, u)` | 2.44 | barrier rows + QP (**1.43× a check**) |
 
 Where the extra goes, timed as nested stages over 200k random `(q, u)`: FK plus 40
 sphere centers 0.46 µs, plus 40 interpolated SDF values 1.70 (this *is* `isSafe`), plus
@@ -199,9 +199,25 @@ QP: `UR5::barrierGradient()` uses the scalar triple product against
 `Kinematics::jointMoment` rather than forming 40 Jacobians, which is bit-identical and
 was worth 2.5× on that stage (21% end to end).
 
-**A filtered step still cannot beat a bare collision check** — the barrier computes
-everything `isSafe()` does and then the rows on top. The CBF wins on
-edges it does not waste, not on cost per step. The 9.2× gap that remains to ordinary
+**Then do not build most of the rows at all.** `ClearanceBarrier::decreaseRates()` bounds
+how fast each sphere's clearance can possibly fall — `maxGrad * sum_k maxSpeed_k * L[i][k]`,
+where `L` is `UR5::leverArmBounds()` and `maxGrad` is `GridSDF::maxGradientNorm()`, both
+configuration-independent — so a sphere clear by more than `rate_i * dt` cannot bind
+within the step and needs no gradient, no Jacobian and no row. Measured over random
+configurations, that leaves **0.8 rows of 40** and an identical control every time, taking
+`filter()` from 3.69 to **2.44 µs**. It is on by default (`Parameters::screening`).
+
+The bound is a Lipschitz argument, not a linearisation: `L[i][k]` bounds sphere i's
+distance to joint k's axis at *every* configuration, so integrating it bounds the true
+change in `h` over the whole step rather than predicting it. What screening gives up is
+the CBF *decay* condition for the spheres it drops — they are guaranteed to stay safe, but
+not to decay at rate `gamma`. Safety is the invariant; the decay rate is a smoothness
+preference. `screening = false` restores the exact original semantics.
+
+**A filtered step still cannot beat a bare collision check** — even fully screened it
+computes everything `isSafe()` does, and the remaining 0.74 µs is the floor for
+certifying rather than merely testing. The CBF wins on edges it does not waste, not on
+cost per step. The 8.0× gap that remains to ordinary
 RRTConnect is fully accounted for by 419 filter calls versus 72 collision checks: the
 rollout must integrate at `dt`, while a collision checker samples a straight line at
 whatever resolution it likes.
@@ -224,18 +240,21 @@ signed distance, so the field is exact up to the grid with no mesh and no FCL.
 
 | scene | rrtconnect ms | cbf-rrtc ms | rrtc evals | cbf evals | rrtc vertices | cbf vertices |
 | --- | --- | --- | --- | --- | --- | --- |
-| bookshelf_small | 7.44 | **3.63** | 4443 | 940 | 23 | 10 |
-| bookshelf_tall | 12.51 | **8.25** | 7147 | 2004 | 34 | 16 |
-| bookshelf_thin | **5.96** | 7.38 | 3371 | 1833 | 17 | 14 |
-| box | 7.54 | **4.42** | 4058 | 1087 | 21 | 12 |
-| cage | 675.05 | **245.92** | 385881 | 62667 | 2276 | 391 |
-| table_pick | **2.17** | 2.53 | 1301 | 662 | 8 | 8 |
-| table_under_pick | **3.70** | 5.86 | 2189 | 1559 | 12 | 13 |
-| **all (105)** | 6.88 | **5.62** | 4023 | **1455** | 21 | **13** |
+| bookshelf_small | 7.53 | **2.93** | 4443 | 940 | 23 | 10 |
+| bookshelf_tall | 12.14 | **6.54** | 7147 | 2004 | 34 | 16 |
+| bookshelf_thin | **5.84** | 6.65 | 3371 | 1833 | 17 | 14 |
+| box | 6.80 | **3.81** | 4058 | 1087 | 21 | 12 |
+| cage | 674.03 | **229.24** | 385881 | 62667 | 2276 | 391 |
+| table_pick | **2.15** | 1.81 | 1301 | 662 | 8 | 8 |
+| table_under_pick | **3.63** | 5.19 | 2189 | 1559 | 12 | 13 |
+| **all (105)** | 6.92 | **5.08** | 4023 | **1455** | 21 | **13** |
 
-Both solve 105/105 with zero unsafe states. The rollout wins 4 scenes of 7, uses fewer
-evaluations on all 7, and is **2.7× faster on `cage`** — the tight one — with 5.8× fewer
-vertices. That is the edges-not-wasted claim, measured on a problem set that was not
+Both solve 105/105 with zero unsafe states. The rollout wins 5 scenes of 7, uses fewer
+evaluations on all 7, and is **2.9× faster on `cage`** — the tight one — with 5.8× fewer
+vertices. Screening changed no planner decision anywhere in this table: identical
+evaluation counts, identical vertices, identical clearances, still zero unsafe. `cage`
+gains least from it (7%) precisely because it is cluttered enough that spheres really are
+close to binding, which is the screen reporting the truth rather than failing. That is the edges-not-wasted claim, measured on a problem set that was not
 chosen to suit it.
 
 ### Two things that flip this result

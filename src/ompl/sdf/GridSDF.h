@@ -96,6 +96,21 @@ namespace ompl::sdf
             return spacing_;
         }
 
+        /// The largest gradient magnitude anywhere in the interpolated field.
+        ///
+        /// A true signed distance field is 1-Lipschitz, so its gradient has unit norm
+        /// almost everywhere -- but this field is central differences of a *sampled*
+        /// distance function, blended trilinearly, and at a kink in the surface the three
+        /// components can each approach 1 independently, putting the node gradient's norm
+        /// above 1. Anything relying on `|grad d| <= L` for soundness (a Lipschitz bound
+        /// on how fast a barrier can fall, say) must use this measured value rather than
+        /// assume 1. An interpolated gradient is a convex combination of node gradients,
+        /// so bounding the nodes bounds the field.
+        auto maxGradientNorm() const -> double
+        {
+            return maxGradientNorm_;
+        }
+
     private:
         auto index(int i, int j, int k) const -> std::size_t
         {
@@ -137,6 +152,7 @@ namespace ompl::sdf
                                 g[d] = (values_[idx + st] - values_[idx - st]) / (2.0 * spacing_[d]);
                         }
                         gradients_[idx] = g;
+                        maxGradientNorm_ = std::max(maxGradientNorm_, g.norm());
                     }
         }
 
@@ -172,6 +188,7 @@ namespace ompl::sdf
         Eigen::Vector3d origin_;
         Eigen::Vector3i dims_{2, 2, 2};
         Eigen::Vector3d spacing_{0.0, 0.0, 0.0};
+        double maxGradientNorm_{0.0};
         std::vector<double> values_;
         std::vector<Eigen::Vector3d> gradients_;
     };

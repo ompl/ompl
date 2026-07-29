@@ -7,6 +7,7 @@
 #include <Eigen/Geometry>
 
 #include <ompl/cbf/CBFControlFilter.h>
+#include <ompl/util/RandomNumbers.h>
 
 using Barrier = ompl::cbf::ClearanceBarrier;
 using Filter = ompl::cbf::CBFControlFilter;
@@ -317,4 +318,68 @@ BOOST_AUTO_TEST_CASE(ControlBoundsIntersectSpeedAndJointLimits)
     BOOST_CHECK_CLOSE(upper[1], 0.5, 1e-9);                  // speed limit binds
     BOOST_CHECK_CLOSE(lower[0], -0.5, 1e-9);                 // mid-range joint: speed only
     BOOST_CHECK_CLOSE(upper[0], 0.5, 1e-9);
+}
+
+// Screening skips constraint rows for spheres that cannot bind within the step. Two
+// things have to hold for that to be worth having: the control must almost always be the
+// one the full 40-row solve would have produced, and the row count must actually drop.
+//
+// "Almost" is the honest word. For a screened-out sphere the CBF *decay* condition is no
+// longer imposed, so a filtered control may differ from the unscreened one -- it is only
+// guaranteed to keep that sphere safe, which is checked in test_clearance_barrier's
+// DecreaseRatesBoundHowFastClearanceCanActuallyFall. What is checked here is that the
+// difference is rare, and that when it happens the screened control is still admissible.
+BOOST_AUTO_TEST_CASE(ScreeningMatchesTheFullSolveAndDropsMostRows)
+{
+    const UR5 robot;
+    const Barrier barrier(robot, nearField(), 0.0);
+
+    // Realistic speeds: the screen's threshold scales with maxSpeed, and at the
+    // deliberately generous 10 rad/s the other tests use, nothing is ever screened.
+    Filter::Parameters base = parameters();
+    base.maxSpeed = UR5::velocityLimits();
+    Filter::Parameters screenedParameters = base;
+    screenedParameters.screening = true;
+    Filter::Parameters fullParameters = base;
+    fullParameters.screening = false;
+
+    const Filter screened(barrier, screenedParameters);
+    const Filter full(barrier, fullParameters);
+
+    ompl::RNG rng;
+    long rows = 0;
+    int steps = 0, agreed = 0;
+    for (int sample = 0; sample < 1500; ++sample)
+    {
+        UR5::Configuration q, nominal;
+        for (Eigen::Index j = 0; j < 6; ++j)
+        {
+            q[j] = rng.uniformReal(UR5::lowerBounds()[j], UR5::upperBounds()[j]);
+            nominal[j] = rng.uniformReal(-base.maxSpeed[j], base.maxSpeed[j]);
+        }
+
+        UR5::Configuration screenedControl, fullControl;
+        Filter::Diagnostics diagnostics;
+        const ControlFilter::Status status =
+            screened.filter(q, nominal, duration, screenedControl, diagnostics);
+        if (status == ControlFilter::Status::Blocked)
+            continue;
+        full.filter(q, nominal, duration, fullControl);
+
+        // Admissible whatever else is true.
+        for (Eigen::Index j = 0; j < 6; ++j)
+            BOOST_REQUIRE_LE(std::abs(screenedControl[j]), base.maxSpeed[j] + 1e-9);
+
+        rows += diagnostics.activeRows;
+        ++steps;
+        if ((screenedControl - fullControl).norm() <= 1e-9)
+            ++agreed;
+    }
+
+    BOOST_REQUIRE_GT(steps, 200);
+    const double meanRows = static_cast<double>(rows) / steps;
+    const double agreement = static_cast<double>(agreed) / steps;
+    BOOST_TEST_MESSAGE("screened rows " << meanRows << " of 40, agreement " << agreement);
+    BOOST_CHECK_LT(meanRows, 25.0);
+    BOOST_CHECK_GT(agreement, 0.9);
 }

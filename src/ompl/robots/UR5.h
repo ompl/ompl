@@ -277,6 +277,64 @@ namespace ompl::robots
             return out;
         }
 
+        /// Configuration-independent upper bounds on `|dp_i/dq_k|`: entry (i, k) bounds
+        /// how fast joint k can move sphere i, for every reachable configuration at once.
+        ///
+        /// Column k of a sphere Jacobian is `axis_k x (p_i - o_k)`, whose norm is sphere
+        /// i's distance to joint k's axis — so this table bounds that distance, and
+        /// therefore (since `|grad d| <= 1` for a signed distance field) also bounds
+        /// `|dh_i/dq_k|` for any barrier built on the field. That is what makes it useful:
+        /// it says which spheres *could* lose clearance over a step before any gradient or
+        /// Jacobian has been computed. See `cbf::ClearanceBarrier::decreaseRates()`.
+        ///
+        /// The bound comes from the chain, not from sampling. Expanding the forward
+        /// kinematics,
+        ///
+        ///     p_i - o_k = sum_{j=k+1}^{f_i - 1} R_j t_j  +  R_{f_i} c_i
+        ///
+        /// where `t_j` is joint j's fixed parent offset and `c_i` the sphere's centre in
+        /// its own frame, so the triangle inequality gives
+        ///
+        ///     |p_i - o_k| <= sum_{j=k+1}^{f_i - 1} |t_j|  +  |c_i|
+        ///
+        /// independent of q. Note which joints drop out and why: joints below k move the
+        /// axis and the sphere together, joint k rotates the sphere *about* the axis, and
+        /// joints past `f_i` do not move the sphere at all — none of them can change the
+        /// distance. Only the joints strictly between k and the sphere's frame can, and
+        /// those are exactly the terms in the sum. Zero for k >= f_i, since a downstream
+        /// joint cannot move the sphere.
+        ///
+        /// It is sound but not tight: bounding the distance-to-axis by the full distance
+        /// discards the component along the axis, and the straight-chain sum overshoots
+        /// what the joint limits actually reach. For sphere-on-frame-6 versus joint 0 it
+        /// gives ~1.16 m against a true horizontal reach nearer 0.85 m. Tightening it
+        /// makes every user of it strictly better, so it is worth doing eventually --
+        /// per-joint-limit interval arithmetic over the intervening joints would.
+        static const Eigen::Matrix<double, nSpheres, nJoints> &leverArmBounds()
+        {
+            static const Eigen::Matrix<double, nSpheres, nJoints> table = []
+            {
+                Eigen::Matrix<double, nSpheres, nJoints> bounds;
+                bounds.setZero();
+                for (std::size_t i = 0; i < nSpheres; ++i)
+                {
+                    const std::size_t frame = spheres()[i].frame;
+                    // Walk k downward, accumulating the offsets newly enclosed each time.
+                    double reach = spheres()[i].center.norm();
+                    for (std::size_t k = frame; k-- > 0;)
+                    {
+                        // Joint k+1's offset separates the sphere from axis k but not from
+                        // axis k+1, so it enters here rather than on the previous step.
+                        if (k + 1 < frame)
+                            reach += jointOrigins()[k + 1].translation.norm();
+                        bounds(static_cast<Eigen::Index>(i), static_cast<Eigen::Index>(k)) = reach;
+                    }
+                }
+                return bounds;
+            }();
+            return table;
+        }
+
         /// Exact d(center_i)/dq. Column k is the standard revolute-joint term
         /// axis_k x (p_i - origin_k) for the joints upstream of sphere i, and zero
         /// for the joints downstream of it (they cannot move it).

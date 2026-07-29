@@ -82,11 +82,93 @@ namespace ompl::cbf
 
         struct Evaluation
         {
-            Values values;                ///< h_i(q)
-            Rows rows;                    ///< dh_i/dq
+            Values values;                ///< h_i(q), always for every sphere
+            Rows rows;                    ///< dh_i/dq -- only the first `active` are filled
+            /// Which sphere each of the first `active` rows belongs to, so a caller can
+            /// pair row r with `values[sphere[r]]`. The identity for a full evaluation.
+            Eigen::Matrix<int, nSpheres, 1> sphere;
+            int active{nSpheres};         ///< how many rows of `rows` are meaningful
             std::size_t worst{0};         ///< index of the smallest h_i
             bool inBounds{true};          ///< were all centers inside the SDF's box?
         };
+
+        /// How fast each sphere's barrier can possibly fall, per unit time, given a
+        /// per-joint speed limit: `rate_i = maxGrad * sum_k maxSpeed_k * L[i][k]`.
+        ///
+        /// This is the Lipschitz bound that makes screening sound. Over a step of duration
+        /// dt, `h_i` cannot decrease by more than `rate_i * dt`, so a sphere with
+        /// `h_i > rate_i * dt` **cannot** reach zero during the step whatever control is
+        /// applied — its constraint row cannot bind and need not be built, let alone
+        /// solved against. Both factors are configuration-independent:
+        /// `Robot::leverArmBounds()` bounds `|dp_i/dq_k|` over all of configuration space,
+        /// and `GridSDF::maxGradientNorm()` bounds the field's gradient over the whole
+        /// grid.
+        ///
+        /// The bound is conservative twice over — the lever arms are not tight, and it
+        /// assumes every joint runs at full speed in the worst direction simultaneously —
+        /// so it over-selects rows rather than under-selecting them. That is the safe
+        /// direction: a loose bound costs work, a tight-but-wrong one costs safety.
+        Values decreaseRates(const Configuration &maxSpeed) const
+        {
+            return field_.maxGradientNorm() *
+                   (Robot::leverArmBounds() * maxSpeed.cwiseAbs()).eval();
+        }
+
+        /// Barrier values for every sphere, but constraint rows only for the spheres whose
+        /// clearance is at or below \p threshold — normally `decreaseRates(maxSpeed) * dt`.
+        ///
+        /// The saving is the point: a skipped sphere costs one interpolated *value*, while
+        /// an included one costs an interpolated gradient and a Jacobian contraction on
+        /// top, and then a row in the QP. In open space almost every sphere is skipped and
+        /// this collapses to the cost of a collision check.
+        ///
+        /// What a caller gives up, and it is a real change rather than an optimisation:
+        /// the discrete CBF condition `h(q + u dt) >= (1 - gamma) h(q)` is enforced only
+        /// for the spheres that were included. Skipped spheres are guaranteed to stay
+        /// **safe** (`h_i > 0`) by the Lipschitz argument above, but not to decay at the
+        /// prescribed rate. Safety is the invariant that matters; the decay rate is a
+        /// smoothness preference. Audit rather than assume — see `guarding()`.
+        void evaluateScreened(const Configuration &q, const Values &threshold, Evaluation &out) const
+        {
+            const Robot::Kinematics kin = robot_.kinematics(q);
+
+            out.inBounds = true;
+            out.worst = 0;
+            out.active = 0;
+            double smallest = std::numeric_limits<double>::infinity();
+
+            // Centres are kept because the survivors need them again for the gradient
+            // query, and forward kinematics is not worth repeating.
+            Robot::SphereCenters centers;
+
+            for (std::size_t i = 0; i < Robot::nSpheres; ++i)
+            {
+                const Eigen::Index index = static_cast<Eigen::Index>(i);
+                const Eigen::Vector3d center = Robot::sphereCenter(kin, i);
+                centers.col(index) = center;
+                out.inBounds = out.inBounds && field_.inBounds(center);
+
+                const double h = field_.distance(center) - Robot::spheres()[i].radius - margin_;
+                out.values[index] = h;
+                if (h < smallest)
+                {
+                    smallest = h;
+                    out.worst = i;
+                }
+            }
+
+            for (std::size_t i = 0; i < Robot::nSpheres; ++i)
+            {
+                const Eigen::Index index = static_cast<Eigen::Index>(i);
+                if (out.values[index] > threshold[index])
+                    continue;
+
+                const Eigen::Vector3d gradient = field_.gradient(centers.col(index));
+                const Eigen::Index row = out.active++;
+                out.sphere[row] = static_cast<int>(i);
+                out.rows.row(row) = Robot::barrierGradient(kin, i, gradient).transpose();
+            }
+        }
 
         /// Neither \p robot nor \p field is copied; both must outlive this object.
         ClearanceBarrier(const Robot &robot, const sdf::GridSDF &field, double margin = defaultMargin)
@@ -146,12 +228,14 @@ namespace ompl::cbf
 
             out.inBounds = true;
             out.worst = 0;
+            out.active = nSpheres;
             double smallest = std::numeric_limits<double>::infinity();
 
             for (std::size_t i = 0; i < Robot::nSpheres; ++i)
             {
                 const Eigen::Vector3d center = Robot::sphereCenter(kin, i);
                 out.inBounds = out.inBounds && field_.inBounds(center);
+                out.sphere[static_cast<Eigen::Index>(i)] = static_cast<int>(i);
 
                 const sdf::ValueGradient vg = field_.valueAndGradient(center);
                 const double h = vg.value - Robot::spheres()[i].radius - margin_;

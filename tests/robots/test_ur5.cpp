@@ -8,6 +8,7 @@
 #include <Eigen/Geometry>
 
 #include <ompl/robots/UR5.h>
+#include <ompl/util/RandomNumbers.h>
 
 using UR5 = ompl::robots::UR5;
 
@@ -193,4 +194,56 @@ BOOST_AUTO_TEST_CASE(JointBoundsAreSymmetric)
         BOOST_CHECK_LT(UR5::lowerBounds()[j], UR5::upperBounds()[j]);
         BOOST_CHECK_CLOSE(UR5::lowerBounds()[j], -UR5::upperBounds()[j], 1e-9);
     }
+}
+
+// leverArmBounds() claims a configuration-independent bound on how fast each joint can
+// move each sphere. That claim is what makes CBF row screening sound, so it is checked
+// against the exact Jacobian over a large random sample: every column norm of every
+// sphere Jacobian, at every configuration, must fall under its table entry.
+BOOST_AUTO_TEST_CASE(LeverArmBoundsDominateEveryActualJacobianColumn)
+{
+    const UR5 robot;
+    const auto &bounds = UR5::leverArmBounds();
+    ompl::RNG rng;
+
+    double worstRatio = 0.0;
+    for (int sample = 0; sample < 3000; ++sample)
+    {
+        UR5::Configuration q;
+        for (std::size_t j = 0; j < UR5::nJoints; ++j)
+            q[static_cast<Eigen::Index>(j)] =
+                rng.uniformReal(UR5::lowerBounds()[static_cast<Eigen::Index>(j)],
+                                UR5::upperBounds()[static_cast<Eigen::Index>(j)]);
+
+        const UR5::Kinematics kin = robot.kinematics(q);
+        for (std::size_t i = 0; i < UR5::nSpheres; ++i)
+        {
+            const UR5::PositionJacobian jacobian = UR5::sphereJacobian(kin, i);
+            for (std::size_t k = 0; k < UR5::nJoints; ++k)
+            {
+                const double actual = jacobian.col(static_cast<Eigen::Index>(k)).norm();
+                const double bound =
+                    bounds(static_cast<Eigen::Index>(i), static_cast<Eigen::Index>(k));
+                BOOST_REQUIRE_LE(actual, bound + 1e-12);
+                if (bound > 1e-12)
+                    worstRatio = std::max(worstRatio, actual / bound);
+            }
+        }
+    }
+
+    // Sound is the requirement; useful is the point. If the bound were wildly loose the
+    // screen would select every sphere and buy nothing, so pin that it is within a small
+    // factor of something actually attained.
+    BOOST_CHECK_GT(worstRatio, 0.5);
+}
+
+// Downstream joints cannot move a sphere at all, so their bound must be exactly zero --
+// this is what lets a screened evaluation drop the base sphere's all-zero row for free.
+BOOST_AUTO_TEST_CASE(LeverArmBoundsAreZeroForDownstreamJoints)
+{
+    const auto &bounds = UR5::leverArmBounds();
+    for (std::size_t i = 0; i < UR5::nSpheres; ++i)
+        for (std::size_t k = UR5::spheres()[i].frame; k < UR5::nJoints; ++k)
+            BOOST_CHECK_EQUAL(bounds(static_cast<Eigen::Index>(i), static_cast<Eigen::Index>(k)),
+                              0.0);
 }

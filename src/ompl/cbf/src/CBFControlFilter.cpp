@@ -30,6 +30,10 @@ struct ompl::cbf::CBFControlFilter::Solver
     Eigen::Matrix<double, nSpheres, 1> rowUpper{
         Eigen::Matrix<double, nSpheres, 1>::Constant(std::numeric_limits<double>::infinity())};
     ClearanceBarrier::Evaluation evaluation;
+    /// How fast each sphere's barrier can fall per unit time; see
+    /// ClearanceBarrier::decreaseRates(). Constant, so computed once.
+    ClearanceBarrier::Values decreaseRates;
+    ClearanceBarrier::Values threshold;
 };
 
 ompl::cbf::CBFControlFilter::CBFControlFilter(const ClearanceBarrier &barrier)
@@ -40,6 +44,8 @@ ompl::cbf::CBFControlFilter::CBFControlFilter(const ClearanceBarrier &barrier)
 ompl::cbf::CBFControlFilter::CBFControlFilter(const ClearanceBarrier &barrier, const Parameters &parameters)
   : barrier_(barrier), parameters_(parameters), solver_(std::make_unique<Solver>())
 {
+    // Per unit time; scaled by the actual step in filter(), which is where dt is known.
+    solver_->decreaseRates = barrier_.decreaseRates(parameters_.maxSpeed);
 }
 
 ompl::cbf::CBFControlFilter::~CBFControlFilter() = default;
@@ -93,12 +99,24 @@ ompl::cbf::ControlFilter::Status ompl::cbf::CBFControlFilter::filter(const Confi
 
     Solver &solver = *solver_;
     ClearanceBarrier::Evaluation &evaluation = solver.evaluation;
-    barrier_.evaluate(q, evaluation);
+    if (parameters_.screening)
+    {
+        // A sphere cannot lose more than rate*dt of clearance over the step, so anything
+        // clear by more than that cannot bind and needs no row -- and so no gradient and
+        // no Jacobian either, which is where the cost is.
+        solver.threshold = solver.decreaseRates * duration;
+        barrier_.evaluateScreened(q, solver.threshold, evaluation);
+    }
+    else
+    {
+        barrier_.evaluate(q, evaluation);
+    }
 
     diagnostics.worstValue = evaluation.values[static_cast<Eigen::Index>(evaluation.worst)];
     diagnostics.worstSphere = evaluation.worst;
     diagnostics.inBounds = evaluation.inBounds;
     diagnostics.solverIterations = 0;
+    diagnostics.activeRows = evaluation.active;
 
     // Outside the baked field, GridSDF clamps and over-reports clearance, so the
     // barrier cannot be trusted. Refusing to move is the only safe answer.
@@ -116,13 +134,22 @@ ompl::cbf::ControlFilter::Status ompl::cbf::CBFControlFilter::filter(const Confi
     solver.hessian.diagonal() = parameters_.weights;
     solver.objective = -parameters_.weights.cwiseProduct(nominal);
 
-    // Discrete-time CBF: (dh_i/dq) u >= -gamma h_i / dt.
-    solver.rowLower = evaluation.values * (-parameters_.gamma / duration);
+    // Discrete-time CBF: (dh_i/dq) u >= -gamma h_i / dt. Row r constrains sphere
+    // evaluation.sphere[r], which is r itself unless screening reordered things.
+    const Eigen::Index active = evaluation.active;
+    for (Eigen::Index r = 0; r < active; ++r)
+        solver.rowLower[r] =
+            evaluation.values[evaluation.sphere[r]] * (-parameters_.gamma / duration);
 
     try
     {
+        // Fixed capacity, variable occupancy: qpmad's template arguments are maxima and
+        // it reads the constraint count off the matrix it is handed, so passing fewer
+        // rows costs less without allocating anything.
         const auto status = solver.backend.solve(filtered, solver.hessian, solver.objective, lower, upper,
-                                                 evaluation.rows, solver.rowLower, solver.rowUpper);
+                                                 evaluation.rows.topRows(active),
+                                                 solver.rowLower.head(active),
+                                                 solver.rowUpper.head(active));
         diagnostics.solverIterations = solver.backend.getNumberOfInequalityIterations();
         if (status != Solver::Backend::OK)
         {

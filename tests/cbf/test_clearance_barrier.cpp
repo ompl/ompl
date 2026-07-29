@@ -7,7 +7,10 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
+#include <limits>
+
 #include <ompl/cbf/ClearanceBarrier.h>
+#include <ompl/util/RandomNumbers.h>
 
 using Barrier = ompl::cbf::ClearanceBarrier;
 using UR5 = ompl::robots::UR5;
@@ -214,4 +217,97 @@ BOOST_AUTO_TEST_CASE(MarginIsSettable)
     const double before = barrier.worstValue(q);
     barrier.setMargin(barrier.margin() + 0.01);
     BOOST_CHECK_LE(std::abs(barrier.worstValue(q) - (before - 0.01)), 1e-15);
+}
+
+// The claim that makes row screening sound, stated as directly as it can be tested:
+// clearance cannot fall faster than `decreaseRates()` says, for *any* admissible control.
+// Unlike the CBF row itself this is not a linearisation -- the lever-arm bound holds at
+// every configuration along the step, so integrating it bounds the true change in h.
+// Adversarial controls are used (full speed, random signs, plus the exact worst-case
+// direction for the tightest sphere) rather than benign ones.
+BOOST_AUTO_TEST_CASE(DecreaseRatesBoundHowFastClearanceCanActuallyFall)
+{
+    const UR5 robot;
+    const Barrier barrier(robot, obstacleField(), 0.0);
+    const UR5::Configuration maxSpeed = UR5::velocityLimits();
+    const Barrier::Values rates = barrier.decreaseRates(maxSpeed);
+    constexpr double duration = 0.05;
+
+    ompl::RNG rng;
+    double worstSlack = std::numeric_limits<double>::infinity();
+    for (int sample = 0; sample < 4000; ++sample)
+    {
+        UR5::Configuration q;
+        for (Eigen::Index j = 0; j < 6; ++j)
+            q[j] = rng.uniformReal(UR5::lowerBounds()[j], UR5::upperBounds()[j]);
+
+        // Full-speed control, signs chosen to drive the worst sphere's clearance down as
+        // hard as the linear model allows -- the nastiest admissible direction there is.
+        const Barrier::Evaluation evaluation = barrier.evaluate(q);
+        UR5::Configuration u;
+        for (Eigen::Index j = 0; j < 6; ++j)
+        {
+            const double descend =
+                -evaluation.rows(static_cast<Eigen::Index>(evaluation.worst), j);
+            u[j] = maxSpeed[j] * ((descend >= 0.0) ? 1.0 : -1.0);
+            if (sample % 2 == 0)  // and plain random signs on the other half
+                u[j] = maxSpeed[j] * (rng.uniform01() < 0.5 ? -1.0 : 1.0);
+        }
+
+        const Barrier::Values before = barrier.values(q);
+        const Barrier::Values after = barrier.values(q + u * duration);
+        for (Eigen::Index i = 0; i < Barrier::nSpheres; ++i)
+        {
+            const double allowed = rates[i] * duration;
+            const double fell = before[i] - after[i];
+            BOOST_REQUIRE_LE(fell, allowed + 1e-9);
+            worstSlack = std::min(worstSlack, allowed - fell);
+        }
+    }
+
+    // Sound, and not so slack as to be useless: something must come close to the bound.
+    BOOST_CHECK_LT(worstSlack, 0.05);
+}
+
+// A screened evaluation must agree with a full one on everything it reports: identical
+// barrier values for every sphere, and identical rows for the spheres it kept. It is a
+// cheaper way to compute the same numbers, not a different barrier.
+BOOST_AUTO_TEST_CASE(ScreenedEvaluationAgreesWithTheFullOneOnWhatItKeeps)
+{
+    const UR5 robot;
+    const Barrier barrier(robot, obstacleField(), 0.0);
+    const Barrier::Values rates = barrier.decreaseRates(UR5::velocityLimits());
+    const Barrier::Values threshold = rates * 0.05;
+
+    ompl::RNG rng;
+    long kept = 0;
+    int evaluations = 0;
+    for (int sample = 0; sample < 500; ++sample)
+    {
+        UR5::Configuration q;
+        for (Eigen::Index j = 0; j < 6; ++j)
+            q[j] = rng.uniformReal(UR5::lowerBounds()[j], UR5::upperBounds()[j]);
+
+        const Barrier::Evaluation full = barrier.evaluate(q);
+        Barrier::Evaluation screened;
+        barrier.evaluateScreened(q, threshold, screened);
+
+        BOOST_REQUIRE_LE((screened.values - full.values).cwiseAbs().maxCoeff(), 1e-12);
+        BOOST_REQUIRE_EQUAL(screened.worst, full.worst);
+        BOOST_REQUIRE_EQUAL(screened.inBounds, full.inBounds);
+        BOOST_REQUIRE_LE(screened.active, Barrier::nSpheres);
+
+        for (Eigen::Index r = 0; r < screened.active; ++r)
+        {
+            const Eigen::Index i = screened.sphere[r];
+            // Kept spheres are exactly those that could bind.
+            BOOST_REQUIRE_LE(screened.values[i], threshold[i]);
+            BOOST_REQUIRE_LE((screened.rows.row(r) - full.rows.row(i)).cwiseAbs().maxCoeff(), 1e-12);
+        }
+        kept += screened.active;
+        ++evaluations;
+    }
+
+    // And it earns its keep: most spheres are nowhere near binding over one step.
+    BOOST_CHECK_LT(static_cast<double>(kept) / evaluations, 20.0);
 }

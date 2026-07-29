@@ -35,9 +35,24 @@ namespace ompl::cbf
     /// which for this objective is exactly `uNom`, and activates constraints only
     /// as they turn out to be violated. So a step that is already safe returns
     /// `uNom` untouched at almost no cost, and there is no need to guess in advance
-    /// which spheres matter: all forty rows are handed over and the solver finds
-    /// the active ones itself. That removes both the heuristic active-set
-    /// preselection and the constraint-refinement loop that a primal solver needs.
+    /// which spheres matter: the solver finds the active ones itself. That removes
+    /// both the heuristic active-set preselection and the constraint-refinement
+    /// loop that a primal solver needs.
+    ///
+    /// ### Screening, and what it trades
+    ///
+    /// Building the forty rows costs about three times the solve, so the rows are
+    /// where the money is. `screening` (on by default) uses
+    /// `ClearanceBarrier::decreaseRates()` to drop, before computing anything, the
+    /// spheres whose clearance provably cannot reach zero within the step — leaving
+    /// them at the cost of one interpolated distance each, which is what a plain
+    /// collision check would have paid anyway.
+    ///
+    /// The trade is real and worth stating: the CBF decay condition is then enforced
+    /// only for the spheres that survived screening. The others are guaranteed
+    /// **safe** by the Lipschitz bound, but not to decay at rate `gamma`. Safety is
+    /// the invariant; the decay rate is a smoothness preference. Turn screening off
+    /// to recover the exact original semantics, at roughly twice the cost per step.
     ///
     /// ### Threading
     ///
@@ -57,6 +72,9 @@ namespace ompl::cbf
             Control maxSpeed{robots::UR5::velocityLimits()};
             /// Also constrain u so that q + u*dt stays inside the joint limits.
             bool respectJointLimits{true};
+            /// Skip constraint rows for spheres that cannot bind within the step.
+            /// See the class comment for what this gives up.
+            bool screening{true};
         };
 
         /// Optional per-call detail, for diagnostics and benchmarking.
@@ -66,6 +84,7 @@ namespace ompl::cbf
             std::size_t worstSphere{0};        ///< which sphere that was
             bool inBounds{true};               ///< were all centers inside the SDF?
             std::ptrdiff_t solverIterations{0};  ///< qpmad active-set iterations
+            int activeRows{ClearanceBarrier::nSpheres};  ///< rows that survived screening
         };
 
         /// \p barrier is not copied and must outlive this filter.
