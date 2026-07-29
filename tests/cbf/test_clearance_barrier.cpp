@@ -26,9 +26,12 @@ namespace
     constexpr double voxel = 0.02;
 
     // Errors measured against the analytic field at this voxel size: barrier
-    // values to 0.44 mm, rows to 1.5 mm. Both scale as O(voxel^2).
+    // values to 0.45 mm, rows to 26 mm. The values are second-order accurate and
+    // scale as O(voxel^2); the rows are only first-order and scale as O(voxel) —
+    // see RowsMatchTheAnalyticGradient for why. Both tolerances leave ~2x headroom
+    // over the measurement.
     constexpr double valueTolerance = 1e-3;
-    constexpr double rowTolerance = 3e-3;
+    constexpr double rowTolerance = 5e-2;
 
     sdf::DistanceFn sphereField(const Eigen::Vector3d &center, double radius)
     {
@@ -83,12 +86,18 @@ BOOST_AUTO_TEST_CASE(ValuesMatchTheAnalyticField)
     }
 }
 
-// The rows are what a QP steering step differentiates through. Compare them to
-// the exact chain rule J_i^T * grad d, not to finite differences of the cached
-// values: GridSDF interpolates values and gradients independently, so the
-// interpolated gradient is deliberately not the derivative of the interpolated
-// value, and a finite-difference check measures that inconsistency (~25x larger,
-// and only O(voxel)) rather than the row's actual accuracy.
+// The rows are what a QP steering step differentiates through, so check them
+// against the exact chain rule J_i^T * grad d.
+//
+// The tolerance here is ~17x looser than valueTolerance because GridSDF's
+// gradient is the exact derivative of its trilinearly interpolated value. That
+// derivative is piecewise constant along each axis within a cell, which makes it
+// only O(voxel) accurate — a differentiated interpolant loses an order relative
+// to the interpolant itself. Interpolating central-difference node gradients
+// instead would land inside 1.5 mm here, but it yields a gradient that is not the
+// derivative of any field the barrier evaluates, and the Lipschitz screening in
+// ClearanceBarrier::decreaseRates needs those two to agree to be sound. Accuracy
+// is the deliberate trade; shrink the voxel if a row needs to be tighter.
 BOOST_AUTO_TEST_CASE(RowsMatchTheAnalyticGradient)
 {
     const UR5 robot;
