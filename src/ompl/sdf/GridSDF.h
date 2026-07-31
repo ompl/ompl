@@ -3,7 +3,12 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <fstream>
 #include <functional>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 #include <Eigen/Core>
@@ -111,6 +116,137 @@ namespace ompl::sdf
         auto maxGradientNorm() const -> double
         {
             return maxGradientNorm_;
+        }
+
+        /// Adopt a grid that was baked elsewhere.
+        ///
+        /// The baking constructor needs a `DistanceFn`, which a scene living in
+        /// another process or another language cannot supply. This one takes the
+        /// finished node values instead, so the bake can happen wherever the
+        /// geometry actually is — a PyBullet scene, an offline tool — while the
+        /// query path here stays byte-for-byte the same field.
+        ///
+        /// \p values holds one signed distance per node, x fastest then y then z,
+        /// i.e. index `i + dims.x * (j + dims.y * k)`. Node (i,j,k) sits at
+        /// `bounds.min() + (i,j,k) * spacing`, with `spacing = extent / (dims-1)`,
+        /// which is the layout the baking constructor produces for a given voxel
+        /// size. Use \ref gridDimensions to derive \p dims from a voxel size so the
+        /// two agree by construction.
+        GridSDF(const Eigen::AlignedBox3d &bounds, const Eigen::Vector3i &dims, std::vector<double> values)
+          : bounds_(bounds), origin_(bounds.min()), dims_(dims), values_(std::move(values))
+        {
+            for (int d = 0; d < 3; ++d)
+                if (dims_[d] < 2)
+                    throw std::invalid_argument("ompl::sdf::GridSDF: each dimension needs >= 2 nodes");
+
+            const std::size_t expected =
+                static_cast<std::size_t>(dims_[0]) * dims_[1] * dims_[2];
+            if (values_.size() != expected)
+                throw std::invalid_argument("ompl::sdf::GridSDF: value count does not match dimensions");
+
+            const Eigen::Vector3d extent = bounds_.max() - bounds_.min();
+            for (int d = 0; d < 3; ++d)
+                spacing_[d] = (extent[d] > 0.0) ? extent[d] / (dims_[d] - 1) : 0.0;
+
+            computeLipschitzBound();
+        }
+
+        /// Node counts the baking constructor would choose for \p voxel. Exposed so
+        /// an external baker can produce a grid this class will accept unchanged.
+        static auto gridDimensions(const Eigen::AlignedBox3d &bounds, double voxel) -> Eigen::Vector3i
+        {
+            const Eigen::Vector3d extent = bounds.max() - bounds.min();
+            Eigen::Vector3i dims;
+            for (int d = 0; d < 3; ++d)
+                dims[d] = std::max<int>(2, static_cast<int>(std::ceil(extent[d] / voxel)) + 1);
+            return dims;
+        }
+
+        /// Byte layout of \ref save / \ref load. Little-endian, no padding:
+        ///
+        ///     char     magic[8]   "OMPLSDF1"
+        ///     uint32   version    1
+        ///     uint32   dims[3]
+        ///     float64  min[3], max[3]
+        ///     float64  values[dims.x * dims.y * dims.z]
+        static constexpr char magic[8] = {'O', 'M', 'P', 'L', 'S', 'D', 'F', '1'};
+        static constexpr std::uint32_t formatVersion = 1;
+
+        /// Write the baked grid to \p path. Only the node values are stored; the
+        /// gradient is recovered analytically from the interpolant on load, so a
+        /// round trip reproduces the field exactly.
+        void save(const std::string &path) const
+        {
+            std::ofstream out(path, std::ios::binary);
+            if (!out)
+                throw std::runtime_error("ompl::sdf::GridSDF::save: cannot open " + path);
+
+            out.write(magic, sizeof(magic));
+            const std::uint32_t version = formatVersion;
+            out.write(reinterpret_cast<const char *>(&version), sizeof(version));
+            for (int d = 0; d < 3; ++d)
+            {
+                const std::uint32_t n = static_cast<std::uint32_t>(dims_[d]);
+                out.write(reinterpret_cast<const char *>(&n), sizeof(n));
+            }
+            for (int d = 0; d < 3; ++d)
+            {
+                const double v = bounds_.min()[d];
+                out.write(reinterpret_cast<const char *>(&v), sizeof(v));
+            }
+            for (int d = 0; d < 3; ++d)
+            {
+                const double v = bounds_.max()[d];
+                out.write(reinterpret_cast<const char *>(&v), sizeof(v));
+            }
+            out.write(reinterpret_cast<const char *>(values_.data()),
+                      static_cast<std::streamsize>(values_.size() * sizeof(double)));
+            if (!out)
+                throw std::runtime_error("ompl::sdf::GridSDF::save: write failed for " + path);
+        }
+
+        /// Read a grid written by \ref save (or by an external baker following the
+        /// layout above).
+        static auto load(const std::string &path) -> GridSDF
+        {
+            std::ifstream in(path, std::ios::binary);
+            if (!in)
+                throw std::runtime_error("ompl::sdf::GridSDF::load: cannot open " + path);
+
+            char tag[sizeof(magic)];
+            in.read(tag, sizeof(tag));
+            if (!in || std::memcmp(tag, magic, sizeof(magic)) != 0)
+                throw std::runtime_error("ompl::sdf::GridSDF::load: not an SDF grid: " + path);
+
+            std::uint32_t version = 0;
+            in.read(reinterpret_cast<char *>(&version), sizeof(version));
+            if (version != formatVersion)
+                throw std::runtime_error("ompl::sdf::GridSDF::load: unsupported version in " + path);
+
+            Eigen::Vector3i dims;
+            for (int d = 0; d < 3; ++d)
+            {
+                std::uint32_t n = 0;
+                in.read(reinterpret_cast<char *>(&n), sizeof(n));
+                dims[d] = static_cast<int>(n);
+            }
+
+            Eigen::Vector3d lower;
+            Eigen::Vector3d upper;
+            in.read(reinterpret_cast<char *>(lower.data()), 3 * sizeof(double));
+            in.read(reinterpret_cast<char *>(upper.data()), 3 * sizeof(double));
+            if (!in)
+                throw std::runtime_error("ompl::sdf::GridSDF::load: truncated header in " + path);
+
+            const std::size_t total =
+                static_cast<std::size_t>(dims[0]) * dims[1] * dims[2];
+            std::vector<double> values(total);
+            in.read(reinterpret_cast<char *>(values.data()),
+                    static_cast<std::streamsize>(total * sizeof(double)));
+            if (!in)
+                throw std::runtime_error("ompl::sdf::GridSDF::load: truncated values in " + path);
+
+            return GridSDF(Eigen::AlignedBox3d(lower, upper), dims, std::move(values));
         }
 
     private:
