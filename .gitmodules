@@ -6,3 +6,6 @@
 [submodule "external/nanobind"]
 	path = external/nanobind
 	url = https://github.com/wjakob/nanobind.git
+[submodule "ur5_experiments"]
+	path = ur5_experiments
+	url = https://github.com/mamani828/ur5_experiments
