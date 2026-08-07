@@ -724,3 +724,111 @@ BOOST_AUTO_TEST_CASE(StockRRTConnectPlansSafelyThroughTheRolloutSpace)
                                           .norm());
     BOOST_CHECK_LE(worstGap, stride);
 }
+
+// What the certificate is for. With nothing in the way, one filter call establishes that
+// the filter has nothing to say about the entire extension, so the edge is a single
+// straight step -- the same motion the old rollout produced one QP solve at a time, at
+// 1/80th of the cost, landing on the target exactly rather than a rounding away from it.
+BOOST_AUTO_TEST_CASE(AnUnobstructedEdgeIsOneStraightStep)
+{
+    const UR5 robot;
+    const Barrier barrier(robot, emptyField(), 0.0);
+    const Filter filter(barrier, filterParameters());
+    auto space = makeSpace(filter);
+
+    const UR5::Configuration a = configuration(0.0, -1.2, 1.8, -0.6, 1.57, 0.0);
+    const UR5::Configuration b = configuration(1.4, -0.7, 1.2, -0.2, 1.20, 0.5);
+    BOOST_REQUIRE_GT(space->horizonSteps(a, b), 40u);  // 40 steps is what it used to cost
+
+    const Space::Rollout rollout = space->roll(a, b, 1.0);
+    BOOST_CHECK_EQUAL(rollout.steps, 1u);
+    BOOST_CHECK_EQUAL(rollout.coarse, 1u);
+    BOOST_CHECK_EQUAL(rollout.waypoints.size(), 2u);
+    BOOST_CHECK(rollout.reachedTarget);
+    BOOST_CHECK_EQUAL((rollout.end - b).norm(), 0.0);
+
+    // And it is genuinely the straight line, not merely a motion that ends in the right
+    // place: the record has no interior waypoints to be off it.
+    BOOST_CHECK_EQUAL((rollout.waypoints.front() - a).norm(), 0.0);
+    BOOST_CHECK_CLOSE(rollout.travel, (b - a).norm(), 1e-9);
+}
+
+// The cap is the A/B: at 1 the rollout steps at `stepSize` whatever the certificate says,
+// which is what it did before there was one.
+BOOST_AUTO_TEST_CASE(TheStepCapRestoresTheFixedStep)
+{
+    const UR5 robot;
+    const Barrier barrier(robot, emptyField(), 0.0);
+    const Filter filter(barrier, filterParameters());
+    auto space = makeSpace(filter);
+    space->setMaxStepScale(1.0);
+
+    const UR5::Configuration a = configuration(0.0, -1.2, 1.8, -0.6, 1.57, 0.0);
+    const UR5::Configuration b = configuration(1.4, -0.7, 1.2, -0.2, 1.20, 0.5);
+
+    const Space::Rollout rollout = space->roll(a, b, 1.0);
+    BOOST_CHECK_EQUAL(rollout.steps, space->horizonSteps(a, b));
+    BOOST_CHECK_EQUAL(rollout.coarse, 0u);
+    BOOST_CHECK(rollout.reachedTarget);
+
+    // Same motion either way -- the certificate changes what it costs to find out, not
+    // where the arm goes.
+    space->setMaxStepScale(std::numeric_limits<double>::infinity());
+    BOOST_CHECK_LE((space->roll(a, b, 1.0).end - rollout.end).norm(), 1e-12);
+    BOOST_CHECK_THROW(space->setMaxStepScale(0.5), ompl::Exception);
+}
+
+// The claim that makes a long step admissible at all: over a certified span the filter is
+// a no-op, so the straight line joining its endpoints is safe at *every* point, not only
+// where it was evaluated. Nothing else in this suite would catch a certificate that is
+// too long -- the audit samples the same waypoints the rollout produced, and those are
+// safe by construction -- so sample strictly inside the coarse steps and check there.
+//
+// Checked against the barrier the filter guards, which is the one it promised to hold:
+// a certified step is not merely collision free, it is a step the QP would have passed
+// through untouched.
+BOOST_AUTO_TEST_CASE(CertifiedStepsAreSafeAlongTheirWholeSpan)
+{
+    const UR5 robot;
+    // The demo's scene rather than obstacleField(): a base sweep that starts in the open,
+    // works its way around a pair of spheres and comes out the other side, so the rollout
+    // passes through both regimes in one motion. obstacleField() sits so close to the base
+    // that the arm never has room to certify anything, which would leave nothing to check.
+    const sdf::GridSDF field(
+        [](const Eigen::Vector3d &p)
+        {
+            return std::min((p - Eigen::Vector3d(-0.742, 0.121, 1.083)).norm() - 0.18,
+                            (p - Eigen::Vector3d(-0.742, 0.121, 1.383)).norm() - 0.14);
+        },
+        UR5::reachableBounds(), voxel);
+    const Barrier guard = Barrier::guarding(robot, field, 0.0);
+    const Filter filter(guard, filterParameters());
+    auto space = makeSpace(filter);
+
+    const UR5::Configuration a = configuration(0.0, -1.2, 1.8, -0.6, 1.57, 0.0);
+    const UR5::Configuration b = configuration(2.4, -1.2, 1.8, -0.6, 1.57, 0.0);
+    BOOST_REQUIRE(straightLineBlocked(Barrier(robot, field, 0.0), a, b));
+
+    const Space::Rollout rollout = space->roll(a, b, 1.0);
+
+    // The scene has to actually exercise both regimes, or the test proves nothing.
+    BOOST_REQUIRE_GT(rollout.filtered, 0u);
+    BOOST_REQUIRE_GT(rollout.coarse, 0u);
+    BOOST_REQUIRE_LT(rollout.coarse, rollout.steps);
+
+    const double stride = UR5::velocityLimits().norm() * stepSize;
+    int spans = 0;
+    for (std::size_t i = 0; i + 1 < rollout.waypoints.size(); ++i)
+    {
+        const UR5::Configuration &from = rollout.waypoints[i];
+        const UR5::Configuration &to = rollout.waypoints[i + 1];
+        if ((to - from).norm() <= stride)
+            continue;  // an ordinary QP step; the margin covers what happens inside it
+
+        ++spans;
+        constexpr int samples = 50;
+        for (int k = 0; k <= samples; ++k)
+            BOOST_REQUIRE(guard.isSafe(from + (to - from) * (static_cast<double>(k) / samples)));
+    }
+    BOOST_REQUIRE_GT(spans, 0);
+}

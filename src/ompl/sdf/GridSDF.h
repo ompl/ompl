@@ -89,6 +89,19 @@ namespace ompl::sdf
             return bounds_.contains(p);
         }
 
+        /// How far \p p may move in any direction and still be inside the baked box:
+        /// the distance to the nearest face, negative when already outside.
+        ///
+        /// This is not a clearance from anything physical -- the box boundary is not an
+        /// obstacle. It exists because a query outside the box is *clamped* and so
+        /// over-reports clearance, which is the one direction a barrier cannot tolerate.
+        /// Anything that certifies a whole segment of motion from one evaluation has to
+        /// bound the excursion by this as well as by the clearance.
+        auto boundaryClearance(const Eigen::Vector3d &p) const -> double
+        {
+            return (p - bounds_.min()).cwiseMin(bounds_.max() - p).minCoeff();
+        }
+
         auto bounds() const -> const Eigen::AlignedBox3d &
         {
             return bounds_;

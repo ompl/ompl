@@ -228,6 +228,9 @@ namespace
         std::size_t blocked{0};
         std::size_t filtered{0};
         std::size_t steps{0};
+        std::size_t coarse{0};  ///< steps the filter certified past `stepSize`
+        double travel{0.0};     ///< joint-space radians rolled, so `travel / steps` is the
+                                ///< distance one filter call bought
         std::size_t misses{0};  ///< solution edges re-derived rather than replayed
     };
 
@@ -241,7 +244,7 @@ namespace
     /// was only ever sampled at `longestValidSegmentFraction`. The CBF row is the other
     /// way round -- every state it emits was certified as it was produced.
     Result planCollisionChecked(const Scene &scene, const sdf::GridSDF &field, const Goal &goal,
-                                double timeLimit, double range)
+                                double timeLimit, double range, double checkResolution)
     {
         const UR5 robot;
         const Barrier audit(robot, field, scene.margin);
@@ -254,6 +257,12 @@ namespace
             bounds.setHigh(j, scene.upper[j]);
         }
         space->setBounds(bounds);
+        // Straight-line edges are only ever *sampled* for validity, and OMPL's default
+        // samples them 15x coarser than this row is audited at -- which is a discount on
+        // the checking, not a faster planner. Matching the two is what makes the timing
+        // column mean the same thing in both rows.
+        if (checkResolution > 0.0)
+            space->setLongestValidSegmentFraction(checkResolution / space->getMaximumExtent());
 
         auto si = std::make_shared<ob::SpaceInformation>(space);
         std::size_t checks = 0;
@@ -322,7 +331,8 @@ namespace
     }
 
     Result plan(const Scene &scene, const sdf::GridSDF &field, const Goal &goal, double timeLimit,
-                double stepSize, double range, std::vector<UR5::Configuration> *path)
+                double stepSize, double range, double maxStepScale,
+                std::vector<UR5::Configuration> *path)
     {
         const UR5 robot;
         const Barrier audit(robot, field, scene.margin);
@@ -344,6 +354,10 @@ namespace
             bounds.setHigh(j, scene.upper[j]);
         }
         space->setBounds(bounds);
+        // Above 1 the rollout runs each control as far as the filter certifies it, which
+        // in open space is the whole extension; at 1 it steps at `stepSize` regardless.
+        if (maxStepScale > 0.0)
+            space->setMaxStepScale(maxStepScale);
 
         auto si = std::make_shared<ob::SpaceInformation>(space);
         // The rollout certifies every step it emits, so there is nothing left for a
@@ -381,6 +395,8 @@ namespace
         result.steps = stats.steps;
         result.filtered = stats.filtered;
         result.blocked = stats.blocked;
+        result.coarse = stats.coarse;
+        result.travel = stats.travel;
 
         ob::PlannerData data(si);
         planner->getPlannerData(data);
@@ -427,7 +443,9 @@ int main(int argc, char **argv)
 {
     if (argc < 2)
     {
-        std::printf("usage: %s <scene.problem> [seconds] [out.path] [trials]\n", argv[0]);
+        std::printf("usage: %s <scene.problem> [seconds] [out.path] [trials] [maxStepScale]"
+                    " [baselineCheckRadians]\n",
+                    argv[0]);
         std::printf("       %s <scene.problem> --probe   < points.txt\n", argv[0]);
         return 1;
     }
@@ -439,6 +457,12 @@ int main(int argc, char **argv)
     // Repeats for the timing columns only. A solve here is about a millisecond, so one
     // sample is noise; the reported path and audit come from the last trial.
     const int trials = (argc > 4 && !probeMode) ? std::max(1, std::atoi(argv[4])) : 5;
+    // The certified-step A/B: 1 pins the rollout to `stepSize`, which is what it did
+    // before the filter started reporting how long its answer stays good for.
+    const double maxStepScale = (argc > 5 && !probeMode) ? std::atof(argv[5]) : -1.0;
+    // Joint-space spacing the baseline checks its straight-line edges at, in radians.
+    // Negative leaves OMPL's default, which is far coarser than the audit.
+    const double checkResolution = (argc > 6 && !probeMode) ? std::atof(argv[6]) : -1.0;
 
     const Scene scene = readScene(problemPath);
     const sdf::GridSDF field = sdf::GridSDF::load(scene.gridPath);
@@ -470,8 +494,9 @@ int main(int argc, char **argv)
         return 2;
     }
 
-    std::printf("\n%-28s %-6s %7s %8s %6s %8s %8s %9s %7s %8s %9s\n", "goal", "row", "solved",
-                "seconds", "wpts", "audited", "unsafe", "min h", "evals", "selfcoll", "min self");
+    std::printf("\n%-28s %-6s %7s %8s %6s %8s %8s %9s %7s %8s %6s %8s %9s\n", "goal", "row",
+                "solved", "seconds", "wpts", "audited", "unsafe", "min h", "evals", "rad/call",
+                "coarse", "selfcoll", "min self");
 
     std::vector<UR5::Configuration> combined;
     std::size_t solvedCount = 0;
@@ -492,8 +517,8 @@ int main(int argc, char **argv)
         for (int trial = 0; trial < trials; ++trial)
         {
             path.clear();
-            r = plan(scene, field, goal, timeLimit, stepSize, range, &path);
-            base = planCollisionChecked(scene, field, goal, timeLimit, range);
+            r = plan(scene, field, goal, timeLimit, stepSize, range, maxStepScale, &path);
+            base = planCollisionChecked(scene, field, goal, timeLimit, range, checkResolution);
             cbfRun.push_back(r.seconds);
             baseRun.push_back(base.seconds);
         }
@@ -507,14 +532,16 @@ int main(int argc, char **argv)
         unsafeTotal += r.unsafeStates;
         selfTotal += r.selfColliding;
 
-        std::printf("%-28s %-6s %7s %8.3f %6zu %8zu %8zu %+9.4f %7zu %8zu %+9.4f\n",
+        std::printf("%-28s %-6s %7s %8.3f %6zu %8zu %8zu %+9.4f %7zu %8s %6s %8zu %+9.4f\n",
                     goal.label.c_str(), "rrtc", base.solved ? "yes" : "no", baseMedian,
                     base.waypoints, base.auditedStates, base.unsafeStates,
-                    base.solved ? base.minBarrier : 0.0, base.steps, base.selfColliding,
-                    base.solved ? base.minSelfOverlap : 0.0);
-        std::printf("%-28s %-6s %7s %8.3f %6zu %8zu %8zu %+9.4f %7zu %8zu %+9.4f\n", "", "cbf",
-                    r.solved ? "yes" : "no", cbfMedian, r.waypoints, r.auditedStates,
-                    r.unsafeStates, r.solved ? r.minBarrier : 0.0, r.steps, r.selfColliding,
+                    base.solved ? base.minBarrier : 0.0, base.steps, "-", "-",
+                    base.selfColliding, base.solved ? base.minSelfOverlap : 0.0);
+        std::printf("%-28s %-6s %7s %8.3f %6zu %8zu %8zu %+9.4f %7zu %8.4f %5.0f%% %8zu %+9.4f\n",
+                    "", "cbf", r.solved ? "yes" : "no", cbfMedian, r.waypoints, r.auditedStates,
+                    r.unsafeStates, r.solved ? r.minBarrier : 0.0, r.steps,
+                    r.steps > 0 ? r.travel / r.steps : 0.0,
+                    r.steps > 0 ? 1e2 * r.coarse / r.steps : 0.0, r.selfColliding,
                     r.solved ? r.minSelfOverlap : 0.0);
 
         // Every solution edge should have been replayed from the rollout that made it.

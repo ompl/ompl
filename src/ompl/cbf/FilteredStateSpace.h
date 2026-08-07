@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <cstring>
 #include <deque>
+#include <limits>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -51,6 +52,25 @@ namespace ompl::cbf
     /// *is* the executed motion. A densified record is therefore a genuinely geometric
     /// path, and sampling strictly inside a step is meaningful rather than invented.
     ///
+    /// ### Straight where it can be, filtered where it must be
+    ///
+    /// A rollout does not step at a fixed rate. Each filter call also hands back how
+    /// long the control it returned stays certified -- the span over which nothing the
+    /// filter enforces can bind -- and the rollout runs that control for exactly that
+    /// long before asking again. Where there is room, one call certifies the whole
+    /// extension and the edge is a single straight line, produced without checking
+    /// anything along it, because there is nothing along it left to find out. Where
+    /// there is not, the certificate is short, the step falls back to `stepSize`, and
+    /// the QP does the work as before. Nothing in between is guessed at: the two
+    /// regimes are separated by a Lipschitz bound over the interval, not by a
+    /// heuristic, so the coarse steps are the *more* trustworthy of the two -- they
+    /// hold at every point of the span, where a QP step holds at its endpoints and
+    /// leans on the margin in between.
+    ///
+    /// This is why the certificate is worth having at all: an extension through open
+    /// space used to cost one QP solve per 0.025 rad and now costs one evaluation
+    /// total. `setMaxStepScale(1)` puts the fixed step back for comparison.
+    ///
     /// ### The contract, and where it bends
     ///
     /// OMPL asks that `interpolate(a, b, 1, out)` give `out == b`. That holds here only
@@ -94,6 +114,9 @@ namespace ompl::cbf
             unsigned int steps{0};                 ///< filter calls made
             unsigned int filtered{0};              ///< of those, how many the CBF altered
             unsigned int blocked{0};               ///< of those, how many had no safe control
+            unsigned int coarse{0};                ///< of those, how many ran past `stepSize`
+            double travel{0.0};                    ///< joint-space radians covered
+            double fraction{0.0};                  ///< share of the full horizon it got through
             bool reachedTarget{false};             ///< did it finish within reachTolerance of `to`?
         };
 
@@ -105,6 +128,9 @@ namespace ompl::cbf
             std::size_t steps{0};  ///< filter calls actually made
             std::size_t filtered{0};
             std::size_t blocked{0};
+            std::size_t coarse{0};  ///< steps that ran past `stepSize` on a certificate
+            double travel{0.0};     ///< joint-space radians rolled; `travel / steps` is what a
+                                    ///< filter call buys, which is the number to quote a cost at
             std::size_t abandoned{0};  ///< rollouts discarded for making no progress
             std::size_t served{0};     ///< queries answered from the ledger, at no filter cost
             std::size_t recorded{0};   ///< edges committed to the ledger
@@ -165,26 +191,37 @@ namespace ompl::cbf
         Rollout roll(const Configuration &from, const Configuration &to, double fraction) const
         {
             const unsigned int total = horizonSteps(from, to);
-            const auto steps = static_cast<unsigned int>(
-                std::llround(std::clamp(fraction, 0.0, 1.0) * static_cast<double>(total)));
+            const double horizon = static_cast<double>(total) * stepSize_;
+            const double budget = std::clamp(fraction, 0.0, 1.0) * horizon;
+
+            // Durations below this are indistinguishable from having arrived, and joint
+            // displacements below the second are indistinguishable from zero: at ~1e-12
+            // rad even the longest lever arm on the arm moves by a picometre.
+            const double negligibleTime = 1e-9 * stepSize_;
+            constexpr double negligibleAngle = 1e-12;
 
             Rollout out;
             out.end = from;
-            out.waypoints.reserve(static_cast<std::size_t>(steps) + 1);
+            // Deliberately not `total + 1`: a certified edge holds two waypoints and the
+            // vector is moved into the ledger keeping whatever it reserved.
+            out.waypoints.reserve(std::min<std::size_t>(total + 1, 16));
             out.waypoints.push_back(from);
 
             bool terminal = false;
             Control nominal;
             Control applied;
-            for (unsigned int i = 0; i < steps; ++i)
+            double elapsed = 0.0;
+            while (budget - elapsed > negligibleTime)
             {
                 // Time left in the *full* horizon, so a truncated rollout follows the
                 // same trajectory as the prefix of a complete one.
-                const double remaining = static_cast<double>(total - i) * stepSize_;
+                const double remaining = horizon - elapsed;
                 for (int j = 0; j < dimension; ++j)
                     nominal[j] = std::clamp((to[j] - out.end[j]) / remaining, -maxSpeed_[j], maxSpeed_[j]);
 
-                const ControlFilter::Status status = filter_.filter(out.end, nominal, stepSize_, applied);
+                double certified = 0.0;
+                const ControlFilter::Status status =
+                    filter_.filter(out.end, nominal, stepSize_, applied, certified);
                 ++statistics_.steps;
                 if (status == ControlFilter::Status::Blocked)
                 {
@@ -196,18 +233,49 @@ namespace ompl::cbf
                 if (status == ControlFilter::Status::Filtered)
                     ++out.filtered;
 
-                out.end += applied * stepSize_;
-                out.waypoints.push_back(out.end);
+                // How far to run what the filter just handed back. The floor is the step
+                // it was asked about, which it answered for; above that the filter has
+                // certified itself a no-op, so running on is not an extrapolation but a
+                // saving of calls whose outcome is already known.
+                const double span =
+                    std::min(std::max(stepSize_, std::min(certified, maxStepScale_ * stepSize_)),
+                             budget - elapsed);
+
+                Configuration landing = out.end + applied * span;
+                // A hop that runs the horizon out was aimed to finish on `to`, and with
+                // nothing in the way it does -- to the last bit. Recognising that lets an
+                // unobstructed edge end on the state that was asked for rather than one
+                // rounding away from it, which is what the ledger keys on.
+                if ((landing - to).cwiseAbs().maxCoeff() <= negligibleAngle)
+                    landing = to;
+
+                elapsed += span;
                 ++out.steps;
+                // A cornered-but-feasible QP answers with a zero control, which is
+                // certified for as long as you like and goes nowhere. Charge the call and
+                // run the clock out, but keep it out of the record: a repeated waypoint
+                // is not a motion.
+                if (bitwiseEqual(landing, out.end))
+                    continue;
+
+                out.travel += (landing - out.end).norm();
+                out.end = landing;
+                out.waypoints.push_back(out.end);
+                if (span > stepSize_)
+                    ++out.coarse;
             }
 
             if (terminal)
                 out.blocked = 1;
-            out.reachedTarget = out.steps == steps && (out.end - to).norm() <= reachTolerance();
+            out.fraction = horizon > 0.0 ? elapsed / horizon : 0.0;
+            out.reachedTarget =
+                budget - elapsed <= negligibleTime && (out.end - to).norm() <= reachTolerance();
 
             statistics_.rollouts += 1;
             statistics_.filtered += out.filtered;
             statistics_.blocked += out.blocked;
+            statistics_.coarse += out.coarse;
+            statistics_.travel += out.travel;
             return out;
         }
 
@@ -392,6 +460,25 @@ namespace ompl::cbf
             ledgerWaypoints_ = 0;
             staged_.waypoints.clear();
             staged_.valid = false;
+        }
+
+        /// Longest step the rollout may take, as a multiple of `stepSize`. Unbounded by
+        /// default; `1.0` restores the fixed step exactly, which is the A/B.
+        ///
+        /// A step only exceeds `stepSize` when the filter has certified that it is a
+        /// no-op over the whole of it (`ControlFilter::filter()`'s five-argument form),
+        /// so the cap buys nothing in safety -- it exists to isolate the effect when
+        /// measuring, and to keep waypoint spacing bounded for a consumer that wants it.
+        double maxStepScale() const
+        {
+            return maxStepScale_;
+        }
+
+        void setMaxStepScale(double scale)
+        {
+            if (scale < 1.0)
+                throw Exception("FilteredStateSpace: maxStepScale must be at least 1");
+            maxStepScale_ = scale;
         }
 
         /// Minimum share of the free-space progress an extension must actually achieve
@@ -586,6 +673,7 @@ namespace ompl::cbf
         double stepSize_;
         Control maxSpeed_;
         double reachTolerance_{-1.0};
+        double maxStepScale_{std::numeric_limits<double>::infinity()};
         double minProgressFraction_{0.25};
         std::size_t ledgerCapacity_{1u << 20};
         mutable Statistics statistics_;

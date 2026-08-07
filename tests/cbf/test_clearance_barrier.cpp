@@ -320,3 +320,104 @@ BOOST_AUTO_TEST_CASE(ScreenedEvaluationAgreesWithTheFullOneOnWhatItKeeps)
     // And it earns its keep: most spheres are nowhere near binding over one step.
     BOOST_CHECK_LT(static_cast<double>(kept) / evaluations, 20.0);
 }
+
+// The certificate is what lets a caller stop checking, so it has to hold *along* the
+// span and not merely at its end: sample the straight motion it certifies and require
+// the CBF condition every sphere would have been held to at every point of it.
+//
+// This is the same Lipschitz bound as DecreaseRatesBoundHowFastClearanceCanActuallyFall,
+// solved for the duration instead of the drop, so what is being tested is the inversion
+// rather than the bound. What that adds is the interval: a duration is only useful if
+// nothing goes wrong before it elapses.
+BOOST_AUTO_TEST_CASE(NothingCanBindWithinTheCertifiedDuration)
+{
+    const UR5 robot;
+    const Barrier barrier(robot, obstacleField(), 0.0);
+    const UR5::Configuration maxSpeed = UR5::velocityLimits();
+    constexpr double gamma = 0.4;
+
+    ompl::RNG rng;
+    double longest = 0.0;
+    int certified = 0;
+    for (int sample = 0; sample < 2000; ++sample)
+    {
+        UR5::Configuration q;
+        for (Eigen::Index j = 0; j < 6; ++j)
+            q[j] = rng.uniformReal(UR5::lowerBounds()[j], UR5::upperBounds()[j]);
+
+        const Barrier::Evaluation evaluation = barrier.evaluate(q);
+        if (!evaluation.inBounds || evaluation.values.minCoeff() <= 0.0)
+            continue;  // nothing to certify from a configuration already in violation
+
+        // Aim straight down the steepest descent of the worst sphere's barrier, at full
+        // speed: the fastest any admissible control can spend the clearance.
+        UR5::Configuration u;
+        for (Eigen::Index j = 0; j < 6; ++j)
+        {
+            const double descend = -evaluation.rows(static_cast<Eigen::Index>(evaluation.worst), j);
+            u[j] = maxSpeed[j] * ((descend >= 0.0) ? 1.0 : -1.0);
+        }
+
+        const double duration = barrier.certifiedDuration(evaluation, u, gamma);
+        BOOST_REQUIRE_GT(duration, 0.0);
+        longest = std::max(longest, duration);
+        ++certified;
+
+        constexpr int samples = 25;
+        for (int step = 1; step <= samples; ++step)
+        {
+            const double t = duration * step / samples;
+            const Barrier::Values along = barrier.values(q + u * t);
+            for (Eigen::Index i = 0; i < Barrier::nSpheres; ++i)
+                BOOST_REQUIRE_GE(along[i], (1.0 - gamma) * evaluation.values[i] - 1e-9);
+        }
+    }
+
+    BOOST_REQUIRE_GT(certified, 100);
+    // Worth having: somewhere there is room for a step well past the 0.05 s the rollout
+    // would otherwise have taken.
+    BOOST_CHECK_GT(longest, 0.05);
+}
+
+// The box the field was baked over is not an obstacle, so no barrier value falls as a
+// centre approaches it -- but a query outside it is clamped and comes back optimistic.
+// A certificate that only watched the clearances would happily run a sphere out of the
+// field; this one is cut short by the boundary as well.
+BOOST_AUTO_TEST_CASE(TheCertificateStopsAtTheEdgeOfTheField)
+{
+    const UR5 robot;
+    const UR5::Configuration q = configuration(0.0, -1.2, 1.8, -0.6, 1.57, 0.0);
+
+    // A field with nothing in it, baked over the arm's own bounding box plus a hand's
+    // width: clearance is enormous everywhere and the boundary is the only thing that can
+    // bind. Derived from the configuration rather than hardcoded, so it is the box that
+    // is tight around the arm rather than the arm that has to be posed to suit the box.
+    Eigen::AlignedBox3d box;
+    const UR5::SphereCenters centers = robot.sphereCenters(q);
+    for (Eigen::Index i = 0; i < centers.cols(); ++i)
+        box.extend(centers.col(i));
+    box.min().array() -= 0.1;
+    box.max().array() += 0.1;
+
+    const sdf::GridSDF cramped(sphereField(Eigen::Vector3d(0.0, 0.0, 40.0), 0.1), box, voxel);
+    const Barrier barrier(robot, cramped, 0.0);
+
+    const Barrier::Evaluation evaluation = barrier.evaluate(q);
+    BOOST_REQUIRE(evaluation.inBounds);
+    BOOST_REQUIRE_GT(evaluation.values.minCoeff(), 1.0);  // the obstacle is 40 m up
+    BOOST_REQUIRE_LE(evaluation.boundary.minCoeff(), 0.1);
+
+    UR5::Configuration u = UR5::Configuration::Zero();
+    u[1] = UR5::velocityLimits()[1];  // swing the arm through the wall of the box
+    const double duration = barrier.certifiedDuration(evaluation, u, 1.0);
+
+    BOOST_REQUIRE_GT(duration, 0.0);
+    BOOST_REQUIRE(std::isfinite(duration));  // the clearances alone would certify forever
+    for (int step = 0; step <= 20; ++step)
+    {
+        bool inBounds = false;
+        Barrier::Values values;
+        barrier.values(q + u * (duration * step / 20), values, &inBounds);
+        BOOST_CHECK(inBounds);
+    }
+}

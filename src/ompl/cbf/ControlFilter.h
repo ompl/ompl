@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include <Eigen/Core>
 
 #include <ompl/robots/UR5.h>
@@ -78,6 +80,28 @@ namespace ompl::cbf
         virtual Status filter(const Configuration &q, const Control &nominal, double duration,
                               Control &filtered) const = 0;
 
+        /// As above, additionally reporting how long the control it hands back stays
+        /// certified: the longest duration for which applying \p filtered from \p q is
+        /// provably a *no-op* for this filter, because nothing it enforces can bind
+        /// before then.
+        ///
+        /// A caller may therefore integrate \p filtered over any span up to \p certified
+        /// and get exactly the motion repeated filtering would have produced, without
+        /// paying for the intervening calls. It is a statement about the whole interval,
+        /// not just its end -- the guarantee holds at every point along the way -- so it
+        /// is a certificate rather than an extrapolation.
+        ///
+        /// Zero, the default, means "no certificate available"; the caller then takes
+        /// the step it asked about and calls again, which is what it did before this
+        /// existed. Implementations must never report a duration they cannot back:
+        /// under-reporting costs calls, over-reporting costs safety.
+        virtual Status filter(const Configuration &q, const Control &nominal, double duration,
+                              Control &filtered, double &certified) const
+        {
+            certified = 0.0;
+            return filter(q, nominal, duration, filtered);
+        }
+
         /// Human-readable name, for logging and benchmark labels.
         virtual const char *name() const = 0;
     };
@@ -92,6 +116,17 @@ namespace ompl::cbf
                       Control &filtered) const override
         {
             filtered = nominal;
+            return Status::Unchanged;
+        }
+
+        /// A filter that enforces nothing is a no-op for any duration whatsoever, so the
+        /// honest certificate is unbounded. The A/B baseline therefore takes each edge in
+        /// a single straight step, which is precisely what "no filter" should cost.
+        Status filter(const Configuration & /*q*/, const Control &nominal, double /*duration*/,
+                      Control &filtered, double &certified) const override
+        {
+            filtered = nominal;
+            certified = std::numeric_limits<double>::infinity();
             return Status::Unchanged;
         }
 

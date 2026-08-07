@@ -4,7 +4,12 @@
 // set: MotionBenchMaker's UR5 scenes, 689 problems over 7 scenes, as shipped by VAMP.
 //
 //     ./scripts/mbm_to_scenes.py /path/to/vamp/resources/ur5/problems.json scenes.txt
-//     ./build/demos/demo_UR5MBMBenchmark scenes.txt [perScene] [seconds] [voxel] [stepSize] [range]
+//     ./build/demos/demo_UR5MBMBenchmark scenes.txt [perScene] [seconds] [voxel] [stepSize]
+//         [range] [margin] [buffer] [segmentFraction] [gamma] [maxStepScale]
+//
+// The last two are the certified-step A/B: `maxStepScale 1` pins the rollout to a fixed
+// `stepSize` however much room it has, and `gamma` scales how much of its clearance a
+// step may spend, so it scales the certificate with it.
 //
 // Why this and not UR5CBFPlanningDemo's scene: that one is a pair of spheres placed to
 // block the direct sweep, and `geometric::RRTConnect` solves it in six vertices. A
@@ -214,6 +219,11 @@ namespace
         std::size_t unsafeStates{0};
         std::size_t auditedStates{0};
         std::size_t misses{0};  ///< solution edges re-derived rather than replayed
+        /// Joint-space radians per filter call, and the share of calls that ran past
+        /// stepSize on a certificate. Meaningless for the baseline, whose "evaluation"
+        /// is a collision check at a fixed resolution rather than a step.
+        double radPerCall{0.0};
+        double coarse{0.0};
         double minClearance{std::numeric_limits<double>::infinity()};
     };
 
@@ -309,10 +319,12 @@ namespace
     /// The CBF rollout as the state space's interpolate(), with no collision checking
     /// anywhere: the barrier certifies each step as it is produced.
     Result runFiltered(const Problem &problem, const Barrier &audited, const Filter &filter,
-                       double stepSize, double range, double timeLimit)
+                       double stepSize, double range, double timeLimit, double maxStepScale)
     {
         auto space = std::make_shared<Space>(filter, stepSize, UR5::velocityLimits());
         space->setBounds(jointBounds());
+        if (maxStepScale > 0.0)
+            space->setMaxStepScale(maxStepScale);
 
         auto si = std::make_shared<ob::SpaceInformation>(space);
         si->setStateValidityChecker(std::make_shared<ob::AllValidStateValidityChecker>(si));
@@ -341,6 +353,12 @@ namespace
         result.seconds = ompl::time::seconds(ompl::time::now() - begin);
         result.solved = (status == ob::PlannerStatus::EXACT_SOLUTION);
         result.evaluations = space->statistics().steps;
+        if (space->statistics().steps > 0)
+        {
+            const double calls = static_cast<double>(space->statistics().steps);
+            result.radPerCall = space->statistics().travel / calls;
+            result.coarse = static_cast<double>(space->statistics().coarse) / calls;
+        }
 
         ob::PlannerData data(si);
         planner->getPlannerData(data);
@@ -365,6 +383,8 @@ namespace
         std::vector<double> seconds[2];
         std::vector<double> evaluations[2];
         std::vector<double> vertices[2];
+        std::vector<double> radPerCall[2];
+        std::vector<double> coarse[2];
         std::size_t unsafe[2]{0, 0};
         std::size_t audited[2]{0, 0};
         std::size_t misses[2]{0, 0};
@@ -377,6 +397,8 @@ namespace
             seconds[row].push_back(result.seconds);
             evaluations[row].push_back(static_cast<double>(result.evaluations));
             vertices[row].push_back(static_cast<double>(result.vertices));
+            radPerCall[row].push_back(result.radPerCall);
+            coarse[row].push_back(result.coarse);
             unsafe[row] += result.unsafeStates;
             audited[row] += result.auditedStates;
             misses[row] += result.misses;
@@ -399,6 +421,11 @@ namespace
         std::printf("  %-11s %3d/%-4d %9.2f %10.0f %8.0f", label, tally.solved[row], scored,
                     1e3 * median(tally.seconds[row]), median(tally.evaluations[row]),
                     median(tally.vertices[row]));
+        if (median(tally.radPerCall[row]) > 0.0)
+            std::printf(" %8.4f %5.0f%%", median(tally.radPerCall[row]),
+                        1e2 * median(tally.coarse[row]));
+        else
+            std::printf(" %8s %6s", "-", "-");
         if (tally.solved[row] > 0)
             std::printf(" %10.4f %6zu/%-7zu %6zu\n", tally.worstClearance[row], tally.unsafe[row],
                         tally.audited[row], tally.misses[row]);
@@ -411,7 +438,8 @@ int main(int argc, char **argv)
 {
     if (argc < 2)
     {
-        std::printf("usage: %s scenes.txt [perScene] [seconds] [voxel] [stepSize] [range]\n\n"
+        std::printf("usage: %s scenes.txt [perScene] [seconds] [voxel] [stepSize] [range]\n"
+                    "       [margin] [buffer] [segmentFraction] [gamma] [maxStepScale]\n\n"
                     "Generate scenes.txt with scripts/mbm_to_scenes.py.\n",
                     argv[0]);
         return 1;
@@ -435,6 +463,12 @@ int main(int argc, char **argv)
     // at the default. Tightening this is what makes the comparison like for like: both
     // rows then have to be audit-clean, and the cost of being so is the thing to compare.
     const double segmentFraction = argc > 9 ? std::atof(argv[9]) : -1.0;
+    // The CBF decay rate, which is also the fraction of its clearance a step is allowed
+    // to spend -- so it scales the certified step directly. At 1.0 the barrier is a plain
+    // collision condition and the certificate is as long as the clearance allows.
+    const double gamma = argc > 10 ? std::atof(argv[10]) : 0.4;
+    // Cap on the certified step, as a multiple of stepSize. 1.0 is the fixed-step A/B.
+    const double maxStepScale = argc > 11 ? std::atof(argv[11]) : -1.0;
 
     ompl::RNG::setSeed(1);
     ompl::msg::setLogLevel(ompl::msg::LOG_ERROR);
@@ -443,7 +477,7 @@ int main(int argc, char **argv)
     const UR5 robot;
 
     Filter::Parameters parameters;
-    parameters.gamma = 0.4;
+    parameters.gamma = gamma;
     parameters.maxSpeed = UR5::velocityLimits();
     parameters.respectJointLimits = true;
 
@@ -457,10 +491,13 @@ int main(int argc, char **argv)
                                                 UR5::reachableBounds(), voxel))
                              : buffer,
                 stepSize, range, timeLimit);
+    std::printf("gamma %.2f, certified step %s\n", gamma,
+                maxStepScale > 0.0 ? "capped" : "uncapped");
     std::printf("baseline segment: %s\n\n",
                 segmentFraction > 0.0 ? "tightened" : "OMPL default (0.01 of extent)");
-    std::printf("  %-11s %8s %9s %10s %8s %10s %14s %6s\n", "planner", "solved", "ms",
-                "evals", "vertices", "worst clr", "unsafe/audited", "missed");
+    std::printf("  %-11s %8s %9s %10s %8s %8s %6s %10s %14s %6s\n", "planner", "solved", "ms",
+                "evals", "vertices", "rad/call", "coarse", "worst clr", "unsafe/audited",
+                "missed");
 
     std::map<std::string, Tally> tallies;
     std::map<std::string, int> seen;
@@ -500,7 +537,8 @@ int main(int argc, char **argv)
 
         const Result checked =
             runCollisionChecked(problem, audited, range, timeLimit, segmentFraction);
-        const Result rolled = runFiltered(problem, audited, filter, stepSize, range, timeLimit);
+        const Result rolled =
+            runFiltered(problem, audited, filter, stepSize, range, timeLimit, maxStepScale);
         tally.add(0, checked);
         tally.add(1, rolled);
         overall.add(0, checked);

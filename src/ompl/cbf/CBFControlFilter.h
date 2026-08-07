@@ -54,6 +54,23 @@ namespace ompl::cbf
     /// the invariant; the decay rate is a smoothness preference. Turn screening off
     /// to recover the exact original semantics, at roughly twice the cost per step.
     ///
+    /// ### The certificate, which is the same bound spent differently
+    ///
+    /// Screening asks "which rows can bind within this step?" and usually answers
+    /// "none". The five-argument `filter()` asks the complementary question — "how
+    /// long until one could?" — and hands the answer back as
+    /// `Diagnostics::certifiedDuration`. Over that span the filter is provably a
+    /// no-op, so a caller integrating the returned control across it gets the motion
+    /// repeated filtering would have produced, without the calls. In open space that
+    /// collapses a whole tree extension into one evaluation and one straight line;
+    /// in clutter the certificate is short and the caller steps as it always did.
+    ///
+    /// It costs one 40x6 matvec on top of an evaluation that has already happened, so
+    /// it is always computed. What it is *not* is a licence to take a longer QP step:
+    /// the linearization error the margin absorbs still grows with the step, which is
+    /// why the certificate is a Lipschitz bound over the interval rather than an
+    /// extrapolation of the rows.
+    ///
     /// ### Threading
     ///
     /// Not thread safe: the solver and its scratch space are reused across calls.
@@ -85,6 +102,9 @@ namespace ompl::cbf
             bool inBounds{true};               ///< were all centers inside the SDF?
             std::ptrdiff_t solverIterations{0};  ///< qpmad active-set iterations
             int activeRows{ClearanceBarrier::nSpheres};  ///< rows that survived screening
+            /// How long the returned control stays certified; see `ControlFilter`'s
+            /// five-argument `filter()` and `ClearanceBarrier::certifiedDuration()`.
+            double certifiedDuration{0.0};
         };
 
         /// \p barrier is not copied and must outlive this filter.
@@ -94,6 +114,9 @@ namespace ompl::cbf
 
         Status filter(const Configuration &q, const Control &nominal, double duration,
                       Control &filtered) const override;
+
+        Status filter(const Configuration &q, const Control &nominal, double duration,
+                      Control &filtered, double &certified) const override;
 
         /// As above, additionally reporting why.
         Status filter(const Configuration &q, const Control &nominal, double duration, Control &filtered,

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
 #include <limits>
 
@@ -83,6 +84,12 @@ namespace ompl::cbf
         struct Evaluation
         {
             Values values;                ///< h_i(q), always for every sphere
+            /// How far sphere i's centre may travel before leaving the SDF's box, always
+            /// for every sphere -- or infinity when the box provably encloses everywhere
+            /// the arm can reach, since then no centre can leave it however far it goes.
+            /// Only `certifiedDuration()` reads it; see there for why a barrier value
+            /// alone does not bound a whole segment of motion.
+            Values boundary;
             Rows rows;                    ///< dh_i/dq -- only the first `active` are filled
             /// Which sphere each of the first `active` rows belongs to, so a caller can
             /// pair row r with `values[sphere[r]]`. The identity for a full evaluation.
@@ -150,6 +157,7 @@ namespace ompl::cbf
 
                 const double h = field_.distance(center) - Robot::spheres()[i].radius - margin_;
                 out.values[index] = h;
+                out.boundary[index] = boundaryClearance(center);
                 if (h < smallest)
                 {
                     smallest = h;
@@ -170,9 +178,61 @@ namespace ompl::cbf
             }
         }
 
+        /// The same bound read backwards: how long the constant control \p u may be
+        /// applied from the configuration \p evaluation was taken at before *any* row
+        /// could bind. Zero when one already binds.
+        ///
+        /// This is the screening argument turned into a step length. A row binds when
+        /// the discrete CBF condition `h_i(q + u t) >= (1 - gamma) h_i(q)` stops holding
+        /// with room to spare, and `h_i` cannot fall faster than `rate_i`, so the
+        /// condition survives for as long as `rate_i * t <= gamma * h_i` — and it
+        /// survives at every point of the interval, not merely at its end, because the
+        /// same inequality holds for every prefix. Taking the minimum over spheres gives
+        /// a duration over which the filter is *provably a no-op*: integrating \p u for
+        /// any shorter span yields exactly the motion the filter would have produced,
+        /// step by step, at no further cost. That is what makes skipping it sound rather
+        /// than merely optimistic.
+        ///
+        /// Two details keep it honest:
+        ///
+        /// - **The rate is per-control.** `decreaseRates(maxSpeed)` assumes every joint
+        ///   runs flat out in the worst direction; asking about the control actually
+        ///   applied is the same expression with \p u in its place, and it is several
+        ///   times longer.
+        /// - **Leaving the box is not falling clearance.** A centre that exits the SDF's
+        ///   bounds gets a clamped, over-optimistic distance back, and no barrier value
+        ///   sees it coming. So the excursion is bounded by `Evaluation::boundary` too,
+        ///   at the plain workspace travel rate (no field gradient involved).
+        ///
+        /// The Lipschitz constant is floored at 1 rather than taken raw: a true signed
+        /// distance field is 1-Lipschitz, `maxGradientNorm()` only ever exceeds that
+        /// because of interpolation, and a field with no obstacle in the box reports
+        /// zero, which would otherwise certify an unbounded step off the back of a
+        /// division by zero.
+        double certifiedDuration(const Evaluation &evaluation, const Configuration &u,
+                                 double gamma) const
+        {
+            const Values travel = (Robot::leverArmBounds() * u.cwiseAbs()).eval();
+            const double lipschitz = std::max(field_.maxGradientNorm(), 1.0);
+
+            double duration = std::numeric_limits<double>::infinity();
+            for (Eigen::Index i = 0; i < nSpheres; ++i)
+            {
+                if (travel[i] <= 0.0)  // no joint that moves this sphere is moving
+                    continue;
+                const double allowance = std::min(gamma * evaluation.values[i] / lipschitz,
+                                                  evaluation.boundary[i]);
+                duration = std::min(duration, allowance / travel[i]);
+            }
+            return std::max(duration, 0.0);
+        }
+
         /// Neither \p robot nor \p field is copied; both must outlive this object.
         ClearanceBarrier(const Robot &robot, const sdf::GridSDF &field, double margin = defaultMargin)
-          : robot_(robot), field_(field), margin_(margin)
+          : robot_(robot)
+          , field_(field)
+          , margin_(margin)
+          , enclosesReach_(field.bounds().contains(Robot::reachableBounds()))
         {
         }
 
@@ -242,6 +302,7 @@ namespace ompl::cbf
 
                 const Eigen::Index row = static_cast<Eigen::Index>(i);
                 out.values[row] = h;
+                out.boundary[row] = boundaryClearance(center);
                 out.rows.row(row) = Robot::barrierGradient(kin, i, vg.gradient).transpose();
 
                 if (h < smallest)
@@ -316,8 +377,23 @@ namespace ompl::cbf
         }
 
     private:
+        /// How far a centre at \p p may move before it could leave the field, or infinity
+        /// when the question cannot arise.
+        ///
+        /// `Robot::reachableBounds()` encloses every sphere at every reachable
+        /// configuration, so a field baked over at least that much can never be queried
+        /// outside itself no matter what the arm does -- and charging a certificate for a
+        /// boundary it cannot reach would gut it, since the box is drawn tight around the
+        /// arm's reach and an extended arm sits right against it.
+        double boundaryClearance(const Eigen::Vector3d &p) const
+        {
+            return enclosesReach_ ? std::numeric_limits<double>::infinity()
+                                  : field_.boundaryClearance(p);
+        }
+
         const Robot &robot_;
         const sdf::GridSDF &field_;
         double margin_;
+        bool enclosesReach_;
     };
 }  // namespace ompl::cbf

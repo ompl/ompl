@@ -87,6 +87,17 @@ ompl::cbf::ControlFilter::Status ompl::cbf::CBFControlFilter::filter(const Confi
 ompl::cbf::ControlFilter::Status ompl::cbf::CBFControlFilter::filter(const Configuration &q,
                                                                     const Control &nominal, double duration,
                                                                     Control &filtered,
+                                                                    double &certified) const
+{
+    Diagnostics diagnostics;
+    const Status status = filter(q, nominal, duration, filtered, diagnostics);
+    certified = diagnostics.certifiedDuration;
+    return status;
+}
+
+ompl::cbf::ControlFilter::Status ompl::cbf::CBFControlFilter::filter(const Configuration &q,
+                                                                    const Control &nominal, double duration,
+                                                                    Control &filtered,
                                                                     Diagnostics &diagnostics) const
 {
     // A non-positive step has no meaningful CBF condition, and backward
@@ -117,6 +128,9 @@ ompl::cbf::ControlFilter::Status ompl::cbf::CBFControlFilter::filter(const Confi
     diagnostics.inBounds = evaluation.inBounds;
     diagnostics.solverIterations = 0;
     diagnostics.activeRows = evaluation.active;
+    // Nothing is certified until a control has been settled on; every path that gives
+    // up below leaves it at zero, which asks the caller to come back rather than run.
+    diagnostics.certifiedDuration = 0.0;
 
     // Outside the baked field, GridSDF clamps and over-reports clearance, so the
     // barrier cannot be trusted. Refusing to move is the only safe answer.
@@ -163,6 +177,28 @@ ompl::cbf::ControlFilter::Status ompl::cbf::CBFControlFilter::filter(const Confi
         // control satisfies every clearance row.
         filtered.setZero();
         return Status::Blocked;
+    }
+
+    // How long the control just chosen could be run for. The clearances are already in
+    // hand, so this is a matvec; see ClearanceBarrier::certifiedDuration() for why it is
+    // a statement about the whole interval and not an extrapolation.
+    //
+    // The joint limits need re-checking against it. The QP's control box keeps
+    // q + u*duration inside them, which says nothing about a longer span, and running
+    // out of joint travel is not something the barrier can see coming.
+    diagnostics.certifiedDuration = barrier_.certifiedDuration(evaluation, filtered, parameters_.gamma);
+    if (parameters_.respectJointLimits)
+    {
+        const Configuration jointLower = robots::UR5::lowerBounds();
+        const Configuration jointUpper = robots::UR5::upperBounds();
+        for (Eigen::Index j = 0; j < nJoints; ++j)
+        {
+            if (filtered[j] == 0.0)
+                continue;
+            const double room = (filtered[j] > 0.0 ? jointUpper[j] : jointLower[j]) - q[j];
+            diagnostics.certifiedDuration =
+                std::min(diagnostics.certifiedDuration, std::max(room / filtered[j], 0.0));
+        }
     }
 
     return (filtered - nominal).norm() <= unchangedTolerance ? Status::Unchanged : Status::Filtered;

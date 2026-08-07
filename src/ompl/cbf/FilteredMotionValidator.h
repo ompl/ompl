@@ -113,10 +113,9 @@ namespace ompl::cbf
             // better "last valid state" than a point on the straight line would be.
             if (lastValid.first != nullptr)
                 FilteredStateSpace::setState(lastValid.first, rollout.end);
-            const unsigned int total =
-                space_->horizonSteps(FilteredStateSpace::configurationOf(s1),
-                                     FilteredStateSpace::configurationOf(s2));
-            lastValid.second = total == 0 ? 0.0 : static_cast<double>(rollout.steps) / total;
+            // How far through the motion it got, which the rollout reports directly: with
+            // a certified step the count of filter calls no longer measures progress.
+            lastValid.second = rollout.fraction;
             return false;
         }
 
