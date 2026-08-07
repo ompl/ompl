@@ -244,7 +244,8 @@ namespace
     /// was only ever sampled at `longestValidSegmentFraction`. The CBF row is the other
     /// way round -- every state it emits was certified as it was produced.
     Result planCollisionChecked(const Scene &scene, const sdf::GridSDF &field, const Goal &goal,
-                                double timeLimit, double range, double checkResolution)
+                                double timeLimit, double range, double checkResolution,
+                                double auditSpacing)
     {
         const UR5 robot;
         const Barrier audit(robot, field, scene.margin);
@@ -306,8 +307,13 @@ namespace
         {
             auto solution = std::static_pointer_cast<og::PathGeometric>(pdef->getSolutionPath());
             result.waypoints = solution->getStateCount();
-            solution->interpolate(static_cast<unsigned int>(
-                solution->length() / (UR5::velocityLimits().maxCoeff() * 0.05)));
+            // Straight-line edges densify to the motion that would actually be executed,
+            // so this row -- unlike the CBF row, which can only be audited at the
+            // resolution its rollout emitted -- can be audited as finely as one likes.
+            // That is what makes `auditSpacing` worth exposing: the row's validity was
+            // only ever *sampled*, and shrinking the audit below the sampling is the
+            // only way to find out whether the unsampled interior was safe too.
+            solution->interpolate(static_cast<unsigned int>(solution->length() / auditSpacing));
             result.auditedStates = solution->getStateCount();
             for (std::size_t i = 0; i < solution->getStateCount(); ++i)
             {
@@ -444,7 +450,7 @@ int main(int argc, char **argv)
     if (argc < 2)
     {
         std::printf("usage: %s <scene.problem> [seconds] [out.path] [trials] [maxStepScale]"
-                    " [baselineCheckRadians]\n",
+                    " [baselineCheckRadians] [baselineAuditRadians]\n",
                     argv[0]);
         std::printf("       %s <scene.problem> --probe   < points.txt\n", argv[0]);
         return 1;
@@ -463,6 +469,10 @@ int main(int argc, char **argv)
     // Joint-space spacing the baseline checks its straight-line edges at, in radians.
     // Negative leaves OMPL's default, which is far coarser than the audit.
     const double checkResolution = (argc > 6 && !probeMode) ? std::atof(argv[6]) : -1.0;
+    // Joint-space spacing the baseline's *solution* is audited at, in radians. Negative
+    // matches the CBF row's rollout step, which is the comparable setting; anything
+    // finer asks whether the baseline's unsampled edge interiors were safe as well.
+    const double baselineAudit = (argc > 7 && !probeMode) ? std::atof(argv[7]) : -1.0;
 
     const Scene scene = readScene(problemPath);
     const sdf::GridSDF field = sdf::GridSDF::load(scene.gridPath);
@@ -475,6 +485,9 @@ int main(int argc, char **argv)
     const double buffer = Barrier::interpolationBuffer(field);
     const double stepSize = 0.05;
     const double range = 1.5;
+    // What the CBF row's rollout emits, and so the finest spacing at which its executed
+    // motion exists. The baseline is audited here too unless asked for something finer.
+    const double auditSpacing = UR5::velocityLimits().maxCoeff() * stepSize;
 
     std::printf("scene %s   grid %s\n", scene.name.c_str(), scene.gridPath.c_str());
     const Eigen::Vector3i dims = field.dimensions();
@@ -518,7 +531,8 @@ int main(int argc, char **argv)
         {
             path.clear();
             r = plan(scene, field, goal, timeLimit, stepSize, range, maxStepScale, &path);
-            base = planCollisionChecked(scene, field, goal, timeLimit, range, checkResolution);
+            base = planCollisionChecked(scene, field, goal, timeLimit, range, checkResolution,
+                                        baselineAudit > 0.0 ? baselineAudit : auditSpacing);
             cbfRun.push_back(r.seconds);
             baseRun.push_back(base.seconds);
         }
