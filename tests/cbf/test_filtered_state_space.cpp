@@ -13,6 +13,7 @@
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/StateValidityChecker.h>
 #include <ompl/cbf/CBFControlFilter.h>
+#include <ompl/cbf/ExecutedPath.h>
 #include <ompl/cbf/FilteredMotionValidator.h>
 #include <ompl/cbf/FilteredStateSpace.h>
 #include <ompl/geometric/PathGeometric.h>
@@ -211,21 +212,28 @@ BOOST_AUTO_TEST_CASE(RolloutLeavesABlockedLineInsteadOfDyingOnIt)
     BOOST_CHECK_GT((rollout.end - a).norm(), 0.1);
 
     // Every state along the way is clear, and somewhere along it the rollout is well
-    // off the straight line it was aimed down.
+    // off the straight line it was aimed down. Read from the rollout's own waypoints:
+    // those *are* the states it passed through, and asking roll() for each fraction
+    // separately would re-derive the same trajectory from scratch every time.
     const unsigned int total = space->horizonSteps(a, b);
+    BOOST_REQUIRE_EQUAL(rollout.waypoints.size(), rollout.steps + 1u);
+    BOOST_CHECK_EQUAL((rollout.waypoints.front() - a).norm(), 0.0);
+    BOOST_CHECK_EQUAL((rollout.waypoints.back() - rollout.end).norm(), 0.0);
+
     double deviation = 0.0;
-    for (unsigned int i = 0; i <= total; ++i)
+    for (std::size_t i = 0; i < rollout.waypoints.size(); ++i)
     {
         const double t = static_cast<double>(i) / total;
-        const UR5::Configuration rolled = space->roll(a, b, t).end;
-        BOOST_CHECK(truth.isSafe(rolled));
-        deviation = std::max(deviation, (rolled - (a + t * (b - a))).norm());
+        BOOST_CHECK(truth.isSafe(rollout.waypoints[i]));
+        deviation = std::max(deviation, (rollout.waypoints[i] - (a + t * (b - a))).norm());
     }
     BOOST_CHECK_GT(deviation, 0.05);
 }
 
-// PathGeometric::check() re-derives every motion and compares, so a rollout that is not
-// a pure function of its inputs would break every audit built on it.
+// roll() is a pure function of its inputs. Less load-bearing than it used to be -- the
+// executed motion is now kept rather than re-derived -- but the fallback path in
+// FilteredMotionValidator still rolls, and a rollout that drifted between identical calls
+// would make the ledger's contents depend on call order.
 BOOST_AUTO_TEST_CASE(RolloutIsDeterministic)
 {
     const UR5 robot;
@@ -235,60 +243,23 @@ BOOST_AUTO_TEST_CASE(RolloutIsDeterministic)
     auto space = makeSpace(filter);
 
     const UR5::Configuration a = UR5::Configuration::Zero();
+    const Space::Rollout first = space->roll(a, pastObstacle(truth, a), 1.0);
     const UR5::Configuration b = pastObstacle(truth, a);
-    const UR5::Configuration first = space->roll(a, b, 1.0).end;
     for (int repeat = 0; repeat < 4; ++repeat)
     {
-        // Roll a different motion in between, so the repeat re-derives the trajectory
-        // instead of reading it back out of roll()'s memo.
-        space->roll(b, a, 1.0);
-        BOOST_CHECK_EQUAL((space->roll(a, b, 1.0).end - first).norm(), 0.0);
+        const Space::Rollout again = space->roll(a, b, 1.0);
+        BOOST_CHECK_EQUAL((again.end - first.end).norm(), 0.0);
+        BOOST_REQUIRE_EQUAL(again.waypoints.size(), first.waypoints.size());
+        for (std::size_t i = 0; i < again.waypoints.size(); ++i)
+            BOOST_CHECK_EQUAL((again.waypoints[i] - first.waypoints[i]).norm(), 0.0);
     }
 }
 
-// roll() resumes the previous rollout when asked to carry it further, which is only
-// legitimate if it is indistinguishable from starting over. Checked against a cold space
-// at every fraction, on a motion the filter genuinely deflects -- the counters have to
-// agree as well as the endpoint, because they are what a benchmark reads.
-BOOST_AUTO_TEST_CASE(ResumingAMemoizedRolloutMatchesRestartingIt)
-{
-    const UR5 robot;
-    const Barrier truth(robot, obstacleField(), 0.0);
-    const Barrier guard = Barrier::guarding(robot, obstacleField(), 0.0);
-    const Filter filter(guard, filterParameters());
-
-    const UR5::Configuration a = UR5::Configuration::Zero();
-    const UR5::Configuration b = pastObstacle(truth, a);
-
-    auto warm = makeSpace(filter);
-    const unsigned int total = warm->horizonSteps(a, b);
-    BOOST_REQUIRE_GT(total, 4u);
-    BOOST_REQUIRE_GT(warm->roll(a, b, 1.0).filtered, 0u);
-    warm = makeSpace(filter);
-
-    for (unsigned int i = 0; i <= total; ++i)
-    {
-        const double t = static_cast<double>(i) / total;
-        const Space::Rollout resumed = warm->roll(a, b, t);  // walks forward, resuming
-        const Space::Rollout cold = makeSpace(filter)->roll(a, b, t);
-        BOOST_CHECK_EQUAL((resumed.end - cold.end).norm(), 0.0);
-        BOOST_CHECK_EQUAL(resumed.steps, cold.steps);
-        BOOST_CHECK_EQUAL(resumed.filtered, cold.filtered);
-        BOOST_CHECK_EQUAL(resumed.blocked, cold.blocked);
-        BOOST_CHECK_EQUAL(resumed.reachedTarget, cold.reachedTarget);
-    }
-
-    // And the whole sweep cost one rollout's worth of filter calls, not total^2 / 2.
-    // (Plus at most one for a refusal, which does not advance the rollout.)
-    BOOST_CHECK_LE(warm->statistics().steps, total + 1);
-    BOOST_CHECK_GT(warm->statistics().resumed, 0u);
-}
-
-// A rollout that stopped on a Blocked step stops in the same place next time: the filter
-// would see the identical state and nominal control at that step index. So the memo takes
-// the answer as final rather than paying for the same refusal again -- and the diagnostic
-// counter still moves exactly once.
-BOOST_AUTO_TEST_CASE(ABlockedRolloutIsNotRetried)
+// A rollout with nothing safe available anywhere stops on its first step, and it does so
+// again next time -- the filter sees the identical state and nominal control. The refusal
+// is re-paid now (one filter call), because a rollout that went nowhere is not an edge and
+// is deliberately not recorded.
+BOOST_AUTO_TEST_CASE(ABlockedRolloutStopsAtTheBlock)
 {
     const UR5 robot;
     const Barrier barrier(robot, corneringField(), 0.0);
@@ -301,22 +272,27 @@ BOOST_AUTO_TEST_CASE(ABlockedRolloutIsNotRetried)
     const Space::Rollout first = space->roll(a, b, 0.5);
     BOOST_REQUIRE_EQUAL(first.steps, 0u);
     BOOST_REQUIRE_EQUAL(first.blocked, 1u);
+    BOOST_CHECK_EQUAL(first.waypoints.size(), 1u);
     const std::size_t calls = space->statistics().steps;
 
     const Space::Rollout second = space->roll(a, b, 1.0);
     BOOST_CHECK_EQUAL(second.steps, 0u);
     BOOST_CHECK_EQUAL(second.blocked, 1u);
-    BOOST_CHECK_EQUAL(space->statistics().steps, calls);
-    BOOST_CHECK_EQUAL(space->statistics().blocked, 1u);
+    BOOST_CHECK_EQUAL(space->statistics().steps, calls + 1);
+    BOOST_CHECK_EQUAL(space->statistics().blocked, 2u);
+
+    // Nothing was produced, so there is nothing to keep.
+    BOOST_CHECK_EQUAL(space->ledgerEdges(), 0u);
 }
 
-// Densifying a motion into n states costs one rollout, not n of them.
-// SpaceInformation::getMotionStates -- which is how PathGeometric::interpolate() and the
-// planners' addIntermediateStates mode build their states -- asks for fractions 1/n … n/n
-// in order, and every one of those used to restart from the first waypoint. That is
-// O(n^2) filter calls to walk a trajectory once, and it landed squarely on the demo's
-// audit path.
-BOOST_AUTO_TEST_CASE(DensifyingAMotionCostsOneRolloutNotOnePerState)
+// Densifying a recorded edge costs no filter calls at all: the trajectory is on file, so
+// PathGeometric::interpolate() is reading it back rather than recomputing it.
+//
+// Note what has to happen first. An edge enters the ledger when the planner adopts it --
+// here, when the validator accepts the motion. Densifying an edge nobody ever validated is
+// still O(n^2) filter calls, which is why executedPath() is the supported way to expand a
+// solution.
+BOOST_AUTO_TEST_CASE(DensifyingARecordedEdgeCostsNoFilterCalls)
 {
     const UR5 robot;
     const Barrier barrier(robot, emptyField(), 0.0);
@@ -329,7 +305,6 @@ BOOST_AUTO_TEST_CASE(DensifyingAMotionCostsOneRolloutNotOnePerState)
 
     const UR5::Configuration a = configuration(0.0, -1.2, 1.8, -0.6, 1.57, 0.0);
     const UR5::Configuration b = configuration(1.4, -0.7, 1.2, -0.2, 1.20, 0.5);
-    const unsigned int total = space->horizonSteps(a, b);
 
     ob::ScopedState<> from(space), to(space);
     Space::setState(from.get(), a);
@@ -339,18 +314,23 @@ BOOST_AUTO_TEST_CASE(DensifyingAMotionCostsOneRolloutNotOnePerState)
     path.append(from.get());
     path.append(to.get());
 
+    BOOST_REQUIRE(si->checkMotion(from.get(), to.get()));
+    BOOST_REQUIRE_EQUAL(space->ledgerEdges(), 1u);
+
     space->resetStatistics();
     path.interpolate();
 
     BOOST_CHECK_GT(path.getStateCount(), 10u);
-    BOOST_CHECK_LE(space->statistics().steps, total);
-    BOOST_CHECK_GT(space->statistics().stepsSaved, space->statistics().steps);
+    BOOST_CHECK_EQUAL(space->statistics().steps, 0u);
+    BOOST_CHECK_GT(space->statistics().served, 0u);
 }
 
-// The other half of the same saving: a tree planner rolls to produce a state and then
-// asks the validator about the state it produced. When the filter never engaged, the
-// first rollout is already the answer -- see certifiedByLastRollout().
-BOOST_AUTO_TEST_CASE(AnUnfilteredExtensionIsCertifiedWithoutRollingAgain)
+// The headline of keeping the trajectory: a tree planner rolls to produce a state and then
+// asks the validator about the state it produced, and the answer is already in hand. This
+// used to hold only when the filter never engaged -- a deflected extension had to be rolled
+// a second time to find out whether it could be reproduced from its endpoints alone. Now
+// nothing needs reproducing, so both cases cost zero extra filter calls.
+BOOST_AUTO_TEST_CASE(AnExtensionIsValidatedWithoutASecondRollout)
 {
     const UR5 robot;
     const UR5::Configuration a = configuration(0.0, -1.2, 1.8, -0.6, 1.57, 0.0);
@@ -377,22 +357,214 @@ BOOST_AUTO_TEST_CASE(AnUnfilteredExtensionIsCertifiedWithoutRollingAgain)
         // What RRT.cpp:144 does, followed by what RRT.cpp:148 does.
         space->interpolate(from.get(), to.get(), 0.5, reached.get());
         const std::size_t rolled = space->statistics().steps;
-        const bool valid = si->checkMotion(from.get(), reached.get());
+        BOOST_REQUIRE_GT((Space::configurationOf(reached.get()) - a).norm(), 1e-9);
+        if (!unobstructed)
+            BOOST_REQUIRE_GT(space->statistics().filtered, 0u);
 
-        if (unobstructed)
-        {
-            BOOST_CHECK(valid);
-            BOOST_CHECK_EQUAL(space->statistics().steps, rolled);
-            BOOST_CHECK_EQUAL(space->statistics().certified, 1u);
-        }
-        else
-        {
-            // The filter engaged, so the two rollouts aim at different targets and the
-            // motion is checked for real.
-            BOOST_CHECK_GT(space->statistics().steps, rolled);
-            BOOST_CHECK_EQUAL(space->statistics().certified, 0u);
-        }
+        BOOST_CHECK(si->checkMotion(from.get(), reached.get()));
+        BOOST_CHECK_EQUAL(space->statistics().steps, rolled);
+        BOOST_CHECK_EQUAL(space->ledgerEdges(), 1u);
+
+        // And it stays answered: a later re-query, which is what
+        // PathGeometric::check() does, is a lookup rather than a rollout.
+        BOOST_CHECK(si->checkMotion(from.get(), reached.get()));
+        BOOST_CHECK_EQUAL(space->statistics().steps, rolled);
     }
+}
+
+// RRTConnect grows a tree from the goal as well, and validates its edges backwards:
+// `si_->isValid(dstate) && si_->checkMotion(dstate, nmotion->state)` (RRTConnect.cpp:143).
+// A re-rolling validator could never answer that -- rolling from the deflected endpoint
+// back toward the node is a different motion -- so deflected goal-tree extensions were
+// rejected outright. A recorded polyline visits the same states either way round, so it
+// answers in both directions.
+BOOST_AUTO_TEST_CASE(AReversedEdgeIsAnsweredFromTheLedger)
+{
+    const UR5 robot;
+    const Barrier truth(robot, obstacleField(), 0.0);
+    const Barrier guard = Barrier::guarding(robot, obstacleField(), 0.0);
+    const Filter filter(guard, filterParameters());
+    auto space = makeSpace(filter);
+    auto si = std::make_shared<ob::SpaceInformation>(space);
+    si->setStateValidityChecker(std::make_shared<ob::AllValidStateValidityChecker>(si));
+    si->setMotionValidator(std::make_shared<ompl::cbf::FilteredMotionValidator>(si));
+    si->setup();
+
+    const UR5::Configuration a = UR5::Configuration::Zero();
+    ob::ScopedState<> from(space), to(space), reached(space);
+    Space::setState(from.get(), a);
+    Space::setState(to.get(), pastObstacle(truth, a));
+
+    space->interpolate(from.get(), to.get(), 0.5, reached.get());
+    const std::size_t rolled = space->statistics().steps;
+    BOOST_REQUIRE_GT(space->statistics().filtered, 0u);
+
+    // The goal-tree question, asked the way RRTConnect asks it.
+    BOOST_CHECK(si->checkMotion(reached.get(), from.get()));
+    BOOST_CHECK_EQUAL(space->statistics().steps, rolled);
+
+    const Space::EdgeRecord record = space->recordedEdge(Space::configurationOf(reached.get()), a);
+    BOOST_REQUIRE(static_cast<bool>(record));
+    BOOST_CHECK(record.reversed());
+    // Query order: the walk now starts at the deflected endpoint and finishes at `a`.
+    BOOST_CHECK_EQUAL((record[0] - Space::configurationOf(reached.get())).norm(), 0.0);
+    BOOST_CHECK_EQUAL((record.at(1.0) - a).norm(), 0.0);
+}
+
+// Between two waypoints the control was held constant, so the executed motion there is a
+// straight line and sampling inside a step is exact rather than invented. This is what the
+// old rollout could not do: it quantised every fraction to a whole step, so asking for a
+// finer resolution silently handed back step boundaries.
+BOOST_AUTO_TEST_CASE(StatesInsideAStepAreOnTheExecutedSegment)
+{
+    const UR5 robot;
+    const Barrier truth(robot, obstacleField(), 0.0);
+    const Barrier guard = Barrier::guarding(robot, obstacleField(), 0.0);
+    const Filter filter(guard, filterParameters());
+    auto space = makeSpace(filter);
+    auto si = std::make_shared<ob::SpaceInformation>(space);
+    si->setStateValidityChecker(std::make_shared<ob::AllValidStateValidityChecker>(si));
+    si->setMotionValidator(std::make_shared<ompl::cbf::FilteredMotionValidator>(si));
+    si->setup();
+
+    const UR5::Configuration a = UR5::Configuration::Zero();
+    ob::ScopedState<> from(space), to(space), reached(space), out(space);
+    Space::setState(from.get(), a);
+    Space::setState(to.get(), pastObstacle(truth, a));
+    space->interpolate(from.get(), to.get(), 1.0, reached.get());
+    BOOST_REQUIRE(si->checkMotion(from.get(), reached.get()));
+
+    const Space::EdgeRecord record =
+        space->recordedEdge(a, Space::configurationOf(reached.get()));
+    BOOST_REQUIRE(static_cast<bool>(record));
+    const std::size_t steps = record.size() - 1;
+    BOOST_REQUIRE_GT(steps, 4u);
+
+    const std::size_t before = space->statistics().steps;
+    for (std::size_t i = 0; i < steps; ++i)
+    {
+        const double t = (static_cast<double>(i) + 0.5) / static_cast<double>(steps);
+        space->interpolate(from.get(), reached.get(), t, out.get());
+        const UR5::Configuration midpoint = 0.5 * (record[i] + record[i + 1]);
+        BOOST_CHECK_LE((Space::configurationOf(out.get()) - midpoint).norm(), 1e-12);
+    }
+    // None of that cost a filter call.
+    BOOST_CHECK_EQUAL(space->statistics().steps, before);
+}
+
+// executedPath() hands back the motion the planner actually found, edge by edge.
+BOOST_AUTO_TEST_CASE(ExecutedPathReplaysTheRecordedWaypoints)
+{
+    const UR5 robot;
+    const Barrier truth(robot, obstacleField(), 0.0);
+    const Barrier guard = Barrier::guarding(robot, obstacleField(), 0.0);
+    const Filter filter(guard, filterParameters());
+    auto space = makeSpace(filter);
+    auto si = std::make_shared<ob::SpaceInformation>(space);
+    si->setStateValidityChecker(std::make_shared<ob::AllValidStateValidityChecker>(si));
+    si->setMotionValidator(std::make_shared<ompl::cbf::FilteredMotionValidator>(si));
+    si->setup();
+
+    const UR5::Configuration a = UR5::Configuration::Zero();
+    ob::ScopedState<> from(space), to(space), reached(space);
+    Space::setState(from.get(), a);
+    Space::setState(to.get(), pastObstacle(truth, a));
+    space->interpolate(from.get(), to.get(), 1.0, reached.get());
+    BOOST_REQUIRE(si->checkMotion(from.get(), reached.get()));
+
+    const Space::EdgeRecord record =
+        space->recordedEdge(a, Space::configurationOf(reached.get()));
+    BOOST_REQUIRE(static_cast<bool>(record));
+    std::vector<UR5::Configuration> expected;
+    for (std::size_t i = 0; i < record.size(); ++i)
+        expected.push_back(record[i]);
+
+    og::PathGeometric sparse(si);
+    sparse.append(from.get());
+    sparse.append(reached.get());
+
+    std::size_t misses = 1;
+    const std::size_t before = space->statistics().steps;
+    const og::PathGeometric dense = ompl::cbf::executedPath(sparse, 0.0, &misses);
+
+    BOOST_CHECK_EQUAL(misses, 0u);
+    BOOST_CHECK_EQUAL(space->statistics().steps, before);
+    BOOST_REQUIRE_EQUAL(dense.getStateCount(), expected.size());
+    for (std::size_t i = 0; i < expected.size(); ++i)
+        BOOST_CHECK_EQUAL((Space::configurationOf(dense.getState(i)) - expected[i]).norm(), 0.0);
+}
+
+// Eviction must be loud. An evicted edge still validates -- the fallback re-derives it,
+// which is what every consumer used to get -- but the result is then a different
+// trajectory from the one the planner found, so the counter has to move.
+BOOST_AUTO_TEST_CASE(AnEvictedEdgeIsReportedAndStillValidates)
+{
+    const UR5 robot;
+    const Barrier barrier(robot, emptyField(), 0.0);
+    const Filter filter(barrier, filterParameters());
+    auto space = makeSpace(filter);
+    space->setLedgerCapacity(4);
+    auto si = std::make_shared<ob::SpaceInformation>(space);
+    si->setStateValidityChecker(std::make_shared<ob::AllValidStateValidityChecker>(si));
+    si->setMotionValidator(std::make_shared<ompl::cbf::FilteredMotionValidator>(si));
+    si->setup();
+
+    const UR5::Configuration a = configuration(0.0, -1.2, 1.8, -0.6, 1.57, 0.0);
+    ob::ScopedState<> from(space), to(space), reached(space);
+    Space::setState(from.get(), a);
+
+    for (int i = 1; i <= 3; ++i)
+    {
+        Space::setState(to.get(), a + UR5::Configuration::Constant(0.2 * i));
+        space->interpolate(from.get(), to.get(), 1.0, reached.get());
+        BOOST_CHECK(si->checkMotion(from.get(), reached.get()));
+    }
+
+    BOOST_CHECK_GT(space->statistics().evicted, 0u);
+    BOOST_CHECK_LE(space->ledgerWaypoints(), space->ledgerCapacity());
+
+    // The oldest edge is gone, so asking again re-derives it -- and executedPath() says so.
+    Space::setState(to.get(), a + UR5::Configuration::Constant(0.2));
+    space->interpolate(from.get(), to.get(), 1.0, reached.get());
+    space->clearLedger();
+    og::PathGeometric sparse(si);
+    sparse.append(from.get());
+    sparse.append(reached.get());
+    std::size_t misses = 0;
+    ompl::cbf::executedPath(sparse, 0.0, &misses);
+    BOOST_CHECK_EQUAL(misses, 1u);
+}
+
+// The recorded endpoint has to be bit-identical to the state the planner will store, or
+// the lookup misses forever. enforceBounds() can break that, so when it bites nothing is
+// staged and the edge falls back to being rolled -- correct, just not free.
+BOOST_AUTO_TEST_CASE(ABoundsClampedEndpointIsNotStaged)
+{
+    const UR5 robot;
+    const Barrier barrier(robot, emptyField(), 0.0);
+    const Filter filter(barrier, filterParameters());
+    auto space = makeSpace(filter);
+
+    ob::RealVectorBounds tight(dim);
+    for (int j = 0; j < dim; ++j)
+    {
+        tight.setLow(j, UR5::lowerBounds()[j]);
+        tight.setHigh(j, UR5::upperBounds()[j]);
+    }
+    tight.setHigh(0, 0.2);
+    space->setBounds(tight);
+
+    const UR5::Configuration a = UR5::Configuration::Zero();
+    const UR5::Configuration b = configuration(1.5, 0.0, 0.0, 0.0, 0.0, 0.0);
+    ob::ScopedState<> from(space), to(space), out(space);
+    Space::setState(from.get(), a);
+    Space::setState(to.get(), b);
+    space->interpolate(from.get(), to.get(), 1.0, out.get());
+
+    const UR5::Configuration stored = Space::configurationOf(out.get());
+    BOOST_REQUIRE_LE(stored[0], 0.2 + 1e-12);
+    BOOST_REQUIRE_GT(b[0] - stored[0], 1e-6);  // the clamp really did bite
+    BOOST_CHECK(!space->staged(a, stored));
 }
 
 // interpolate() must report "nowhere" rather than "sideways" when a rollout makes no
@@ -407,6 +579,11 @@ BOOST_AUTO_TEST_CASE(NoProgressIsReportedAsNoMotion)
     const Filter filter(barrier, filterParameters());
     auto space = makeSpace(filter);
 
+    auto si = std::make_shared<ob::SpaceInformation>(space);
+    si->setStateValidityChecker(std::make_shared<ob::AllValidStateValidityChecker>(si));
+    si->setMotionValidator(std::make_shared<ompl::cbf::FilteredMotionValidator>(si));
+    si->setup();
+
     const UR5::Configuration a = UR5::Configuration::Zero();
     const UR5::Configuration b = configuration(1.5, 0.0, 0.0, 0.0, 0.0, 0.0);
     ob::ScopedState<> from(space), to(space), out(space);
@@ -416,6 +593,13 @@ BOOST_AUTO_TEST_CASE(NoProgressIsReportedAsNoMotion)
 
     BOOST_CHECK_LE((Space::configurationOf(out.get()) - a).norm(), 1e-12);
     BOOST_CHECK_GT(space->statistics().abandoned, 0u);
+
+    // And the planner must not be able to turn that into an edge. geometric::RRT has no
+    // equal-states guard of its own -- unlike RRTConnect.cpp:132 -- so it asks whether the
+    // state can reach itself. A zero-horizon rollout trivially "arrives", which would earn
+    // a duplicate node joined by a zero-length edge, so the validator refuses outright.
+    BOOST_CHECK(!si->checkMotion(from.get(), out.get()));
+    BOOST_CHECK_EQUAL(space->ledgerEdges(), 0u);
 }
 
 // The validator answers "does the rollout go where you asked", not "is it safe" --
@@ -509,10 +693,34 @@ BOOST_AUTO_TEST_CASE(StockRRTConnectPlansSafelyThroughTheRolloutSpace)
                   ob::PlannerStatus::EXACT_SOLUTION);
 
     auto path = std::static_pointer_cast<og::PathGeometric>(pdef->getSolutionPath());
-    path->interpolate();
-    BOOST_REQUIRE_GT(path->getStateCount(), 2u);
-    for (std::size_t i = 0; i < path->getStateCount(); ++i)
-        BOOST_CHECK(truth.isSafe(Space::configurationOf(path->getState(i))));
+
+    // The motion that would actually be executed, replayed from the records the planner
+    // built the tree on. Sampled at 0.02 rad, which the old rollout could not honour --
+    // it quantised every fraction to a whole step, so a fine request came back coarse.
+    std::size_t misses = 1;
+    const og::PathGeometric dense = ompl::cbf::executedPath(*path, 0.02, &misses);
+    BOOST_CHECK_EQUAL(misses, 0u);
+    BOOST_CHECK_EQUAL(space->statistics().evicted, 0u);
+    BOOST_REQUIRE_GT(dense.getStateCount(), 2u);
+    for (std::size_t i = 0; i < dense.getStateCount(); ++i)
+        BOOST_CHECK(truth.isSafe(Space::configurationOf(dense.getState(i))));
 
     BOOST_CHECK_GT(space->statistics().steps, 0u);
+
+    // Safety at sampled states is not enough: a path can be safe everywhere it is
+    // looked at and still be unexecutable, if the reconstruction of one edge does not
+    // finish where the next edge starts. Nothing else in this suite would notice --
+    // every state of a re-derived trajectory is filter-certified too, so the barrier
+    // assertions above pass either way. So measure the seams directly.
+    //
+    // The bound is one full-speed step plus `reachTolerance`, which is how far the
+    // arrive-or-reject fallback may finish from the waypoint the planner stored. Replayed
+    // edges have no seam at all; this is sized for the fallback ones.
+    const double stride = UR5::velocityLimits().norm() * stepSize + space->reachTolerance();
+    double worstGap = 0.0;
+    for (std::size_t i = 0; i + 1 < dense.getStateCount(); ++i)
+        worstGap = std::max(worstGap, (Space::configurationOf(dense.getState(i + 1)) -
+                                       Space::configurationOf(dense.getState(i)))
+                                          .norm());
+    BOOST_CHECK_LE(worstGap, stride);
 }

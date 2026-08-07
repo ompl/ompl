@@ -3,6 +3,12 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <deque>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include <Eigen/Core>
 
@@ -13,7 +19,7 @@
 namespace ompl::cbf
 {
     /// A joint-space state space whose `interpolate()` is a CBF rollout instead of a
-    /// straight line.
+    /// straight line, and which keeps the trajectory it produced.
     ///
     /// This is the geometric counterpart to `FilteredStatePropagator`, and it exists
     /// because control-space planning turned out to be the wrong shape for speed. A
@@ -24,10 +30,31 @@ namespace ompl::cbf
     /// take long-range extensions while every intermediate state is still certified by
     /// the barrier.
     ///
+    /// ### The edge is the trajectory
+    ///
+    /// A tree edge in stock OMPL is two endpoints; the motion between them is whatever
+    /// the state space says it is, recomputed on demand. That does not work here. The
+    /// nominal control re-aims at its target every step, so a rollout aimed at the
+    /// deflected endpoint `x` is a *different motion* from the one that produced `x`
+    /// while aiming at the original sample. Recomputing gives a plausible, safe, wrong
+    /// answer -- one that passes every barrier check while not being the trajectory the
+    /// planner actually found.
+    ///
+    /// So the rollout is run once and its waypoints are kept, keyed by the edge they
+    /// produced. Every later question about that edge -- is it valid, what does it look
+    /// like at fraction t, what should the robot execute -- is answered from that
+    /// record. Nothing is ever re-derived. `FilteredMotionValidator` accepts an edge by
+    /// looking it up rather than by re-rolling it, which is where the cost went.
+    ///
+    /// This is exact, not an approximation: the rollout integrates a control held
+    /// constant over each step, so the straight line between two consecutive waypoints
+    /// *is* the executed motion. A densified record is therefore a genuinely geometric
+    /// path, and sampling strictly inside a step is meaningful rather than invented.
+    ///
     /// ### The contract, and where it bends
     ///
     /// OMPL asks that `interpolate(a, b, 1, out)` give `out == b`. That holds here only
-    /// when the rollout is unobstructed — and when it is, this space *is* a
+    /// when the rollout is unobstructed -- and when it is, this space *is* a
     /// `RealVectorStateSpace`, up to quantisation: the nominal control re-aims at `b`
     /// every step, so in free space the rollout advances exactly `|b - a| / N` per step
     /// and lands on `b`. Near an obstacle the rollout slides along the boundary and
@@ -35,17 +62,12 @@ namespace ompl::cbf
     /// perfectly good new tree node, and it is safe, whereas a straight line into the
     /// obstacle is not.
     ///
-    /// What this buys, and the reason it composes with stock planners: a planner that
-    /// stores `interpolate()`'s output as a node is storing a state the rollout
-    /// actually produced. `geometric::RRT` does exactly that on its long-extension
-    /// branch (`d > maxDistance_`). On the short branch it stores the raw sample
-    /// instead, which the rollout may not reach — that case is what
-    /// `FilteredMotionValidator` is for.
-    ///
-    /// Because the executed motion between two waypoints is by definition
-    /// `interpolate()` between them, `PathGeometric::interpolate()` reconstructs the
-    /// true trajectory rather than a straight-line fiction. That self-consistency is
-    /// why the rollout belongs here and not in the motion validator alone.
+    /// A planner that stores `interpolate()`'s output as a node is therefore storing a
+    /// state the rollout actually produced, and this space has that rollout on file.
+    /// `geometric::RRT` does exactly that on its long-extension branch
+    /// (`d > maxDistance_`). On the short branch it stores the raw sample instead,
+    /// which the rollout may not reach -- that case is what `FilteredMotionValidator`'s
+    /// arrive-or-reject fallback is for.
     ///
     /// ### What it does not give you
     ///
@@ -53,6 +75,10 @@ namespace ompl::cbf
     /// the motion `interpolate()` would actually take, since sliding around an
     /// obstacle is longer than cutting through it. That only makes it a slightly
     /// looser nearest-neighbour heuristic, which is all a tree planner needs it for.
+    ///
+    /// Not thread safe: the ledger and the statistics are mutable, and `ControlFilter`
+    /// already cost thread safety anyway since `CBFControlFilter` solves into shared
+    /// scratch.
     class FilteredStateSpace : public base::RealVectorStateSpace
     {
     public:
@@ -63,11 +89,12 @@ namespace ompl::cbf
 
         struct Rollout
         {
-            Configuration end;            ///< where the rollout finished
-            unsigned int steps{0};        ///< filter calls made
-            unsigned int filtered{0};     ///< of those, how many the CBF altered
-            unsigned int blocked{0};      ///< of those, how many had no safe control
-            bool reachedTarget{false};    ///< did it finish within reachTolerance of `to`?
+            Configuration end;                     ///< where the rollout finished
+            std::vector<Configuration> waypoints;  ///< the executed motion; front() is the start
+            unsigned int steps{0};                 ///< filter calls made
+            unsigned int filtered{0};              ///< of those, how many the CBF altered
+            unsigned int blocked{0};               ///< of those, how many had no safe control
+            bool reachedTarget{false};             ///< did it finish within reachTolerance of `to`?
         };
 
         /// Aggregate counters, so a planner run can be costed without instrumenting
@@ -79,9 +106,9 @@ namespace ompl::cbf
             std::size_t filtered{0};
             std::size_t blocked{0};
             std::size_t abandoned{0};  ///< rollouts discarded for making no progress
-            std::size_t resumed{0};    ///< rollouts that continued a memoized prefix
-            std::size_t stepsSaved{0}; ///< filter calls those prefixes stood in for
-            std::size_t certified{0};  ///< motions answered by `certifiedByLastRollout()`
+            std::size_t served{0};     ///< queries answered from the ledger, at no filter cost
+            std::size_t recorded{0};   ///< edges committed to the ledger
+            std::size_t evicted{0};    ///< edges dropped for capacity; should stay zero
         };
 
         /// \p filter is not copied and must outlive this space. \p stepSize is the
@@ -97,10 +124,13 @@ namespace ompl::cbf
             setName("Filtered" + getName());
         }
 
-        /// How close the rollout must finish to `to` for it to count as having got
-        /// there. Exact equality is the right answer in free space but useless near an
-        /// obstacle, where two rollouts from the same state toward slightly different
-        /// targets deflect slightly differently. Defaults to one full-speed step.
+        /// How close a rollout must finish to `to` for it to count as having got there.
+        ///
+        /// Only the arrive-or-reject fallback in `FilteredMotionValidator` uses this --
+        /// a recorded edge is answered by lookup and needs no tolerance. Exact equality
+        /// is the right answer in free space but useless near an obstacle, where two
+        /// rollouts from the same state toward slightly different targets deflect
+        /// slightly differently. Defaults to one full-speed step.
         double reachTolerance() const
         {
             return reachTolerance_ > 0.0 ? reachTolerance_ : maxSpeed_.norm() * stepSize_;
@@ -120,26 +150,18 @@ namespace ompl::cbf
             return static_cast<unsigned int>(std::ceil(horizon / stepSize_ - 1e-12));
         }
 
-        /// Roll out from \p from toward \p to for \p fraction of the full horizon.
+        /// Roll out from \p from toward \p to for \p fraction of the full horizon,
+        /// keeping every state it passes through.
         ///
         /// The nominal control re-aims at \p to at every step rather than being held
         /// constant. Both choices reduce to a straight line in free space, but
         /// re-aiming also recovers the original intent after the filter deflects it,
         /// which is what makes a long extension useful rather than merely safe.
         ///
-        /// The rollout state at step i is a function of (`from`, `to`, the full horizon,
-        /// i) alone — that is what the `remaining` term below buys — so a longer rollout
-        /// over the same motion *contains* a shorter one. This exploits that: the last
-        /// rollout is memoized and a call that only carries it further resumes from where
-        /// it stopped. Without that, `base::SpaceInformation::getMotionStates` (and
-        /// therefore `geometric::PathGeometric::interpolate()` and the planners'
-        /// `addIntermediateStates` mode) costs O(n^2) filter calls to produce n states,
-        /// because it asks for fractions 1/n … n/n and each one restarted from `from`.
-        ///
-        /// The memo is single-entry and returns identical results to a cold call, so it
-        /// is invisible apart from `statistics()` and the loss of thread safety —
-        /// which `ControlFilter` already costs anyway, since `CBFControlFilter` solves
-        /// into shared scratch.
+        /// A pure function of (`from`, `to`, `fraction`): no memo, no resumption. What
+        /// used to be a prefix cache is now the ledger, which keeps whole edges rather
+        /// than one trajectory prefix, and is consulted by `interpolate()` before this
+        /// is ever called.
         Rollout roll(const Configuration &from, const Configuration &to, double fraction) const
         {
             const unsigned int total = horizonSteps(from, to);
@@ -148,28 +170,13 @@ namespace ompl::cbf
 
             Rollout out;
             out.end = from;
+            out.waypoints.reserve(static_cast<std::size_t>(steps) + 1);
+            out.waypoints.push_back(from);
 
-            // Resume rather than restart when this is the same motion carried further.
-            const bool resumed = memo_.valid && memo_.steps <= steps && memo_.horizon == total &&
-                                 sameConfiguration(memo_.from, from) && sameConfiguration(memo_.to, to);
-            if (resumed)
-            {
-                out.end = memo_.end;
-                out.steps = memo_.steps;
-                out.filtered = memo_.filtered;
-                statistics_.resumed += 1;
-                statistics_.stepsSaved += memo_.steps;
-            }
-            const unsigned int filteredBefore = out.filtered;
-
-            // A rollout that stopped early stops in the same place next time: the block
-            // happened at step index `out.steps` of this same horizon, so the filter
-            // would be handed the identical state and nominal control again.
-            bool terminal = resumed && memo_.terminal;
-
+            bool terminal = false;
             Control nominal;
             Control applied;
-            for (unsigned int i = out.steps; i < steps && !terminal; ++i)
+            for (unsigned int i = 0; i < steps; ++i)
             {
                 // Time left in the *full* horizon, so a truncated rollout follows the
                 // same trajectory as the prefix of a complete one.
@@ -190,21 +197,17 @@ namespace ompl::cbf
                     ++out.filtered;
 
                 out.end += applied * stepSize_;
+                out.waypoints.push_back(out.end);
                 ++out.steps;
             }
 
-            // Only a rollout that wanted to go further than the block counts as blocked;
-            // one asked for exactly the safe prefix got everything it asked for.
-            if (terminal && out.steps < steps)
+            if (terminal)
                 out.blocked = 1;
             out.reachedTarget = out.steps == steps && (out.end - to).norm() <= reachTolerance();
 
-            const bool newlyBlocked = out.blocked != 0 && !(resumed && memo_.terminal);
-            memo_ = Memo{from, to, out.end, total, out.steps, out.filtered, terminal, true};
-
             statistics_.rollouts += 1;
-            statistics_.filtered += out.filtered - filteredBefore;
-            statistics_.blocked += newlyBlocked ? 1 : 0;
+            statistics_.filtered += out.filtered;
+            statistics_.blocked += out.blocked;
             return out;
         }
 
@@ -213,44 +216,182 @@ namespace ompl::cbf
             return roll(configurationOf(from), configurationOf(to), fraction);
         }
 
-        /// True when the memoized rollout is *itself* the proof that a motion from
-        /// \p from to \p to is safe and arrives, so there is nothing to roll.
+        /// A recorded edge, oriented the way it was asked for.
         ///
-        /// This exists because a tree planner rolls twice per extension and only needs
-        /// to roll once. `geometric::RRT::solve` interpolates toward a random sample
-        /// (`RRT.cpp:144`) and then calls `checkMotion` on the state that produced
-        /// (`RRT.cpp:148`); `RRTConnect.cpp:130`/`:142` does the same. The second
-        /// rollout re-derives a motion the first one just demonstrated.
-        ///
-        /// The condition is deliberately narrow. It requires the memoized rollout to
-        /// have started at \p from, ended exactly at \p to, taken at least one step, and
-        /// — the load-bearing part — to have been *unfiltered*. An unfiltered rollout is
-        /// the straight line from `from` to its endpoint, so re-rolling with \p to as the
-        /// target retraces the same line through the same free space and arrives; the
-        /// answer is identical and only the work differs.
-        ///
-        /// Widening it to filtered rollouts would roughly double the saving and must not
-        /// be done. Such an extension is still *safe* — the filter certified every state
-        /// it produced — but it would not be **reproducible**: aiming at the deflected
-        /// endpoint is a different motion from aiming at the original sample, so a
-        /// re-derivation that no longer has the memo can land short. That re-derivation
-        /// is exactly what `geometric::PathGeometric::check()` does, and what the demo's
-        /// audit relies on, so certifying by construction here would buy speed by
-        /// accepting edges the audit then rejects. Filtered rollouts get checked for
-        /// real, which is the case worth checking anyway.
-        bool certifiedByLastRollout(const Configuration &from, const Configuration &to) const
+        /// Valid until the next `record()`, which may rehash or evict. Both call sites
+        /// consume it immediately.
+        class EdgeRecord
         {
-            const bool certified = memo_.valid && memo_.steps > 0 && memo_.filtered == 0 &&
-                                   !memo_.terminal && sameConfiguration(memo_.from, from) &&
-                                   sameConfiguration(memo_.end, to);
-            if (certified)
-                ++statistics_.certified;
-            return certified;
+        public:
+            EdgeRecord() = default;
+            EdgeRecord(const std::vector<Configuration> *waypoints, bool reversed)
+              : waypoints_(waypoints), reversed_(reversed)
+            {
+            }
+
+            explicit operator bool() const
+            {
+                return waypoints_ != nullptr;
+            }
+
+            /// True when this edge was found stored the other way round. Safe to use:
+            /// a recorded polyline visits the same states and the same segments in
+            /// either direction. It is *not* a rollout run backwards -- the filter is
+            /// not invertible -- and it does not need to be, because what is being
+            /// asserted is the geometry of the motion, not the control that made it.
+            bool reversed() const
+            {
+                return reversed_;
+            }
+
+            std::size_t size() const
+            {
+                return waypoints_ == nullptr ? 0 : waypoints_->size();
+            }
+
+            /// The i-th waypoint in *query* order.
+            const Configuration &operator[](std::size_t i) const
+            {
+                return reversed_ ? (*waypoints_)[waypoints_->size() - 1 - i] : (*waypoints_)[i];
+            }
+
+            /// The state at fraction \p t of the edge, linear between waypoints.
+            ///
+            /// Exact, including strictly inside a step: the control is held constant
+            /// over a step, so the segment joining two consecutive waypoints is the
+            /// executed motion rather than a stand-in for it. `t = 0` and `t = 1`
+            /// return the endpoints bit-exactly.
+            Configuration at(double t) const
+            {
+                const std::size_t count = size();
+                if (count == 1)
+                    return (*this)[0];
+
+                const double u = std::clamp(t, 0.0, 1.0) * static_cast<double>(count - 1);
+                const auto index = static_cast<std::size_t>(u);
+                if (index + 1 >= count)
+                    return (*this)[count - 1];
+                const double fraction = u - static_cast<double>(index);
+                return (*this)[index] + fraction * ((*this)[index + 1] - (*this)[index]);
+            }
+
+        private:
+            const std::vector<Configuration> *waypoints_{nullptr};
+            bool reversed_{false};
+        };
+
+        /// The trajectory recorded for the edge \p from -> \p to, in either direction,
+        /// or a false record if there is none.
+        EdgeRecord recordedEdge(const Configuration &from, const Configuration &to) const
+        {
+            auto found = ledger_.find(Edge{from, to});
+            if (found != ledger_.end())
+            {
+                ++statistics_.served;
+                return EdgeRecord(&found->second, false);
+            }
+            found = ledger_.find(Edge{to, from});
+            if (found != ledger_.end())
+            {
+                ++statistics_.served;
+                return EdgeRecord(&found->second, true);
+            }
+            return EdgeRecord();
         }
 
-        bool certifiedByLastRollout(const base::State *from, const base::State *to) const
+        EdgeRecord recordedEdge(const base::State *from, const base::State *to) const
         {
-            return certifiedByLastRollout(configurationOf(from), configurationOf(to));
+            return recordedEdge(configurationOf(from), configurationOf(to));
+        }
+
+        /// Keep \p waypoints as the executed motion of the edge \p from -> \p to.
+        ///
+        /// Refuses degenerate edges and never overwrites: re-recording a key with a
+        /// different polyline would make replay ambiguous, and the first record is the
+        /// one the planner built its tree on.
+        void record(const Configuration &from, const Configuration &to,
+                    std::vector<Configuration> waypoints) const
+        {
+            if (waypoints.size() < 2 || bitwiseEqual(from, to))
+                return;
+
+            const Edge key{from, to};
+            if (ledger_.find(key) != ledger_.end())
+                return;
+
+            ledgerWaypoints_ += waypoints.size();
+            order_.push_back(key);
+            ledger_.emplace(key, std::move(waypoints));
+            ++statistics_.recorded;
+            evictToCapacity();
+        }
+
+        /// Does the pending rollout describe the edge \p from -> \p to, either way round?
+        ///
+        /// `interpolate()` leaves its rollout here rather than in the ledger, because at
+        /// that point the planner has not yet decided whether to keep the edge. The
+        /// motion validator is the one that knows, and it commits.
+        bool staged(const Configuration &from, const Configuration &to) const
+        {
+            return staged_.valid && ((bitwiseEqual(staged_.from, from) && bitwiseEqual(staged_.to, to)) ||
+                                     (bitwiseEqual(staged_.from, to) && bitwiseEqual(staged_.to, from)));
+        }
+
+        bool staged(const base::State *from, const base::State *to) const
+        {
+            return staged(configurationOf(from), configurationOf(to));
+        }
+
+        /// Move the pending rollout into the ledger.
+        ///
+        /// Counts as served: the caller asked about an edge and got an answer that cost
+        /// no filter calls. This is the common case during planning -- the validator is
+        /// asking about the extension `interpolate()` just produced -- so leaving it out
+        /// would make `statistics().served` read zero on a run that never re-rolled
+        /// anything.
+        void commitStaged() const
+        {
+            if (staged_.valid)
+            {
+                record(staged_.from, staged_.to, std::move(staged_.waypoints));
+                ++statistics_.served;
+            }
+            staged_.waypoints.clear();
+            staged_.valid = false;
+        }
+
+        /// Ledger size limit, in waypoints. Reaching it evicts oldest-first, which
+        /// degrades an affected edge back to being re-derived rather than replayed --
+        /// so `statistics().evicted` staying zero is part of the contract, not a
+        /// nicety. One waypoint is 48 bytes; the default is roughly 50 MB.
+        std::size_t ledgerCapacity() const
+        {
+            return ledgerCapacity_;
+        }
+
+        void setLedgerCapacity(std::size_t maxWaypoints)
+        {
+            ledgerCapacity_ = maxWaypoints;
+            evictToCapacity();
+        }
+
+        std::size_t ledgerWaypoints() const
+        {
+            return ledgerWaypoints_;
+        }
+
+        std::size_t ledgerEdges() const
+        {
+            return ledger_.size();
+        }
+
+        void clearLedger() const
+        {
+            ledger_.clear();
+            order_.clear();
+            ledgerWaypoints_ = 0;
+            staged_.waypoints.clear();
+            staged_.valid = false;
         }
 
         /// Minimum share of the free-space progress an extension must actually achieve
@@ -268,10 +409,22 @@ namespace ompl::cbf
         void interpolate(const base::State *from, const base::State *to, double t,
                          base::State *state) const override
         {
-            // from may alias state, so finish the rollout before writing.
+            // from may alias state, so finish reading before writing.
             const Configuration a = configurationOf(from);
             const Configuration b = configurationOf(to);
-            const Rollout rollout = roll(a, b, t);
+
+            // A recorded edge is a reconstruction, never an extension: replay it and
+            // skip both the progress test (which only guards the creation of new edges)
+            // and enforceBounds (every waypoint was in bounds when it was recorded).
+            if (const EdgeRecord record = recordedEdge(a, b))
+            {
+                setState(state, record.at(t));
+                return;
+            }
+
+            Rollout rollout = roll(a, b, t);
+            staged_.waypoints.clear();
+            staged_.valid = false;
 
             // An extension that makes no headway toward its target is not an extension,
             // and must be reported as going nowhere rather than as going sideways.
@@ -283,19 +436,39 @@ namespace ompl::cbf
             // `maxDistance_`, which is true of a straight line and false of a rollout
             // that slides along an obstacle boundary. Without this test that loop spins
             // forever and `solve()` never looks at the clock again -- observed as a hang
-            // rather than a timeout.
+            // rather than a timeout. It matters more now, not less: the goal tree
+            // accepts far more extensions than it used to.
             //
             // Note the threshold is relative to the progress a *free-space* rollout
-            // would have made for this `t`, not absolute, so densifying an accepted edge
-            // via `PathGeometric::interpolate()` still behaves.
-            const double target = (b - a).norm() * std::clamp(t, 0.0, 1.0);
-            const double achieved = (b - a).norm() - (b - rollout.end).norm();
-            const bool worthwhile = achieved >= minProgressFraction_ * target;
-            if (!worthwhile)
+            // would have made for this `t`, not absolute.
+            const double span = (b - a).norm();
+            const double target = span * std::clamp(t, 0.0, 1.0);
+            const double achieved = span - (b - rollout.end).norm();
+            if (achieved < minProgressFraction_ * target)
+            {
                 ++statistics_.abandoned;
+                setState(state, a);
+                enforceBounds(state);
+                return;
+            }
 
-            setState(state, worthwhile ? rollout.end : a);
+            setState(state, rollout.end);
             enforceBounds(state);
+
+            // The recorded endpoint has to be bit-identical to the state the planner
+            // will hand back, or the lookup misses forever. Clamping essentially never
+            // happens -- the filter already respects the joint limits the bounds are
+            // set from -- and when it does, the clamp displacement is not something the
+            // filter certified, so the honest move is to not record and let the edge be
+            // re-derived the old way.
+            const Configuration stored = configurationOf(state);
+            if (bitwiseEqual(stored, rollout.end))
+            {
+                staged_.from = a;
+                staged_.to = stored;
+                staged_.waypoints = std::move(rollout.waypoints);
+                staged_.valid = true;
+            }
         }
 
         static Configuration configurationOf(const base::State *state)
@@ -311,6 +484,16 @@ namespace ompl::cbf
         {
             for (int j = 0; j < dimension; ++j)
                 state->as<StateType>()->values[j] = q[j];
+        }
+
+        /// Bitwise equality, because the point is to recognise a state the planner just
+        /// handed back unmodified -- `copyState` is a memcpy, so the bits survive. Not
+        /// `operator==`, which calls -0.0 and 0.0 equal while their bit patterns differ;
+        /// hashing and equality have to agree. A near-miss is a miss, which only costs
+        /// a rollout.
+        static bool bitwiseEqual(const Configuration &a, const Configuration &b)
+        {
+            return std::memcmp(a.data(), b.data(), sizeof(double) * dimension) == 0;
         }
 
         const ControlFilter &filter() const
@@ -339,25 +522,64 @@ namespace ompl::cbf
         }
 
     private:
-        /// The last rollout, kept so the next one need not repeat it. See `roll()` and
-        /// `certifiedByLastRollout()` for the two ways that pays.
-        struct Memo
+        struct Edge
+        {
+            Configuration from;
+            Configuration to;
+        };
+
+        struct EdgeHash
+        {
+            std::size_t operator()(const Edge &edge) const
+            {
+                return hashConfiguration(edge.to, hashConfiguration(edge.from, 0xcbf29ce484222325ull));
+            }
+        };
+
+        struct EdgeEqual
+        {
+            bool operator()(const Edge &a, const Edge &b) const
+            {
+                return bitwiseEqual(a.from, b.from) && bitwiseEqual(a.to, b.to);
+            }
+        };
+
+        /// The rollout `interpolate()` last produced, held until the motion validator
+        /// says whether the planner is keeping the edge. Extensions that are rejected
+        /// therefore cost nothing in memory.
+        struct Staged
         {
             Configuration from{Configuration::Zero()};
             Configuration to{Configuration::Zero()};
-            Configuration end{Configuration::Zero()};
-            unsigned int horizon{0};   ///< `horizonSteps(from, to)` when it was taken
-            unsigned int steps{0};
-            unsigned int filtered{0};
-            bool terminal{false};      ///< stopped on a `Blocked` step, so it will again
+            std::vector<Configuration> waypoints;
             bool valid{false};
         };
 
-        /// Bitwise equality, because the point is to recognise a state the planner just
-        /// handed back unmodified. A near-miss is a cache miss, which only costs work.
-        static bool sameConfiguration(const Configuration &a, const Configuration &b)
+        static std::size_t hashConfiguration(const Configuration &q, std::uint64_t seed)
         {
-            return (a.array() == b.array()).all();
+            std::uint64_t hash = seed;
+            for (int j = 0; j < dimension; ++j)
+            {
+                std::uint64_t word = 0;
+                std::memcpy(&word, q.data() + j, sizeof(word));
+                hash = (hash ^ word) * 0x100000001b3ull;
+            }
+            return static_cast<std::size_t>(hash);
+        }
+
+        void evictToCapacity() const
+        {
+            while (ledgerWaypoints_ > ledgerCapacity_ && !order_.empty())
+            {
+                const auto oldest = ledger_.find(order_.front());
+                if (oldest != ledger_.end())
+                {
+                    ledgerWaypoints_ -= oldest->second.size();
+                    ledger_.erase(oldest);
+                    ++statistics_.evicted;
+                }
+                order_.pop_front();
+            }
         }
 
         const ControlFilter &filter_;
@@ -365,7 +587,11 @@ namespace ompl::cbf
         Control maxSpeed_;
         double reachTolerance_{-1.0};
         double minProgressFraction_{0.25};
+        std::size_t ledgerCapacity_{1u << 20};
         mutable Statistics statistics_;
-        mutable Memo memo_;
+        mutable Staged staged_;
+        mutable std::unordered_map<Edge, std::vector<Configuration>, EdgeHash, EdgeEqual> ledger_;
+        mutable std::deque<Edge> order_;  ///< insertion order, for eviction
+        mutable std::size_t ledgerWaypoints_{0};
     };
 }  // namespace ompl::cbf

@@ -43,6 +43,7 @@
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/cbf/CBFControlFilter.h>
 #include <ompl/cbf/ClearanceBarrier.h>
+#include <ompl/cbf/ExecutedPath.h>
 #include <ompl/cbf/FilteredMotionValidator.h>
 #include <ompl/cbf/FilteredStateSpace.h>
 #include <ompl/geometric/PathGeometric.h>
@@ -63,6 +64,14 @@ namespace
     constexpr int dimension = static_cast<int>(UR5::nJoints);
 
     /// One goal from the problem file: a configuration plus what it was for.
+    double median(std::vector<double> values)
+    {
+        if (values.empty())
+            return 0.0;
+        std::sort(values.begin(), values.end());
+        return values[values.size() / 2];
+    }
+
     struct Goal
     {
         int index{0};
@@ -219,7 +228,98 @@ namespace
         std::size_t blocked{0};
         std::size_t filtered{0};
         std::size_t steps{0};
+        std::size_t misses{0};  ///< solution edges re-derived rather than replayed
     };
+
+    /// The bar: ordinary `geometric::RRTConnect` with straight-line edges and the same
+    /// SDF behind an ordinary state validity checker. Same start, same goal, same goal
+    /// tolerance, same range -- the only difference is how an edge is decided.
+    ///
+    /// Audited the same way too, but note the asymmetry that makes the clearance column
+    /// worth reading: this row's motion between waypoints is a straight line, so
+    /// densifying it reconstructs the executed motion exactly, whereas its *validity*
+    /// was only ever sampled at `longestValidSegmentFraction`. The CBF row is the other
+    /// way round -- every state it emits was certified as it was produced.
+    Result planCollisionChecked(const Scene &scene, const sdf::GridSDF &field, const Goal &goal,
+                                double timeLimit, double range)
+    {
+        const UR5 robot;
+        const Barrier audit(robot, field, scene.margin);
+
+        auto space = std::make_shared<ob::RealVectorStateSpace>(dimension);
+        ob::RealVectorBounds bounds(dimension);
+        for (int j = 0; j < dimension; ++j)
+        {
+            bounds.setLow(j, scene.lower[j]);
+            bounds.setHigh(j, scene.upper[j]);
+        }
+        space->setBounds(bounds);
+
+        auto si = std::make_shared<ob::SpaceInformation>(space);
+        std::size_t checks = 0;
+        si->setStateValidityChecker(
+            [&audit, &checks](const ob::State *state)
+            {
+                ++checks;
+                return audit.isSafe(ompl::cbf::FilteredStateSpace::configurationOf(state));
+            });
+        si->setup();
+
+        ob::ScopedState<ob::RealVectorStateSpace> start(space);
+        ob::ScopedState<ob::RealVectorStateSpace> target(space);
+        for (int j = 0; j < dimension; ++j)
+        {
+            start->values[j] = scene.start[j];
+            target->values[j] = goal.configuration[j];
+        }
+
+        auto pdef = std::make_shared<ob::ProblemDefinition>(si);
+        pdef->setStartAndGoalStates(start, target, 0.35);
+
+        auto planner = std::make_shared<og::RRTConnect>(si);
+        planner->setRange(range);
+        planner->setProblemDefinition(pdef);
+        planner->setup();
+
+        const ompl::time::point begin = ompl::time::now();
+        const ob::PlannerStatus status = planner->solve(ob::timedPlannerTerminationCondition(timeLimit));
+
+        Result result;
+        result.seconds = ompl::time::seconds(ompl::time::now() - begin);
+        result.solved = (status == ob::PlannerStatus::EXACT_SOLUTION);
+        result.steps = checks;
+
+        ob::PlannerData data(si);
+        planner->getPlannerData(data);
+        result.vertices = data.numVertices();
+
+        if (pdef->hasSolution())
+        {
+            auto solution = std::static_pointer_cast<og::PathGeometric>(pdef->getSolutionPath());
+            result.waypoints = solution->getStateCount();
+            solution->interpolate(static_cast<unsigned int>(
+                solution->length() / (UR5::velocityLimits().maxCoeff() * 0.05)));
+            result.auditedStates = solution->getStateCount();
+            for (std::size_t i = 0; i < solution->getStateCount(); ++i)
+            {
+                const UR5::Configuration q =
+                    ompl::cbf::FilteredStateSpace::configurationOf(solution->getState(i));
+                const double h = audit.worstValue(q);
+                result.minBarrier = std::min(result.minBarrier, h);
+                if (h < 0.0)
+                    ++result.unsafeStates;
+
+                const double own = worstSelfOverlap(robot, q);
+                result.minSelfOverlap = std::min(result.minSelfOverlap, own);
+                if (own < 0.0)
+                    ++result.selfColliding;
+            }
+            const UR5::Configuration last = ompl::cbf::FilteredStateSpace::configurationOf(
+                solution->getState(solution->getStateCount() - 1));
+            result.goalDistance = (last - goal.configuration).norm();
+        }
+        return result;
+    }
 
     Result plan(const Scene &scene, const sdf::GridSDF &field, const Goal &goal, double timeLimit,
                 double stepSize, double range, std::vector<UR5::Configuration> *path)
@@ -291,15 +391,18 @@ namespace
             auto solution = std::static_pointer_cast<og::PathGeometric>(pdef->getSolutionPath());
             result.waypoints = solution->getStateCount();
 
-            // interpolate() runs the space's interpolate, which *is* the CBF rollout,
-            // so this reconstructs the executed motion rather than a straight-line
-            // stand-in -- the only honest thing to audit.
-            solution->interpolate();
-            result.auditedStates = solution->getStateCount();
-            for (std::size_t i = 0; i < solution->getStateCount(); ++i)
+            // Every edge replaced by the rollout the planner recorded for it, so this is
+            // the motion that would actually be executed -- the only honest thing to
+            // audit, and the only honest thing to write to the .path file below. The
+            // resolution matches the rollout's own step travel, so the audit sees inside
+            // each step rather than only its boundaries. `misses` must stay zero.
+            const og::PathGeometric executed = ompl::cbf::executedPath(
+                *solution, UR5::velocityLimits().maxCoeff() * stepSize, &result.misses);
+            result.auditedStates = executed.getStateCount();
+            for (std::size_t i = 0; i < executed.getStateCount(); ++i)
             {
                 const UR5::Configuration q =
-                    ompl::cbf::FilteredStateSpace::configurationOf(solution->getState(i));
+                    ompl::cbf::FilteredStateSpace::configurationOf(executed.getState(i));
                 const double h = audit.worstValue(q);
                 result.minBarrier = std::min(result.minBarrier, h);
                 if (h < 0.0)
@@ -313,7 +416,7 @@ namespace
                     path->push_back(q);
             }
             const UR5::Configuration last = ompl::cbf::FilteredStateSpace::configurationOf(
-                solution->getState(solution->getStateCount() - 1));
+                executed.getState(executed.getStateCount() - 1));
             result.goalDistance = (last - goal.configuration).norm();
         }
         return result;
@@ -324,7 +427,7 @@ int main(int argc, char **argv)
 {
     if (argc < 2)
     {
-        std::printf("usage: %s <scene.problem> [seconds] [out.path]\n", argv[0]);
+        std::printf("usage: %s <scene.problem> [seconds] [out.path] [trials]\n", argv[0]);
         std::printf("       %s <scene.problem> --probe   < points.txt\n", argv[0]);
         return 1;
     }
@@ -333,6 +436,9 @@ int main(int argc, char **argv)
     const bool probeMode = (argc > 2 && std::string(argv[2]) == "--probe");
     const double timeLimit = (argc > 2 && !probeMode) ? std::atof(argv[2]) : 10.0;
     const std::string outPath = (argc > 3 && !probeMode) ? argv[3] : std::string();
+    // Repeats for the timing columns only. A solve here is about a millisecond, so one
+    // sample is noise; the reported path and audit come from the last trial.
+    const int trials = (argc > 4 && !probeMode) ? std::max(1, std::atoi(argv[4])) : 5;
 
     const Scene scene = readScene(problemPath);
     const sdf::GridSDF field = sdf::GridSDF::load(scene.gridPath);
@@ -364,26 +470,58 @@ int main(int argc, char **argv)
         return 2;
     }
 
-    std::printf("\n%-28s %7s %8s %6s %8s %8s %9s %7s %8s %9s\n", "goal", "solved", "seconds",
-                "wpts", "audited", "unsafe", "min h", "blocked", "selfcoll", "min self");
+    std::printf("\n%-28s %-6s %7s %8s %6s %8s %8s %9s %7s %8s %9s\n", "goal", "row", "solved",
+                "seconds", "wpts", "audited", "unsafe", "min h", "evals", "selfcoll", "min self");
 
     std::vector<UR5::Configuration> combined;
     std::size_t solvedCount = 0;
     std::size_t unsafeTotal = 0;
     std::size_t selfTotal = 0;
+    // Medians over `trials` repeats: a solve here takes about a millisecond, which is
+    // the same order as the noise, so a single sample says nothing about which row is
+    // faster. Only the timing is repeated -- the reported path is the last one.
+    std::size_t baselineSolved = 0;
+    std::vector<double> cbfTimes, baselineTimes;
     for (const Goal &goal : scene.goals)
     {
         const double exported = barrier.worstValue(goal.configuration);
         std::vector<UR5::Configuration> path;
-        const Result r = plan(scene, field, goal, timeLimit, stepSize, range, &path);
+
+        std::vector<double> cbfRun, baseRun;
+        Result r, base;
+        for (int trial = 0; trial < trials; ++trial)
+        {
+            path.clear();
+            r = plan(scene, field, goal, timeLimit, stepSize, range, &path);
+            base = planCollisionChecked(scene, field, goal, timeLimit, range);
+            cbfRun.push_back(r.seconds);
+            baseRun.push_back(base.seconds);
+        }
+        const double cbfMedian = median(cbfRun);
+        const double baseMedian = median(baseRun);
+        cbfTimes.push_back(cbfMedian);
+        baselineTimes.push_back(baseMedian);
+
         solvedCount += r.solved ? 1 : 0;
+        baselineSolved += base.solved ? 1 : 0;
         unsafeTotal += r.unsafeStates;
         selfTotal += r.selfColliding;
 
-        std::printf("%-28s %7s %8.3f %6zu %8zu %8zu %+9.4f %7zu %8zu %+9.4f\n", goal.label.c_str(),
-                    r.solved ? "yes" : "no", r.seconds, r.waypoints, r.auditedStates,
-                    r.unsafeStates, r.solved ? r.minBarrier : 0.0, r.blocked, r.selfColliding,
+        std::printf("%-28s %-6s %7s %8.3f %6zu %8zu %8zu %+9.4f %7zu %8zu %+9.4f\n",
+                    goal.label.c_str(), "rrtc", base.solved ? "yes" : "no", baseMedian,
+                    base.waypoints, base.auditedStates, base.unsafeStates,
+                    base.solved ? base.minBarrier : 0.0, base.steps, base.selfColliding,
+                    base.solved ? base.minSelfOverlap : 0.0);
+        std::printf("%-28s %-6s %7s %8.3f %6zu %8zu %8zu %+9.4f %7zu %8zu %+9.4f\n", "", "cbf",
+                    r.solved ? "yes" : "no", cbfMedian, r.waypoints, r.auditedStates,
+                    r.unsafeStates, r.solved ? r.minBarrier : 0.0, r.steps, r.selfColliding,
                     r.solved ? r.minSelfOverlap : 0.0);
+
+        // Every solution edge should have been replayed from the rollout that made it.
+        // If not, what was just audited -- and what is about to be written out -- is a
+        // re-derived trajectory rather than the one the planner found.
+        if (r.misses > 0)
+            std::printf("    ! %zu solution edge(s) re-derived rather than replayed\n", r.misses);
 
         // The exporter measured h with its own copy of the sphere model; if that
         // disagrees with this one the two pipelines have drifted apart.
@@ -399,8 +537,12 @@ int main(int argc, char **argv)
         }
     }
 
-    std::printf("\nsolved %zu/%zu goals, %zu audited states below the audited margin\n", solvedCount,
-                scene.goals.size(), unsafeTotal);
+    std::printf("\nsolved: rrtc %zu/%zu, cbf %zu/%zu   median ms over %d trials: rrtc %.3f, "
+                "cbf %.3f (%.2fx)\n",
+                baselineSolved, scene.goals.size(), solvedCount, scene.goals.size(), trials,
+                1e3 * median(baselineTimes), 1e3 * median(cbfTimes),
+                median(cbfTimes) > 0.0 ? median(baselineTimes) / median(cbfTimes) : 0.0);
+    std::printf("%zu audited states below the audited margin (cbf row)\n", unsafeTotal);
     if (selfTotal > 0)
         std::printf("%zu audited states self-collide: the barrier does not model the arm "
                     "against itself, so nothing was checking it\n",

@@ -53,6 +53,7 @@
 #include <ompl/base/StateValidityChecker.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/cbf/CBFControlFilter.h>
+#include <ompl/cbf/ExecutedPath.h>
 #include <ompl/cbf/FilteredMotionValidator.h>
 #include <ompl/cbf/FilteredStateSpace.h>
 #include <ompl/geometric/PathGeometric.h>
@@ -212,23 +213,27 @@ namespace
         std::size_t vertices{0};
         std::size_t unsafeStates{0};
         std::size_t auditedStates{0};
+        std::size_t misses{0};  ///< solution edges re-derived rather than replayed
         double minClearance{std::numeric_limits<double>::infinity()};
     };
 
-    /// Audit a solution the way the CBF rows must be audited: densify through the
-    /// space's own interpolate() -- which for FilteredStateSpace is the rollout, so this
-    /// reconstructs the executed motion -- then evaluate the *unbuffered* barrier at
-    /// every state.
+    /// Audit a solution the way the CBF rows must be audited: expand it into the motion
+    /// that would actually be executed, then evaluate the *unbuffered* barrier at every
+    /// state of it.
     void audit(const og::PathGeometric &solution, const Barrier &barrier, Result &result)
     {
-        og::PathGeometric path(solution);
-        // The same joint-space resolution the baseline is audited at. PathGeometric's
-        // argument-free interpolate() would use longestValidSegmentFraction instead,
-        // which on this space is 0.31 rad -- it would sample the rollout an order of
-        // magnitude more coarsely than the baseline's audit and make this row look clean
-        // by not looking. Because the space's interpolate() *is* the rollout, asking for
-        // more states samples the executed motion itself, not a straight-line stand-in.
-        path.interpolate(static_cast<unsigned int>(path.length() / auditResolution));
+        // executedPath() replays the rollout the planner recorded for each edge, so this
+        // is the executed motion rather than a reconstruction of it -- and it honours the
+        // requested resolution. PathGeometric::interpolate() would not: it budgets states
+        // by the Euclidean distance() between waypoints, which is a lower bound on the arc
+        // length of a deflected edge, so it under-samples exactly where the CBF was
+        // working hardest. `misses` must be zero or the replay claim is void.
+        //
+        // The resolution is the one the baseline is audited at, so the clearance columns
+        // mean the same thing in both rows. Note this genuinely samples *inside* a step
+        // now; the old rollout quantised every fraction to a step boundary, so a fine
+        // request silently came back at the step size.
+        const og::PathGeometric path = ompl::cbf::executedPath(solution, auditResolution, &result.misses);
         result.auditedStates = path.getStateCount();
         for (std::size_t i = 0; i < path.getStateCount(); ++i)
         {
@@ -362,6 +367,7 @@ namespace
         std::vector<double> vertices[2];
         std::size_t unsafe[2]{0, 0};
         std::size_t audited[2]{0, 0};
+        std::size_t misses[2]{0, 0};
         double worstClearance[2]{std::numeric_limits<double>::infinity(),
                                  std::numeric_limits<double>::infinity()};
 
@@ -373,6 +379,7 @@ namespace
             vertices[row].push_back(static_cast<double>(result.vertices));
             unsafe[row] += result.unsafeStates;
             audited[row] += result.auditedStates;
+            misses[row] += result.misses;
             if (result.solved)
                 worstClearance[row] = std::min(worstClearance[row], result.minClearance);
         }
@@ -393,10 +400,10 @@ namespace
                     1e3 * median(tally.seconds[row]), median(tally.evaluations[row]),
                     median(tally.vertices[row]));
         if (tally.solved[row] > 0)
-            std::printf(" %10.4f %6zu/%-7zu\n", tally.worstClearance[row], tally.unsafe[row],
-                        tally.audited[row]);
+            std::printf(" %10.4f %6zu/%-7zu %6zu\n", tally.worstClearance[row], tally.unsafe[row],
+                        tally.audited[row], tally.misses[row]);
         else
-            std::printf(" %10s %14s\n", "-", "-");
+            std::printf(" %10s %14s %6s\n", "-", "-", "-");
     }
 }  // namespace
 
@@ -452,8 +459,8 @@ int main(int argc, char **argv)
                 stepSize, range, timeLimit);
     std::printf("baseline segment: %s\n\n",
                 segmentFraction > 0.0 ? "tightened" : "OMPL default (0.01 of extent)");
-    std::printf("  %-11s %8s %9s %10s %8s %10s %14s\n", "planner", "solved", "ms",
-                "evals", "vertices", "worst clr", "unsafe/audited");
+    std::printf("  %-11s %8s %9s %10s %8s %10s %14s %6s\n", "planner", "solved", "ms",
+                "evals", "vertices", "worst clr", "unsafe/audited", "missed");
 
     std::map<std::string, Tally> tallies;
     std::map<std::string, int> seen;
@@ -538,8 +545,12 @@ int main(int argc, char **argv)
     reportRow("cbf-rrtc", overall, 1);
     std::printf("\n\"evals\" is collision checks for rrtconnect and filter calls for cbf-rrtc.\n"
                 "\"unsafe/audited\" evaluates the unbuffered barrier at every state of the\n"
-                "densified solution -- for cbf-rrtc that densification is the rollout itself,\n"
-                "so it is the motion that would actually be executed. Non-zero unsafe\n"
-                "invalidates a row however fast it was.\n");
+                "densified solution -- for cbf-rrtc that is the rollout the planner recorded\n"
+                "for each edge, replayed, so it is the motion that would actually be executed,\n"
+                "sampled inside each step rather than only at its boundaries. Non-zero unsafe\n"
+                "invalidates a row however fast it was.\n"
+                "\"missed\" counts solution edges that were not on file and had to be\n"
+                "re-derived; it must be zero, or the audited motion is a different trajectory\n"
+                "from the one the planner found.\n");
     return 0;
 }

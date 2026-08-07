@@ -58,6 +58,7 @@
 #include <ompl/control/planners/rrt/RRT.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
 #include <ompl/geometric/PathGeometric.h>
+#include <ompl/cbf/ExecutedPath.h>
 #include <ompl/cbf/FilteredMotionValidator.h>
 #include <ompl/cbf/FilteredStateSpace.h>
 #include <ompl/geometric/planners/rrt/RRT.h>
@@ -224,10 +225,11 @@ namespace
         std::size_t validityChecks{0};
         double minClearance{0.0};
         Propagator::Statistics statistics;
-        // Rollout work the FilteredStateSpace avoided repeating; geometric rows only.
+        // Geometric rows only: rollouts taken, edge queries answered from the recorded
+        // trajectory at no filter cost, and solution edges that were not on file.
         std::size_t rollouts{0};
-        std::size_t stepsSaved{0};
-        std::size_t certified{0};
+        std::size_t served{0};
+        std::size_t misses{0};
     };
 
     /// The bar. `geometric::RRTConnect` with the same SDF-backed collision checker is
@@ -382,8 +384,7 @@ namespace
         outcome.statistics.filtered = stats.filtered;
         outcome.statistics.blocked = stats.blocked;
         outcome.rollouts = stats.rollouts;
-        outcome.stepsSaved = stats.stepsSaved;
-        outcome.certified = stats.certified;
+        outcome.served = stats.served;
 
         ob::PlannerData data(si);
         planner->getPlannerData(data);
@@ -392,19 +393,23 @@ namespace
         if (pdef->hasSolution())
         {
             auto path = std::static_pointer_cast<og::PathGeometric>(pdef->getSolutionPath());
-            outcome.verified = path->check();
             outcome.pathStates = path->getStateCount();
 
-            // The audit. PathGeometric::interpolate() calls the space's interpolate,
-            // which *is* the rollout, so densifying the waypoints reconstructs the
-            // motion that would actually be executed -- not a straight-line stand-in.
-            path->interpolate();
-            outcome.auditedStates = path->getStateCount();
+            // The audit, over the motion that would actually be executed: every edge
+            // replaced by the rollout the planner recorded for it. `misses` is the
+            // property worth asserting -- path->check() would only confirm that the
+            // ledger agrees with itself, since every edge here is a hit by construction.
+            // Same joint-space spacing the other rows are audited at, so the clearance
+            // columns mean the same thing.
+            const og::PathGeometric executed =
+                ompl::cbf::executedPath(*path, stepSize, &outcome.misses);
+            outcome.verified = outcome.misses == 0 && stats.evicted == 0;
+            outcome.auditedStates = executed.getStateCount();
             outcome.minClearance = std::numeric_limits<double>::infinity();
-            for (std::size_t i = 0; i < path->getStateCount(); ++i)
+            for (std::size_t i = 0; i < executed.getStateCount(); ++i)
             {
                 const UR5::Configuration q =
-                    ompl::cbf::FilteredStateSpace::configurationOf(path->getState(i));
+                    ompl::cbf::FilteredStateSpace::configurationOf(executed.getState(i));
                 const double h = barrier.worstValue(q);
                 outcome.minClearance = std::min(outcome.minClearance, h);
                 if (h < 0.0)
@@ -499,13 +504,13 @@ namespace
         int solved = 0, verified = 0;
         std::vector<double> seconds, vertices, steps, checks;
         std::size_t propagations = 0, filtered = 0, blocked = 0, audited = 0, unsafe = 0;
-        std::size_t rollouts = 0, stepsSaved = 0, certified = 0;
+        std::size_t rollouts = 0, served = 0, misses = 0;
         double worstClearance = std::numeric_limits<double>::infinity();
         for (const Outcome &r : runs)
         {
             rollouts += r.rollouts;
-            stepsSaved += r.stepsSaved;
-            certified += r.certified;
+            served += r.served;
+            misses += r.misses;
             solved += r.solved ? 1 : 0;
             verified += r.verified ? 1 : 0;
             seconds.push_back(r.seconds);
@@ -530,14 +535,15 @@ namespace
         else
             std::printf(" %9s %14s\n", "-", "-");
 
-        // What the rollout memo saved, for the rows that have one. A planner extension
-        // rolls to produce a state and then asks the validator about that state, and
-        // densification walks the same trajectory once per state it emits; "steps" above
-        // is what survived after both were deduplicated.
+        // What keeping the trajectory bought, for the rows that have one. A planner
+        // extension rolls to produce a state and then asks the validator about that
+        // state; that question, and every later one about the same edge, is answered
+        // from the record instead of by rolling again. "missed" must be zero: it counts
+        // solution edges that were not on file, whose motion had to be re-derived.
         if (rollouts > 0)
-            std::printf("%14s %zu rollouts, %zu steps saved by prefix reuse, %zu extensions "
-                        "certified without re-rolling\n",
-                        "", rollouts, stepsSaved, certified);
+            std::printf("%14s %zu rollouts, %zu edge queries served from the recorded "
+                        "trajectory, %zu missed\n",
+                        "", rollouts, served, misses);
     }
 
     /// The per-step question, measured directly rather than inferred from planner

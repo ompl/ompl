@@ -166,21 +166,51 @@ Reproduce with `./build/demos/demo_UR5CBFPlanning`.
 | control RRT + checker | 38.3 | 2422 | 13404 | 13404 | 0 |
 | control RRT + CBF + checker | 76.2 | 2242 | 12474 | 12475 | 0 |
 | control RRT + CBF, no checker | 25.9 | 1446 | 7928 | **0** | 0 |
-| geometric RRT + CBF rollout | 108.2 | 794 | 45186 | **0** | 0 |
-| **RRTConnect + CBF rollout** | **1.134** | **6** | 419 | **0** | 0 |
+| geometric RRT + CBF rollout | 131.8 | 859 | 46684 | **0** | 0 |
+| **RRTConnect + CBF rollout** | **0.963** | **6** | 274 | **0** | 1/2191 |
 
 `steps` counts filter calls, and the two rollout rows only spend that many because
-`FilteredStateSpace` memoizes its last rollout. A tree planner rolls twice per
-extension — once to produce a state, once to ask the validator about the state it
-produced — and densification walks a trajectory once per state it emits, which is
-quadratic. Deduplicating both is transparent: identical trees, identical clearances,
-28% fewer filter calls on `cbf-geom-rrt` (62921 → 45186, 4212 of its 23402 rollouts
-answered by `certifiedByLastRollout()`). The demo prints what each row saved.
+`FilteredStateSpace` **keeps the trajectory it produced and treats it as the edge**.
+A tree planner rolls to produce a state and then asks the validator about the state it
+produced; the rollout aimed at the deflected endpoint is a *different motion* from the
+one that produced it, so answering that question by re-rolling was both expensive and
+a re-derivation rather than a check. Now the rollout is recorded under the edge it
+made and every later question — validity, densification, export — is a lookup.
 
-Wall clock follows the call count: **27% faster** on `cbf-geom-rrt`, 7% on
-`cbf-geom-rrtc` — medians of five interleaved 20-run passes of both binaries on one
-pinned core, over which the four rows that do not use the rollout moved by ≤3% in
-either direction. The rollout is where that row spends itself.
+Measured A/B on one machine, same binary, same arguments. MotionBenchMaker is 210
+problems (30 per scene), voxel 0.02, margin 0.002, buffer 0.008, range 2.0, 5 s:
+
+| | before | after | |
+| --- | --- | --- | --- |
+| MotionBenchMaker `cbf-rrtc` ms | 6.14 | **1.34** | **4.6x** |
+| MotionBenchMaker `cbf-rrtc` filter calls | 1478 | **341** | **4.3x** |
+| MotionBenchMaker median vertices | 13 | **8** | |
+| `cage` (the hard scene) ms | 196.97 | **41.60** | **4.7x** |
+| `cbf-geom-rrtc` ms (single scene) | 1.829 | **0.963** | 1.9x |
+| `cbf-geom-rrt` ms (single scene) | 141.3 | 131.8 | 1.07x |
+
+Every scene improved, by 2.0x to 7.5x. The collision-checked `rrtconnect` control row
+moved 0.81 → 0.80 ms across the two runs, which is the noise floor.
+
+The gap between MotionBenchMaker and the single-scene demo is `RRTConnect`'s goal tree.
+That tree validates its edges *backwards* (`RRTConnect.cpp:143`), which no re-rolling
+validator could ever answer — so every goal-tree extension paid a second rollout, and
+deflected ones were rejected outright. A recorded polyline reads the same either way
+round, so the goal tree works for the first time. Trees change shape as a result, so
+this is not a pure like-for-like speedup.
+
+> **Open: the audit got worse, and it is not just resolution.** `cbf-rrtc` went from
+> 5/146188 unsafe (worst -0.0087) to 93/147922 (worst -0.0163), concentrated in
+> `bookshelf_thin` (81) and `cage` (5). Re-auditing the *same* trajectories at step
+> boundaries only still shows 39 and 4 at the identical worst depth, so this is **not**
+> an artefact of `executedPath()` sampling inside steps — that roughly doubles the count
+> but does not create the finding. Two candidate causes, not yet separated: the trees
+> genuinely changed, or the old audit never looked at the executed motion in the first
+> place. The latter is plausible and would be the more important one: densifying used to
+> re-roll each edge *aimed at its stored endpoint*, which is a different, freshly
+> filtered motion, and any freshly filtered motion is certified against the **buffered**
+> barrier by construction — so it tends to audit clean whatever the real trajectory did.
+> Settle this before trusting any pre-2026-08-06 clean `cbf-rrtc` audit.
 
 Per-step cost, over 100k random `(q, u)`:
 
