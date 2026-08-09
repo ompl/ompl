@@ -8,6 +8,7 @@
 // limits. Nothing here knows what PyBullet is -- it loads a grid and plans.
 //
 //     ./build/demos/demo_UR5PyBulletScene <scene.problem> [seconds] [out.path]
+//         [trials] [maxStepScale] [checkResolution] [baselineAudit] [selfMargin]
 //     ./build/demos/demo_UR5PyBulletScene <scene.problem> --probe   < points.txt
 //
 // `--probe` reads "x y z" triples on stdin and prints the field value and
@@ -49,8 +50,11 @@
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/robots/UR5.h>
+
 #include <ompl/sdf/GridSDF.h>
 #include <ompl/util/Time.h>
+
+#include "UR5SelfCollisionAudit.h"
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
@@ -178,40 +182,14 @@ namespace
         return 0;
     }
 
-    /// Worst sphere-sphere overlap between links that are not neighbours.
-    ///
-    /// `ClearanceBarrier` is robot-versus-environment: nothing in `h` refers to
-    /// one part of the arm meeting another. Dropping the state validity checker
-    /// therefore drops the only thing that was checking self-collision, and the
-    /// filter has no reason not to fold the arm through itself on the way to a
-    /// goal -- which, measured against the real meshes in PyBullet, it does.
-    ///
-    /// Reported here so the gap is visible without leaving OMPL. Returns the most
-    /// negative `|p_i - p_j| - (r_i + r_j)`; >= 0 means clear.
-    ///
-    /// Spheres on the same frame, or on frames one joint apart, are skipped: those
-    /// are rigidly attached or share an axis, so they touch by construction. This
-    /// is the same rule the PyBullet side applies to link pairs.
-    double worstSelfOverlap(const UR5 &robot, const UR5::Configuration &q)
-    {
-        const UR5::SphereCenters centers = robot.sphereCenters(q);
-        const auto &spheres = UR5::spheres();
+    using ompl::demo::worstSelfOverlap;
 
-        double worst = std::numeric_limits<double>::infinity();
-        for (std::size_t i = 0; i < UR5::nSpheres; ++i)
-            for (std::size_t j = i + 1; j < UR5::nSpheres; ++j)
-            {
-                const std::size_t a = spheres[i].frame;
-                const std::size_t b = spheres[j].frame;
-                const std::size_t gap = a > b ? a - b : b - a;
-                if (gap < 2)
-                    continue;
-                const double distance = (centers.col(i) - centers.col(j)).norm() -
-                                        (spheres[i].radius + spheres[j].radius);
-                worst = std::min(worst, distance);
-            }
-        return worst;
-    }
+    /// Self-collision margin for every barrier built here. A large negative value is the
+    /// A/B for the rows themselves: pair clearances become enormous, so none is screened
+    /// in and none caps the certificate -- the behaviour before the arm was modelled
+    /// against itself. The PyBullet replay audits the meshes either way, so this is what
+    /// makes it possible to ask what the rows are worth.
+    double selfMargin = Barrier::defaultSelfMargin;
 
     struct Result
     {
@@ -245,10 +223,11 @@ namespace
     /// way round -- every state it emits was certified as it was produced.
     Result planCollisionChecked(const Scene &scene, const sdf::GridSDF &field, const Goal &goal,
                                 double timeLimit, double range, double checkResolution,
-                                double auditSpacing)
+                                double auditSpacing,
+                                std::vector<UR5::Configuration> *path = nullptr)
     {
         const UR5 robot;
-        const Barrier audit(robot, field, scene.margin);
+        const Barrier audit(robot, field, scene.margin, selfMargin);
 
         auto space = std::make_shared<ob::RealVectorStateSpace>(dimension);
         ob::RealVectorBounds bounds(dimension);
@@ -328,6 +307,11 @@ namespace
                 result.minSelfOverlap = std::min(result.minSelfOverlap, own);
                 if (own < 0.0)
                     ++result.selfColliding;
+
+                // The densified straight-line motion *is* what this row would execute, so
+                // it is the thing an external mesh checker should be handed.
+                if (path != nullptr)
+                    path->push_back(q);
             }
             const UR5::Configuration last = ompl::cbf::FilteredStateSpace::configurationOf(
                 solution->getState(solution->getStateCount() - 1));
@@ -341,12 +325,12 @@ namespace
                 std::vector<UR5::Configuration> *path)
     {
         const UR5 robot;
-        const Barrier audit(robot, field, scene.margin);
+        const Barrier audit(robot, field, scene.margin, selfMargin);
         // The filter guards a *larger* margin than the one audited: enforcing
         // h >= 0 on the interpolated field only delivers h >= -O(voxel), so the
         // buffer is what turns "the QP was satisfied" into "the audit passes".
-        const Barrier guard =
-            Barrier::guarding(robot, field, scene.margin, Barrier::interpolationBuffer(field));
+        const Barrier guard = Barrier::guarding(robot, field, scene.margin,
+                                                Barrier::interpolationBuffer(field), selfMargin);
 
         Filter::Parameters parameters;
         const Filter filter(guard, parameters);
@@ -467,12 +451,20 @@ int main(int argc, char **argv)
     // before the filter started reporting how long its answer stays good for.
     const double maxStepScale = (argc > 5 && !probeMode) ? std::atof(argv[5]) : -1.0;
     // Joint-space spacing the baseline checks its straight-line edges at, in radians.
-    // Negative leaves OMPL's default, which is far coarser than the audit.
-    const double checkResolution = (argc > 6 && !probeMode) ? std::atof(argv[6]) : -1.0;
+    //
+    // Negative now means "match the CBF rollout's step", not "leave OMPL's default". The
+    // default is 0.01 of the state space's extent, which on this space is 0.154 rad --
+    // six times coarser than the 0.025 rad the rollout advances per filter call. Comparing
+    // the two rows at their own resolutions compares the resolutions: the baseline looks
+    // fast because it is looking less often, and it is scored unsafe by an audit finer
+    // than its own sampling. Tying them means both rows answer for the same spacing.
+    const double checkResolutionArg = (argc > 6 && !probeMode) ? std::atof(argv[6]) : -1.0;
     // Joint-space spacing the baseline's *solution* is audited at, in radians. Negative
     // matches the CBF row's rollout step, which is the comparable setting; anything
     // finer asks whether the baseline's unsampled edge interiors were safe as well.
     const double baselineAudit = (argc > 7 && !probeMode) ? std::atof(argv[7]) : -1.0;
+    if (argc > 8 && !probeMode)
+        selfMargin = std::atof(argv[8]);
 
     const Scene scene = readScene(problemPath);
     const sdf::GridSDF field = sdf::GridSDF::load(scene.gridPath);
@@ -481,13 +473,15 @@ int main(int argc, char **argv)
         return probe(field);
 
     const UR5 robot;
-    const Barrier barrier(robot, field, scene.margin);
+    const Barrier barrier(robot, field, scene.margin, selfMargin);
     const double buffer = Barrier::interpolationBuffer(field);
     const double stepSize = 0.05;
     const double range = 1.5;
     // What the CBF row's rollout emits, and so the finest spacing at which its executed
     // motion exists. The baseline is audited here too unless asked for something finer.
     const double auditSpacing = UR5::velocityLimits().maxCoeff() * stepSize;
+    // The baseline checks at the same spacing the rollout steps at, unless overridden.
+    const double checkResolution = checkResolutionArg > 0.0 ? checkResolutionArg : auditSpacing;
 
     std::printf("scene %s   grid %s\n", scene.name.c_str(), scene.gridPath.c_str());
     const Eigen::Vector3i dims = field.dimensions();
@@ -512,6 +506,12 @@ int main(int argc, char **argv)
                 "coarse", "selfcoll", "min self");
 
     std::vector<UR5::Configuration> combined;
+    // The baseline's motion, written alongside so an external mesh checker can be run on
+    // both rows. Without it the only path leaving this demo is the CBF one, and a
+    // mesh-level finding about it cannot be attributed: the two rows share a sphere model
+    // and a validity checker, so "does the plain planner do this too?" is the first
+    // question any such finding raises.
+    std::vector<UR5::Configuration> baseCombined;
     std::size_t solvedCount = 0;
     std::size_t unsafeTotal = 0;
     std::size_t selfTotal = 0;
@@ -524,15 +524,18 @@ int main(int argc, char **argv)
     {
         const double exported = barrier.worstValue(goal.configuration);
         std::vector<UR5::Configuration> path;
+        std::vector<UR5::Configuration> basePath;
 
         std::vector<double> cbfRun, baseRun;
         Result r, base;
         for (int trial = 0; trial < trials; ++trial)
         {
             path.clear();
+            basePath.clear();
             r = plan(scene, field, goal, timeLimit, stepSize, range, maxStepScale, &path);
             base = planCollisionChecked(scene, field, goal, timeLimit, range, checkResolution,
-                                        baselineAudit > 0.0 ? baselineAudit : auditSpacing);
+                                        baselineAudit > 0.0 ? baselineAudit : auditSpacing,
+                                        &basePath);
             cbfRun.push_back(r.seconds);
             baseRun.push_back(base.seconds);
         }
@@ -576,6 +579,12 @@ int main(int argc, char **argv)
             for (const UR5::Configuration &q : path)
                 combined.push_back(q);
         }
+        if (!outPath.empty() && base.solved)
+        {
+            baseCombined.push_back(scene.start);
+            for (const UR5::Configuration &q : basePath)
+                baseCombined.push_back(q);
+        }
     }
 
     std::printf("\nsolved: rrtc %zu/%zu, cbf %zu/%zu   median ms over %d trials: rrtc %.3f, "
@@ -585,8 +594,10 @@ int main(int argc, char **argv)
                 median(cbfTimes) > 0.0 ? median(baselineTimes) / median(cbfTimes) : 0.0);
     std::printf("%zu audited states below the audited margin (cbf row)\n", unsafeTotal);
     if (selfTotal > 0)
-        std::printf("%zu audited states self-collide: the barrier does not model the arm "
-                    "against itself, so nothing was checking it\n",
+        std::printf("%zu audited states self-collide. The barrier does model the arm against "
+                    "itself now, so this is not a known gap any more -- it says a pair that "
+                    "can collide is missing from UR5::selfPairs(). Re-run "
+                    "scripts/generate_ur5_self_pairs.py with a larger --band\n",
                     selfTotal);
 
     if (!outPath.empty())
@@ -605,6 +616,22 @@ int main(int argc, char **argv)
             out << "\n";
         }
         std::printf("wrote %s (%zu configurations)\n", outPath.c_str(), combined.size());
+
+        const std::string basePathFile = outPath + ".rrtc";
+        std::ofstream baseOut(basePathFile);
+        if (baseOut)
+        {
+            baseOut << "# joint-space path for " << scene.name
+                    << ", collision-checked RRTConnect, one configuration per line\n";
+            for (const UR5::Configuration &q : baseCombined)
+            {
+                for (int j = 0; j < dimension; ++j)
+                    baseOut << (j ? " " : "") << q[j];
+                baseOut << "\n";
+            }
+            std::printf("wrote %s (%zu configurations)\n", basePathFile.c_str(),
+                        baseCombined.size());
+        }
     }
     return solvedCount == scene.goals.size() ? 0 : 3;
 }

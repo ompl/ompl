@@ -170,7 +170,15 @@ BOOST_AUTO_TEST_CASE(ClearanceDecayIsCappedByGamma)
 BOOST_AUTO_TEST_CASE(SmallerGammaIsMoreConservative)
 {
     const UR5 robot;
-    const Barrier barrier(robot, nearField(), /*margin=*/0.0);
+    // Self rows are switched off for this one, and they have to be. The claim under test is
+    // about the row the step is being driven *into* -- `nominal` aims at the worst sphere
+    // against `nearField()` -- and gamma decides how much of that row's clearance the step
+    // may spend. Leave the self rows in and a different row binds at some gammas but not
+    // others, so `worstValue()` stops tracking the row the experiment is about and the
+    // sequence is not monotone in gamma. That is not gamma failing to be conservative; it
+    // is the measurement changing what it measures. A large negative margin puts every self
+    // row far out of reach so none can ever be the minimum.
+    const Barrier barrier(robot, nearField(), /*margin=*/0.0, /*selfMargin=*/-100.0);
     const UR5::Configuration q = UR5::Configuration::Zero();
     const UR5::Configuration nominal = towardWorstSphere(barrier, q, 10.0);
 

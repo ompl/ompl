@@ -378,6 +378,499 @@ namespace ompl::robots
             return row;
         }
 
+        /// A pair of spheres the arm can drive into each other, ordered so that sphere
+        /// `a` sits on the earlier frame. Every user of `selfPairs()` relies on that
+        /// ordering; see `selfPairLeverArms()` for what it buys.
+        struct SelfPair
+        {
+            std::size_t a;
+            std::size_t b;
+            /// How much clearance this pair must hold for the *meshes* to be clear.
+            ///
+            /// The spheres are not an outer bound on the links, so `h_ab >= 0` does not
+            /// mean the arm is clear of itself: it means these two spheres are. This is
+            /// the gap, measured against the bodies PyBullet actually checks -- the convex
+            /// hulls of the collision meshes -- as the largest sphere clearance ever seen
+            /// while those hulls overlapped. See `scripts/calibrate_self_margins.py`.
+            ///
+            /// It is per pair because the deficit is not uniform: `forearm_link` and
+            /// `upper_arm_link` carry meshes whose hulls are half again their own volume,
+            /// and one margin large enough for those would exceed what most other pairs
+            /// are ever clear by, making the QP infeasible everywhere.
+            ///
+            /// Most pairs are zero. Only one pair per link pair carries the calibration --
+            /// the one needing the smallest margin -- because the barrier is a conjunction
+            /// and a collision only needs one row to fire.
+            double margin;
+        };
+
+        static constexpr std::size_t nSelfPairs = 303;
+
+        /// The sphere pairs worth constraining, out of the 780 the model admits.
+        ///
+        /// A CBF built only on a workspace field cannot see the arm folding through
+        /// itself, so self-collision enters as extra barriers of the same shape:
+        ///
+        ///     h_ab(q) = |p_a(q) - p_b(q)| - r_a - r_b - margin
+        ///
+        /// Most pairs must not get one, and for two opposite reasons. A pair the
+        /// geometry never lets *separate* — the 18 gripper spheres against each other,
+        /// `wrist_1` against `wrist_3` — yields a row that is either infeasible at every
+        /// configuration or permanently binding at every configuration, and the planner
+        /// can do nothing about either. A pair that never *approaches* yields a row that
+        /// can never bind, which is not merely wasted work: `certifiedDuration()` takes a
+        /// minimum over all rows, so a vacuous row's clearance shortens the certified
+        /// step exactly as a dangerous one's would, and the long certified hops are what
+        /// pay for this planner's wall time.
+        ///
+        /// So a pair earns a row only if its clearance crosses a 50 mm band somewhere in
+        /// configuration space. `scripts/generate_ur5_self_pairs.py` derives the table by
+        /// sampling, and checks the one thing that would make the result unsound: no
+        /// dropped pair both overlaps somewhere and stays inside the band everywhere. At
+        /// 50 mm none does — every pair dropped as never-separating either always
+        /// overlaps, so no barrier could have helped it, or never overlaps at all.
+        ///
+        /// The band is also the price. No kept pair is ever clearer than 58.2 mm
+        /// (`forearm` sphere 15 against `wrist_2` sphere 21), so once these rows are in,
+        /// no certificate can exceed what 58.2 mm of clearance buys, however empty the
+        /// workspace is.
+        static const std::array<SelfPair, nSelfPairs> &selfPairs()
+        {
+            static const std::array<SelfPair, nSelfPairs> table{{
+                // clang-format off
+                {0, 2, 0.021920},  // base_link vs upper_arm_link, h in [-23.2, 77.0] mm
+                {0, 3, 0.000000},  // base_link vs upper_arm_link, h in [21.8, 168.6] mm
+                {0, 10, 0.000000},  // base_link vs forearm_link, h in [36.7, 574.3] mm
+                {0, 11, 0.000000},  // base_link vs forearm_link, h in [-3.0, 614.3] mm
+                {0, 12, 0.000000},  // base_link vs forearm_link, h in [-42.5, 654.3] mm
+                {0, 13, 0.000000},  // base_link vs forearm_link, h in [-80.7, 694.2] mm
+                {0, 14, 0.000000},  // base_link vs forearm_link, h in [-103.8, 734.2] mm
+                {0, 15, 0.010004},  // base_link vs forearm_link, h in [-103.8, 774.2] mm
+                {0, 16, 0.000000},  // base_link vs wrist_1_link, h in [-13.8, 821.6] mm
+                {0, 17, 0.025403},  // base_link vs wrist_1_link, h in [-13.8, 822.2] mm
+                {0, 18, 0.000000},  // base_link vs wrist_1_link, h in [-13.8, 792.5] mm
+                {0, 19, 0.000000},  // base_link vs wrist_2_link, h in [-40.4, 887.7] mm
+                {0, 20, 0.000000},  // base_link vs wrist_2_link, h in [-40.7, 886.9] mm
+                {0, 21, 0.034145},  // base_link vs wrist_2_link, h in [-10.8, 881.6] mm
+                {0, 22, 0.009713},  // base_link vs wrist_3_link, h in [-69.7, 903.6] mm
+                {0, 23, 0.007828},  // base_link vs fts_robotside, h in [-106.6, 925.1] mm
+                {0, 24, 0.000000},  // base_link vs robotiq_85_base_link, h in [-108.5, 992.5] mm
+                {0, 25, 0.023608},  // base_link vs robotiq_85_base_link, h in [-111.3, 957.3] mm
+                {0, 26, 0.010118},  // base_link vs robotiq_85_left_knuckle_link, h in [-83.9, 1024.6] mm
+                {0, 27, 0.000000},  // base_link vs robotiq_85_left_finger_link, h in [-72.6, 1078.1] mm
+                {0, 28, 0.000000},  // base_link vs robotiq_85_left_finger_link, h in [-86.8, 1048.9] mm
+                {0, 29, 0.000000},  // base_link vs robotiq_85_left_finger_link, h in [-81.0, 1063.4] mm
+                {0, 30, 0.010391},  // base_link vs robotiq_85_left_inner_knuckle_link, h in [-89.4, 1048.6] mm
+                {0, 31, 0.000000},  // base_link vs robotiq_85_left_finger_tip_link, h in [-93.1, 1102.9] mm
+                {0, 32, 0.000000},  // base_link vs robotiq_85_left_finger_tip_link, h in [-71.1, 1080.8] mm
+                {0, 33, 0.028676},  // base_link vs robotiq_85_right_inner_knuckle_link, h in [-90.5, 1043.2] mm
+                {0, 34, 0.000000},  // base_link vs robotiq_85_right_finger_tip_link, h in [-68.3, 1096.4] mm
+                {0, 35, 0.010179},  // base_link vs robotiq_85_right_finger_tip_link, h in [-74.1, 1076.4] mm
+                {0, 36, 0.002407},  // base_link vs robotiq_85_right_knuckle_link, h in [-91.1, 1021.2] mm
+                {0, 37, 0.000000},  // base_link vs robotiq_85_right_finger_link, h in [-83.1, 1073.8] mm
+                {0, 38, 0.000000},  // base_link vs robotiq_85_right_finger_link, h in [-85.3, 1043.2] mm
+                {0, 39, 0.006211},  // base_link vs robotiq_85_right_finger_link, h in [-83.9, 1058.2] mm
+                {1, 13, 0.000000},  // shoulder_link vs forearm_link, h in [6.0, 605.2] mm
+                {1, 14, 0.000000},  // shoulder_link vs forearm_link, h in [-33.5, 645.2] mm
+                {1, 15, 0.008721},  // shoulder_link vs forearm_link, h in [-72.2, 685.2] mm
+                {1, 16, 0.000000},  // shoulder_link vs wrist_1_link, h in [-13.8, 733.8] mm
+                {1, 17, 0.000000},  // shoulder_link vs wrist_1_link, h in [-13.8, 733.9] mm
+                {1, 18, 0.031474},  // shoulder_link vs wrist_1_link, h in [-8.9, 704.1] mm
+                {1, 19, 0.000000},  // shoulder_link vs wrist_2_link, h in [-40.0, 799.3] mm
+                {1, 20, 0.000000},  // shoulder_link vs wrist_2_link, h in [-39.1, 799.2] mm
+                {1, 21, 0.033830},  // shoulder_link vs wrist_2_link, h in [-10.8, 793.8] mm
+                {1, 22, 0.009215},  // shoulder_link vs wrist_3_link, h in [-70.2, 816.3] mm
+                {1, 23, 0.007381},  // shoulder_link vs fts_robotside, h in [-107.3, 840.2] mm
+                {1, 24, 0.033399},  // shoulder_link vs robotiq_85_base_link, h in [-106.4, 904.6] mm
+                {1, 25, 0.000000},  // shoulder_link vs robotiq_85_base_link, h in [-113.1, 870.9] mm
+                {1, 26, 0.015503},  // shoulder_link vs robotiq_85_left_knuckle_link, h in [-94.3, 941.4] mm
+                {1, 27, 0.000000},  // shoulder_link vs robotiq_85_left_finger_link, h in [-73.1, 995.7] mm
+                {1, 28, 0.000000},  // shoulder_link vs robotiq_85_left_finger_link, h in [-74.3, 965.7] mm
+                {1, 29, 0.004203},  // shoulder_link vs robotiq_85_left_finger_link, h in [-76.7, 980.2] mm
+                {1, 30, 0.024251},  // shoulder_link vs robotiq_85_left_inner_knuckle_link, h in [-92.1, 963.8] mm
+                {1, 31, 0.000000},  // shoulder_link vs robotiq_85_left_finger_tip_link, h in [-84.2, 1018.9] mm
+                {1, 32, 0.010010},  // shoulder_link vs robotiq_85_left_finger_tip_link, h in [-81.4, 997.9] mm
+                {1, 33, 0.003926},  // shoulder_link vs robotiq_85_right_inner_knuckle_link, h in [-91.0, 963.5] mm
+                {1, 34, 0.011636},  // shoulder_link vs robotiq_85_right_finger_tip_link, h in [-68.6, 1020.1] mm
+                {1, 35, 0.000000},  // shoulder_link vs robotiq_85_right_finger_tip_link, h in [-73.2, 997.4] mm
+                {1, 36, 0.004334},  // shoulder_link vs robotiq_85_right_knuckle_link, h in [-85.9, 941.6] mm
+                {1, 37, 0.000000},  // shoulder_link vs robotiq_85_right_finger_link, h in [-85.4, 996.3] mm
+                {1, 38, 0.016037},  // shoulder_link vs robotiq_85_right_finger_link, h in [-87.5, 966.5] mm
+                {1, 39, 0.000000},  // shoulder_link vs robotiq_85_right_finger_link, h in [-81.2, 981.3] mm
+                {2, 11, 0.000000},  // upper_arm_link vs forearm_link, h in [36.0, 433.1] mm
+                {2, 12, 0.000000},  // upper_arm_link vs forearm_link, h in [13.9, 472.2] mm
+                {2, 13, 0.000000},  // upper_arm_link vs forearm_link, h in [1.4, 511.4] mm
+                {2, 14, 0.000000},  // upper_arm_link vs forearm_link, h in [1.4, 550.8] mm
+                {2, 15, 0.000000},  // upper_arm_link vs forearm_link, h in [13.9, 590.2] mm
+                {2, 16, 0.000000},  // upper_arm_link vs wrist_1_link, h in [-68.4, 622.8] mm
+                {2, 17, 0.000000},  // upper_arm_link vs wrist_1_link, h in [-68.3, 622.8] mm
+                {2, 18, 0.000000},  // upper_arm_link vs wrist_1_link, h in [-41.9, 592.9] mm
+                {2, 19, 0.000000},  // upper_arm_link vs wrist_2_link, h in [-116.9, 687.2] mm
+                {2, 20, 0.000000},  // upper_arm_link vs wrist_2_link, h in [-113.3, 687.6] mm
+                {2, 21, 0.063413},  // upper_arm_link vs wrist_2_link, h in [-93.3, 682.7] mm
+                {2, 22, 0.000000},  // upper_arm_link vs wrist_3_link, h in [-115.4, 704.5] mm
+                {2, 23, 0.000000},  // upper_arm_link vs fts_robotside, h in [-116.2, 728.0] mm
+                {2, 24, 0.000000},  // upper_arm_link vs robotiq_85_base_link, h in [-102.0, 793.4] mm
+                {2, 25, 0.084942},  // upper_arm_link vs robotiq_85_base_link, h in [-107.9, 758.6] mm
+                {2, 26, 0.074331},  // upper_arm_link vs robotiq_85_left_knuckle_link, h in [-87.0, 830.3] mm
+                {2, 27, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_link, h in [-89.1, 884.8] mm
+                {2, 28, 0.125614},  // upper_arm_link vs robotiq_85_left_finger_link, h in [-92.2, 853.3] mm
+                {2, 29, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_link, h in [-85.1, 869.0] mm
+                {2, 30, 0.109862},  // upper_arm_link vs robotiq_85_left_inner_knuckle_link, h in [-78.4, 852.8] mm
+                {2, 31, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_tip_link, h in [-82.5, 907.9] mm
+                {2, 32, 0.130939},  // upper_arm_link vs robotiq_85_left_finger_tip_link, h in [-81.0, 886.9] mm
+                {2, 33, 0.101690},  // upper_arm_link vs robotiq_85_right_inner_knuckle_link, h in [-86.3, 854.4] mm
+                {2, 34, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_tip_link, h in [-83.1, 910.9] mm
+                {2, 35, 0.143073},  // upper_arm_link vs robotiq_85_right_finger_tip_link, h in [-81.5, 888.8] mm
+                {2, 36, 0.058171},  // upper_arm_link vs robotiq_85_right_knuckle_link, h in [-89.1, 830.0] mm
+                {2, 37, 0.106956},  // upper_arm_link vs robotiq_85_right_finger_link, h in [-71.1, 883.9] mm
+                {2, 38, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_link, h in [-76.7, 850.6] mm
+                {2, 39, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_link, h in [-81.1, 866.4] mm
+                {3, 9, 0.000000},  // upper_arm_link vs forearm_link, h in [21.3, 254.6] mm
+                {3, 10, 0.000000},  // upper_arm_link vs forearm_link, h in [4.7, 292.7] mm
+                {3, 11, 0.000000},  // upper_arm_link vs forearm_link, h in [-0.2, 331.2] mm
+                {3, 12, 0.000000},  // upper_arm_link vs forearm_link, h in [7.9, 369.9] mm
+                {3, 13, 0.000000},  // upper_arm_link vs forearm_link, h in [26.8, 408.7] mm
+                {3, 16, 0.000000},  // upper_arm_link vs wrist_1_link, h in [30.2, 517.9] mm
+                {3, 17, 0.000000},  // upper_arm_link vs wrist_1_link, h in [30.3, 517.9] mm
+                {3, 19, 0.000000},  // upper_arm_link vs wrist_2_link, h in [-35.2, 582.3] mm
+                {3, 20, 0.000000},  // upper_arm_link vs wrist_2_link, h in [-35.6, 582.7] mm
+                {3, 21, 0.000000},  // upper_arm_link vs wrist_2_link, h in [-28.7, 577.7] mm
+                {3, 22, 0.000000},  // upper_arm_link vs wrist_3_link, h in [-51.5, 599.7] mm
+                {3, 23, 0.000000},  // upper_arm_link vs fts_robotside, h in [-73.6, 623.2] mm
+                {3, 24, 0.000000},  // upper_arm_link vs robotiq_85_base_link, h in [-111.3, 688.5] mm
+                {3, 25, 0.000000},  // upper_arm_link vs robotiq_85_base_link, h in [-105.0, 653.7] mm
+                {3, 26, 0.000000},  // upper_arm_link vs robotiq_85_left_knuckle_link, h in [-88.9, 725.6] mm
+                {3, 27, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_link, h in [-85.6, 780.0] mm
+                {3, 28, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_link, h in [-86.8, 748.6] mm
+                {3, 29, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_link, h in [-92.0, 764.2] mm
+                {3, 30, 0.000000},  // upper_arm_link vs robotiq_85_left_inner_knuckle_link, h in [-87.8, 748.1] mm
+                {3, 31, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_tip_link, h in [-73.9, 803.6] mm
+                {3, 32, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_tip_link, h in [-76.2, 782.4] mm
+                {3, 33, 0.000000},  // upper_arm_link vs robotiq_85_right_inner_knuckle_link, h in [-88.4, 749.5] mm
+                {3, 34, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_tip_link, h in [-77.8, 806.0] mm
+                {3, 35, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_tip_link, h in [-89.4, 783.9] mm
+                {3, 36, 0.000000},  // upper_arm_link vs robotiq_85_right_knuckle_link, h in [-88.9, 725.1] mm
+                {3, 37, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_link, h in [-84.8, 779.0] mm
+                {3, 38, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_link, h in [-85.1, 746.2] mm
+                {3, 39, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_link, h in [-82.0, 761.6] mm
+                {4, 8, 0.000000},  // upper_arm_link vs forearm_link, h in [0.1, 121.7] mm
+                {4, 9, 0.000000},  // upper_arm_link vs forearm_link, h in [3.4, 157.2] mm
+                {4, 10, 0.000000},  // upper_arm_link vs forearm_link, h in [18.7, 193.7] mm
+                {4, 23, 0.000000},  // upper_arm_link vs fts_robotside, h in [29.2, 518.4] mm
+                {4, 24, 0.000000},  // upper_arm_link vs robotiq_85_base_link, h in [-36.7, 583.6] mm
+                {4, 25, 0.000000},  // upper_arm_link vs robotiq_85_base_link, h in [-3.5, 548.9] mm
+                {4, 26, 0.000000},  // upper_arm_link vs robotiq_85_left_knuckle_link, h in [-34.0, 620.9] mm
+                {4, 27, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_link, h in [-77.2, 675.3] mm
+                {4, 28, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_link, h in [-44.4, 644.0] mm
+                {4, 29, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_link, h in [-62.6, 659.5] mm
+                {4, 30, 0.000000},  // upper_arm_link vs robotiq_85_left_inner_knuckle_link, h in [-53.2, 643.7] mm
+                {4, 31, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_tip_link, h in [-79.9, 699.6] mm
+                {4, 32, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_tip_link, h in [-70.9, 678.1] mm
+                {4, 33, 0.000000},  // upper_arm_link vs robotiq_85_right_inner_knuckle_link, h in [-54.4, 644.6] mm
+                {4, 34, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_tip_link, h in [-86.4, 701.1] mm
+                {4, 35, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_tip_link, h in [-68.7, 679.0] mm
+                {4, 36, 0.000000},  // upper_arm_link vs robotiq_85_right_knuckle_link, h in [-32.7, 620.2] mm
+                {4, 37, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_link, h in [-71.9, 674.1] mm
+                {4, 38, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_link, h in [-41.1, 642.1] mm
+                {4, 39, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_link, h in [-58.7, 656.8] mm
+                {5, 27, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_link, h in [25.5, 570.7] mm
+                {5, 31, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_tip_link, h in [3.9, 595.7] mm
+                {5, 32, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_tip_link, h in [24.2, 574.1] mm
+                {5, 34, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_tip_link, h in [3.0, 596.3] mm
+                {5, 35, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_tip_link, h in [22.0, 574.4] mm
+                {5, 37, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_link, h in [25.9, 570.6] mm
+                {6, 14, 0.000000},  // upper_arm_link vs forearm_link, h in [26.8, 654.3] mm
+                {6, 15, 0.000000},  // upper_arm_link vs forearm_link, h in [7.9, 693.9] mm
+                {6, 16, 0.000000},  // upper_arm_link vs wrist_1_link, h in [-90.1, 727.7] mm
+                {6, 17, 0.000000},  // upper_arm_link vs wrist_1_link, h in [-90.2, 727.7] mm
+                {6, 18, 0.014210},  // upper_arm_link vs wrist_1_link, h in [-75.8, 697.8] mm
+                {6, 19, 0.000000},  // upper_arm_link vs wrist_2_link, h in [-115.3, 792.2] mm
+                {6, 20, 0.000000},  // upper_arm_link vs wrist_2_link, h in [-114.6, 792.5] mm
+                {6, 21, 0.000000},  // upper_arm_link vs wrist_2_link, h in [-93.3, 787.6] mm
+                {6, 22, 0.067373},  // upper_arm_link vs wrist_3_link, h in [-108.4, 809.4] mm
+                {6, 23, 0.078318},  // upper_arm_link vs fts_robotside, h in [-106.5, 832.9] mm
+                {6, 24, 0.000000},  // upper_arm_link vs robotiq_85_base_link, h in [-96.9, 898.4] mm
+                {6, 25, 0.000000},  // upper_arm_link vs robotiq_85_base_link, h in [-112.5, 863.4] mm
+                {6, 26, 0.000000},  // upper_arm_link vs robotiq_85_left_knuckle_link, h in [-87.2, 935.1] mm
+                {6, 27, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_link, h in [-79.7, 989.6] mm
+                {6, 28, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_link, h in [-87.3, 958.1] mm
+                {6, 29, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_link, h in [-87.5, 973.8] mm
+                {6, 30, 0.000000},  // upper_arm_link vs robotiq_85_left_inner_knuckle_link, h in [-86.5, 957.5] mm
+                {6, 31, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_tip_link, h in [-71.5, 1012.3] mm
+                {6, 32, 0.000000},  // upper_arm_link vs robotiq_85_left_finger_tip_link, h in [-89.1, 991.7] mm
+                {6, 33, 0.000000},  // upper_arm_link vs robotiq_85_right_inner_knuckle_link, h in [-92.6, 959.3] mm
+                {6, 34, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_tip_link, h in [-74.1, 1015.8] mm
+                {6, 35, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_tip_link, h in [-75.6, 993.7] mm
+                {6, 36, 0.000000},  // upper_arm_link vs robotiq_85_right_knuckle_link, h in [-74.0, 935.0] mm
+                {6, 37, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_link, h in [-69.6, 988.8] mm
+                {6, 38, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_link, h in [-85.7, 955.3] mm
+                {6, 39, 0.000000},  // upper_arm_link vs robotiq_85_right_finger_link, h in [-81.6, 971.3] mm
+                {7, 31, 0.000000},  // forearm_link vs robotiq_85_left_finger_tip_link, h in [14.8, 601.1] mm
+                {7, 32, 0.000000},  // forearm_link vs robotiq_85_left_finger_tip_link, h in [36.6, 579.6] mm
+                {7, 34, 0.000000},  // forearm_link vs robotiq_85_right_finger_tip_link, h in [14.5, 601.9] mm
+                {7, 35, 0.000000},  // forearm_link vs robotiq_85_right_finger_tip_link, h in [36.5, 580.2] mm
+                {7, 37, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [39.7, 577.0] mm
+                {8, 24, 0.000000},  // forearm_link vs robotiq_85_base_link, h in [25.6, 427.9] mm
+                {8, 26, 0.000000},  // forearm_link vs robotiq_85_left_knuckle_link, h in [27.8, 465.8] mm
+                {8, 27, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [-16.6, 520.1] mm
+                {8, 28, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [15.0, 489.1] mm
+                {8, 29, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [-0.7, 504.2] mm
+                {8, 30, 0.000000},  // forearm_link vs robotiq_85_left_inner_knuckle_link, h in [4.3, 489.1] mm
+                {8, 31, 0.000000},  // forearm_link vs robotiq_85_left_finger_tip_link, h in [-41.1, 545.1] mm
+                {8, 32, 0.000000},  // forearm_link vs robotiq_85_left_finger_tip_link, h in [-19.7, 523.5] mm
+                {8, 33, 0.000000},  // forearm_link vs robotiq_85_right_inner_knuckle_link, h in [4.3, 489.3] mm
+                {8, 34, 0.000000},  // forearm_link vs robotiq_85_right_finger_tip_link, h in [-41.6, 545.3] mm
+                {8, 35, 0.000000},  // forearm_link vs robotiq_85_right_finger_tip_link, h in [-20.0, 523.7] mm
+                {8, 36, 0.000000},  // forearm_link vs robotiq_85_right_knuckle_link, h in [27.6, 465.9] mm
+                {8, 37, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [-15.6, 520.5] mm
+                {8, 38, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [15.0, 489.1] mm
+                {8, 39, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [-0.7, 504.5] mm
+                {9, 24, 0.000000},  // forearm_link vs robotiq_85_base_link, h in [-12.2, 390.0] mm
+                {9, 25, 0.000000},  // forearm_link vs robotiq_85_base_link, h in [21.9, 355.9] mm
+                {9, 26, 0.000000},  // forearm_link vs robotiq_85_left_knuckle_link, h in [-8.8, 428.0] mm
+                {9, 27, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [-48.9, 482.3] mm
+                {9, 28, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [-21.8, 451.1] mm
+                {9, 29, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [-38.2, 466.4] mm
+                {9, 30, 0.000000},  // forearm_link vs robotiq_85_left_inner_knuckle_link, h in [-33.7, 451.4] mm
+                {9, 31, 0.000000},  // forearm_link vs robotiq_85_left_finger_tip_link, h in [-48.7, 507.5] mm
+                {9, 32, 0.000000},  // forearm_link vs robotiq_85_left_finger_tip_link, h in [-51.2, 485.8] mm
+                {9, 33, 0.000000},  // forearm_link vs robotiq_85_right_inner_knuckle_link, h in [-33.7, 451.5] mm
+                {9, 34, 0.049534},  // forearm_link vs robotiq_85_right_finger_tip_link, h in [-51.9, 507.6] mm
+                {9, 35, 0.000000},  // forearm_link vs robotiq_85_right_finger_tip_link, h in [-52.9, 486.0] mm
+                {9, 36, 0.000000},  // forearm_link vs robotiq_85_right_knuckle_link, h in [-8.9, 428.1] mm
+                {9, 37, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [-51.6, 482.6] mm
+                {9, 38, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [-22.1, 451.4] mm
+                {9, 39, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [-39.1, 466.7] mm
+                {10, 22, 0.000000},  // forearm_link vs wrist_3_link, h in [39.7, 263.8] mm
+                {10, 23, 0.000000},  // forearm_link vs fts_robotside, h in [16.0, 287.5] mm
+                {10, 24, 0.000000},  // forearm_link vs robotiq_85_base_link, h in [-49.0, 352.9] mm
+                {10, 25, 0.000000},  // forearm_link vs robotiq_85_base_link, h in [-15.3, 318.8] mm
+                {10, 26, 0.000000},  // forearm_link vs robotiq_85_left_knuckle_link, h in [-45.8, 390.6] mm
+                {10, 27, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [-48.9, 445.0] mm
+                {10, 28, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [-51.4, 414.1] mm
+                {10, 29, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [-49.8, 429.2] mm
+                {10, 30, 0.000000},  // forearm_link vs robotiq_85_left_inner_knuckle_link, h in [-53.1, 414.0] mm
+                {10, 31, 0.000000},  // forearm_link vs robotiq_85_left_finger_tip_link, h in [-24.7, 470.3] mm
+                {10, 32, 0.032215},  // forearm_link vs robotiq_85_left_finger_tip_link, h in [-48.3, 448.4] mm
+                {10, 33, 0.000000},  // forearm_link vs robotiq_85_right_inner_knuckle_link, h in [-55.9, 414.4] mm
+                {10, 34, 0.000000},  // forearm_link vs robotiq_85_right_finger_tip_link, h in [-24.7, 470.4] mm
+                {10, 35, 0.000000},  // forearm_link vs robotiq_85_right_finger_tip_link, h in [-48.3, 448.8] mm
+                {10, 36, 0.000000},  // forearm_link vs robotiq_85_right_knuckle_link, h in [-44.7, 390.9] mm
+                {10, 37, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [-47.7, 445.5] mm
+                {10, 38, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [-49.1, 414.3] mm
+                {10, 39, 0.050687},  // forearm_link vs robotiq_85_right_finger_link, h in [-47.4, 429.7] mm
+                {11, 19, 0.000000},  // forearm_link vs wrist_2_link, h in [23.6, 209.7] mm
+                {11, 20, 0.000000},  // forearm_link vs wrist_2_link, h in [23.6, 209.7] mm
+                {11, 22, 0.000000},  // forearm_link vs wrist_3_link, h in [3.7, 227.8] mm
+                {11, 23, 0.000000},  // forearm_link vs fts_robotside, h in [-20.0, 251.5] mm
+                {11, 24, 0.000000},  // forearm_link vs robotiq_85_base_link, h in [-74.5, 316.9] mm
+                {11, 25, 0.000000},  // forearm_link vs robotiq_85_base_link, h in [-51.1, 282.8] mm
+                {11, 26, 0.045551},  // forearm_link vs robotiq_85_left_knuckle_link, h in [-54.5, 354.5] mm
+                {11, 27, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [-28.6, 408.9] mm
+                {11, 28, 0.053129},  // forearm_link vs robotiq_85_left_finger_link, h in [-48.6, 378.0] mm
+                {11, 29, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [-46.6, 393.2] mm
+                {11, 30, 0.045887},  // forearm_link vs robotiq_85_left_inner_knuckle_link, h in [-39.0, 378.2] mm
+                {11, 31, 0.000000},  // forearm_link vs robotiq_85_left_finger_tip_link, h in [10.9, 434.2] mm
+                {11, 32, 0.000000},  // forearm_link vs robotiq_85_left_finger_tip_link, h in [-13.3, 412.5] mm
+                {11, 33, 0.049553},  // forearm_link vs robotiq_85_right_inner_knuckle_link, h in [-39.2, 378.3] mm
+                {11, 34, 0.000000},  // forearm_link vs robotiq_85_right_finger_tip_link, h in [11.4, 434.3] mm
+                {11, 35, 0.000000},  // forearm_link vs robotiq_85_right_finger_tip_link, h in [-13.3, 412.7] mm
+                {11, 36, 0.035961},  // forearm_link vs robotiq_85_right_knuckle_link, h in [-56.6, 355.0] mm
+                {11, 37, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [-28.2, 409.6] mm
+                {11, 38, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [-50.1, 378.3] mm
+                {11, 39, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [-46.4, 393.7] mm
+                {12, 19, 0.000000},  // forearm_link vs wrist_2_link, h in [-4.1, 174.0] mm
+                {12, 20, 0.000000},  // forearm_link vs wrist_2_link, h in [-4.1, 174.0] mm
+                {12, 21, 0.000000},  // forearm_link vs wrist_2_link, h in [22.1, 160.9] mm
+                {12, 22, 0.000000},  // forearm_link vs wrist_3_link, h in [-30.0, 193.7] mm
+                {12, 23, 0.000000},  // forearm_link vs fts_robotside, h in [-54.0, 217.4] mm
+                {12, 24, 0.000000},  // forearm_link vs robotiq_85_base_link, h in [-40.8, 282.9] mm
+                {12, 25, 0.042868},  // forearm_link vs robotiq_85_base_link, h in [-74.7, 248.7] mm
+                {12, 26, 0.000000},  // forearm_link vs robotiq_85_left_knuckle_link, h in [-29.0, 320.7] mm
+                {12, 27, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [4.5, 375.1] mm
+                {12, 28, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [-34.3, 344.0] mm
+                {12, 29, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [-15.1, 359.3] mm
+                {12, 30, 0.000000},  // forearm_link vs robotiq_85_left_inner_knuckle_link, h in [-5.9, 344.0] mm
+                {12, 32, 0.000000},  // forearm_link vs robotiq_85_left_finger_tip_link, h in [20.8, 378.3] mm
+                {12, 33, 0.000000},  // forearm_link vs robotiq_85_right_inner_knuckle_link, h in [-5.4, 344.4] mm
+                {12, 35, 0.000000},  // forearm_link vs robotiq_85_right_finger_tip_link, h in [20.8, 378.8] mm
+                {12, 36, 0.000000},  // forearm_link vs robotiq_85_right_knuckle_link, h in [-30.5, 321.0] mm
+                {12, 37, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [5.0, 375.6] mm
+                {12, 38, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [-34.0, 344.2] mm
+                {12, 39, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [-14.5, 359.5] mm
+                {13, 16, 0.000000},  // forearm_link vs wrist_1_link, h in [29.4, 71.8] mm
+                {13, 17, 0.000000},  // forearm_link vs wrist_1_link, h in [29.4, 71.8] mm
+                {13, 19, 0.000000},  // forearm_link vs wrist_2_link, h in [-17.0, 139.9] mm
+                {13, 20, 0.000000},  // forearm_link vs wrist_2_link, h in [-16.9, 139.9] mm
+                {13, 21, 0.000000},  // forearm_link vs wrist_2_link, h in [13.0, 124.6] mm
+                {13, 22, 0.024330},  // forearm_link vs wrist_3_link, h in [-46.9, 161.5] mm
+                {13, 23, 0.026745},  // forearm_link vs fts_robotside, h in [-75.2, 186.7] mm
+                {13, 24, 0.000000},  // forearm_link vs robotiq_85_base_link, h in [-10.1, 252.2] mm
+                {13, 25, 0.000000},  // forearm_link vs robotiq_85_base_link, h in [-44.2, 218.0] mm
+                {13, 26, 0.000000},  // forearm_link vs robotiq_85_left_knuckle_link, h in [1.0, 290.2] mm
+                {13, 27, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [35.0, 344.5] mm
+                {13, 28, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [-4.7, 313.3] mm
+                {13, 29, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [15.1, 328.5] mm
+                {13, 30, 0.000000},  // forearm_link vs robotiq_85_left_inner_knuckle_link, h in [25.3, 313.6] mm
+                {13, 33, 0.000000},  // forearm_link vs robotiq_85_right_inner_knuckle_link, h in [24.9, 313.4] mm
+                {13, 36, 0.000000},  // forearm_link vs robotiq_85_right_knuckle_link, h in [0.2, 290.2] mm
+                {13, 37, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [35.5, 344.9] mm
+                {13, 38, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [-4.3, 313.6] mm
+                {13, 39, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [15.6, 328.9] mm
+                {14, 16, 0.000000},  // forearm_link vs wrist_1_link, h in [12.7, 41.9] mm
+                {14, 17, 0.000000},  // forearm_link vs wrist_1_link, h in [12.7, 41.9] mm
+                {14, 19, 0.000000},  // forearm_link vs wrist_2_link, h in [-6.6, 108.1] mm
+                {14, 20, 0.000000},  // forearm_link vs wrist_2_link, h in [-6.5, 108.1] mm
+                {14, 21, 0.044711},  // forearm_link vs wrist_2_link, h in [20.4, 90.0] mm
+                {14, 22, 0.000000},  // forearm_link vs wrist_3_link, h in [-26.3, 132.1] mm
+                {14, 23, 0.000000},  // forearm_link vs fts_robotside, h in [-37.4, 160.4] mm
+                {14, 24, 0.000000},  // forearm_link vs robotiq_85_base_link, h in [14.1, 227.9] mm
+                {14, 25, 0.000000},  // forearm_link vs robotiq_85_base_link, h in [-19.0, 193.4] mm
+                {14, 26, 0.000000},  // forearm_link vs robotiq_85_left_knuckle_link, h in [24.7, 265.7] mm
+                {14, 28, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [19.5, 287.4] mm
+                {14, 29, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [39.2, 303.5] mm
+                {14, 36, 0.000000},  // forearm_link vs robotiq_85_right_knuckle_link, h in [24.6, 265.7] mm
+                {14, 38, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [20.3, 287.7] mm
+                {14, 39, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [39.9, 303.7] mm
+                {15, 19, 0.000000},  // forearm_link vs wrist_2_link, h in [20.1, 79.9] mm
+                {15, 20, 0.000000},  // forearm_link vs wrist_2_link, h in [20.1, 79.9] mm
+                {15, 22, 0.000000},  // forearm_link vs wrist_3_link, h in [8.8, 106.6] mm
+                {15, 23, 0.000000},  // forearm_link vs fts_robotside, h in [2.5, 138.3] mm
+                {15, 24, 0.000000},  // forearm_link vs robotiq_85_base_link, h in [37.5, 210.9] mm
+                {15, 25, 0.000000},  // forearm_link vs robotiq_85_base_link, h in [13.1, 174.1] mm
+                {15, 28, 0.000000},  // forearm_link vs robotiq_85_left_finger_link, h in [32.7, 264.6] mm
+                {15, 38, 0.000000},  // forearm_link vs robotiq_85_right_finger_link, h in [32.8, 264.8] mm
+                // clang-format on
+            }};
+            return table;
+        }
+
+        /// `r_a + r_b` in `selfPairs()` order — the constant subtracted from each pair
+        /// distance to get its clearance.
+        static const Eigen::Matrix<double, nSelfPairs, 1> &selfPairRadii()
+        {
+            static const Eigen::Matrix<double, nSelfPairs, 1> values = []
+            {
+                Eigen::Matrix<double, nSelfPairs, 1> sums;
+                for (std::size_t p = 0; p < nSelfPairs; ++p)
+                    sums[static_cast<Eigen::Index>(p)] =
+                        spheres()[selfPairs()[p].a].radius + spheres()[selfPairs()[p].b].radius;
+                return sums;
+            }();
+            return values;
+        }
+
+        /// `SelfPair::margin` in `selfPairs()` order, so a barrier can subtract the whole
+        /// column at once. Constant, so it changes no gradient and no Lipschitz bound —
+        /// only where each row sits.
+        static const Eigen::Matrix<double, nSelfPairs, 1> &selfPairMargins()
+        {
+            static const Eigen::Matrix<double, nSelfPairs, 1> values = []
+            {
+                Eigen::Matrix<double, nSelfPairs, 1> margins;
+                for (std::size_t p = 0; p < nSelfPairs; ++p)
+                    margins[static_cast<Eigen::Index>(p)] = selfPairs()[p].margin;
+                return margins;
+            }();
+            return values;
+        }
+
+        /// Configuration-independent upper bounds on `|dh_ab/dq_k|`, the self-collision
+        /// counterpart of `leverArmBounds()` and used the same way: to screen rows before
+        /// any gradient is computed, and to turn a chosen control into a certified step
+        /// length.
+        ///
+        /// The structure is sparse, and exactly so. With sphere a on frame f and sphere b
+        /// on frame g, f <= g, differentiating `h_ab` gives
+        ///
+        ///     dh_ab/dq_k = n^T (J_a,k - J_b,k),   n = (p_a - p_b) / |p_a - p_b|
+        ///
+        /// and the three cases collapse to one:
+        ///
+        /// - `k < f`. Joint k is upstream of both frames, so it rotates the two spheres
+        ///   as one rigid body and cannot change the distance between them. Formally
+        ///   `J_a,k - J_b,k = axis_k x (p_a - p_b)`, and `n^T (axis_k x n)|p_a - p_b| = 0`
+        ///   because the cross product is orthogonal to n. Identically zero, not small.
+        /// - `f <= k < g`. Only b moves, so `|dh_ab/dq_k| = |n^T J_b,k| <= |J_b,k|`, and
+        ///   `leverArmBounds()(b, k)` already bounds that over all of configuration space.
+        /// - `k >= g`. Neither sphere moves; joint k is downstream of both.
+        ///
+        /// So the bound is `leverArmBounds()` of the *later* sphere, restricted to the
+        /// joints strictly between the two frames — not, as the obvious guess has it, the
+        /// sum of the two spheres' bounds. The difference is not cosmetic: the sum is
+        /// loose by roughly a factor of two on every entry and, worse, is nonzero on
+        /// columns where the true derivative vanishes, which drags spheres into the
+        /// screened set that provably cannot move relative to each other.
+        static const Eigen::Matrix<double, nSelfPairs, nJoints> &selfPairLeverArms()
+        {
+            static const Eigen::Matrix<double, nSelfPairs, nJoints> table = []
+            {
+                Eigen::Matrix<double, nSelfPairs, nJoints> bounds;
+                bounds.setZero();
+                for (std::size_t p = 0; p < nSelfPairs; ++p)
+                {
+                    const SelfPair &pair = selfPairs()[p];
+                    const std::size_t first = spheres()[pair.a].frame;
+                    const std::size_t second = spheres()[pair.b].frame;
+                    for (std::size_t k = first; k < second; ++k)
+                        bounds(static_cast<Eigen::Index>(p), static_cast<Eigen::Index>(k)) =
+                            leverArmBounds()(static_cast<Eigen::Index>(pair.b),
+                                             static_cast<Eigen::Index>(k));
+                }
+                return bounds;
+            }();
+            return table;
+        }
+
+        /// Surface separation of pair `p`: `|p_a - p_b| - r_a - r_b`. Subtract a margin
+        /// to get the barrier value; negative means the two spheres overlap.
+        static double selfPairClearance(const SphereCenters &centers, std::size_t p)
+        {
+            const SelfPair &pair = selfPairs()[p];
+            const Eigen::Index index = static_cast<Eigen::Index>(p);
+            return (centers.col(static_cast<Eigen::Index>(pair.a)) -
+                    centers.col(static_cast<Eigen::Index>(pair.b)))
+                       .norm() -
+                   selfPairRadii()[index];
+        }
+
+        /// `dh_ab/dq` — the constraint row pair `p` contributes.
+        ///
+        /// Equal to `n^T (sphereJacobian(a) - sphereJacobian(b))`, but built from the
+        /// derivation in `selfPairLeverArms()` instead: only columns `[f, g)` are
+        /// touched, and they reduce to `-n^T J_b,k`, which is `barrierGradient()`'s
+        /// contraction with n in place of an SDF gradient. Two payoffs over forming the
+        /// difference honestly — one contraction instead of two, and the columns that
+        /// cancel analytically come out as exact zeros rather than as rounding noise,
+        /// which matters because a spurious 1e-17 in column 0 would let the QP believe
+        /// the base joint can relieve a wrist-against-forearm collision.
+        ///
+        /// Zero when the centers coincide, where the distance is not differentiable.
+        static Configuration selfPairGradient(const Kinematics &kin, const SphereCenters &centers,
+                                              std::size_t p)
+        {
+            const SelfPair &pair = selfPairs()[p];
+            const Eigen::Vector3d delta = centers.col(static_cast<Eigen::Index>(pair.a)) -
+                                          centers.col(static_cast<Eigen::Index>(pair.b));
+            const double distance = delta.norm();
+
+            Configuration row = Configuration::Zero();
+            if (distance <= 0.0)
+                return row;
+
+            const Eigen::Vector3d normal = delta / distance;
+            const Eigen::Vector3d moment =
+                centers.col(static_cast<Eigen::Index>(pair.b)).cross(normal);
+
+            const std::size_t first = spheres()[pair.a].frame;
+            const std::size_t second = spheres()[pair.b].frame;
+            for (std::size_t k = first; k < second; ++k)
+                row[static_cast<Eigen::Index>(k)] =
+                    kin.jointMoment[k].dot(normal) - kin.jointAxis[k].dot(moment);
+            return row;
+        }
+
     private:
         /// One URDF `<joint>`: the fixed parent-to-child offset, then a rotation
         /// about `axis` by that joint's value.

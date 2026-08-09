@@ -31,6 +31,34 @@ namespace ompl::cbf
     /// generalizes to other spherized robots (or to a mobile base contributing
     /// extra Jacobian columns) behind an interface later.
     ///
+    /// ### The arm against itself
+    ///
+    /// A workspace field says nothing about the arm folding through itself, so the
+    /// same barrier carries a second family of rows — one per sphere pair in
+    /// `Robot::selfPairs()`:
+    ///
+    ///     h_ab(q) = |p_a(q) - p_b(q)| - r_a - r_b - selfMargin
+    ///
+    /// These are not a separate object, because they are not a separate concept: a
+    /// pair is a sphere whose obstacle happens to be another sphere. It produces one
+    /// value, one row, one screening threshold and one certificate term, in the same
+    /// units, consumed by the same loops. So both families share one flat index —
+    /// `i < nSpheres` is sphere i against the world, `nSpheres + p` is pair p — and
+    /// everything downstream, `CBFControlFilter` included, is indifferent to which
+    /// kind a row is.
+    ///
+    /// Two respects in which the pair rows are *better* behaved than the world ones,
+    /// both exploited below: the distance between two points is exactly 1-Lipschitz,
+    /// where an interpolated field is only approximately so, and a pair has no baked
+    /// box it can fall out of.
+    ///
+    /// One respect in which they are worse, and it is the cost of the feature. No
+    /// pair in the table is ever clearer than 58.2 mm, at any configuration, so the
+    /// step `certifiedDuration()` can certify is now bounded however empty the
+    /// workspace is. The long certified hops that used to cover a whole tree
+    /// extension in open space are gone; what remains is a shorter certificate that
+    /// still beats stepping.
+    ///
     /// ### The margin
     ///
     /// `margin` is what makes the barrier *conservative*, and it has to absorb
@@ -70,32 +98,73 @@ namespace ompl::cbf
         using Configuration = Robot::Configuration;
 
         static constexpr int nSpheres = static_cast<int>(Robot::nSpheres);
+        static constexpr int nSelfPairs = static_cast<int>(Robot::nSelfPairs);
         static constexpr int nJoints = static_cast<int>(Robot::nJoints);
 
-        /// One barrier value per sphere.
-        using Values = Eigen::Matrix<double, nSpheres, 1>;
-        /// Row i is dh_i/dq — the constraint row sphere i contributes.
-        using Rows = Eigen::Matrix<double, nSpheres, nJoints>;
+        /// Every barrier this class knows about, world and self, under one flat index:
+        /// `i < nSpheres` is sphere i against the field, `nSpheres + p` is
+        /// `Robot::selfPairs()[p]`.
+        static constexpr int nConstraints = nSpheres + nSelfPairs;
+
+        /// One barrier value per constraint.
+        using Values = Eigen::Matrix<double, nConstraints, 1>;
+        /// Row i is dh_i/dq — the constraint row barrier i contributes.
+        using Rows = Eigen::Matrix<double, nConstraints, nJoints>;
 
         /// Covers sphere under-coverage (30.5 mm) plus SDF discretization plus
         /// step linearization. See the class comment.
         static constexpr double defaultMargin = 0.06;
 
+        /// The self-collision counterpart, and zero, which wants justifying.
+        ///
+        /// Each of the three errors `defaultMargin` absorbs either does not arise between
+        /// two spheres or is not this constant's job. There is no field to discretize and
+        /// no interpolation to disagree with itself. Step linearization is real but tiny
+        /// and belongs to `defaultSelfBuffer`, which is what a *filter* over-reserves;
+        /// measured, it never exceeded rounding.
+        ///
+        /// That leaves the one thing a margin here could buy — clearance against the
+        /// meshes the spheres stand in for — and it cannot buy it. Covering VAMP's 30.5 mm
+        /// of sphere under-coverage on both bodies would need more than 60 mm, which
+        /// exceeds the 58.2 mm the tightest pair in the table is *ever* clear by: the
+        /// barrier would be infeasible at every configuration. There is no partial version
+        /// of that argument either, only a partial cost. MotionBenchMaker's own UR5
+        /// endpoints — poses its mesh checker calls collision-free — come within 0.1 mm of
+        /// sphere-model contact, so every millimetre asked for here rules out problems the
+        /// benchmark considers valid, and 10 mm rules out 58 of the 689.
+        ///
+        /// So the guarantee is stated exactly and no more: the sphere model does not
+        /// self-intersect. That is the quantity the demos' `worstSelfOverlap()` audit
+        /// reports, which is what makes the audit able to contradict this class. Callers
+        /// wanting physical clearance between links should ask for it explicitly, knowing
+        /// it costs reachable configurations.
+        static constexpr double defaultSelfMargin = 0.0;
+
         struct Evaluation
         {
-            Values values;                ///< h_i(q), always for every sphere
+            Values values;                ///< h_i(q), always for every constraint
             /// How far sphere i's centre may travel before leaving the SDF's box, always
             /// for every sphere -- or infinity when the box provably encloses everywhere
             /// the arm can reach, since then no centre can leave it however far it goes.
             /// Only `certifiedDuration()` reads it; see there for why a barrier value
-            /// alone does not bound a whole segment of motion.
-            Values boundary;
+            /// alone does not bound a whole segment of motion. World spheres only: a
+            /// pair of sphere centres is not a query against the field and cannot leave
+            /// anything.
+            Eigen::Matrix<double, nSpheres, 1> boundary;
             Rows rows;                    ///< dh_i/dq -- only the first `active` are filled
-            /// Which sphere each of the first `active` rows belongs to, so a caller can
-            /// pair row r with `values[sphere[r]]`. The identity for a full evaluation.
-            Eigen::Matrix<int, nSpheres, 1> sphere;
-            int active{nSpheres};         ///< how many rows of `rows` are meaningful
-            std::size_t worst{0};         ///< index of the smallest h_i
+            /// Which barrier each of the first `active` rows belongs to, so a caller can
+            /// pair row r with `values[constraint[r]]`. The identity for a full evaluation.
+            Eigen::Matrix<int, nConstraints, 1> constraint;
+            int active{nConstraints};     ///< how many rows of `rows` are meaningful
+            /// Index of the smallest *world* h_i, and never a self pair.
+            ///
+            /// Keeping this world-only is a deliberate restriction rather than an
+            /// oversight. Callers read `rows.row(worst)` as "which way is the obstacle"
+            /// and steer along it; a self row answers a different question, and its
+            /// column 0 is identically zero for every pair inside the arm, so joint 0
+            /// would be told it cannot help when in fact it was never asked.
+            std::size_t worst{0};
+            std::size_t worstPair{0};     ///< pair index of the smallest h_ab, separately
             bool inBounds{true};          ///< were all centers inside the SDF's box?
         };
 
@@ -115,10 +184,18 @@ namespace ompl::cbf
         /// assumes every joint runs at full speed in the worst direction simultaneously —
         /// so it over-selects rows rather than under-selecting them. That is the safe
         /// direction: a loose bound costs work, a tight-but-wrong one costs safety.
+        ///
+        /// Self-collision pairs get the same treatment from
+        /// `Robot::selfPairLeverArms()`, minus the field's Lipschitz constant: the
+        /// distance between two sphere centres is 1-Lipschitz exactly, so there is
+        /// nothing to multiply by.
         Values decreaseRates(const Configuration &maxSpeed) const
         {
-            return field_.maxGradientNorm() *
-                   (Robot::leverArmBounds() * maxSpeed.cwiseAbs()).eval();
+            const Configuration speed = maxSpeed.cwiseAbs();
+            Values rates;
+            rates.head<nSpheres>() = field_.maxGradientNorm() * (Robot::leverArmBounds() * speed);
+            rates.tail<nSelfPairs>() = Robot::selfPairLeverArms() * speed;
+            return rates;
         }
 
         /// Barrier values for every sphere, but constraint rows only for the spheres whose
@@ -141,13 +218,15 @@ namespace ompl::cbf
 
             out.inBounds = true;
             out.worst = 0;
+            out.worstPair = 0;
             out.active = 0;
-            double smallest = std::numeric_limits<double>::infinity();
 
             // Centres are kept because the survivors need them again for the gradient
-            // query, and forward kinematics is not worth repeating.
+            // query, and because every pair value is a subtraction between two of them.
+            // Forward kinematics is not worth repeating.
             Robot::SphereCenters centers;
 
+            double smallest = std::numeric_limits<double>::infinity();
             for (std::size_t i = 0; i < Robot::nSpheres; ++i)
             {
                 const Eigen::Index index = static_cast<Eigen::Index>(i);
@@ -165,16 +244,39 @@ namespace ompl::cbf
                 }
             }
 
-            for (std::size_t i = 0; i < Robot::nSpheres; ++i)
+            // The values-only pass is even cheaper here than for the world: a subtraction
+            // and a norm off centres already in hand, with no field query at all.
+            double smallestPair = std::numeric_limits<double>::infinity();
+            for (std::size_t p = 0; p < Robot::nSelfPairs; ++p)
             {
-                const Eigen::Index index = static_cast<Eigen::Index>(i);
-                if (out.values[index] > threshold[index])
+                const Eigen::Index index = nSpheres + static_cast<Eigen::Index>(p);
+                const double h = Robot::selfPairClearance(centers, p) -
+                                 Robot::selfPairMargins()[static_cast<Eigen::Index>(p)] -
+                                 selfMargin_;
+                out.values[index] = h;
+                if (h < smallestPair)
+                {
+                    smallestPair = h;
+                    out.worstPair = p;
+                }
+            }
+
+            // One screening pass over both families: they are the same question asked of
+            // different geometry, and the flat index keeps the QP's row order stable.
+            for (Eigen::Index i = 0; i < nConstraints; ++i)
+            {
+                if (out.values[i] > threshold[i])
                     continue;
 
-                const Eigen::Vector3d gradient = field_.gradient(centers.col(index));
                 const Eigen::Index row = out.active++;
-                out.sphere[row] = static_cast<int>(i);
-                out.rows.row(row) = Robot::barrierGradient(kin, i, gradient).transpose();
+                out.constraint[row] = static_cast<int>(i);
+                out.rows.row(row) =
+                    i < nSpheres ?
+                        Robot::barrierGradient(kin, static_cast<std::size_t>(i),
+                                               field_.gradient(centers.col(i)))
+                            .transpose() :
+                        Robot::selfPairGradient(kin, centers, static_cast<std::size_t>(i - nSpheres))
+                            .transpose();
             }
         }
 
@@ -209,10 +311,17 @@ namespace ompl::cbf
         /// because of interpolation, and a field with no obstacle in the box reports
         /// zero, which would otherwise certify an unbounded step off the back of a
         /// division by zero.
+        /// Self-collision pairs enter the same minimum, and they must: a certificate
+        /// taken over the world rows alone would happily run a constant control for a
+        /// span during which the arm closes on itself, precisely because no world row
+        /// can see that coming. They are charged less than the world rows, though —
+        /// no Lipschitz constant, since a distance between two points has one exactly,
+        /// and no boundary term, since a pair is not a query against the field.
         double certifiedDuration(const Evaluation &evaluation, const Configuration &u,
                                  double gamma) const
         {
-            const Values travel = (Robot::leverArmBounds() * u.cwiseAbs()).eval();
+            const Configuration speed = u.cwiseAbs();
+            const auto travel = (Robot::leverArmBounds() * speed).eval();
             const double lipschitz = std::max(field_.maxGradientNorm(), 1.0);
 
             double duration = std::numeric_limits<double>::infinity();
@@ -224,14 +333,26 @@ namespace ompl::cbf
                                                   evaluation.boundary[i]);
                 duration = std::min(duration, allowance / travel[i]);
             }
+
+            const auto pairTravel = (Robot::selfPairLeverArms() * speed).eval();
+            for (Eigen::Index p = 0; p < nSelfPairs; ++p)
+            {
+                // Zero here is common rather than exceptional: only the joints strictly
+                // between the two frames can change a pair's separation at all.
+                if (pairTravel[p] <= 0.0)
+                    continue;
+                duration = std::min(duration, gamma * evaluation.values[nSpheres + p] / pairTravel[p]);
+            }
             return std::max(duration, 0.0);
         }
 
         /// Neither \p robot nor \p field is copied; both must outlive this object.
-        ClearanceBarrier(const Robot &robot, const sdf::GridSDF &field, double margin = defaultMargin)
+        ClearanceBarrier(const Robot &robot, const sdf::GridSDF &field, double margin = defaultMargin,
+                         double selfMargin = defaultSelfMargin)
           : robot_(robot)
           , field_(field)
           , margin_(margin)
+          , selfMargin_(selfMargin)
           , enclosesReach_(field.bounds().contains(Robot::reachableBounds()))
         {
         }
@@ -257,6 +378,24 @@ namespace ompl::cbf
             return field.spacing().maxCoeff();
         }
 
+        /// The same over-reservation for the self-collision rows, and far smaller.
+        ///
+        /// The world buffer is a statement about the *field*: a value and a gradient
+        /// interpolated independently need not agree, and the disagreement scales with
+        /// the grid however small the step. A sphere pair queries no field. Its value and
+        /// its row come from the same two centres, so the only way a step can land below
+        /// what the row predicted is the linearization itself — the centres travel on
+        /// arcs, and the row is a chord.
+        ///
+        /// That error is small and, unlike the field's, does shrink with the step.
+        /// Measured over 10k rollout waypoints at gamma up to 1.0 and steps up to
+        /// 0.08 rad, the enforced self barrier never fell below its margin by more than
+        /// rounding. A millimetre is therefore generous, and generosity is affordable
+        /// here in a way it is not for the margin itself: the buffer comes out of the
+        /// 58.2 mm the tightest pair in the table ever has, and a millimetre of that is
+        /// nothing, where the 60 mm a mesh-level margin would need is everything.
+        static constexpr double defaultSelfBuffer = 0.001;
+
         /// The barrier a *filter* should enforce if you intend to hold the robot to
         /// \p margin. Buffered by `interpolationBuffer()`, so auditing the resulting
         /// motion against a plain `ClearanceBarrier(robot, field, margin)` passes.
@@ -275,10 +414,15 @@ namespace ompl::cbf
         /// actually require silently reintroduces violations. Audit before trusting
         /// any hand-picked value: interpolate a solution path and evaluate the
         /// unbuffered barrier at every step.
+        ///
+        /// \p buffer applies to the world margin and \p selfBuffer to the self-collision
+        /// one; they are separate because they absorb unrelated errors, and differ by
+        /// more than an order of magnitude. See `defaultSelfBuffer`.
         static ClearanceBarrier guarding(const Robot &robot, const sdf::GridSDF &field, double margin,
-                                         double buffer)
+                                         double buffer, double selfMargin = defaultSelfMargin,
+                                         double selfBuffer = defaultSelfBuffer)
         {
-            return ClearanceBarrier(robot, field, margin + buffer);
+            return ClearanceBarrier(robot, field, margin + buffer, selfMargin + selfBuffer);
         }
 
         /// Barrier values and constraint rows at \p q.
@@ -288,19 +432,23 @@ namespace ompl::cbf
 
             out.inBounds = true;
             out.worst = 0;
-            out.active = nSpheres;
-            double smallest = std::numeric_limits<double>::infinity();
+            out.worstPair = 0;
+            out.active = nConstraints;
 
+            Robot::SphereCenters centers;
+
+            double smallest = std::numeric_limits<double>::infinity();
             for (std::size_t i = 0; i < Robot::nSpheres; ++i)
             {
                 const Eigen::Vector3d center = Robot::sphereCenter(kin, i);
+                const Eigen::Index row = static_cast<Eigen::Index>(i);
+                centers.col(row) = center;
                 out.inBounds = out.inBounds && field_.inBounds(center);
-                out.sphere[static_cast<Eigen::Index>(i)] = static_cast<int>(i);
+                out.constraint[row] = static_cast<int>(i);
 
                 const sdf::ValueGradient vg = field_.valueAndGradient(center);
                 const double h = vg.value - Robot::spheres()[i].radius - margin_;
 
-                const Eigen::Index row = static_cast<Eigen::Index>(i);
                 out.values[row] = h;
                 out.boundary[row] = boundaryClearance(center);
                 out.rows.row(row) = Robot::barrierGradient(kin, i, vg.gradient).transpose();
@@ -309,6 +457,25 @@ namespace ompl::cbf
                 {
                     smallest = h;
                     out.worst = i;
+                }
+            }
+
+            double smallestPair = std::numeric_limits<double>::infinity();
+            for (std::size_t p = 0; p < Robot::nSelfPairs; ++p)
+            {
+                const Eigen::Index row = nSpheres + static_cast<Eigen::Index>(p);
+                const double h = Robot::selfPairClearance(centers, p) -
+                                 Robot::selfPairMargins()[static_cast<Eigen::Index>(p)] -
+                                 selfMargin_;
+
+                out.constraint[row] = static_cast<int>(row);
+                out.values[row] = h;
+                out.rows.row(row) = Robot::selfPairGradient(kin, centers, p).transpose();
+
+                if (h < smallestPair)
+                {
+                    smallestPair = h;
+                    out.worstPair = p;
                 }
             }
         }
@@ -328,14 +495,21 @@ namespace ompl::cbf
             if (inBounds != nullptr)
                 *inBounds = true;
 
+            Robot::SphereCenters centers;
             for (std::size_t i = 0; i < Robot::nSpheres; ++i)
             {
                 const Eigen::Vector3d center = Robot::sphereCenter(kin, i);
+                centers.col(static_cast<Eigen::Index>(i)) = center;
                 if (inBounds != nullptr)
                     *inBounds = *inBounds && field_.inBounds(center);
                 out[static_cast<Eigen::Index>(i)] =
                     field_.distance(center) - Robot::spheres()[i].radius - margin_;
             }
+
+            for (std::size_t p = 0; p < Robot::nSelfPairs; ++p)
+                out[nSpheres + static_cast<Eigen::Index>(p)] =
+                    Robot::selfPairClearance(centers, p) -
+                    Robot::selfPairMargins()[static_cast<Eigen::Index>(p)] - selfMargin_;
         }
 
         Values values(const Configuration &q) const
@@ -345,7 +519,7 @@ namespace ompl::cbf
             return out;
         }
 
-        /// Tightest clearance over all spheres. Safe iff this is >= 0.
+        /// Tightest clearance over every barrier, world and self. Safe iff this is >= 0.
         double worstValue(const Configuration &q) const
         {
             return values(q).minCoeff();
@@ -364,6 +538,16 @@ namespace ompl::cbf
         void setMargin(double margin)
         {
             margin_ = margin;
+        }
+
+        double selfMargin() const
+        {
+            return selfMargin_;
+        }
+
+        void setSelfMargin(double selfMargin)
+        {
+            selfMargin_ = selfMargin;
         }
 
         const Robot &robot() const
@@ -394,6 +578,7 @@ namespace ompl::cbf
         const Robot &robot_;
         const sdf::GridSDF &field_;
         double margin_;
+        double selfMargin_;
         bool enclosesReach_;
     };
 }  // namespace ompl::cbf

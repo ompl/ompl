@@ -5,7 +5,15 @@
 //
 //     ./scripts/mbm_to_scenes.py /path/to/vamp/resources/ur5/problems.json scenes.txt
 //     ./build/demos/demo_UR5MBMBenchmark scenes.txt [perScene] [seconds] [voxel] [stepSize]
-//         [range] [margin] [buffer] [segmentFraction] [gamma] [maxStepScale]
+//         [range] [margin] [buffer] [segmentFraction] [gamma] [maxStepScale] [selfMargin]
+//         [pathPrefix]
+//
+// `pathPrefix` dumps the audited motions of both rows (`<prefix>.rrtc`, `<prefix>.cbf`) so
+// they can be replayed against the real UR5 meshes in PyBullet:
+//
+//     ur5_experiments/scripts/audit_self_collision.py --path <prefix>.cbf
+//
+// That is the only check that does not share the sphere model with the `collide` column.
 //
 // The last two are the certified-step A/B: `maxStepScale 1` pins the rollout to a fixed
 // `stepSize` however much room it has, and `gamma` scales how much of its clearance a
@@ -65,6 +73,8 @@
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/util/RandomNumbers.h>
 #include <ompl/util/Time.h>
+
+#include "UR5SelfCollisionAudit.h"
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
@@ -225,12 +235,24 @@ namespace
         double radPerCall{0.0};
         double coarse{0.0};
         double minClearance{std::numeric_limits<double>::infinity()};
+        /// The independent self-collision check -- see demos/UR5SelfCollisionAudit.h. The
+        /// barrier carries self rows now, but only for the pairs the offline search kept,
+        /// so this walks all of them and is the only thing able to say that search was
+        /// wrong.
+        double minSelfOverlap{std::numeric_limits<double>::infinity()};
+        std::size_t selfColliding{0};
     };
 
     /// Audit a solution the way the CBF rows must be audited: expand it into the motion
     /// that would actually be executed, then evaluate the *unbuffered* barrier at every
     /// state of it.
-    void audit(const og::PathGeometric &solution, const Barrier &barrier, Result &result)
+    ///
+    /// `record`, when given, collects exactly the states audited here, so an external mesh
+    /// checker is handed the same motion at the same resolution that the `collide` column
+    /// is computed from. Anything coarser would let a mesh contact hide between the states
+    /// the sphere model was scored on.
+    void audit(const og::PathGeometric &solution, const Barrier &barrier, Result &result,
+               std::vector<UR5::Configuration> *record)
     {
         // executedPath() replays the rollout the planner recorded for each edge, so this
         // is the executed motion rather than a reconstruction of it -- and it honours the
@@ -247,16 +269,26 @@ namespace
         result.auditedStates = path.getStateCount();
         for (std::size_t i = 0; i < path.getStateCount(); ++i)
         {
-            const double h = barrier.worstValue(Space::configurationOf(path.getState(i)));
+            const UR5::Configuration q = Space::configurationOf(path.getState(i));
+            const double h = barrier.worstValue(q);
             result.minClearance = std::min(result.minClearance, h);
             if (h < 0.0)
                 ++result.unsafeStates;
+
+            const double own = ompl::demo::worstSelfOverlap(barrier.robot(), q);
+            result.minSelfOverlap = std::min(result.minSelfOverlap, own);
+            if (own < 0.0)
+                ++result.selfColliding;
+
+            if (record != nullptr)
+                record->push_back(q);
         }
     }
 
     /// The bar: straight-line edges, the same SDF behind an ordinary validity checker.
     Result runCollisionChecked(const Problem &problem, const Barrier &barrier, double range,
-                               double timeLimit, double segmentFraction)
+                               double timeLimit, double segmentFraction,
+                               std::vector<UR5::Configuration> *record)
     {
         auto space = std::make_shared<ob::RealVectorStateSpace>(dimension);
         space->setBounds(jointBounds());
@@ -307,10 +339,23 @@ namespace
             result.auditedStates = path.getStateCount();
             for (std::size_t i = 0; i < path.getStateCount(); ++i)
             {
-                const double h = barrier.worstValue(Space::configurationOf(path.getState(i)));
+                const UR5::Configuration q = Space::configurationOf(path.getState(i));
+                const double h = barrier.worstValue(q);
                 result.minClearance = std::min(result.minClearance, h);
                 if (h < 0.0)
                     ++result.unsafeStates;
+
+                // The baseline is audited for self-collision on the same terms as the
+                // filtered row, and it has to be: its validity checker is this same
+                // barrier's isSafe(), so it is subject to the self rows too, and a
+                // comparison that audited only one of them would be measuring the audit.
+                const double own = ompl::demo::worstSelfOverlap(barrier.robot(), q);
+                result.minSelfOverlap = std::min(result.minSelfOverlap, own);
+                if (own < 0.0)
+                    ++result.selfColliding;
+
+                if (record != nullptr)
+                    record->push_back(q);
             }
         }
         return result;
@@ -319,7 +364,8 @@ namespace
     /// The CBF rollout as the state space's interpolate(), with no collision checking
     /// anywhere: the barrier certifies each step as it is produced.
     Result runFiltered(const Problem &problem, const Barrier &audited, const Filter &filter,
-                       double stepSize, double range, double timeLimit, double maxStepScale)
+                       double stepSize, double range, double timeLimit, double maxStepScale,
+                       std::vector<UR5::Configuration> *record)
     {
         auto space = std::make_shared<Space>(filter, stepSize, UR5::velocityLimits());
         space->setBounds(jointBounds());
@@ -366,7 +412,7 @@ namespace
 
         if (result.solved)
             audit(*std::static_pointer_cast<og::PathGeometric>(pdef->getSolutionPath()), audited,
-                  result);
+                  result, record);
         return result;
     }
 
@@ -388,8 +434,11 @@ namespace
         std::size_t unsafe[2]{0, 0};
         std::size_t audited[2]{0, 0};
         std::size_t misses[2]{0, 0};
+        std::size_t selfColliding[2]{0, 0};
         double worstClearance[2]{std::numeric_limits<double>::infinity(),
                                  std::numeric_limits<double>::infinity()};
+        double worstSelf[2]{std::numeric_limits<double>::infinity(),
+                            std::numeric_limits<double>::infinity()};
 
         void add(int row, const Result &result)
         {
@@ -402,8 +451,12 @@ namespace
             unsafe[row] += result.unsafeStates;
             audited[row] += result.auditedStates;
             misses[row] += result.misses;
+            selfColliding[row] += result.selfColliding;
             if (result.solved)
+            {
                 worstClearance[row] = std::min(worstClearance[row], result.minClearance);
+                worstSelf[row] = std::min(worstSelf[row], result.minSelfOverlap);
+            }
         }
     };
 
@@ -413,6 +466,25 @@ namespace
             return 0.0;
         std::sort(values.begin(), values.end());
         return values[values.size() / 2];
+    }
+
+    /// Append one problem's audited motion, preceded by the marker the Python auditor
+    /// splits on. The marker matters: the file holds many unrelated motions, and
+    /// interpolating across the seam between two of them invents states that belong to no
+    /// trajectory the planner produced -- which on a self-collision count reads as the
+    /// planner having folded the arm onto itself.
+    void writeMotion(std::ofstream &out, const Problem &problem,
+                     const std::vector<UR5::Configuration> &states)
+    {
+        if (!out.is_open() || states.empty())
+            return;
+        out << "# motion " << problem.scene << " " << problem.index << "\n";
+        for (const UR5::Configuration &q : states)
+        {
+            for (int j = 0; j < dimension; ++j)
+                out << (j ? " " : "") << q[j];
+            out << "\n";
+        }
     }
 
     void reportRow(const char *label, const Tally &tally, int row)
@@ -427,10 +499,11 @@ namespace
         else
             std::printf(" %8s %6s", "-", "-");
         if (tally.solved[row] > 0)
-            std::printf(" %10.4f %6zu/%-7zu %6zu\n", tally.worstClearance[row], tally.unsafe[row],
-                        tally.audited[row], tally.misses[row]);
+            std::printf(" %10.4f %6zu/%-7zu %6zu %10.4f %7zu\n", tally.worstClearance[row],
+                        tally.unsafe[row], tally.audited[row], tally.misses[row],
+                        tally.worstSelf[row], tally.selfColliding[row]);
         else
-            std::printf(" %10s %14s %6s\n", "-", "-", "-");
+            std::printf(" %10s %14s %6s %10s %7s\n", "-", "-", "-", "-", "-");
     }
 }  // namespace
 
@@ -439,7 +512,8 @@ int main(int argc, char **argv)
     if (argc < 2)
     {
         std::printf("usage: %s scenes.txt [perScene] [seconds] [voxel] [stepSize] [range]\n"
-                    "       [margin] [buffer] [segmentFraction] [gamma] [maxStepScale]\n\n"
+                    "       [margin] [buffer] [segmentFraction] [gamma] [maxStepScale]\n"
+                    "       [selfMargin] [pathPrefix]\n\n"
                     "Generate scenes.txt with scripts/mbm_to_scenes.py.\n",
                     argv[0]);
         return 1;
@@ -462,13 +536,36 @@ int main(int argc, char **argv)
     // rad between samples -- far coarser than the audit, so the baseline is scored unsafe
     // at the default. Tightening this is what makes the comparison like for like: both
     // rows then have to be audit-clean, and the cost of being so is the thing to compare.
-    const double segmentFraction = argc > 9 ? std::atof(argv[9]) : -1.0;
+    const double segmentFractionArg = argc > 9 ? std::atof(argv[9]) : -1.0;
     // The CBF decay rate, which is also the fraction of its clearance a step is allowed
     // to spend -- so it scales the certified step directly. At 1.0 the barrier is a plain
     // collision condition and the certificate is as long as the clearance allows.
     const double gamma = argc > 10 ? std::atof(argv[10]) : 0.4;
     // Cap on the certified step, as a multiple of stepSize. 1.0 is the fixed-step A/B.
     const double maxStepScale = argc > 11 ? std::atof(argv[11]) : -1.0;
+    // The self-collision margin. A large negative value is the A/B for the rows
+    // themselves: every pair clearance becomes enormous, so none is ever screened in and
+    // none can cap the certificate, which is what the barrier did before it modelled the
+    // arm against itself. The independent audit column is unaffected either way, so it
+    // says what turning them off costs.
+    const double selfMargin = argc > 12 ? std::atof(argv[12]) : Barrier::defaultSelfMargin;
+    // Where to dump the audited motions, one file per row (`<prefix>.cbf`, `<prefix>.rrtc`).
+    // The `collide` column is a statement about the 40 spheres and nothing else; these
+    // files are what lets ur5_experiments/scripts/audit_self_collision.py repeat the count
+    // against the real meshes, which is the only thing that can say the sphere model is
+    // too coarse to stand in for them.
+    const std::string pathPrefix = argc > 13 ? argv[13] : std::string();
+
+    // Tie the baseline's edge-checking spacing to the rollout's step unless told otherwise,
+    // so neither row is scored at a resolution the other never saw. The rollout advances
+    // `maxSpeed * stepSize` radians per filter call; OMPL states the baseline's resolution
+    // as a fraction of the state space's maximum extent, so convert. A RealVectorStateSpace
+    // over `dimension` joints spanning [lo, hi] has extent |hi - lo| * sqrt(dimension).
+    const double rolloutStep = UR5::velocityLimits().maxCoeff() * stepSize;
+    const double extent =
+        (UR5::upperBounds() - UR5::lowerBounds()).norm();
+    const double segmentFraction =
+        segmentFractionArg > 0.0 ? segmentFractionArg : rolloutStep / extent;
 
     ompl::RNG::setSeed(1);
     ompl::msg::setLogLevel(ompl::msg::LOG_ERROR);
@@ -491,17 +588,35 @@ int main(int argc, char **argv)
                                                 UR5::reachableBounds(), voxel))
                              : buffer,
                 stepSize, range, timeLimit);
-    std::printf("gamma %.2f, certified step %s\n", gamma,
-                maxStepScale > 0.0 ? "capped" : "uncapped");
-    std::printf("baseline segment: %s\n\n",
-                segmentFraction > 0.0 ? "tightened" : "OMPL default (0.01 of extent)");
-    std::printf("  %-11s %8s %9s %10s %8s %8s %6s %10s %14s %6s\n", "planner", "solved", "ms",
-                "evals", "vertices", "rad/call", "coarse", "worst clr", "unsafe/audited",
-                "missed");
+    std::printf("gamma %.2f, certified step %s, self-collision margin %.4f m over %d pairs%s\n",
+                gamma, maxStepScale > 0.0 ? "capped" : "uncapped", selfMargin,
+                static_cast<int>(UR5::nSelfPairs), selfMargin < 0.0 ? " (rows disabled)" : "");
+    std::printf("baseline segment: %.6f of extent = %.4f rad, rollout step %.4f rad (%s)\n\n",
+                segmentFraction, segmentFraction * extent, rolloutStep,
+                segmentFractionArg > 0.0 ? "overridden" : "matched to the rollout");
+    std::printf("  %-11s %8s %9s %10s %8s %8s %6s %10s %14s %6s %10s %7s\n", "planner", "solved",
+                "ms", "evals", "vertices", "rad/call", "coarse", "worst clr", "unsafe/audited",
+                "missed", "worst self", "collide");
 
     std::map<std::string, Tally> tallies;
     std::map<std::string, int> seen;
     Tally overall;
+
+    std::ofstream baselineOut, filteredOut;
+    if (!pathPrefix.empty())
+    {
+        baselineOut.open(pathPrefix + ".rrtc");
+        filteredOut.open(pathPrefix + ".cbf");
+        if (!baselineOut.is_open() || !filteredOut.is_open())
+        {
+            std::printf("cannot write %s.{rrtc,cbf}\n", pathPrefix.c_str());
+            return 1;
+        }
+        for (std::ofstream *out : {&baselineOut, &filteredOut})
+            *out << "# audited joint-space motions, one configuration per line, "
+                 << auditResolution << " rad spacing\n"
+                 << "# each motion begins with a '# motion <scene> <index>' marker\n";
+    }
 
     for (const Problem &problem : problems)
     {
@@ -511,16 +626,18 @@ int main(int argc, char **argv)
         const sdf::GridSDF field(problem.field(), UR5::reachableBounds(), voxel);
         // The barrier the assertions use, and the thicker one the filter guards so that
         // auditing against the first one passes. See ClearanceBarrier::guarding().
-        const Barrier audited(robot, field, margin);
-        const Barrier guard = buffer < 0.0 ? Barrier::guarding(robot, field, margin)
-                                           : Barrier::guarding(robot, field, margin, buffer);
+        const Barrier audited(robot, field, margin, selfMargin);
+        const Barrier guard =
+            Barrier::guarding(robot, field, margin,
+                              buffer < 0.0 ? Barrier::interpolationBuffer(field) : buffer,
+                              selfMargin);
         const Filter filter(guard, parameters);
 
         Tally &tally = tallies[problem.scene];
         ++tally.attempted;
         ++overall.attempted;
 
-        const Barrier bare(robot, field, 0.0);
+        const Barrier bare(robot, field, 0.0, selfMargin);
         const double endpoints =
             std::min(bare.worstValue(problem.start), bare.worstValue(problem.goal));
         tally.endpointClearance.push_back(endpoints);
@@ -535,14 +652,28 @@ int main(int argc, char **argv)
             continue;
         }
 
-        const Result checked =
-            runCollisionChecked(problem, audited, range, timeLimit, segmentFraction);
-        const Result rolled =
-            runFiltered(problem, audited, filter, stepSize, range, timeLimit, maxStepScale);
+        std::vector<UR5::Configuration> checkedPath, rolledPath;
+        const Result checked = runCollisionChecked(problem, audited, range, timeLimit,
+                                                   segmentFraction,
+                                                   pathPrefix.empty() ? nullptr : &checkedPath);
+        const Result rolled = runFiltered(problem, audited, filter, stepSize, range, timeLimit,
+                                          maxStepScale,
+                                          pathPrefix.empty() ? nullptr : &rolledPath);
+        writeMotion(baselineOut, problem, checkedPath);
+        writeMotion(filteredOut, problem, rolledPath);
         tally.add(0, checked);
         tally.add(1, rolled);
         overall.add(0, checked);
         overall.add(1, rolled);
+    }
+
+    if (!pathPrefix.empty())
+    {
+        baselineOut.close();
+        filteredOut.close();
+        std::printf("wrote %s.rrtc and %s.cbf -- audit them against the meshes with\n"
+                    "  ur5_experiments/scripts/audit_self_collision.py --path %s.cbf\n",
+                    pathPrefix.c_str(), pathPrefix.c_str(), pathPrefix.c_str());
     }
 
     for (const auto &entry : tallies)

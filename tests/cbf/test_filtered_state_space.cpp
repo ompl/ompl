@@ -112,6 +112,13 @@ namespace
     /// sweep past the obstacle hugs its boundary, and a CBF filter actively pushes away
     /// from there — a goal sitting in the one place the method avoids makes for a test
     /// about goal tolerances, not about planning.
+    ///
+    /// Roomiest means roomiest *from the obstacle*, so the ranking reads the world
+    /// clearances rather than `worstValue()`. It has to: this sweep turns joint 0 and
+    /// nothing else, and joint 0 carries the whole arm rigidly, so it cannot change the
+    /// distance between any two spheres on it. Ranking by `worstValue()` would compare
+    /// candidates on a self-collision clearance that is the same constant at every one of
+    /// them, and pick an arbitrary sweep — as it happens, one hugging the obstacle.
     UR5::Configuration pastObstacle(const Barrier &barrier, const UR5::Configuration &from)
     {
         const Barrier::Evaluation evaluation = barrier.evaluate(from);
@@ -124,7 +131,7 @@ namespace
         {
             UR5::Configuration to = from;
             to[0] += sign * sweep;
-            const double clearance = barrier.worstValue(to);
+            const double clearance = barrier.values(to).head<Barrier::nSpheres>().minCoeff();
             if (clearance > roomiest && barrier.isSafe(to) && straightLineBlocked(barrier, from, to))
             {
                 roomiest = clearance;
@@ -134,6 +141,27 @@ namespace
         if (roomiest == -std::numeric_limits<double>::infinity())
             BOOST_FAIL("no target found that is clear but unreachable in a straight line");
         return best;
+    }
+
+    /// A target whose straight line is blocked but which the filter still *arrives* at,
+    /// by a visibly bent path. The ledger tests need all three: several steps to record,
+    /// an arrival for the record to be keyed on, and a bend — a straight edge cannot tell
+    /// per-step interpolation apart from lerping the whole thing, so it would pass
+    /// against a broken implementation.
+    ///
+    /// `pastObstacle()` can no longer supply one, and the reason is worth stating. It
+    /// sweeps joint 0 alone, and getting round this obstacle that way needs the arm to
+    /// fold down towards its own base — which the self-collision rows now forbid, rightly:
+    /// spheres 0 and 2 reach 23 mm of overlap somewhere along that route. Every sweep in
+    /// that family now slides along the obstacle instead of arriving.
+    ///
+    /// So this one moves all six joints. It was found by search and is pinned here rather
+    /// than re-searched, because a search seeded off the RNG makes the test's subject
+    /// depend on RNG behaviour. The properties the search was for are asserted at each
+    /// use, so if one stops holding the test says which.
+    UR5::Configuration deflectedArrival()
+    {
+        return configuration(-0.96, -1.85, 0.40, -2.84, -2.68, 1.90);
     }
 }  // namespace
 
@@ -393,11 +421,16 @@ BOOST_AUTO_TEST_CASE(AReversedEdgeIsAnsweredFromTheLedger)
     const UR5::Configuration a = UR5::Configuration::Zero();
     ob::ScopedState<> from(space), to(space), reached(space);
     Space::setState(from.get(), a);
-    Space::setState(to.get(), pastObstacle(truth, a));
+    // `deflectedArrival()`, not `pastObstacle()`, for the reason given at its definition:
+    // the sweep-joint-0 family needs the arm to fold towards its own base, which the self
+    // rows forbid, so those rollouts slide along the obstacle instead of arriving. Without
+    // an arrival there is no keyed record, and this test's subject is the record.
+    Space::setState(to.get(), deflectedArrival());
 
     space->interpolate(from.get(), to.get(), 0.5, reached.get());
     const std::size_t rolled = space->statistics().steps;
     BOOST_REQUIRE_GT(space->statistics().filtered, 0u);
+    BOOST_REQUIRE_GT((Space::configurationOf(reached.get()) - a).norm(), 1e-9);
 
     // The goal-tree question, asked the way RRTConnect asks it.
     BOOST_CHECK(si->checkMotion(reached.get(), from.get()));
@@ -428,9 +461,13 @@ BOOST_AUTO_TEST_CASE(StatesInsideAStepAreOnTheExecutedSegment)
     si->setup();
 
     const UR5::Configuration a = UR5::Configuration::Zero();
+    const UR5::Configuration b = deflectedArrival();
+    BOOST_REQUIRE(truth.isSafe(b));
+    BOOST_REQUIRE(straightLineBlocked(truth, a, b));
+
     ob::ScopedState<> from(space), to(space), reached(space), out(space);
     Space::setState(from.get(), a);
-    Space::setState(to.get(), pastObstacle(truth, a));
+    Space::setState(to.get(), b);
     space->interpolate(from.get(), to.get(), 1.0, reached.get());
     BOOST_REQUIRE(si->checkMotion(from.get(), reached.get()));
 
@@ -439,6 +476,13 @@ BOOST_AUTO_TEST_CASE(StatesInsideAStepAreOnTheExecutedSegment)
     BOOST_REQUIRE(static_cast<bool>(record));
     const std::size_t steps = record.size() - 1;
     BOOST_REQUIRE_GT(steps, 4u);
+
+    // Bent, so that per-step interpolation is distinguishable from lerping the edge.
+    double deviation = 0.0;
+    for (std::size_t i = 0; i <= steps; ++i)
+        deviation = std::max(deviation,
+                             (record[i] - (a + (static_cast<double>(i) / steps) * (b - a))).norm());
+    BOOST_REQUIRE_GT(deviation, 0.05);
 
     const std::size_t before = space->statistics().steps;
     for (std::size_t i = 0; i < steps; ++i)
@@ -466,9 +510,13 @@ BOOST_AUTO_TEST_CASE(ExecutedPathReplaysTheRecordedWaypoints)
     si->setup();
 
     const UR5::Configuration a = UR5::Configuration::Zero();
+    const UR5::Configuration b = deflectedArrival();
+    BOOST_REQUIRE(truth.isSafe(b));
+    BOOST_REQUIRE(straightLineBlocked(truth, a, b));
+
     ob::ScopedState<> from(space), to(space), reached(space);
     Space::setState(from.get(), a);
-    Space::setState(to.get(), pastObstacle(truth, a));
+    Space::setState(to.get(), b);
     space->interpolate(from.get(), to.get(), 1.0, reached.get());
     BOOST_REQUIRE(si->checkMotion(from.get(), reached.get()));
 
@@ -725,11 +773,20 @@ BOOST_AUTO_TEST_CASE(StockRRTConnectPlansSafelyThroughTheRolloutSpace)
     BOOST_CHECK_LE(worstGap, stride);
 }
 
-// What the certificate is for. With nothing in the way, one filter call establishes that
-// the filter has nothing to say about the entire extension, so the edge is a single
-// straight step -- the same motion the old rollout produced one QP solve at a time, at
-// 1/80th of the cost, landing on the target exactly rather than a rounding away from it.
-BOOST_AUTO_TEST_CASE(AnUnobstructedEdgeIsOneStraightStep)
+// What the certificate is for, and what self-collision costs it.
+//
+// With nothing in the way this edge used to be a *single* straight step: one filter call
+// established that the filter had nothing to say about the whole extension. That is over.
+// The certificate is a minimum over every barrier, and the self-collision pairs are always
+// in it — the tightest pair in `UR5::selfPairs()` is never clearer than 58.2 mm at any
+// configuration, so however empty the workspace is, one call can only ever certify what
+// 58.2 mm of clearance buys.
+//
+// What survives is the shape of the win rather than its size. The edge is still exactly
+// the straight line, still lands on the target to the last bit, and still costs a small
+// fraction of the fixed-step rollout — every step of it is a certified hop. It is a
+// constant factor now, not a collapse to one call.
+BOOST_AUTO_TEST_CASE(AnUnobstructedEdgeIsAStraightLineOfCoarseSteps)
 {
     const UR5 robot;
     const Barrier barrier(robot, emptyField(), 0.0);
@@ -738,17 +795,21 @@ BOOST_AUTO_TEST_CASE(AnUnobstructedEdgeIsOneStraightStep)
 
     const UR5::Configuration a = configuration(0.0, -1.2, 1.8, -0.6, 1.57, 0.0);
     const UR5::Configuration b = configuration(1.4, -0.7, 1.2, -0.2, 1.20, 0.5);
-    BOOST_REQUIRE_GT(space->horizonSteps(a, b), 40u);  // 40 steps is what it used to cost
+    const unsigned int fixed = space->horizonSteps(a, b);
+    BOOST_REQUIRE_GT(fixed, 40u);  // 40 steps is what it costs without a certificate
 
     const Space::Rollout rollout = space->roll(a, b, 1.0);
-    BOOST_CHECK_EQUAL(rollout.steps, 1u);
-    BOOST_CHECK_EQUAL(rollout.coarse, 1u);
-    BOOST_CHECK_EQUAL(rollout.waypoints.size(), 2u);
     BOOST_CHECK(rollout.reachedTarget);
     BOOST_CHECK_EQUAL((rollout.end - b).norm(), 0.0);
 
+    // Every step ran past `stepSize` on a certificate, and there are far fewer of them
+    // than the fixed step would have taken.
+    BOOST_CHECK_EQUAL(rollout.coarse, rollout.steps);
+    BOOST_CHECK_EQUAL(rollout.waypoints.size(), rollout.steps + 1u);
+    BOOST_CHECK_LT(rollout.steps, fixed / 2u);
+
     // And it is genuinely the straight line, not merely a motion that ends in the right
-    // place: the record has no interior waypoints to be off it.
+    // place: total travel equals the distance, so no interior waypoint is off it.
     BOOST_CHECK_EQUAL((rollout.waypoints.front() - a).norm(), 0.0);
     BOOST_CHECK_CLOSE(rollout.travel, (b - a).norm(), 1e-9);
 }

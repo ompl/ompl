@@ -129,25 +129,35 @@ BOOST_AUTO_TEST_CASE(BaseSphereRowIsZero)
         BOOST_CHECK_EQUAL(barrier.evaluate(q).rows.row(0).norm(), 0.0);
 }
 
+// The two margins are independent offsets on the two families of barrier, and neither
+// touches a constraint direction. They are separate because they absorb different
+// errors: the world margin carries the field's discretization, which a pair of sphere
+// centres never queries.
 BOOST_AUTO_TEST_CASE(MarginShiftsEveryValueUniformly)
 {
     const UR5 robot;
-    const Barrier bare(robot, obstacleField(), /*margin=*/0.0);
+    const Barrier bare(robot, obstacleField(), /*margin=*/0.0, /*selfMargin=*/0.0);
     const double margin = 0.06;
-    const Barrier padded(robot, obstacleField(), margin);
+    const double selfMargin = 0.01;
+    const Barrier padded(robot, obstacleField(), margin, selfMargin);
 
     for (const UR5::Configuration &q : testConfigurations())
     {
         const Barrier::Values without = bare.values(q);
         const Barrier::Values with = padded.values(q);
-        for (Eigen::Index i = 0; i < without.size(); ++i)
+        for (Eigen::Index i = 0; i < Barrier::nSpheres; ++i)
             BOOST_CHECK_LE(std::abs((without[i] - margin) - with[i]), 1e-15);
+        for (Eigen::Index i = Barrier::nSpheres; i < Barrier::nConstraints; ++i)
+            BOOST_CHECK_LE(std::abs((without[i] - selfMargin) - with[i]), 1e-15);
 
-        // The margin must not change the constraint directions, only the offsets.
+        // The margins must not change the constraint directions, only the offsets.
         BOOST_CHECK_LE((bare.evaluate(q).rows - padded.evaluate(q).rows).norm(), 1e-15);
     }
 }
 
+// `worst` indexes the world spheres and `worstPair` the self-collision pairs, kept
+// apart on purpose — see the field's comment for what reading a self row as "which way
+// is the obstacle" would do. Safety, by contrast, is a question about all of them.
 BOOST_AUTO_TEST_CASE(WorstIsTheArgminAndDrivesIsSafe)
 {
     const UR5 robot;
@@ -157,7 +167,15 @@ BOOST_AUTO_TEST_CASE(WorstIsTheArgminAndDrivesIsSafe)
     {
         const Barrier::Evaluation evaluation = barrier.evaluate(q);
         const Eigen::Index worst = static_cast<Eigen::Index>(evaluation.worst);
-        BOOST_CHECK_EQUAL(evaluation.values[worst], evaluation.values.minCoeff());
+        const Eigen::Index worstPair =
+            Barrier::nSpheres + static_cast<Eigen::Index>(evaluation.worstPair);
+
+        BOOST_CHECK_LT(worst, Barrier::nSpheres);
+        BOOST_CHECK_EQUAL(evaluation.values[worst],
+                          evaluation.values.head<Barrier::nSpheres>().minCoeff());
+        BOOST_CHECK_EQUAL(evaluation.values[worstPair],
+                          evaluation.values.tail<Barrier::nSelfPairs>().minCoeff());
+
         BOOST_CHECK_EQUAL(barrier.worstValue(q), evaluation.values.minCoeff());
         BOOST_CHECK_EQUAL(barrier.isSafe(q), evaluation.values.minCoeff() >= 0.0);
     }
@@ -222,10 +240,148 @@ BOOST_AUTO_TEST_CASE(MarginIsSettable)
     Barrier barrier(robot, obstacleField());
     BOOST_CHECK_EQUAL(barrier.margin(), Barrier::defaultMargin);
 
+    // Check the shift on the *world* rows, not on worstValue(). Since the self rows carry
+    // their own per-pair margins, the smallest row overall is often a self row -- at the
+    // zero configuration it is -- and setMargin() does not touch those. Asserting on
+    // worstValue() would be asserting that no self row is ever the tightest, which is
+    // false by design and has nothing to do with whether setMargin works.
     const UR5::Configuration q = UR5::Configuration::Zero();
-    const double before = barrier.worstValue(q);
+    const Barrier::Values before = barrier.values(q);
     barrier.setMargin(barrier.margin() + 0.01);
-    BOOST_CHECK_LE(std::abs(barrier.worstValue(q) - (before - 0.01)), 1e-15);
+    const Barrier::Values after = barrier.values(q);
+
+    for (Eigen::Index i = 0; i < UR5::nSpheres; ++i)
+        BOOST_CHECK_LE(std::abs(after[i] - (before[i] - 0.01)), 1e-15);
+    // and the self rows are unmoved by it
+    for (Eigen::Index i = UR5::nSpheres; i < Barrier::nConstraints; ++i)
+        BOOST_CHECK_LE(std::abs(after[i] - before[i]), 1e-15);
+}
+
+BOOST_AUTO_TEST_CASE(SelfMarginIsSettableAndSeparate)
+{
+    const UR5 robot;
+    Barrier barrier(robot, obstacleField());
+    const UR5::Configuration q = UR5::Configuration::Zero();
+    const Barrier::Values before = barrier.values(q);
+    barrier.setSelfMargin(barrier.selfMargin() + 0.01);
+    const Barrier::Values after = barrier.values(q);
+
+    // The mirror image: selfMargin shifts every self row and no world row. It stacks on
+    // top of each pair's own calibrated margin rather than replacing it.
+    for (Eigen::Index i = 0; i < UR5::nSpheres; ++i)
+        BOOST_CHECK_LE(std::abs(after[i] - before[i]), 1e-15);
+    for (Eigen::Index i = UR5::nSpheres; i < Barrier::nConstraints; ++i)
+        BOOST_CHECK_LE(std::abs(after[i] - (before[i] - 0.01)), 1e-15);
+}
+
+// Every self-collision row is claimed to be the exact derivative of the pair clearance.
+// Unlike the world rows, which are only as good as the field's interpolated gradient,
+// this one has no approximation in it at all, so central differences should agree to
+// several digits rather than to a tolerance set by the voxel size.
+BOOST_AUTO_TEST_CASE(SelfPairRowsMatchCentralDifferences)
+{
+    const UR5 robot;
+    const Barrier barrier(robot, obstacleField(), 0.0);
+    constexpr double step = 1e-6;
+
+    ompl::RNG rng;
+    double worst = 0.0;
+    for (int sample = 0; sample < 40; ++sample)
+    {
+        UR5::Configuration q;
+        for (Eigen::Index j = 0; j < 6; ++j)
+            q[j] = rng.uniformReal(UR5::lowerBounds()[j], UR5::upperBounds()[j]);
+
+        const Barrier::Evaluation evaluation = barrier.evaluate(q);
+        for (Eigen::Index j = 0; j < 6; ++j)
+        {
+            UR5::Configuration offset = UR5::Configuration::Zero();
+            offset[j] = step;
+            const Barrier::Values ahead = barrier.values(q + offset);
+            const Barrier::Values behind = barrier.values(q - offset);
+
+            for (Eigen::Index p = 0; p < Barrier::nSelfPairs; ++p)
+            {
+                const Eigen::Index i = Barrier::nSpheres + p;
+                const double finite = (ahead[i] - behind[i]) / (2.0 * step);
+                worst = std::max(worst, std::abs(evaluation.rows(i, j) - finite));
+            }
+        }
+    }
+    BOOST_CHECK_LT(worst, 1e-6);
+}
+
+// The sparsity that `UR5::selfPairLeverArms()` derives, checked as a property of the
+// geometry rather than of the code that assumes it. A joint upstream of both spheres
+// carries them as one rigid body; a joint downstream of both moves neither. Only the
+// joints strictly between the two frames can change the separation at all.
+//
+// "Exactly zero" is the claim worth testing, not "small". A spurious 1e-17 in column 0
+// would let the QP believe the base joint can relieve a wrist-against-forearm collision,
+// and the certificate would charge for a motion that cannot happen.
+BOOST_AUTO_TEST_CASE(SelfPairRowsVanishOutsideTheJointsBetweenTheFrames)
+{
+    const UR5 robot;
+    const Barrier barrier(robot, obstacleField(), 0.0);
+
+    ompl::RNG rng;
+    for (int sample = 0; sample < 50; ++sample)
+    {
+        UR5::Configuration q;
+        for (Eigen::Index j = 0; j < 6; ++j)
+            q[j] = rng.uniformReal(UR5::lowerBounds()[j], UR5::upperBounds()[j]);
+
+        const Barrier::Evaluation evaluation = barrier.evaluate(q);
+        for (std::size_t p = 0; p < UR5::nSelfPairs; ++p)
+        {
+            const UR5::SelfPair &pair = UR5::selfPairs()[p];
+            const std::size_t first = UR5::spheres()[pair.a].frame;
+            const std::size_t second = UR5::spheres()[pair.b].frame;
+            BOOST_REQUIRE_LT(first, second);  // the table is ordered by frame
+
+            for (std::size_t k = 0; k < UR5::nJoints; ++k)
+            {
+                if (k >= first && k < second)
+                    continue;
+                const Eigen::Index i = Barrier::nSpheres + static_cast<Eigen::Index>(p);
+                BOOST_REQUIRE_EQUAL(evaluation.rows(i, static_cast<Eigen::Index>(k)), 0.0);
+            }
+        }
+    }
+}
+
+// The same statement about the clearance itself rather than its derivative, and over a
+// large perturbation rather than an infinitesimal one: rotating a joint outside the
+// window through half a turn cannot move two spheres relative to each other.
+BOOST_AUTO_TEST_CASE(SelfPairClearanceIgnoresJointsOutsideTheWindow)
+{
+    const UR5 robot;
+    const Barrier barrier(robot, obstacleField(), 0.0);
+
+    ompl::RNG rng;
+    for (int sample = 0; sample < 40; ++sample)
+    {
+        UR5::Configuration q;
+        for (Eigen::Index j = 0; j < 6; ++j)
+            q[j] = rng.uniformReal(UR5::lowerBounds()[j], UR5::upperBounds()[j]);
+        const Barrier::Values before = barrier.values(q);
+
+        for (std::size_t k = 0; k < UR5::nJoints; ++k)
+        {
+            UR5::Configuration moved = q;
+            moved[static_cast<Eigen::Index>(k)] = rng.uniformReal(-3.14, 3.14);
+            const Barrier::Values after = barrier.values(moved);
+
+            for (std::size_t p = 0; p < UR5::nSelfPairs; ++p)
+            {
+                const UR5::SelfPair &pair = UR5::selfPairs()[p];
+                if (k >= UR5::spheres()[pair.a].frame && k < UR5::spheres()[pair.b].frame)
+                    continue;
+                const Eigen::Index i = Barrier::nSpheres + static_cast<Eigen::Index>(p);
+                BOOST_REQUIRE_LE(std::abs(after[i] - before[i]), 1e-12);
+            }
+        }
+    }
 }
 
 // The claim that makes row screening sound, stated as directly as it can be tested:
@@ -244,6 +400,7 @@ BOOST_AUTO_TEST_CASE(DecreaseRatesBoundHowFastClearanceCanActuallyFall)
 
     ompl::RNG rng;
     double worstSlack = std::numeric_limits<double>::infinity();
+    double worstPairSlack = std::numeric_limits<double>::infinity();
     for (int sample = 0; sample < 4000; ++sample)
     {
         UR5::Configuration q;
@@ -265,17 +422,24 @@ BOOST_AUTO_TEST_CASE(DecreaseRatesBoundHowFastClearanceCanActuallyFall)
 
         const Barrier::Values before = barrier.values(q);
         const Barrier::Values after = barrier.values(q + u * duration);
-        for (Eigen::Index i = 0; i < Barrier::nSpheres; ++i)
+        for (Eigen::Index i = 0; i < Barrier::nConstraints; ++i)
         {
             const double allowed = rates[i] * duration;
             const double fell = before[i] - after[i];
             BOOST_REQUIRE_LE(fell, allowed + 1e-9);
-            worstSlack = std::min(worstSlack, allowed - fell);
+            if (i < Barrier::nSpheres)
+                worstSlack = std::min(worstSlack, allowed - fell);
+            else if (rates[i] > 0.0)
+                worstPairSlack = std::min(worstPairSlack, allowed - fell);
         }
     }
 
     // Sound, and not so slack as to be useless: something must come close to the bound.
+    // The two families are measured apart because a pair whose bound is *identically*
+    // zero -- the sphere sits on the only axis between the two frames -- would otherwise
+    // report perfect tightness for free and hide a loose bound everywhere else.
     BOOST_CHECK_LT(worstSlack, 0.05);
+    BOOST_CHECK_LT(worstPairSlack, 0.05);
 }
 
 // A screened evaluation must agree with a full one on everything it reports: identical
@@ -303,13 +467,14 @@ BOOST_AUTO_TEST_CASE(ScreenedEvaluationAgreesWithTheFullOneOnWhatItKeeps)
 
         BOOST_REQUIRE_LE((screened.values - full.values).cwiseAbs().maxCoeff(), 1e-12);
         BOOST_REQUIRE_EQUAL(screened.worst, full.worst);
+        BOOST_REQUIRE_EQUAL(screened.worstPair, full.worstPair);
         BOOST_REQUIRE_EQUAL(screened.inBounds, full.inBounds);
-        BOOST_REQUIRE_LE(screened.active, Barrier::nSpheres);
+        BOOST_REQUIRE_LE(screened.active, Barrier::nConstraints);
 
         for (Eigen::Index r = 0; r < screened.active; ++r)
         {
-            const Eigen::Index i = screened.sphere[r];
-            // Kept spheres are exactly those that could bind.
+            const Eigen::Index i = screened.constraint[r];
+            // Kept barriers are exactly those that could bind.
             BOOST_REQUIRE_LE(screened.values[i], threshold[i]);
             BOOST_REQUIRE_LE((screened.rows.row(r) - full.rows.row(i)).cwiseAbs().maxCoeff(), 1e-12);
         }
@@ -317,7 +482,9 @@ BOOST_AUTO_TEST_CASE(ScreenedEvaluationAgreesWithTheFullOneOnWhatItKeeps)
         ++evaluations;
     }
 
-    // And it earns its keep: most spheres are nowhere near binding over one step.
+    // And it earns its keep: of 357 barriers, almost none is anywhere near binding over
+    // one step. The self-collision pairs are the bulk of what does survive -- in open
+    // space the arm is nearer to itself than to anything else.
     BOOST_CHECK_LT(static_cast<double>(kept) / evaluations, 20.0);
 }
 
@@ -368,7 +535,7 @@ BOOST_AUTO_TEST_CASE(NothingCanBindWithinTheCertifiedDuration)
         {
             const double t = duration * step / samples;
             const Barrier::Values along = barrier.values(q + u * t);
-            for (Eigen::Index i = 0; i < Barrier::nSpheres; ++i)
+            for (Eigen::Index i = 0; i < Barrier::nConstraints; ++i)
                 BOOST_REQUIRE_GE(along[i], (1.0 - gamma) * evaluation.values[i] - 1e-9);
         }
     }
@@ -404,7 +571,9 @@ BOOST_AUTO_TEST_CASE(TheCertificateStopsAtTheEdgeOfTheField)
 
     const Barrier::Evaluation evaluation = barrier.evaluate(q);
     BOOST_REQUIRE(evaluation.inBounds);
-    BOOST_REQUIRE_GT(evaluation.values.minCoeff(), 1.0);  // the obstacle is 40 m up
+    // The obstacle is 40 m up. Only the world clearances are enormous: a self-collision
+    // pair measures the arm against itself and has no idea where the obstacle is.
+    BOOST_REQUIRE_GT(evaluation.values.head<Barrier::nSpheres>().minCoeff(), 1.0);
     BOOST_REQUIRE_LE(evaluation.boundary.minCoeff(), 0.1);
 
     UR5::Configuration u = UR5::Configuration::Zero();
@@ -412,7 +581,18 @@ BOOST_AUTO_TEST_CASE(TheCertificateStopsAtTheEdgeOfTheField)
     const double duration = barrier.certifiedDuration(evaluation, u, 1.0);
 
     BOOST_REQUIRE_GT(duration, 0.0);
-    BOOST_REQUIRE(std::isfinite(duration));  // the clearances alone would certify forever
+    BOOST_REQUIRE(std::isfinite(duration));
+
+    // The same arm in a field wide enough that no centre can ever leave it: the
+    // clearances are the same, the self pairs are identical, and the only term that
+    // disappears is the boundary. It certifies strictly longer, which is what shows the
+    // boundary — and not the self-collision rows, which are also in the minimum now —
+    // is what cut the span above.
+    const sdf::GridSDF roomy(sphereField(Eigen::Vector3d(0.0, 0.0, 40.0), 0.1),
+                             UR5::reachableBounds(), 4 * voxel);
+    const Barrier unbounded(robot, roomy, 0.0);
+    BOOST_CHECK_GT(unbounded.certifiedDuration(unbounded.evaluate(q), u, 1.0), duration);
+
     for (int step = 0; step <= 20; ++step)
     {
         bool inBounds = false;

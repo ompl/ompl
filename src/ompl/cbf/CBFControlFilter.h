@@ -97,11 +97,13 @@ namespace ompl::cbf
         /// Optional per-call detail, for diagnostics and benchmarking.
         struct Diagnostics
         {
-            double worstValue{0.0};            ///< min_i h_i(q)
+            double worstValue{0.0};            ///< min_i h_i(q) over the world spheres
             std::size_t worstSphere{0};        ///< which sphere that was
+            double worstSelfValue{0.0};        ///< min_p h_ab(q) over the self-collision pairs
+            std::size_t worstSelfPair{0};      ///< which pair that was
             bool inBounds{true};               ///< were all centers inside the SDF?
             std::ptrdiff_t solverIterations{0};  ///< qpmad active-set iterations
-            int activeRows{ClearanceBarrier::nSpheres};  ///< rows that survived screening
+            int activeRows{ClearanceBarrier::nConstraints};  ///< rows that survived screening
             /// How long the returned control stays certified; see `ControlFilter`'s
             /// five-argument `filter()` and `ClearanceBarrier::certifiedDuration()`.
             double certifiedDuration{0.0};

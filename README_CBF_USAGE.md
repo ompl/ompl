@@ -113,6 +113,9 @@ What you give up, all of which becomes yours to handle:
 - **Anything outside the barrier's model.** The checker was the last line of defence
   against errors in the sphere approximation, the SDF, or the step linearisation.
   `ClearanceBarrier`'s margin is now the only thing covering them.
+- **Self-collision *used* to be here.** It no longer is: the barrier carries a row per
+  sphere pair in `UR5::selfPairs()` and the arm is constrained against itself in the
+  same QP. See below for what that does and does not guarantee.
 - **Start-state validation.** `Planner::checkValidity()` will accept a start state in
   collision. Check it yourself.
 - **`Blocked` truncation.** A blocked step holds a *valid* state, so
@@ -152,6 +155,211 @@ with 3.3 mm.** 1 cm is the default.
 > buffer is **voxel-independent** — the same 0.5 cm/1 cm boundary appears at 2, 3 and
 > 4 cm grids. It is driven by the step size, not the grid. The default is the measured
 > 1 cm; the doc comment still needs rewriting and the scaling law establishing.
+
+## The arm against itself
+
+A workspace field cannot see the arm folding through itself, so self-collision is a
+second family of rows on the *same* barrier — a pair is a sphere whose obstacle is
+another sphere:
+
+```
+h_ab(q) = |p_a(q) - p_b(q)| - r_a - r_b - margin_ab - selfMargin
+row     = n^T (J_a - J_b),   n = (p_a - p_b) / |p_a - p_b|
+```
+
+`margin_ab` is per pair and lives in `UR5::SelfPair`; `selfMargin` is a global offset on
+top of it, and defaults to zero. The per-pair term is what makes this sound against real
+geometry rather than against the sphere model alone — see **What it guarantees** below.
+
+Everything downstream is indifferent to which kind a row is: one flat index over
+`nConstraints = nSpheres + nSelfPairs`, one screening pass, one certificate. The QP
+grew by a capacity constant and nothing else. `RRTConnect` is untouched.
+
+**Only 303 of the 780 pairs get a row**, and pruning them is most of the work.
+`scripts/generate_ur5_self_pairs.py` keeps a pair only if its clearance *crosses* a
+40 mm band **around that pair's own margin** somewhere in configuration space, dropping the
+rest for two opposite reasons:
+
+- **Never separates** (`max h < band`). The geometry holds these in permanent
+  near-contact — `wrist_1` sphere 16 against `wrist_3` sphere 22 is two joints apart and
+  never clearer than 10.3 mm — so the row is either infeasible everywhere or binding
+  everywhere, and no planner can act on it. This is what an SRDF allowed-collision matrix
+  would say, measured rather than assumed. At 50 mm **none of the 33 dropped pairs
+  straddles zero**: each either always overlaps, so no barrier could have helped, or never
+  overlaps at all. Past ~80 mm that stops being true (spheres 0 and 2 run from −23.2 mm to
+  77.0 mm) and the script refuses to emit. The band had to come down from 50 mm to 40 mm
+  once the margins arrived: `forearm` sphere 14 against `wrist_2` sphere 21 needs a 44.7 mm
+  margin and is never more than 90.0 mm clear, so at 50 mm it was dropped as
+  never-separating while still able to breach its own margin — the script caught it and
+  refused, which is what that check is for.
+- **Never approaches** (`min h > band`). Not merely wasted work: `certifiedDuration()`
+  minimises over *all* rows, so a vacuous row shortens the certified step exactly as a
+  dangerous one would.
+
+Two exact rules run first: spheres on the same frame are rigid (205 pairs, and it must key
+on `frame`, not `Sphere::link` — 18 spheres share frame 6 under a dozen link names), and
+some cross-frame pairs are still constant because a sphere sits on the axis between them.
+Spheres 0 and 6 are both centred on the shoulder axis, 162.5 mm apart at every
+configuration against a 160 mm radius sum — a permanent `h` of 2.5 mm that would have made
+the QP infeasible everywhere.
+
+**The rows are sparse, exactly.** With sphere `a` on frame `f` and `b` on frame `g ≥ f`,
+only joints `f..g-1` can change the separation: a joint below `f` rotates both spheres as
+one rigid body (`n^T(axis × (p_a - p_b)) = 0`, identically), and a joint at or above `g`
+moves neither. So the Lipschitz bound is `leverArmBounds()` of the *later* sphere restricted
+to that window — **not** the sum of the two spheres' bounds, which is loose by ~2× and
+non-zero on columns where the true derivative vanishes.
+
+### What it costs, and what it buys
+
+`certifiedDuration()` is now permanently capped. No kept pair is ever clearer than
+**58.2 mm** (`forearm` sphere 15 against `wrist_2` sphere 21) at *any* configuration, so
+one filter call can no longer certify a whole extension however empty the workspace is.
+That property is gone; what remains is a constant factor. On MotionBenchMaker, 105
+problems, 5 s, margin 5 mm:
+
+| gamma | rows | solved | rad/call | coarse | self-colliding audited states |
+|-------|------|--------|----------|--------|-------------------------------|
+| 0.4   | off  | 37/101 | 0.0519   | 47%    | **3117** |
+| 0.4   | on   | 37/101 | 0.0282   | 12%    | **0** |
+| 1.0   | off  | 36/101 | 0.0804   | 48%    | **4132** |
+| 1.0   | on   | 33/101 | 0.0318   | 12%    | **0** |
+
+So: the certified step shortens by 1.8–2.5×, the solve rate is within noise, and the
+self-collisions go away entirely. Pass a negative `selfMargin` to
+`demo_UR5MBMBenchmark` (argument 12) to reproduce the "off" rows.
+
+### What it guarantees
+
+**That the arm is clear of itself as PyBullet's URDF check sees it** — not merely that the
+sphere model does not self-intersect. That is a change: it used to be the weaker claim, and
+`defaultSelfMargin` was zero because the strong one looked unaffordable.
+
+It looked unaffordable because it was costed as a *single* margin. Covering the 30.5 mm of
+sphere under-coverage on both bodies needs over 60 mm, which exceeds the 58.2 mm the
+tightest pair is ever clear by, so one global margin is infeasible everywhere. But the
+deficit is not uniform. It sits almost entirely in two links — `forearm_link` and
+`upper_arm_link` — and a margin fitted **per pair** is affordable where a global one is not.
+The largest calibrated margin is 143.1 mm; most pairs are zero.
+
+`scripts/calibrate_self_margins.py` measures it rather than deriving it. For each link pair
+it samples configurations and records
+
+```
+margin = sup { sphere-pair clearance : the two links' collision bodies overlap in PyBullet }
+```
+
+Any margin at least this large makes `h_ab >= margin` imply "PyBullet says clear", over the
+sampled set. It is a sampled bound, not a proof — the same standing as the band above.
+
+Two refinements are load-bearing:
+
+- **One row per link pair carries the margin**, the one needing the smallest. The barrier is
+  a conjunction, so a collision only needs *one* row to fire; margining every row of a link
+  pair also fires rows whose spheres are nowhere near the contact, and each of those refuses
+  configurations of its own. Smallest-margin gives 9.6% refusals against 13.9% for a shared
+  per-link margin. Choosing by *widest separating band* instead is much worse — it selects
+  distant spheres needing 270 mm.
+- **Per sphere pair, not per link pair.** `base_link` against `upper_arm_link` is
+  inexpressible at link granularity: its minimum is spheres 0 and 6, both centred on the
+  shoulder axis, a constant 2.5 mm at every configuration, so the same number describes the
+  colliding states and the clear ones. It was 37% of all reports and unfixable until the
+  calibration dropped a level.
+
+Held out on 3000 configurations the margins were not fitted to: **0.10% leaks** (safe to the
+spheres, colliding to PyBullet — the only unsound direction) and **9.6% refusals** (clear to
+PyBullet, rejected by the spheres — the price).
+
+#### What "PyBullet's check" actually is
+
+**Convex hulls of the collision meshes, not the meshes.** Loading a URDF gives each link the
+convex hull of its collision geometry, and for this arm that is a materially larger body:
+`forearm.stl` is 0.64 of its own hull by volume, `upperarm.stl` 0.68 (the wrists are ~0.93,
+and the Robotiq collision STLs are the `_coarse` ones, already convex).
+
+This was measured, not assumed. Sample points at least 4 mm inside `forearm.stl`'s hull but
+outside the mesh, put a 1 mm sphere at each, and ask PyBullet the distance to
+`forearm_link`: **200 of 200 come back penetrating, to −27.9 mm**. Independently, 85 of
+MotionBenchMaker's own 1378 endpoints — which its mesh checker calls collision-free — are
+flagged by this check, up to −22 mm, every one involving `forearm_link`; the UR5 SRDF does
+not disable those pairs, so it is not an allowed-collision-matrix gap.
+
+So the barrier is now calibrated against a body strictly larger than the real robot. That is
+a deliberate choice of reference, and the reason the arm will refuse some poses it could
+physically reach. Closing the gap properly means convex-decomposing the two offending
+meshes (VHACD), not changing the margins.
+
+Two link pairs sit outside the scheme and are excluded rather than margined: `ee_link` is a
+1 cm box with no spheres and no hardware behind it (a MoveIt frame), and `base_link` against
+`upper_arm_link` needed the per-sphere-pair treatment described above.
+
+#### Three independent audits, none sharing an assumption with the barrier
+
+- `demos/UR5SelfCollisionAudit.h` walks **all** pairs from the sphere table, so it can
+  contradict the pair search. Do not rewrite it in terms of `selfPairs()`.
+- `ur5_experiments/scripts/audit_self_collision.py` replays a path against the URDF bodies
+  in PyBullet, with its own hand-built ignore set. `--env` is optional: self-collision is a
+  function of the configuration alone, which is what makes MotionBenchMaker auditable here
+  without rebuilding its scenes.
+- `scripts/calibrate_self_margins.py --verify` scores the margins on held-out
+  configurations, which is the only one of the three that can price the refusals.
+
+#### The result
+
+Replaying every planned motion at 0.02 rad, **self rows at zero margin → calibrated**:
+
+| bench | row | before | after |
+|-------|-----|--------|-------|
+| MotionBenchMaker | `cbf-rrtc` | 13916 / 72814, −33.2 mm | **0 / 54815**, +0.11 mm |
+| MotionBenchMaker | `rrtconnect` | 16071 / 118076, −22.2 mm | **0 / 82433**, +2.93 mm |
+| empty | both | 169 / 161 | **0 / 0** |
+| corridor | both | 411 / 778 | **0 / 0** |
+| pillars | both | 0 / 0 | **0 / 0** |
+| shelf | both | 115 / 167 | **0 / 0** |
+| clutter | both | 222 / 166 | **0 / 0** |
+| wall_gap | both | 354 / 1568 | no path — see below |
+
+Environment collisions are 0 everywhere in both settings, so the workspace side was never
+the problem. Note the "before" column is the *sphere-model-clean* build: every one of those
+13916 states satisfied every self row at zero margin.
+
+#### What it costs
+
+- **The certificate ceiling drops** 58.2 → **41.9 mm** above margin, and steps that run past
+  `stepSize` on a certificate fall from 18% to 11% of filter calls (`rad/call` 0.0365 →
+  0.0343).
+- **23 of 105 MotionBenchMaker problems** now have a start or goal inside the margin and are
+  excluded rather than scored.
+- **`wall_gap` becomes unsolvable**, 2/2 → 0/2 — and for *both* planners, since they share
+  `isSafe()`. Reaching through the gap needs a folded pose the margins reject. This is the
+  clearest single price of aligning to the hulls.
+- Only ~28% of uniformly random configurations pass, against 37.5% that the hulls call clear.
+
+> Audit whole motions, not whole files. `demo_UR5PyBulletScene` writes one path per goal
+> into a single file, each re-prefixed with the start configuration, so interpolating
+> straight through the file invents a return-to-home from inside a shelf. Before
+> `split_runs()` accounted for that, the old version of this table read 2012 → 1107
+> self-colliding states and claimed hundreds of environment collisions that were never
+> planned. `demo_UR5MBMBenchmark` writes an explicit `# motion` marker for the same reason,
+> and the replay viewer snaps across those seams instead of animating them.
+
+#### Goal selection has to know about these rows
+
+Anything deciding whether a configuration is acceptable must evaluate the *same* barrier the
+planner does. `ur5_experiments/scripts/export_scene.py` scored goals on the workspace rows
+alone and so certified goals at `h = +0.0768` that the planner saw at `+0.0129`; both
+planners then spent their whole time budget failing to reach them, which reads as a planner
+regression and is not one. It now reads `UR5::selfPairs()` out of the header
+(`ur5_nav/self_pairs.py`, with a sphere-index alignment check) instead of re-deriving it.
+
+The second half of that fix matters as much: **the two kinds of row are held to different
+buffers.** `buffer` covers the SDF's interpolation error, a property of the grid; between
+two spheres there is no grid, so the self rows reserve only
+`ClearanceBarrier::defaultSelfBuffer` — **1 mm against 15 mm**. Judging both by the larger
+one rejected every goal in `pillars` and `clutter` over about 2 mm of clearance the planner
+never asked for. With each row judged by its own threshold, goal usability returns to
+exactly what it was before self-collision rows existed (19 of 22 across the six scenes), so
+the calibrated margins cost **no goals at all**.
 
 ## Measured
 
@@ -260,8 +468,12 @@ rollout earns its cost. `demos/UR5MBMBenchmark.cpp` runs the same comparison ove
 
 ```
 ./scripts/mbm_to_scenes.py /path/to/vamp/resources/ur5/problems.json scenes.txt
-./build/demos/demo_UR5MBMBenchmark scenes.txt 15 2.0 0.02 0.05 2.0 0.002 0.006 0.0006
+./build/demos/demo_UR5MBMBenchmark scenes.txt 15 2.0 0.02 0.05 2.0 0.002 0.006 -1 0.4 -1 0 out/mbm
 ```
+
+Argument 9 is the baseline's edge-checking resolution and **−1 now means "match the rollout
+step", not "leave OMPL's default"** — see below. Argument 13 dumps both rows' audited
+motions (`out/mbm.rrtc`, `out/mbm.cbf`) for the PyBullet check.
 
 Every obstacle there is a box or a cylinder, both of which have an exact closed-form
 signed distance, so the field is exact up to the grid with no mesh and no FCL.
@@ -287,20 +499,74 @@ gains least from it (7%) precisely because it is cluttered enough that spheres r
 close to binding, which is the screen reporting the truth rather than failing. That is the edges-not-wasted claim, measured on a problem set that was not
 chosen to suit it.
 
-### Two things that flip this result
+### The comparison is a comparison of resolutions unless you tie them
 
-Both were wrong in earlier runs of this comparison, in the flattering direction, so they
-are worth stating:
+This is the single easiest way to get a wrong answer here, and it has bitten this benchmark
+in *both* directions.
 
-- **OMPL's default `longestValidSegmentFraction` is 0.01, which on this space is 0.31 rad
-  between collision checks** — an order of magnitude coarser than the audit. At the
-  default the baseline runs in 1.12 ms and looks 6× faster, while leaving 131 audited
-  states in collision, the worst by 34 mm. It is not safe at that resolution; it just is
-  not being asked. Tighten it (0.0006 here) until the baseline is audit-clean before
-  comparing anything.
+The rollout advances `velocityLimits().maxCoeff() * stepSize` = 0.5 × 0.05 = **0.025 rad**
+per filter call. OMPL states the baseline's resolution as a fraction of the state space's
+maximum extent, and its default 0.01 is **0.154 rad** on this space — six times coarser. A
+baseline that looks at the world six times less often is faster for a reason that has
+nothing to do with either method.
+
+So both demos now **derive the baseline's spacing from the rollout step** unless explicitly
+overridden (`UR5MBMBenchmark` argument 9, `UR5PyBulletScene` argument 6; negative means
+"match"). The header line reports what was used:
+
+```
+baseline segment: 0.001624 of extent = 0.0250 rad, rollout step 0.0250 rad (matched to the rollout)
+```
+
+How much this matters, on the six PyBullet scenes: at OMPL's default the baseline appeared
+**4–9× faster** than the rollout; matched, the rollout wins three of the five solvable
+scenes. In the other direction, earlier MotionBenchMaker runs here passed `0.0006`
+(0.0092 rad), which made the baseline check *2.7× finer* than the rollout stepped and cost
+it accordingly — 3307 checks and 11.21 ms, against 1305 and 5.51 ms when matched.
+
+Two related traps:
+
 - **Audit both rows at the same resolution.** `PathGeometric::interpolate()` with no
   argument uses that same fraction, which sampled the rollout 7× more coarsely than the
   baseline and reported a spurious zero. Pass an explicit state count.
+- **The audit is finer than either row now samples** (0.02 rad against 0.025). That is
+  deliberate — it asks whether the unsampled interiors were safe — but it means neither row
+  is guaranteed audit-clean, and the current run leaves 2 states of 52272 short on the
+  baseline and 15 of 54810 on the rollout. Those are inside the margin, not in contact: the
+  external PyBullet check reports **0** actual self-collisions for both.
+
+### Where it stands, matched
+
+105 problems, 23 skipped as endpoint-infeasible, 82 scored, 2 s limit:
+
+| | rrtconnect | cbf-rrtc |
+| --- | --- | --- |
+| solved | 76/82 | 76/82 |
+| median ms | 5.51 | **3.10** (1.8×) |
+| median evals | 1305 collision checks | **380** filter calls |
+| median vertices | 17 | **9** |
+| audited states | 52272 | 54810 |
+| PyBullet self-collisions | **0** (+2.93 mm) | **0** (+0.11 mm) |
+
+`evals` are not the same unit on the two rows — collision checks against filter calls, and a
+filter call integrates one `dt` step where a check samples a whole edge. The comparable
+columns are milliseconds and vertices.
+
+On the six PyBullet scenes, medians over 5 trials at 10 s:
+
+| scene | solved (both rows) | rrtconnect | cbf-rrtc | |
+| --- | --- | --- | --- | --- |
+| corridor | 3/3 | 19.03 ms | **7.94 ms** | **2.40×** |
+| shelf | 4/4 | 5.90 ms | **5.07 ms** | 1.17× |
+| pillars | 4/4 | 0.83 ms | **0.72 ms** | 1.15× |
+| empty | 3/4 | 0.82 ms | 0.84 ms | 0.98× |
+| clutter | 2/2 | **1.70 ms** | 6.36 ms | 0.27× |
+| wall_gap | 0/2 | — | — | — |
+
+The rollout wins the cluttered scenes and loses `clutter`. Note the audited-state counts in
+these tables are **path length** (arc length ÷ 0.02 rad), not planner effort: on MBM the
+rollout's path is 34% shorter than RRTConnect's unsimplified zigzag, while on the small
+scenes, where a straight edge is already near-optimal, deflecting costs length.
 
 ### The margin does not fit this benchmark
 
@@ -377,6 +643,12 @@ The planner-facing layer *is* modular: `FilteredStatePropagator` and
   free.
 - **The margin is blunt.** A tighter per-sphere bound follows from the Jacobian column
   norms, but wants validating against brute-force rollouts first.
+- **Self-collision is sound at the sphere level and only better at the mesh level.**
+  718 mesh-colliding states remain across the six PyBullet scenes, up to 26 mm deep, all
+  of them clear in the sphere model. A margin cannot fix it — 60 mm is needed and 58.2 mm
+  exists. What would: re-spherising `forearm_link` and the Robotiq knuckles, which are the
+  two worst-covered links and account for essentially all of the residual. That also buys
+  back certificate length, since a tighter model raises the 58.2 mm ceiling.
 - **Benchmarks are indicative, not rigorous.** OMPL only honours a seed set before the
   first random draw, so runs **cannot be paired by seed**; these are medians over
   independent draws with no variance reported.
@@ -399,7 +671,68 @@ python scripts/generate_ur5_spheres.py --emit
 
 # How far mesh vertices poke outside their link's spheres (the 30.5 mm above)
 python scripts/ur5_sphere_coverage.py
+
+# Regenerate the self-collision pair table. --band is the certificate ceiling; with
+# --margins each pair bands around its own margin instead of around zero. Refuses to
+# emit if a droppable pair could still breach its margin.
+python scripts/generate_ur5_self_pairs.py --margins margins.txt --band 0.04 --emit
+
+# Re-fit the per-pair self margins against PyBullet. --verify scores them on held-out
+# configurations (leaks must stay ~0); --endpoints prices them on MotionBenchMaker.
+python scripts/calibrate_self_margins.py --samples 3000 --verify 3000 \
+    --endpoints scenes.txt --emit margins.txt
 ```
+
+### Reproducing the whole thing
+
+```sh
+# Outputs go outside the repo on purpose: paths, grids and scene dumps are large,
+# regenerable, and turn up in `git status` right when you are trying to commit.
+export WORK=/tmp/ur5-check && mkdir -p $WORK
+cd build && cmake .. && make -j8 demo_UR5MBMBenchmark demo_UR5PyBulletScene && cd ..
+
+# --- MotionBenchMaker ---------------------------------------------------------
+python3 scripts/mbm_to_scenes.py /home/mani/vamp/resources/ur5/problems.json $WORK/scenes.txt
+./build/demos/demo_UR5MBMBenchmark $WORK/scenes.txt 15 2.0 0.02 0.05 2.0 0.002 0.006 -1 0.4 -1 0 $WORK/mbm
+(cd ur5_experiments && python3 scripts/audit_self_collision.py --path $WORK/mbm.cbf)
+(cd ur5_experiments && python3 scripts/audit_self_collision.py --path $WORK/mbm.rrtc)
+
+# --- the six PyBullet scenes --------------------------------------------------
+# export_scene.py must run first and from inside ur5_experiments/: the .problem file
+# names its .grid by path, and the grids are gitignored.
+(cd ur5_experiments && python3 scripts/export_scene.py --env all --out out/)
+
+for s in empty corridor pillars shelf clutter wall_gap; do
+  ./build/demos/demo_UR5PyBulletScene ur5_experiments/out/$s.problem 10 $WORK/$s.path 5
+done
+
+cd ur5_experiments
+for s in empty corridor pillars shelf clutter wall_gap; do
+  python3 scripts/audit_self_collision.py --env $s --path $WORK/$s.path
+  python3 scripts/audit_self_collision.py --env $s --path $WORK/$s.path.rrtc
+done
+
+# --- watch one ----------------------------------------------------------------
+python3 scripts/replay_path.py --env shelf --path $WORK/shelf.path --gui --hold --speed 8 --fps 240
+```
+
+The A/B knobs are the same commands with one argument changed:
+
+```sh
+# self rows off (MBM argument 12, scene demo argument 8)
+./build/demos/demo_UR5MBMBenchmark $WORK/scenes.txt 15 2.0 0.02 0.05 2.0 0.002 0.006 -1 0.4 -1 -100 $WORK/off
+./build/demos/demo_UR5PyBulletScene ur5_experiments/out/shelf.problem 10 $WORK/off.path 5 -1 -1 -1 -100
+
+# baseline back at OMPL's coarse default instead of matched (MBM argument 9)
+./build/demos/demo_UR5MBMBenchmark $WORK/scenes.txt 15 2.0 0.02 0.05 2.0 0.002 0.006 0.01 0.4 -1 0 $WORK/coarse
+```
+
+Three things that will bite if skipped: `--env` must match the path's scene (the export
+uses seed 0, which the auditor and viewer both default to); `wall_gap` currently solves
+0/2, so its path file is near-empty and is not a setup error; and a path file replayed
+from an older build shows the *old* behaviour — `out/shelf.path` from before the
+calibration has 528 self-colliding states, which is what you will see in red in the GUI if
+you replay a stale file.
 
 Every `demo_UR5CBFPlanning` argument is positional and optional:
 

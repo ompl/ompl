@@ -50,6 +50,8 @@
 #include <ompl/geometric/PathGeometric.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/robots/UR5.h>
+
+#include "UR5SelfCollisionAudit.h"
 #include <ompl/sdf/GridSDF.h>
 #include <ompl/util/Time.h>
 
@@ -179,40 +181,7 @@ namespace
         return 0;
     }
 
-    /// Worst sphere-sphere overlap between links that are not neighbours.
-    ///
-    /// `ClearanceBarrier` is robot-versus-environment: nothing in `h` refers to
-    /// one part of the arm meeting another. Dropping the state validity checker
-    /// therefore drops the only thing that was checking self-collision, and the
-    /// filter has no reason not to fold the arm through itself on the way to a
-    /// goal -- which, measured against the real meshes in PyBullet, it does.
-    ///
-    /// Reported here so the gap is visible without leaving OMPL. Returns the most
-    /// negative `|p_i - p_j| - (r_i + r_j)`; >= 0 means clear.
-    ///
-    /// Spheres on the same frame, or on frames one joint apart, are skipped: those
-    /// are rigidly attached or share an axis, so they touch by construction. This
-    /// is the same rule the PyBullet side applies to link pairs.
-    double worstSelfOverlap(const UR5 &robot, const UR5::Configuration &q)
-    {
-        const UR5::SphereCenters centers = robot.sphereCenters(q);
-        const auto &spheres = UR5::spheres();
-
-        double worst = std::numeric_limits<double>::infinity();
-        for (std::size_t i = 0; i < UR5::nSpheres; ++i)
-            for (std::size_t j = i + 1; j < UR5::nSpheres; ++j)
-            {
-                const std::size_t a = spheres[i].frame;
-                const std::size_t b = spheres[j].frame;
-                const std::size_t gap = a > b ? a - b : b - a;
-                if (gap < 2)
-                    continue;
-                const double distance = (centers.col(i) - centers.col(j)).norm() -
-                                        (spheres[i].radius + spheres[j].radius);
-                worst = std::min(worst, distance);
-            }
-        return worst;
-    }
+    using ompl::demo::worstSelfOverlap;
 
     struct Result
     {

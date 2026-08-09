@@ -8,7 +8,9 @@
 namespace
 {
     constexpr int nJoints = ompl::cbf::ClearanceBarrier::nJoints;
-    constexpr int nSpheres = ompl::cbf::ClearanceBarrier::nSpheres;
+    // World spheres plus self-collision pairs. This is a *capacity*: screening decides
+    // how many rows a given solve actually carries, and in open space it is a handful.
+    constexpr int nConstraints = ompl::cbf::ClearanceBarrier::nConstraints;
 
     // Below this, a returned control counts as "the nominal, untouched". qpmad
     // returns the nominal bit-for-bit when nothing activates, so this only needs
@@ -19,16 +21,16 @@ namespace
 /// All sizes are fixed at compile time, so a solve does no heap allocation.
 struct ompl::cbf::CBFControlFilter::Solver
 {
-    using Backend = qpmad::SolverTemplate<double, nJoints, 1, nSpheres>;
+    using Backend = qpmad::SolverTemplate<double, nJoints, 1, nConstraints>;
 
     Backend backend;
     // qpmad factorizes the Hessian in place, so it gets a scratch copy each solve.
     Eigen::Matrix<double, nJoints, nJoints> hessian{Eigen::Matrix<double, nJoints, nJoints>::Zero()};
     Eigen::Matrix<double, nJoints, 1> objective;
-    Eigen::Matrix<double, nSpheres, 1> rowLower;
+    Eigen::Matrix<double, nConstraints, 1> rowLower;
     // One-sided rows: no upper limit on how fast clearance may grow.
-    Eigen::Matrix<double, nSpheres, 1> rowUpper{
-        Eigen::Matrix<double, nSpheres, 1>::Constant(std::numeric_limits<double>::infinity())};
+    Eigen::Matrix<double, nConstraints, 1> rowUpper{
+        Eigen::Matrix<double, nConstraints, 1>::Constant(std::numeric_limits<double>::infinity())};
     ClearanceBarrier::Evaluation evaluation;
     /// How fast each sphere's barrier can fall per unit time; see
     /// ClearanceBarrier::decreaseRates(). Constant, so computed once.
@@ -125,6 +127,9 @@ ompl::cbf::ControlFilter::Status ompl::cbf::CBFControlFilter::filter(const Confi
 
     diagnostics.worstValue = evaluation.values[static_cast<Eigen::Index>(evaluation.worst)];
     diagnostics.worstSphere = evaluation.worst;
+    diagnostics.worstSelfValue =
+        evaluation.values[ClearanceBarrier::nSpheres + static_cast<Eigen::Index>(evaluation.worstPair)];
+    diagnostics.worstSelfPair = evaluation.worstPair;
     diagnostics.inBounds = evaluation.inBounds;
     diagnostics.solverIterations = 0;
     diagnostics.activeRows = evaluation.active;
@@ -148,12 +153,13 @@ ompl::cbf::ControlFilter::Status ompl::cbf::CBFControlFilter::filter(const Confi
     solver.hessian.diagonal() = parameters_.weights;
     solver.objective = -parameters_.weights.cwiseProduct(nominal);
 
-    // Discrete-time CBF: (dh_i/dq) u >= -gamma h_i / dt. Row r constrains sphere
-    // evaluation.sphere[r], which is r itself unless screening reordered things.
+    // Discrete-time CBF: (dh_i/dq) u >= -gamma h_i / dt. Row r constrains barrier
+    // evaluation.constraint[r], which is r itself unless screening reordered things --
+    // and which may be a world sphere or a self-collision pair, indifferently.
     const Eigen::Index active = evaluation.active;
     for (Eigen::Index r = 0; r < active; ++r)
         solver.rowLower[r] =
-            evaluation.values[evaluation.sphere[r]] * (-parameters_.gamma / duration);
+            evaluation.values[evaluation.constraint[r]] * (-parameters_.gamma / duration);
 
     try
     {
