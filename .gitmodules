@@ -9,3 +9,5 @@
 [submodule "ur5_experiments"]
 	path = ur5_experiments
 	url = https://github.com/mamani828/ur5_experiments
+	branch = main
+	update = checkout
