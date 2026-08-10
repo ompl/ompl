@@ -225,18 +225,25 @@ namespace ompl::cbf
             // query, and because every pair value is a subtraction between two of them.
             // Forward kinematics is not worth repeating.
             Robot::SphereCenters centers;
+            Eigen::Matrix<double, nSpheres, 1> distances;
 
-            double smallest = std::numeric_limits<double>::infinity();
             for (std::size_t i = 0; i < Robot::nSpheres; ++i)
             {
                 const Eigen::Index index = static_cast<Eigen::Index>(i);
                 const Eigen::Vector3d center = Robot::sphereCenter(kin, i);
                 centers.col(index) = center;
                 out.inBounds = out.inBounds && field_.inBounds(center);
-
-                const double h = field_.distance(center) - Robot::spheres()[i].radius - margin_;
-                out.values[index] = h;
                 out.boundary[index] = boundaryClearance(center);
+            }
+
+            field_.distanceBatch(centers, distances);
+
+            double smallest = std::numeric_limits<double>::infinity();
+            for (std::size_t i = 0; i < Robot::nSpheres; ++i)
+            {
+                const Eigen::Index index = static_cast<Eigen::Index>(i);
+                const double h = distances[index] - Robot::spheres()[i].radius - margin_;
+                out.values[index] = h;
                 if (h < smallest)
                 {
                     smallest = h;
@@ -263,6 +270,10 @@ namespace ompl::cbf
 
             // One screening pass over both families: they are the same question asked of
             // different geometry, and the flat index keeps the QP's row order stable.
+            Eigen::Matrix<Eigen::Index, nSpheres, 1> activeWorld;
+            Eigen::Matrix<Eigen::Index, nSpheres, 1> activeWorldRows;
+            Eigen::Index activeWorldCount = 0;
+
             for (Eigen::Index i = 0; i < nConstraints; ++i)
             {
                 if (out.values[i] > threshold[i])
@@ -270,13 +281,35 @@ namespace ompl::cbf
 
                 const Eigen::Index row = out.active++;
                 out.constraint[row] = static_cast<int>(i);
-                out.rows.row(row) =
-                    i < nSpheres ?
-                        Robot::barrierGradient(kin, static_cast<std::size_t>(i),
-                                               field_.gradient(centers.col(i)))
-                            .transpose() :
+                if (i < nSpheres)
+                {
+                    activeWorld[activeWorldCount] = i;
+                    activeWorldRows[activeWorldCount] = row;
+                    ++activeWorldCount;
+                }
+                else
+                    out.rows.row(row) =
                         Robot::selfPairGradient(kin, centers, static_cast<std::size_t>(i - nSpheres))
                             .transpose();
+            }
+
+            if (activeWorldCount > 0)
+            {
+                Eigen::Matrix3Xd activeCenters(3, activeWorldCount);
+                for (Eigen::Index k = 0; k < activeWorldCount; ++k)
+                    activeCenters.col(k) = centers.col(activeWorld[k]);
+
+                Eigen::VectorXd activeDistances(activeWorldCount);
+                Eigen::Matrix3Xd activeGradients(3, activeWorldCount);
+                field_.valueGradientBatch(activeCenters, activeDistances, activeGradients);
+                (void)activeDistances;
+
+                for (Eigen::Index k = 0; k < activeWorldCount; ++k)
+                {
+                    const std::size_t sphere = static_cast<std::size_t>(activeWorld[k]);
+                    out.rows.row(activeWorldRows[k]) =
+                        Robot::barrierGradient(kin, sphere, activeGradients.col(k)).transpose();
+                }
             }
         }
 
@@ -436,8 +469,9 @@ namespace ompl::cbf
             out.active = nConstraints;
 
             Robot::SphereCenters centers;
+            Eigen::Matrix<double, nSpheres, 1> distances;
+            Eigen::Matrix<double, 3, nSpheres> gradients;
 
-            double smallest = std::numeric_limits<double>::infinity();
             for (std::size_t i = 0; i < Robot::nSpheres; ++i)
             {
                 const Eigen::Vector3d center = Robot::sphereCenter(kin, i);
@@ -445,13 +479,19 @@ namespace ompl::cbf
                 centers.col(row) = center;
                 out.inBounds = out.inBounds && field_.inBounds(center);
                 out.constraint[row] = static_cast<int>(i);
+                out.boundary[row] = boundaryClearance(center);
+            }
 
-                const sdf::ValueGradient vg = field_.valueAndGradient(center);
-                const double h = vg.value - Robot::spheres()[i].radius - margin_;
+            field_.valueGradientBatch(centers, distances, gradients);
+
+            double smallest = std::numeric_limits<double>::infinity();
+            for (std::size_t i = 0; i < Robot::nSpheres; ++i)
+            {
+                const Eigen::Index row = static_cast<Eigen::Index>(i);
+                const double h = distances[row] - Robot::spheres()[i].radius - margin_;
 
                 out.values[row] = h;
-                out.boundary[row] = boundaryClearance(center);
-                out.rows.row(row) = Robot::barrierGradient(kin, i, vg.gradient).transpose();
+                out.rows.row(row) = Robot::barrierGradient(kin, i, gradients.col(row)).transpose();
 
                 if (h < smallest)
                 {
@@ -496,15 +536,20 @@ namespace ompl::cbf
                 *inBounds = true;
 
             Robot::SphereCenters centers;
+            Eigen::Matrix<double, nSpheres, 1> distances;
             for (std::size_t i = 0; i < Robot::nSpheres; ++i)
             {
                 const Eigen::Vector3d center = Robot::sphereCenter(kin, i);
                 centers.col(static_cast<Eigen::Index>(i)) = center;
                 if (inBounds != nullptr)
                     *inBounds = *inBounds && field_.inBounds(center);
-                out[static_cast<Eigen::Index>(i)] =
-                    field_.distance(center) - Robot::spheres()[i].radius - margin_;
             }
+
+            field_.distanceBatch(centers, distances);
+
+            for (std::size_t i = 0; i < Robot::nSpheres; ++i)
+                out[static_cast<Eigen::Index>(i)] =
+                    distances[static_cast<Eigen::Index>(i)] - Robot::spheres()[i].radius - margin_;
 
             for (std::size_t p = 0; p < Robot::nSelfPairs; ++p)
                 out[nSpheres + static_cast<Eigen::Index>(p)] =

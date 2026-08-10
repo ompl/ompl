@@ -84,6 +84,37 @@ namespace ompl::sdf
             return interpolate(p);
         }
 
+        /// Batched distance query for column-wise points (3 x N).
+        void distanceBatch(const Eigen::Ref<const Eigen::Matrix3Xd> &points,
+                           Eigen::Ref<Eigen::VectorXd> distances) const
+        {
+            const Eigen::Index count = points.cols();
+            if (distances.size() != count)
+                throw std::invalid_argument("ompl::sdf::GridSDF::distanceBatch: distances size mismatch");
+
+            for (Eigen::Index i = 0; i < count; ++i)
+                distances[i] = interpolate(points.col(i)).value;
+        }
+
+        /// Batched value and gradient query for column-wise points (3 x N).
+        void valueGradientBatch(const Eigen::Ref<const Eigen::Matrix3Xd> &points,
+                                Eigen::Ref<Eigen::VectorXd> distances,
+                                Eigen::Ref<Eigen::Matrix3Xd> gradients) const
+        {
+            const Eigen::Index count = points.cols();
+            if (distances.size() != count)
+                throw std::invalid_argument("ompl::sdf::GridSDF::valueGradientBatch: distances size mismatch");
+            if (gradients.cols() != count)
+                throw std::invalid_argument("ompl::sdf::GridSDF::valueGradientBatch: gradients column mismatch");
+
+            for (Eigen::Index i = 0; i < count; ++i)
+            {
+                const ValueGradient vg = interpolate(points.col(i));
+                distances[i] = vg.value;
+                gradients.col(i) = vg.gradient;
+            }
+        }
+
         auto inBounds(const Eigen::Vector3d &p) const -> bool
         {
             return bounds_.contains(p);
