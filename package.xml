@@ -31,6 +31,10 @@
   <exec_depend>libboost-serialization</exec_depend>
   <exec_depend>libflann</exec_depend>
 
+  <build_export_depend>libboost-program-options-dev</build_export_depend>
+  <build_export_depend>libboost-serialization-dev</build_export_depend>
+  <build_export_depend>libboost-system-dev</build_export_depend>
+  
   <export>
     <build_type>cmake</build_type>
   </export>
