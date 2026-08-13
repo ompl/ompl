@@ -446,7 +446,8 @@ ompl::base::PlannerStatus ompl::geometric::FMT::solve(const base::PlannerTermina
                         yNear[*i]->getChildren().push_back(m);
                         const base::Cost incCost = opt_->motionCost(yNear[*i]->getState(), m->getState());
                         m->setCost(opt_->combineCosts(yNear[*i]->getCost(), incCost));
-                        m->setHeuristicCost(opt_->motionCostHeuristic(m->getState(), goalState_));
+                        if (goalState_ != nullptr)
+                            m->setHeuristicCost(opt_->motionCostHeuristic(m->getState(), goalState_));
                         m->setSetType(Motion::SET_OPEN);
 
                         nn_->add(m);
@@ -579,7 +580,8 @@ bool ompl::geometric::FMT::expandTreeFromNode(Motion **z)
                 // Add edge from yMin to x
                 x->setParent(yMin);
                 x->setCost(cMin);
-                x->setHeuristicCost(opt_->motionCostHeuristic(x->getState(), goalState_));
+                if (goalState_ != nullptr)
+                    x->setHeuristicCost(opt_->motionCostHeuristic(x->getState(), goalState_));
                 yMin->getChildren().push_back(x);
 
                 // Add x to Open

@@ -1,0 +1,253 @@
+name: Release Tarball
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build a release tarball for (e.g. 2.0.0)
+        required: true
+        type: string
+
+jobs:
+  build-tarball:
+    name: Build ompl-${{ github.event.release.tag_name || inputs.tag }}.tar.gz
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "name=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out tag with submodules
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.name }}
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Vendor submodule content into the working tree
+        # Strip submodule machinery so the tree looks like a flat checkout.
+        # The tarball will then contain external/{vamp,nanobind} as regular
+        # files, since `git archive` does not recurse submodules.
+        run: |
+          rm -f .gitmodules
+          find external -mindepth 2 -name '.git' -print0 | xargs -0 -r rm -rf
+
+      - name: Vendor and patch VAMP's transitive deps for offline builds
+        # Parse every CPMAddPackage("gh:org/repo#sha") in
+        # external/vamp/cmake/*.cmake and the file(DOWNLOAD ...) in
+        # FetchInitCPM.cmake, vendor each into external/vamp/external/<name>/
+        # or external/vamp/cmake/CPM.cmake, and patch each call site with a
+        # vendor-first conditional. A final defensive grep fails the workflow
+        # if any unguarded fetch pattern remains.
+        run: |
+          python3 - <<'PY'
+          import pathlib, re, subprocess, sys
+
+          CMAKE_DIR = pathlib.Path('external/vamp/cmake')
+          VENDOR_DIR = pathlib.Path('external/vamp/external')
+
+          CPM_GH = re.compile(
+              r'^([ \t]*)CPMAddPackage\("gh:([^/]+)/([^#"]+)#([^"]+)"\)$',
+              re.MULTILINE,
+          )
+          CPM_URL = re.compile(
+              r'(https://github\.com/cpm-cmake/CPM\.cmake/releases/download/[^\s]+CPM\.cmake)'
+          )
+          CPM_HASH = re.compile(r'EXPECTED_HASH\s+SHA256=([a-f0-9]+)')
+
+          cmake_files = sorted(CMAKE_DIR.glob('*.cmake'))
+          if not cmake_files:
+              sys.exit(f'::error::no cmake files found under {CMAKE_DIR}')
+
+          # --- Discover and vendor every CPMAddPackage("gh:...") ---
+          discovered = []
+          for f in cmake_files:
+              for m in CPM_GH.finditer(f.read_text()):
+                  discovered.append((m.group(2), m.group(3), m.group(4), f))
+          if not discovered:
+              sys.exit('::error::no CPMAddPackage("gh:...") calls found in '
+                       f'{CMAKE_DIR} -- the discovery regex may need updating')
+
+          print(f'::group::Discovered {len(discovered)} CPM dep(s)')
+          VENDOR_DIR.mkdir(parents=True, exist_ok=True)
+          for org, name, sha, src in discovered:
+              url = f'https://github.com/{org}/{name}.git'
+              dest = VENDOR_DIR / name
+              print(f'  {name}: {url}@{sha[:10]} (referenced in {src.name})')
+              if dest.exists():
+                  continue  # already vendored (e.g. same dep referenced twice)
+              subprocess.run(['git', 'clone', '--filter=blob:none',
+                              '--no-checkout', url, str(dest)], check=True)
+              subprocess.run(['git', '-C', str(dest), 'checkout', sha], check=True)
+              # Populate nested submodules (e.g. nanobind's ext/robin_map).
+              subprocess.run(['git', '-C', str(dest), 'submodule', 'update',
+                              '--init', '--recursive', '--filter=blob:none'],
+                             check=True)
+              # Flatten: strip .git metadata and .gitmodules pointers.
+              for g in dest.rglob('.git'):
+                  subprocess.run(['rm', '-rf', str(g)], check=True)
+              for g in dest.rglob('.gitmodules'):
+                  g.unlink()
+          print('::endgroup::')
+
+          # --- Vendor CPM.cmake itself (FetchInitCPM.cmake does a raw download) ---
+          fetch_init = CMAKE_DIR / 'FetchInitCPM.cmake'
+          init_text = fetch_init.read_text()
+          url_m = CPM_URL.search(init_text)
+          hash_m = CPM_HASH.search(init_text)
+          if not (url_m and hash_m):
+              sys.exit('::error::could not parse CPM.cmake URL/hash from '
+                       f'{fetch_init}')
+          cpm_url, cpm_hash = url_m.group(1), hash_m.group(1)
+
+          print(f'::group::Vendoring CPM.cmake from {cpm_url}')
+          cpm_path = CMAKE_DIR / 'CPM.cmake'
+          subprocess.run(['curl', '-fsSL', cpm_url, '-o', str(cpm_path)], check=True)
+          actual = subprocess.check_output(
+              ['sha256sum', str(cpm_path)]).split()[0].decode()
+          if actual != cpm_hash:
+              sys.exit(f'::error::CPM.cmake hash mismatch: got {actual}, '
+                       f'expected {cpm_hash}')
+          print(f'  hash verified ({cpm_hash})')
+          print('::endgroup::')
+
+          # --- Patch every CPMAddPackage("gh:...") to prefer the vendored copy ---
+          CMAKE_CLR = '$' + '{CMAKE_CURRENT_LIST_DIR}'
+          def repl(m):
+              ind, org, name, sha = m.groups()
+              src_dir_var = '$' + '{' + name + '_SOURCE_DIR}'
+              return '\n'.join([
+                  ind + 'if(EXISTS "' + CMAKE_CLR + '/../external/' + name + '")',
+                  ind + '  set(' + name + '_SOURCE_DIR "' + CMAKE_CLR + '/../external/' + name + '" CACHE INTERNAL "")',
+                  ind + '  message(STATUS "Using vendored ' + name + ' from ' + src_dir_var + '")',
+                  ind + 'else()',
+                  ind + '  CPMAddPackage("gh:' + org + '/' + name + '#' + sha + '")',
+                  ind + 'endif()',
+              ])
+          print('::group::Patching cmake files')
+          for f in cmake_files:
+              new = CPM_GH.sub(repl, f.read_text())
+              if new != f.read_text():
+                  f.write_text(new)
+                  print(f'  patched {f.name}')
+          # Patch FetchInitCPM.cmake to prefer the vendored CPM.cmake.
+          indented_orig = ''.join(
+              ('  ' + line if line else line) + '\n'
+              for line in init_text.splitlines()
+          )
+          fetch_init.write_text(
+              '# Patched by OMPL release_tarball.yml to prefer a vendored CPM.cmake.\n'
+              'if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/CPM.cmake")\n'
+              '  message(STATUS "Using vendored CPM.cmake")\n'
+              '  set(CPM_USE_LOCAL_PACKAGES ON)\n'
+              '  include(${CMAKE_CURRENT_LIST_DIR}/CPM.cmake)\n'
+              'else()\n'
+              + indented_orig
+              + 'endif()\n'
+          )
+          print(f'  patched {fetch_init.name}')
+          print('::endgroup::')
+
+          # --- Defensive: any unguarded fetch pattern still remaining? ---
+          fetch_pat = re.compile(
+              r'CPMAddPackage|CPMFindPackage|FetchContent_(Declare|MakeAvailable|Populate)'
+              r'|ExternalProject_Add|file\s*\(\s*DOWNLOAD',
+              re.IGNORECASE,
+          )
+          guard_pat = re.compile(r'\bif\s*\(\s*EXISTS\b')
+          unguarded = []
+          for f in cmake_files:
+              if f.name == 'CPM.cmake':
+                  continue  # CPM.cmake defines CPMAddPackage itself
+              lines = f.read_text().splitlines()
+              for i, line in enumerate(lines):
+                  if not fetch_pat.search(line):
+                      continue
+                  if not any(guard_pat.search(lines[j]) for j in range(max(0, i - 8), i)):
+                      unguarded.append((f, i + 1, line.strip()))
+          if unguarded:
+              for f, ln, content in unguarded:
+                  print(f'::error file={f},line={ln}::unguarded network fetch: {content}')
+              sys.exit('::error::unguarded network fetch(es) remain after patching '
+                       '-- extend the discovery regex in release_tarball.yml')
+          print('All discovered fetches are guarded. Tarball will be offline-buildable.')
+          PY
+
+      - name: Build tarball
+        id: tarball
+        run: |
+          TAG="${{ steps.tag.outputs.name }}"
+          BASE="ompl-${TAG}"
+          mkdir -p /tmp/stage
+          # Versioned top-level directory in the tarball, no VCS metadata,
+          # no CI config (.github), no editor cruft.
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.gitignore' \
+            --exclude='.gitmodules' \
+            --exclude='.dockerignore' \
+            --exclude='.clang-format' \
+            --exclude='.pre-commit-config.yaml' \
+            ./ "/tmp/stage/${BASE}/"
+          tar -C /tmp/stage -czf "${BASE}.tar.gz" "${BASE}"
+          sha256sum "${BASE}.tar.gz" > "${BASE}.tar.gz.sha256"
+          ls -lh "${BASE}.tar.gz" "${BASE}.tar.gz.sha256"
+          echo "tarball=${BASE}.tar.gz" >> "$GITHUB_OUTPUT"
+
+      - name: Sanity-check tarball contents
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.tag.outputs.name }}"
+          BASE="ompl-${TAG}"
+          LST=$(mktemp)
+          tar -tzf "${BASE}.tar.gz" > "$LST"
+
+          # Vendored submodule CMakeLists must be present.
+          grep -qE "^${BASE}/external/(vamp|nanobind)/CMakeLists.txt$" "$LST" \
+            || { echo "::error::vendored submodule CMakeLists not in tarball"; exit 1; }
+
+          # VAMP's CPM transitive deps must be vendored for offline builds.
+          vendored=$(grep -oE "^${BASE}/external/vamp/external/[^/]+/$" "$LST" | sort -u)
+          if [ -z "$vendored" ]; then
+            echo "::error::no entries found under external/vamp/external/ in tarball"; exit 1;
+          fi
+          echo "vendored deps in tarball:"; echo "$vendored" | sed 's/^/  /'
+
+          # CPM.cmake itself must be vendored.
+          grep -q "^${BASE}/external/vamp/cmake/CPM.cmake$" "$LST" \
+            || { echo "::error::external/vamp/cmake/CPM.cmake missing from tarball"; exit 1; }
+
+          # FetchInitCPM.cmake must be patched to prefer the vendored copy.
+          FIC=$(mktemp)
+          tar -xzOf "${BASE}.tar.gz" "${BASE}/external/vamp/cmake/FetchInitCPM.cmake" > "$FIC"
+          grep -q 'Using vendored CPM.cmake' "$FIC" \
+            || { echo "::error::FetchInitCPM.cmake was not patched"; exit 1; }
+
+      - name: Upload to GitHub Release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.name }}
+          TARBALL: ${{ steps.tarball.outputs.tarball }}
+        run: |
+          gh release upload "$TAG" "$TARBALL" "${TARBALL}.sha256" \
+            --repo "${{ github.repository }}" --clobber
+
+      - name: Upload as workflow artifact (manual dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ompl-${{ steps.tag.outputs.name }}-tarball
+          path: |
+            ompl-*.tar.gz
+            ompl-*.tar.gz.sha256

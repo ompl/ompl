@@ -1,8 +1,24 @@
 # Citations {#citations}
 
-If you use OMPL in your research, we kindly ask you to include the following citation in your publications:
+If you use OMPL in your research, we kindly ask you to include the following citations in your publications:
 
 <ul>
+<li> Weihang Guo, Theodoros Tyrovouzis, Emiliano Flores, Clayton W. Ramsey, Zachary K. Kingston, Ioan A. Șucan, Mark Moll, and Lydia E. Kavraki, The Open Motion Planning Library 2.0, _arXiv preprint arXiv:2605.29301,_ 2026. https://arxiv.org/abs/2605.29301
+\htmlonly
+<br><div class="btn-group btn-group-xs">
+  <a class="btn btn-primary" href="https://arxiv.org/abs/2605.29301"> pdf </a>
+  <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#guo2026ompl2"> bibtex </button>
+</div>
+<div class="modal fade" tabindex="-1" id="guo2026ompl2"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h4 class="modal-title">BibTeX</h4><button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button></div><div class="modal-body"><pre>@misc{guo2026the-open-motion-planning-library2,
+    title={The {O}pen {M}otion {P}lanning {L}ibrary 2.0},
+    author={Weihang Guo and Theodoros Tyrovouzis and Emiliano Flores and Clayton W. Ramsey and Zachary K. Kingston and Ioan A. {\c{S}}ucan and Mark Moll and Lydia E. Kavraki},
+    year={2026},
+    eprint={2605.29301},
+    archivePrefix={arXiv},
+    primaryClass={cs.RO},
+    url={https://arxiv.org/abs/2605.29301}
+}</pre></div></div></div></div>
+\endhtmlonly
 <li> Ioan A. Șucan, Mark Moll, Lydia E. Kavraki, The Open Motion Planning Library, _IEEE Robotics & Automation Magazine,_ 19(4):72--82, December 2012. https://ompl.kavrakilab.org
 \htmlonly
 <br><div class="btn-group btn-group-xs">

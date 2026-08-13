@@ -59,6 +59,8 @@ void ompl::binding::base::init_ProjectionEvaluator(nb::module_ &m)
     };
     nb::class_<ompl::base::ProjectionEvaluator, PyProjectionEvaluator /* <-- trampoline */>(m, "ProjectionEvaluator")
         .def(nb::init<const ompl::base::StateSpacePtr &>(), nb::arg("space"))
+        .def("getDimension", &ompl::base::ProjectionEvaluator::getDimension)
+        .def("project", &ompl::base::ProjectionEvaluator::project, nb::arg("state"), nb::arg("projection"))
         .def("setCellSizes", nb::overload_cast<unsigned int, double>(&ompl::base::ProjectionEvaluator::setCellSizes),
              nb::arg("dim"), nb::arg("cellSize"))
         .def("mulCellSizes", &ompl::base::ProjectionEvaluator::mulCellSizes, "Multiply the cell sizes by a factor",

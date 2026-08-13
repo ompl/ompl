@@ -178,7 +178,77 @@ def test_customize_goal_sampleable_region():
     print("Planner result:", result)
 
 
+def test_goal_state_region_virtuals():
+    import numpy as np
+
+    space = ob.RealVectorStateSpace(2)
+    bounds = ob.RealVectorBounds(2)
+    bounds.setLow(0)
+    bounds.setHigh(1)
+    space.setBounds(bounds)
+
+    si = ob.SpaceInformation(space)
+    si.setStateValidityChecker(lambda state: True)
+    si.setup()
+
+    goal = ob.GoalState(si)
+    target = si.allocState()
+    target[0] = 0.5
+    target[1] = 0.5
+    goal.setState(target)
+
+    query = si.allocState()
+    query[0] = 0.0
+    query[1] = 0.0
+
+    assert goal.distanceGoal(query) == pytest.approx(np.hypot(0.5, 0.5))
+    assert goal.distanceGoal(target) == pytest.approx(0.0)
+    assert goal.maxSampleCount() == 1
+    assert goal.isStartGoalPairValid(query, target)
+    assert goal.isSatisfied(target)
+
+    sample = si.allocState()
+    goal.sampleGoal(sample)
+    assert sample[0] == pytest.approx(0.5)
+    assert sample[1] == pytest.approx(0.5)
+
+
+def test_goal_subclass_falls_through():
+    space = ob.RealVectorStateSpace(2)
+    bounds = ob.RealVectorBounds(2)
+    bounds.setLow(-1)
+    bounds.setHigh(1)
+    space.setBounds(bounds)
+
+    si = ob.SpaceInformation(space)
+    si.setStateValidityChecker(lambda state: True)
+    si.setup()
+
+    class SecondDimGoal(ob.Goal):
+        def __init__(self, si):
+            super().__init__(si)
+
+        def isSatisfied(self, state):
+            return abs(state[1]) < 0.1
+
+    goal = SecondDimGoal(si)
+    start = si.allocState()
+    other = si.allocState()
+
+    # isStartGoalPairValid is not overridden, so it falls through to the C++ default (True)
+    assert goal.isStartGoalPairValid(start, other)
+
+    satisfied = si.allocState()
+    satisfied[1] = 0.0
+    assert goal.isSatisfied(satisfied)
+    unsatisfied = si.allocState()
+    unsatisfied[1] = 0.5
+    assert not goal.isSatisfied(unsatisfied)
+
+
 if __name__ == "__main__":
     test_customize_goal()
     test_customize_goal_region()
     test_customize_goal_sampleable_region()
+    test_goal_state_region_virtuals()
+    test_goal_subclass_falls_through()

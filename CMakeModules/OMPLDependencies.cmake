@@ -1,6 +1,6 @@
 # Eigen3
 set_package_properties(Eigen3 PROPERTIES
-    URL "http://eigen.tuxfamily.org"
+    URL "https://libeigen.gitlab.io"
     PURPOSE "A linear algebra library used throughout OMPL.")
 find_package(Eigen3 REQUIRED NO_MODULE)
 

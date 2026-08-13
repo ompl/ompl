@@ -122,8 +122,19 @@ void ompl::control::PathControl::copyFrom(const PathControl &other)
 
 ompl::base::Cost ompl::control::PathControl::cost(const base::OptimizationObjectivePtr &opt) const
 {
-    OMPL_ERROR("Error: Cost computation is only implemented for paths of type PathGeometric.");
-    return opt->identityCost();
+    if (states_.empty())
+        return opt->identityCost();
+    // Compute path cost by accumulating the cost along the path
+    base::Cost cost(opt->initialCost(states_.front()));
+    const auto *si = static_cast<const SpaceInformation *>(si_.get());
+    const double dt = si->getPropagationStepSize();
+    for (std::size_t i = 1; i < states_.size(); ++i)
+    {
+        const auto steps = static_cast<unsigned int>(std::llround(controlDurations_[i - 1] / dt));
+        cost = opt->combineCosts(cost, opt->controlMotionCost(states_[i - 1], controls_[i - 1], steps, states_[i]));
+    }
+    cost = opt->combineCosts(cost, opt->terminalCost(states_.back()));
+    return cost;
 }
 
 double ompl::control::PathControl::length() const

@@ -1,6 +1,7 @@
 import sys
 import pytest
 import math
+import numpy as np
 from ompl import base as ob
 
 
@@ -626,6 +627,27 @@ def test_vana_owen_state_space():
     assert path is None or path.length() > 0.0
 
 
+def test_projection_evaluator():
+    space = ob.RealVectorStateSpace(2)
+    bounds = ob.RealVectorBounds(2)
+    bounds.setLow(0)
+    bounds.setHigh(1)
+    space.setBounds(bounds)
+    space.setup()
+
+    projection = space.getDefaultProjection()
+    assert projection.getDimension() == 2
+
+    state = space.allocState()
+    state[0] = 0.25
+    state[1] = 0.75
+    out = np.zeros(projection.getDimension())
+    projection.project(state, out)
+
+    assert out[0] == pytest.approx(0.25)
+    assert out[1] == pytest.approx(0.75)
+
+
 if __name__ == "__main__":
     test_rv_state_space()
     test_compound_state_space()
@@ -637,3 +659,4 @@ if __name__ == "__main__":
     test_owen_state_space()
     test_vana_state_space()
     test_vana_owen_state_space()
+    test_projection_evaluator()

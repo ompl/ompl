@@ -628,8 +628,8 @@ void ompl::geometric::STRRTstar::constructSolution(
     }
 
     bestSolution_ = path;
-    auto reachedGaol = path->getState(path->getStateCount() - 1);
-    bestTime_ = reachedGaol->as<ompl::base::CompoundState>()->as<ompl::base::TimeStateSpace::StateType>(1)->position;
+    auto reachedGoal = path->getState(path->getStateCount() - 1);
+    bestTime_ = reachedGoal->as<ompl::base::CompoundState>()->as<ompl::base::TimeStateSpace::StateType>(1)->position;
 
     if (intermediateSolutionCallback)
     {
@@ -647,7 +647,7 @@ void ompl::geometric::STRRTstar::constructSolution(
 
     // loop as long as a new solution is found by rewiring the goal tree
     if (newSolution != nullptr)
-        constructSolution(newSolution->connectionPoint, goalMotion, intermediateSolutionCallback, ptc);
+        constructSolution(newSolution->connectionPoint, newSolution, intermediateSolutionCallback, ptc);
 }
 
 void ompl::geometric::STRRTstar::pruneStartTree()
@@ -1017,7 +1017,7 @@ bool ompl::geometric::STRRTstar::rewireGoalTree(Motion *addedMotion)
                 Motion *p = otherMotion->parent;
                 while (p != nullptr)
                 {
-                    p->numConnections--;
+                    p->numConnections -= otherMotion->numConnections;
                     p = p->parent;
                 }
             }
@@ -1025,13 +1025,25 @@ bool ompl::geometric::STRRTstar::rewireGoalTree(Motion *addedMotion)
             otherMotion->parent = addedMotion;
             otherMotion->root = addedMotion->root;
             addedMotion->children.push_back(otherMotion);
+            // change root state of descendants
+            std::queue<Motion *> queue;
+            queue.push(otherMotion);
+            while (!queue.empty())
+            {
+                for (Motion *c : queue.front()->children)
+                {
+                    queue.push(c);
+                }
+                queue.front()->root = addedMotion->root;
+                queue.pop();
+            }
             // increase connection count of new ancestors
             if (otherMotion->numConnections > 0)
             {
                 Motion *p = otherMotion->parent;
                 while (p != nullptr)
                 {
-                    p->numConnections++;
+                    p->numConnections += otherMotion->numConnections;
                     p = p->parent;
                 }
                 if (otherMotion->root->as<ompl::base::CompoundState>()

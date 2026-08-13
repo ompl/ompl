@@ -218,6 +218,66 @@ def test_path_length_optimization():
     assert path_length < 3.0, "Path should not be excessively long"
 
 
+def test_optimization_objective_virtuals():
+    _, si = create_simple_setup()
+    obj = ob.PathLengthOptimizationObjective(si)
+
+    s1 = si.allocState()
+    s1[0] = 0.0
+    s1[1] = 0.0
+    s2 = si.allocState()
+    s2[0] = 1.0
+    s2[1] = 0.0
+
+    identity = obj.identityCost()
+    infinite = obj.infiniteCost()
+
+    assert identity.value() == pytest.approx(0.0)
+    assert obj.isFinite(identity)
+    assert not obj.isFinite(infinite)
+
+    assert obj.stateCost(s1).value() == pytest.approx(0.0)
+    assert obj.motionCost(s1, s2).value() == pytest.approx(1.0)
+    assert obj.motionCostHeuristic(s1, s2).value() == pytest.approx(1.0)
+    assert obj.motionCostBestEstimate(s1, s2).value() == pytest.approx(1.0)
+    assert obj.initialCost(s1).value() == pytest.approx(0.0)
+    assert obj.terminalCost(s1).value() == pytest.approx(0.0)
+
+    assert obj.isCostBetterThan(identity, infinite)
+    assert obj.isCostEquivalentTo(identity, ob.Cost(0.0))
+    assert obj.betterCost(ob.Cost(1.0), ob.Cost(2.0)).value() == pytest.approx(1.0)
+    assert obj.combineCosts(ob.Cost(1.0), ob.Cost(2.0)).value() == pytest.approx(3.0)
+    assert obj.subtractCosts(ob.Cost(3.0), ob.Cost(1.0)).value() == pytest.approx(2.0)
+
+    assert obj.isSymmetric()
+    assert not obj.isSatisfied(identity)
+    assert isinstance(obj.print(), str)
+    assert obj.print() != ""
+
+
+def test_optimization_objective_subclass_falls_through():
+    _, si = create_simple_setup()
+
+    class ConstantObjective(ob.OptimizationObjective):
+        def __init__(self, si):
+            super().__init__(si)
+
+        def stateCost(self, state):
+            return ob.Cost(1.0)
+
+        def motionCost(self, s1, s2):
+            return ob.Cost(2.0)
+
+    obj = ConstantObjective(si)
+    state = si.allocState()
+
+    assert obj.stateCost(state).value() == pytest.approx(1.0)
+    # combineCosts is not overridden, so it falls through to the C++ default (addition)
+    assert obj.combineCosts(ob.Cost(1.0), ob.Cost(2.0)).value() == pytest.approx(3.0)
+    assert obj.identityCost().value() == pytest.approx(0.0)
+    assert not obj.isFinite(obj.infiniteCost())
+
+
 if __name__ == "__main__":
     test_rrtstar()
     test_informed_rrtstar()
@@ -231,3 +291,5 @@ if __name__ == "__main__":
     test_bitstar_settings()
     test_fmt_settings()
     test_path_length_optimization()
+    test_optimization_objective_virtuals()
+    test_optimization_objective_subclass_falls_through()

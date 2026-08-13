@@ -35,6 +35,7 @@
 /* Author: Ryan Luna */
 
 #include <fstream>
+#include <boost/math/constants/constants.hpp>
 
 #include "boost/program_options.hpp"
 #include "PolyWorld.h"
@@ -119,8 +120,8 @@ ompl::geometric::SimpleSetupPtr setupOMPL(Problem &problem)
     // Create the state space for the manipulator.
     ompl::base::StateSpacePtr space(new PlanarManipulatorStateSpace(numLinks));
     ompl::base::RealVectorBounds bounds(numLinks);
-    bounds.setLow(-M_PI);
-    bounds.setHigh(M_PI);
+    bounds.setLow(-boost::math::constants::pi<double>());
+    bounds.setHigh(boost::math::constants::pi<double>());
 
     // Bound the joints of the manipulator between [-PI, PI]
     space->as<PlanarManipulatorStateSpace>()->setBounds(bounds);
