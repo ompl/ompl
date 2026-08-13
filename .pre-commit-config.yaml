@@ -23,3 +23,9 @@ repos:
     rev: v0.9.4
     hooks:
       - id: ruff-format
+
+  # Package XML sort
+  - repo: https://github.com/tier4/pre-commit-hooks-ros
+    rev: v0.10.3
+    hooks:
+      - id: sort-package-xml
