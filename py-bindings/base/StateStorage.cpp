@@ -26,14 +26,7 @@ void ompl::binding::base::init_StateStorage(nb::module_ &m)
         .def("getState", nb::overload_cast<unsigned int>(&ob::StateStorage::getState, nb::const_), nb::arg("index"),
              nb::rv_policy::reference_internal)
         .def("hasMetadata", &ob::StateStorage::hasMetadata)
-        .def(
-            "sort",
-            [](ob::StateStorage &storage, std::function<bool(const ob::State *, const ob::State *)> op)
-            {
-                nb::gil_scoped_acquire gil;
-                storage.sort(op);
-            },
-            nb::arg("op"))
+        .def("sort", &ob::StateStorage::sort, nb::arg("op"))
         .def("getStateSamplerAllocator", &ob::StateStorage::getStateSamplerAllocator)
         .def("getStateSamplerAllocatorRangeUntil", &ob::StateStorage::getStateSamplerAllocatorRangeUntil,
              nb::arg("until"))

@@ -21,10 +21,7 @@ void ompl::binding::geometric::initPlannersRrt_VFRRT(nb::module_ &m)
                double initial_lambda, unsigned int update_freq)
             {
                 og::VFRRT::VectorField field = [vf = std::move(vf)](const ob::State *state) mutable -> Eigen::VectorXd
-                {
-                    nb::gil_scoped_acquire gil;
-                    return nb::cast<Eigen::VectorXd>(vf(state));
-                };
+                { return nb::cast<Eigen::VectorXd>(vf(state)); };
                 new (self) og::VFRRT(si, field, exploration, initial_lambda, update_freq);
             },
             nb::arg("si"), nb::arg("vf"), nb::arg("exploration"), nb::arg("initial_lambda"), nb::arg("update_freq"))

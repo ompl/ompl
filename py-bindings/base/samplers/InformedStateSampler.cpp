@@ -10,18 +10,6 @@
 namespace nb = nanobind;
 namespace ob = ompl::base;
 
-namespace
-{
-    ob::InformedStateSampler::GetCurrentCostFunc wrapCostFunc(ob::InformedStateSampler::GetCurrentCostFunc fn)
-    {
-        return [fn = std::move(fn)]() -> ob::Cost
-        {
-            nb::gil_scoped_acquire gil;
-            return fn();
-        };
-    }
-}  // namespace
-
 void ompl::binding::base::initSamplers_InformedStateSampler(nb::module_ &m)
 {
     struct PyInformedSampler : ob::InformedSampler
@@ -74,18 +62,12 @@ void ompl::binding::base::initSamplers_InformedStateSampler(nb::module_ &m)
         .def("getMaxNumberOfIters", &ob::InformedSampler::getMaxNumberOfIters);
 
     nb::class_<ob::InformedStateSampler, ob::StateSampler>(m, "InformedStateSampler")
-        .def(
-            "__init__",
-            [](ob::InformedStateSampler *self, const ob::ProblemDefinitionPtr &probDefn, unsigned int maxNumberCalls,
-               ob::InformedStateSampler::GetCurrentCostFunc costFunc)
-            { new (self) ob::InformedStateSampler(probDefn, maxNumberCalls, wrapCostFunc(std::move(costFunc))); },
-            nb::arg("probDefn"), nb::arg("maxNumberCalls"), nb::arg("costFunc"))
-        .def(
-            "__init__",
-            [](ob::InformedStateSampler *self, const ob::ProblemDefinitionPtr &probDefn,
-               ob::InformedStateSampler::GetCurrentCostFunc costFunc, const ob::InformedSamplerPtr &infSampler)
-            { new (self) ob::InformedStateSampler(probDefn, wrapCostFunc(std::move(costFunc)), infSampler); },
-            nb::arg("probDefn"), nb::arg("costFunc"), nb::arg("infSampler"))
+        .def(nb::init<const ob::ProblemDefinitionPtr &, unsigned int,
+                      const ob::InformedStateSampler::GetCurrentCostFunc &>(),
+             nb::arg("probDefn"), nb::arg("maxNumberCalls"), nb::arg("costFunc"))
+        .def(nb::init<const ob::ProblemDefinitionPtr &, const ob::InformedStateSampler::GetCurrentCostFunc &,
+                      const ob::InformedSamplerPtr &>(),
+             nb::arg("probDefn"), nb::arg("costFunc"), nb::arg("infSampler"))
         .def("sampleUniform", &ob::InformedStateSampler::sampleUniform, nb::arg("statePtr"))
         .def("sampleUniformNear", &ob::InformedStateSampler::sampleUniformNear, nb::arg("statePtr"), nb::arg("near"),
              nb::arg("distance"))

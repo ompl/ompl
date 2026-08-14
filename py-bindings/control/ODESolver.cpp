@@ -59,7 +59,6 @@ namespace
         return [si, fn = nb::callable(fn)](const oc::ODESolver::StateType &x, const oc::Control *u,
                                            oc::ODESolver::StateType &xnew)
         {
-            nb::gil_scoped_acquire gil;
             nb::list ulist = controlToList(si, u);
             fn(x, ulist, xnew);
         };
@@ -77,11 +76,7 @@ namespace
     oc::ODESolver::PostPropagationEvent wrapPythonPostEvent(nb::callable fn)
     {
         return [fn = nb::callable(fn)](const ob::State *state, const oc::Control *control, double duration,
-                                       ob::State *result)
-        {
-            nb::gil_scoped_acquire gil;
-            fn(state, control, duration, result);
-        };
+                                       ob::State *result) { fn(state, control, duration, result); };
     }
 }  // namespace
 
