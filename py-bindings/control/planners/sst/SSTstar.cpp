@@ -13,7 +13,7 @@ namespace oc = ompl::control;
 
 void ompl::binding::control::initPlannersSst_SSTstar(nb::module_ &m)
 {
-    nb::class_<oc::SSTstar, ob::Planner>(m, "SSTstar")
+    nb::class_<oc::SSTstar, oc::SST>(m, "SSTstar")
         .def(nb::init<const oc::SpaceInformationPtr &>(), nb::arg("si"))
         .def("setup", &oc::SSTstar::setup)
         .def("solve", &oc::SSTstar::solve, nb::arg("terminationCondition"))
