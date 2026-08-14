@@ -246,7 +246,7 @@ ompl::base::PlannerStatus ompl::control::AORRT::solveOnce(const base::PlannerTer
                 for (; p < pstates.size(); ++p)
                 {
                     /* Compute cost */
-                    auto costMotion = opt_->motionCost(lastmotion->state, pstates[p]);
+                    auto costMotion = opt_->controlMotionCost(lastmotion->state, rctrl, 1, pstates[p]);
                     auto newCost = opt_->combineCosts(lastmotion->cost, costMotion);
                     /* Check cost bound
                     This check can be skipped if bestCost_ is infinite (first solving attempt) */
@@ -308,7 +308,7 @@ ompl::base::PlannerStatus ompl::control::AORRT::solveOnce(const base::PlannerTer
             if (cd >= siC_->getMinControlDuration())
             {
                 /* Compute cost */
-                auto costMotion = opt_->motionCost(nmotion->state, rmotion->state);
+                auto costMotion = opt_->controlMotionCost(nmotion->state, rctrl, cd, rmotion->state);
                 auto newCost = opt_->combineCosts(nmotion->cost, costMotion);
                 /* Check cost bound
                    This check can be skipped if bestCost_ is infinite (first solving attempt) */
