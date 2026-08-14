@@ -17,8 +17,9 @@ void ompl::binding::control::initPlannersSst_SST(nb::module_ &m)
         .def(nb::init<const oc::SpaceInformationPtr &>(), nb::arg("si"))
         .def("setup", &oc::SST::setup)
         .def("solve", &oc::SST::solve, nb::arg("terminationCondition"))
-        .def("getPlannerData", [](const oc::SST &planner, ob::PlannerData &data) { planner.getPlannerData(data); },
-             nb::arg("data"))
+        .def(
+            "getPlannerData", [](const oc::SST &planner, ob::PlannerData &data) { planner.getPlannerData(data); },
+            nb::arg("data"))
         .def("clear", &oc::SST::clear)
         .def("setGoalBias", &oc::SST::setGoalBias, nb::arg("goalBias"))
         .def("getGoalBias", &oc::SST::getGoalBias)

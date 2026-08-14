@@ -169,7 +169,8 @@ ompl::base::PlannerStatus ompl::control::SSTstar::solve(const base::PlannerTermi
                         OMPL_INFORM("Found solution with cost %.2f", solution->accCost_.value());
                         if (intermediateSolutionCallback)
                         {
-                            std::vector<const base::State *> prevSolutionConst(prevSolution_.begin(), prevSolution_.end());
+                            std::vector<const base::State *> prevSolutionConst(prevSolution_.begin(),
+                                                                               prevSolution_.end());
                             intermediateSolutionCallback(this, prevSolutionConst, prevSolutionCost_);
                         }
                         sufficientlyShort = opt_->isSatisfied(solution->accCost_);
@@ -238,8 +239,8 @@ ompl::base::PlannerStatus ompl::control::SSTstar::solve(const base::PlannerTermi
 
         ++outerCount;
         const double batch = static_cast<double>(outerCount);
-        const double multiplier = (1.0 + std::log(batch)) *
-                                  std::pow(1.0 / shrinkFactor_, (stateDimension + controlDimension + 1.0) * batch);
+        const double multiplier =
+            (1.0 + std::log(batch)) * std::pow(1.0 / shrinkFactor_, (stateDimension + controlDimension + 1.0) * batch);
         innerIteration = static_cast<unsigned long>(std::ceil(multiplier * static_cast<double>(initialN_)));
     }
 

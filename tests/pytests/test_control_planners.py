@@ -140,6 +140,7 @@ def test_control_planners():
             # path.printAsMatrix()
             ss.getProblemDefinition().clearSolutionPaths()
 
+
 if __name__ == "__main__":
     # test_control_no_planner()
     test_control_planners()
