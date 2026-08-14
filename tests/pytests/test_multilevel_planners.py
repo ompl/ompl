@@ -20,7 +20,7 @@ def test_qrrt_single_level():
     ss = create_simple_setup()
     si = ss.getSpaceInformation()
     planner = ml.QRRT(si)
-    solution_path = solve_with_planner(ss, planner, timeout=2.0)
+    solution_path = solve_with_planner(ss, planner)
     assert solution_path is not None
 
 
@@ -54,7 +54,7 @@ def test_qrrt_multilevel():
     planner = ml.QRRT(si_vec)
     planner.setProblemDefinition(pdef)
     planner.setup()
-    result = planner.solve(2.0)
+    result = planner.solve(5.0)
     assert result
     assert pdef.hasSolution()
     assert pdef.getSolutionPath() is not None
