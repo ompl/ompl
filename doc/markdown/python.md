@@ -110,5 +110,3 @@ The following C++ APIs are intentionally **not** exposed to Python because they 
 | `Profiler`, `PlannerMonitor` | tools | Background monitor threads |
 
 **Bindable with caution:** `Benchmark` (already bound) and multithreaded roadmap planners such as `LazyPRM`, `SPARS`, and `SPARStwo` may use optional solution-check threads. Avoid Python `StateValidityChecker` trampolines during benchmark runs or when those threads are active.
-
-Use `scripts/list_binding_gaps.py` to audit remaining header-to-binding coverage.

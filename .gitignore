@@ -14,6 +14,3 @@ bin/
 build/
 lib/
 log/
-docs/
-scripts/list_binding_gaps.py
-scripts/commit_binding_phases.sh
