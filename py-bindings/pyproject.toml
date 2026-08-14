@@ -4,13 +4,21 @@ requires = [
     "nanobind",
     "cmake >=3.18",
     "ninja",
+    "numpy"
 ]
 build-backend = "scikit_build_core.build"
 
 [project]
 name = "ompl"
+description = "The Open Motion Planning Library"
+readme = "README.md"
+license = "BSD-3-Clause"
 dynamic = ["version"]
 requires-python = ">=3.9"
+classifiers = [
+    "Framework :: Robot Framework :: Tool",
+    "Intended Audience :: Science/Research"
+]
 
 [project.scripts]
 ompl_benchmark_statistics = "ompl.ompl_benchmark_statistics:main"

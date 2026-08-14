@@ -127,7 +127,30 @@ def test_planner_data_vertex():
     assert retrieved_state is not None
 
 
+def test_planner_virtuals():
+    """Test Planner virtual methods bound on a concrete C++ planner."""
+    ss = create_simple_setup()
+    si = ss.getSpaceInformation()
+
+    planner = og.RRT(si)
+    ss.setPlanner(planner)
+    planner.setProblemDefinition(ss.getProblemDefinition())
+
+    planner.setup()
+    planner.checkValidity()
+
+    assert ss.solve(1.0)
+
+    data = ob.PlannerData(si)
+    planner.getPlannerData(data)
+    assert data.numVertices() > 0
+
+    assert "RRT" in planner.printProperties()
+    assert planner.printSettings() != ""
+
+
 if __name__ == "__main__":
     test_planner_data_basic()
     test_planner_data_storage()
     test_planner_data_vertex()
+    test_planner_virtuals()

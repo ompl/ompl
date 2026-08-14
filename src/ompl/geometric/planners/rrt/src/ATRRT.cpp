@@ -40,6 +40,7 @@
 #include "ompl/tools/config/SelfConfig.h"
 #include "ompl/tools/config/MagicConstants.h"
 #include <limits>
+#include <boost/math/constants/constants.hpp>
 
 ompl::geometric::ATRRT::ATRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "ATRRT")
 {
@@ -217,7 +218,7 @@ ompl::base::PlannerStatus ompl::geometric::ATRRT::solve(const base::PlannerTermi
     double approxDifference = std::numeric_limits<double>::infinity();
     // UsefulCycles constant
     double volumeFreeSpace = 0.9 * si_->getMaximumExtent();
-    double volumeUnitBall2D = M_PI;
+    double volumeUnitBall2D = boost::math::constants::pi<double>();
     unsigned int d = si_->getStateDimension();
     gamma_ = 2.5 * 2 * std::pow((1.0 + 1.0 / d), 1.0 / d) * std::pow(volumeFreeSpace / volumeUnitBall2D, 1.0 / d);
 

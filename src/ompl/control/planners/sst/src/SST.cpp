@@ -265,9 +265,7 @@ ompl::base::PlannerStatus ompl::control::SST::solve(const base::PlannerTerminati
 
         if (propCd == cd)
         {
-            base::Cost incCostMotion = opt_->motionCost(nmotion->state_, rstate);
-            base::Cost incCostControl = opt_->controlCost(rctrl, cd);
-            base::Cost incCost = opt_->combineCosts(incCostMotion, incCostControl);
+            base::Cost incCost = opt_->controlMotionCost(nmotion->state_, rctrl, cd, rstate);
             base::Cost cost = opt_->combineCosts(nmotion->accCost_, incCost);
             Witness *closestWitness = findClosestWitness(rmotion);
 
