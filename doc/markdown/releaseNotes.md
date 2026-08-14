@@ -1,5 +1,13 @@
 # Release Notes {#releaseNotes}
 
+## OMPL 2.0.2 (August 14, 2026)
+
+- Fix path cost calculation for ompl::control planners
+- Allow specifying costs that are a joint function of the control and state for ompl::control planners
+- Forward transitive build dependencies in package.xml
+- Check contraint jacobian dimensions in python bindings
+- Vendor transitive deps in release tarball
+
 ## OMPL 2.0.1 (June 19, 2026)
 
 - More Python bindings (complete bindings for _everything_ are currently under review)
