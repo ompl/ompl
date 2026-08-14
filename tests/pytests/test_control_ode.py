@@ -1,6 +1,8 @@
 from functools import partial
 from math import cos, sin, tan
 
+import pytest
+
 from ompl import base as ob
 from ompl import control as oc
 
@@ -52,3 +54,43 @@ def test_ode_basic_solver_smoke():
     ss.setup()
     result = ss.solve(2.0)
     assert result
+
+
+def test_ode_derivative_reaches_integrator():
+    space = ob.SE2StateSpace()
+    bounds = ob.RealVectorBounds(2)
+    bounds.setLow(-2)
+    bounds.setHigh(2)
+    space.setBounds(bounds)
+
+    cspace = oc.RealVectorControlSpace(space, 2)
+    cbounds = ob.RealVectorBounds(2)
+    cbounds.setLow(-1)
+    cbounds.setHigh(1)
+    cspace.setBounds(cbounds)
+
+    si = oc.SpaceInformation(space, cspace)
+    si.setStateValidityChecker(lambda _state: True)
+    si.setPropagationStepSize(0.1)
+    ode_solver = oc.ODEBasicSolver(si, oc.ODE(kinematic_car_ode))
+    si.setStatePropagator(oc.ODESolver.getStatePropagator(ode_solver))
+    si.setup()
+
+    start = space.allocState()
+    start.setX(0.0)
+    start.setY(0.0)
+    start.setYaw(0.0)
+
+    control = cspace.allocControl()
+    control[0] = 1.0
+    control[1] = 0.0
+
+    result = space.allocState()
+    si.propagate(start, control, 10, result)
+
+    # yaw stays 0 and u = (1, 0), so qdot = (1, 0, 0) throughout: x advances by the
+    # full 1.0s of propagation. If the ODE's out-parameter is dropped on the way back
+    # from Python the integrator sees a zero derivative and the state never moves.
+    assert result.getX() == pytest.approx(1.0, abs=1e-6)
+    assert result.getY() == pytest.approx(0.0, abs=1e-6)
+    assert result.getYaw() == pytest.approx(0.0, abs=1e-6)

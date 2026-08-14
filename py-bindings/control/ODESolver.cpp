@@ -59,8 +59,15 @@ namespace
         return [si, fn = nb::callable(fn)](const oc::ODESolver::StateType &x, const oc::Control *u,
                                            oc::ODESolver::StateType &xnew)
         {
-            nb::list ulist = controlToList(si, u);
-            fn(x, ulist, xnew);
+            // nanobind's std::vector caster converts by copy, so the derivative has to be handed to Python as a
+            // list and read back out; passing xnew directly would silently discard everything the ODE writes.
+            nb::list qdot;
+            for (std::size_t i = 0; i < x.size(); ++i)
+                qdot.append(0.0);
+            fn(x, controlToList(si, u), qdot);
+            xnew.resize(x.size());
+            for (std::size_t i = 0; i < x.size(); ++i)
+                xnew[i] = nb::cast<double>(qdot[i]);
         };
     }
 
