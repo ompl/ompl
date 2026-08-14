@@ -21,12 +21,6 @@ void ompl::binding::tools::initConfig_SelfConfig(nb::module_ &m)
              nb::arg("attempts"))
         .def("configurePlannerRange", &ot::SelfConfig::configurePlannerRange, nb::arg("range"))
         .def("configureProjectionEvaluator", &ot::SelfConfig::configureProjectionEvaluator, nb::arg("proj"))
-        .def("__repr__",
-             [](const ot::SelfConfig &sc)
-             {
-                 std::ostringstream oss;
-                 sc.print(oss);
-                 return oss.str();
-             })
+        .def("print", [](const ot::SelfConfig &sc) { sc.print(std::cout); })
         .def_static("getDefaultPlanner", &ot::SelfConfig::getDefaultPlanner, nb::arg("goal"));
 }

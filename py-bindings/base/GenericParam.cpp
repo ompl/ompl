@@ -98,7 +98,7 @@ void ompl::binding::base::init_GenericParam(nb::module_ &m)
         .def("hasParam", &ob::ParamSet::hasParam, nb::arg("key"))
         .def("size", &ob::ParamSet::size)
         .def("clear", &ob::ParamSet::clear)
-        .def("__repr__",
+        .def("print",
              [](const ob::ParamSet &ps)
              {
                  std::ostringstream oss;

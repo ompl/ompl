@@ -2,7 +2,6 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
-#include <sstream>
 
 #include "ompl/geometric/PathHybridization.h"
 #include "init.h"
@@ -23,12 +22,6 @@ void ompl::binding::geometric::init_PathHybridization(nb::module_ &m)
         .def("matchPaths", &og::PathHybridization::matchPaths, nb::arg("p"), nb::arg("q"), nb::arg("gapValue"),
              nb::arg("indexP"), nb::arg("indexQ"))
         .def("clear", &og::PathHybridization::clear)
-        .def("__repr__",
-             [](const og::PathHybridization &self)
-             {
-                 std::ostringstream oss;
-                 self.print(oss);
-                 return oss.str();
-             })
+        .def("print", [](const og::PathHybridization &self) { self.print(); })
         .def("getName", &og::PathHybridization::getName, nb::rv_policy::reference_internal);
 }
