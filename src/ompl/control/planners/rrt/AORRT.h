@@ -113,7 +113,7 @@ namespace ompl
             }
 
             /** \brief Set the weight for the cost component in the agumented-space metric */
-            double setCostWeight(double weight)
+            void setCostWeight(double weight)
             {
                 costWeight_ = weight;
             }
