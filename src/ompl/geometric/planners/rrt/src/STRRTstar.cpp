@@ -49,6 +49,8 @@ ompl::geometric::STRRTstar::STRRTstar(const ompl::base::SpaceInformationPtr &si)
     specs_.optimizingPaths = true;
     specs_.canReportIntermediateSolutions = true;
     Planner::declareParam<double>("range", this, &STRRTstar::setRange, &STRRTstar::getRange, "0.:1.:10000.");
+    addPlannerProgressProperty("best cost REAL", [this] { return std::to_string(bestTime_); });
+    addPlannerProgressProperty("iterations INTEGER", [this] { return std::to_string(numIterations_); });
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
 }
 

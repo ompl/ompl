@@ -51,12 +51,10 @@ ompl::base::SpaceTimeStateSpace::SpaceTimeStateSpace(const StateSpacePtr &spaceC
 
 double ompl::base::SpaceTimeStateSpace::distance(const ompl::base::State *state1, const ompl::base::State *state2) const
 {
-    double deltaSpace = distanceSpace(state1, state2);
+    double deltaSpace;
     double deltaTime = distanceTime(state1, state2);
-
-    if (deltaSpace / vMax_ > deltaTime + eps_)
+    if (timeToCoverDistance(state1, state2, &deltaSpace) > deltaTime + eps_)
         return std::numeric_limits<double>::infinity();
-
     return weights_[0] * deltaSpace + weights_[1] * deltaTime;
 }
 
@@ -100,9 +98,11 @@ void ompl::base::SpaceTimeStateSpace::setVMax(double vMax)
 }
 
 double ompl::base::SpaceTimeStateSpace::timeToCoverDistance(const ompl::base::State *state1,
-                                                            const ompl::base::State *state2) const
+                                                            const ompl::base::State *state2, double *distance) const
 {
     double deltaSpace = distanceSpace(state1, state2);
+    if (distance)
+        *distance = deltaSpace;
     return deltaSpace / vMax_;
 }
 
