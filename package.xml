@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>ompl</name>
-  <version>2.0.1</version>
+  <version>2.0.2</version>
   <description>OMPL is a free sampling-based motion planning library.</description>
   <maintainer email="mark@moll.ai">Mark Moll</maintainer>
   <maintainer email="marq.razz@gmail.com">Marq Rasmussen</maintainer>
@@ -30,6 +30,11 @@
   <exec_depend>libboost-program-options</exec_depend>
   <exec_depend>libboost-serialization</exec_depend>
   <exec_depend>libflann</exec_depend>
+
+  <build_export_depend>eigen</build_export_depend>
+  <build_export_depend>libboost-program-options-dev</build_export_depend>
+  <build_export_depend>libboost-serialization-dev</build_export_depend>
+  <build_export_depend>libboost-system-dev</build_export_depend>
 
   <export>
     <build_type>cmake</build_type>

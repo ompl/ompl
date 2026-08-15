@@ -84,7 +84,11 @@ void ompl::control::HySST::setup()
                       "behavior",
                       getName().c_str());
         costFunc_ = [this](Motion *motion) -> base::Cost
-        { return opt_->motionCost(motion->parent->state, motion->state); };
+        {
+            const unsigned int steps =
+                motion->solutionPair != nullptr ? static_cast<unsigned int>(motion->solutionPair->size()) : 0u;
+            return opt_->controlMotionCost(motion->parent->state, motion->control, steps, motion->state);
+        };
     }
     else
     {  // if no optimization objective set, assume we want to minimize hybrid time
