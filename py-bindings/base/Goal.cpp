@@ -15,7 +15,9 @@ void ompl::binding::base::init_Goal(nb::module_ &m)
 {
     struct PyGoal : ob::Goal
     {
-        NB_TRAMPOLINE(ob::Goal, 3);
+        // print() is not routed through the trampoline: std::ostream has no caster, so a Python override could
+        // never be called. Python subclasses customise their text via __repr__ instead.
+        NB_TRAMPOLINE(ob::Goal, 2);
         // Pure virtual: must override in Python
         bool isSatisfied(const ob::State *st) const override
         {
@@ -26,12 +28,6 @@ void ompl::binding::base::init_Goal(nb::module_ &m)
         bool isStartGoalPairValid(const ob::State *start, const ob::State *goal) const override
         {
             NB_OVERRIDE(isStartGoalPairValid, start, goal);
-        }
-
-        // Optional override
-        void print(std::ostream &out) const override
-        {
-            NB_OVERRIDE(print, out);
         }
     };
 
@@ -45,7 +41,7 @@ void ompl::binding::base::init_Goal(nb::module_ &m)
         // virtual methods
         .def("isSatisfied", nb::overload_cast<const ob::State *>(&ob::Goal::isSatisfied, nb::const_), nb::arg("state"))
         .def("isStartGoalPairValid", &ob::Goal::isStartGoalPairValid, nb::arg("start"), nb::arg("goal"))
-        .def("print",
+        .def("__repr__",
              [](const ob::Goal &g)
              {
                  std::ostringstream oss;

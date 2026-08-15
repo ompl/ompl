@@ -1,5 +1,6 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/string.h>
 #include <sstream>
 
 #include "ompl/control/spaces/DiscreteControlSpace.h"
@@ -29,7 +30,13 @@ void ompl::binding::control::initSpaces_DiscreteControlSpace(nb::module_ &m)
         .def("nullControl", &oc::DiscreteControlSpace::nullControl, nb::arg("control"))
         .def("allocDefaultControlSampler", &oc::DiscreteControlSpace::allocDefaultControlSampler)
         .def(
-            "printControl", [](const oc::DiscreteControlSpace &space, const oc::Control *ctrl)
-            { space.printControl(ctrl, std::cout); }, nb::arg("control"))
+            "printControl",
+            [](const oc::DiscreteControlSpace &space, const oc::Control *ctrl)
+            {
+                std::ostringstream oss;
+                space.printControl(ctrl, oss);
+                return oss.str();
+            },
+            nb::arg("control"))
         .def("setup", &oc::DiscreteControlSpace::setup);
 }

@@ -251,8 +251,8 @@ def test_optimization_objective_virtuals():
 
     assert obj.isSymmetric()
     assert not obj.isSatisfied(identity)
-    assert isinstance(obj.print(), str)
-    assert obj.print() != ""
+    assert isinstance(repr(obj), str)
+    assert repr(obj) != ""
 
 
 def test_optimization_objective_subclass_falls_through():

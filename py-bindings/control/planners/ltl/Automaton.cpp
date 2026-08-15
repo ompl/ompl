@@ -2,7 +2,6 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
-#include <iostream>
 #include <sstream>
 
 #include "ompl/control/planners/ltl/Automaton.h"
@@ -27,7 +26,13 @@ void ompl::binding::control::initPlannersLtl_Automaton(nb::module_ &m)
         .def("numTransitions", &oc::Automaton::numTransitions)
         .def("numProps", &oc::Automaton::numProps)
         .def("distFromAccepting", &oc::Automaton::distFromAccepting, nb::arg("s"))
-        .def("print", [](const oc::Automaton &a) { a.print(std::cout); })
+        .def("__repr__",
+             [](const oc::Automaton &a)
+             {
+                 std::ostringstream oss;
+                 a.print(oss);
+                 return oss.str();
+             })
         .def_static("AcceptingAutomaton", &oc::Automaton::AcceptingAutomaton, nb::arg("numProps"))
         .def_static(
             "CoverageAutomaton",

@@ -146,7 +146,7 @@ def test_planner_virtuals():
     assert data.numVertices() > 0
 
     assert "RRT" in planner.printProperties()
-    assert planner.printSettings() != ""
+    assert repr(planner) != ""
 
 
 if __name__ == "__main__":

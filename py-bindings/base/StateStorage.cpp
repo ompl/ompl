@@ -34,7 +34,7 @@ void ompl::binding::base::init_StateStorage(nb::module_ &m)
              nb::arg("after"))
         .def("getStateSamplerAllocatorRange", &ob::StateStorage::getStateSamplerAllocatorRange, nb::arg("from"),
              nb::arg("to"))
-        .def("print",
+        .def("__repr__",
              [](const ob::StateStorage &storage)
              {
                  std::ostringstream oss;
