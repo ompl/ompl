@@ -137,11 +137,30 @@ bool VanaOwenStateSpace::isValid(DubinsStateSpace::PathType const &path, StateTy
     // 1. path of type CCC (i.e., RLR or LRL)
     // 2. pitch smaller than minPitch_
     // 3. pitch greater than maxPitch_
-    if ((path.type_->at(1) != DubinsStateSpace::DUBINS_STRAIGHT) ||
-        (path.type_->at(0) == DubinsStateSpace::DUBINS_RIGHT && state->pitch() - path.length_[0] < minPitch_) ||
-        (path.type_->at(0) == DubinsStateSpace::DUBINS_LEFT && state->pitch() + path.length_[0] > maxPitch_))
+    if ((path.type_->at(1) != DubinsStateSpace::DUBINS_STRAIGHT))
     {
         return false;
+    }
+    double pitch = state->pitch();
+    // the middle segment (i=1) is always straight, so no pitch change there
+    for (std::size_t i = 0; i < 3; i += 2)
+    {
+        if (path.type_->at(i) == DubinsStateSpace::DUBINS_RIGHT)
+        {
+            pitch -= path.length_[i];
+            if (pitch < minPitch_)
+            {
+                return false;
+            }
+        }
+        else  // path.type_->at(i) == DubinsStateSpace::DUBINS_LEFT
+        {
+            pitch += path.length_[i];
+            if (pitch > maxPitch_)
+            {
+                return false;
+            }
+        }
     }
 
     return true;
