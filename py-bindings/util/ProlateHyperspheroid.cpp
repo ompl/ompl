@@ -15,10 +15,9 @@ namespace
     void requireDimension(const std::vector<double> &values, unsigned int expected, const char *what)
     {
         if (values.size() != expected)
-            throw nb::value_error(
-                ("ProlateHyperspheroid: " + std::string(what) + " must have " + std::to_string(expected) +
-                 " elements, got " + std::to_string(values.size()))
-                    .c_str());
+            throw nb::value_error(("ProlateHyperspheroid: " + std::string(what) + " must have " +
+                                   std::to_string(expected) + " elements, got " + std::to_string(values.size()))
+                                      .c_str());
     }
 }  // namespace
 
