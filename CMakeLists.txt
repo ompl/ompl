@@ -94,7 +94,7 @@ if(OMPL_BUILD_PYTHON_BINDINGS)
     if(OMPL_HAVE_NANOBIND)
         add_subdirectory(py-bindings)
     else()
-        message(WARNING "OMPL_BUILD_PYTHON_BINDINGS is ON but Nanobind is not found. Use git submodule update --init --recursive to initialize the Nanobind submodule.")
+        message(WARNING "OMPL_BUILD_PYTHON_BINDINGS is ON but Nanobind is not found. Install nanobind or use git submodule update --init --recursive to initialize the Nanobind submodule.")
     endif()
 endif()
 
