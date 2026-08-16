@@ -48,6 +48,10 @@ ompl::geometric::RRTConnect::RRTConnect(const base::SpaceInformationPtr &si, boo
     Planner::declareParam<double>("range", this, &RRTConnect::setRange, &RRTConnect::getRange, "0.:1.:10000.");
     Planner::declareParam<bool>("intermediate_states", this, &RRTConnect::setIntermediateStates,
                                 &RRTConnect::getIntermediateStates, "0,1");
+    Planner::declareParam<bool>("balance_tree_sizes", this, &RRTConnect::setBalanceTreeSizes,
+                                &RRTConnect::getBalanceTreeSizes, "0,1");
+    Planner::declareParam<double>("max_tree_size_ratio", this, &RRTConnect::setMaxTreeSizeRatio,
+                                  &RRTConnect::getMaxTreeSizeRatio, "0.:0.1:10.");
 
     connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
     distanceBetweenTrees_ = std::numeric_limits<double>::infinity();
@@ -244,9 +248,36 @@ ompl::base::PlannerStatus ompl::geometric::RRTConnect::solve(const base::Planner
 
     while (!ptc)
     {
+        // Tree balancing heuristic: preferentially extend the smaller tree to keep trees balanced
+        // This helps prevent one tree from dominating exploration (recommended by Kuffner)
+        if (balanceTreeSizes_ && tStart_->size() > 0 && tGoal_->size() > 0)
+        {
+            std::size_t startSize = tStart_->size();
+            std::size_t goalSize = tGoal_->size();
+            double sizeRatio = std::abs(static_cast<double>(startSize) - static_cast<double>(goalSize)) / 
+                              static_cast<double>(std::max(startSize, goalSize));
+            
+            // Only swap if size difference is acceptable (ratio < threshold)
+            // Otherwise, keep extending the smaller tree
+            if (sizeRatio >= maxTreeSizeRatio_)
+            {
+                // Trees are imbalanced - extend the smaller tree
+                startTree_ = (startSize < goalSize);
+            }
+            else
+            {
+                // Trees are balanced enough - alternate as usual
+                startTree_ = !startTree_;
+            }
+        }
+        else
+        {
+            // Balancing disabled or one tree is empty - alternate as usual
+            startTree_ = !startTree_;
+        }
+        
         TreeData &tree = startTree_ ? tStart_ : tGoal_;
         tgi.start = startTree_;
-        startTree_ = !startTree_;
         TreeData &otherTree = startTree_ ? tStart_ : tGoal_;
 
         if (tGoal_->size() == 0 || pis_.getSampledGoalsCount() < tGoal_->size() / 2)
