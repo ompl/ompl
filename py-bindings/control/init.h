@@ -18,6 +18,7 @@ namespace ompl::binding::control
     void initPlannersPdst_PDST(nanobind::module_ &m);
     void initPlannersRrt_RRT(nanobind::module_ &m);
     void initPlannersSst_SST(nanobind::module_ &m);
+    void initPlannersSst_SSTstar(nanobind::module_ &m);
     void initPlannersSyclop_Decomposition(nanobind::module_ &m);
     void initPlannersSyclop_GridDecomposition(nanobind::module_ &m);
     void initPlannersSyclop_Syclop(nanobind::module_ &m);
