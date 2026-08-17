@@ -1,44 +1,85 @@
+#include <atomic>
 #include <limits>
 #include <nanobind/nanobind.h>
-#include <nanobind/stl/function.h>
 #include <nanobind/stl/shared_ptr.h>
 
 #include "ompl/base/goals/GoalStates.h"
 #include "ompl/base/goals/GoalLazySamples.h"
+#include "PyGC.h"
 #include "../init.h"
 
 namespace nb = nanobind;
+namespace gc = ompl::binding::gc;
 namespace ob = ompl::base;
 
 namespace
 {
-    ob::GoalSamplingFn wrapGoalSamplingFn(ob::GoalSamplingFn fn)
+    /// Holds the Python callbacks in members rather than inside the std::functions GoalLazySamples stores.
+    /// A callable handed to those through nanobind's caster stays alive on a bare Py_INCREF the collector
+    /// cannot see, so a sampler that reaches back to its own goal -- a bound method, a closure over the
+    /// SpaceInformation -- could never be collected.
+    struct PyGoalLazySamples : ob::GoalLazySamples
     {
-        return [fn = std::move(fn)](const ob::GoalLazySamples *gls, ob::State *state) -> bool
-        {
-            nb::gil_scoped_acquire gil;
-            return fn(gls, state);
-        };
-    }
+        nb::object sampler;
+        nb::object newStateCallback;
+        nb::handle wrapper;
+        std::atomic<bool> dying{false};
 
-    ob::GoalLazySamples::NewStateCallbackFn wrapNewStateCallback(ob::GoalLazySamples::NewStateCallbackFn fn)
-    {
-        return [fn = std::move(fn)](const ob::State *state)
+        PyGoalLazySamples(const ob::SpaceInformationPtr &si, nb::object fn, bool autoStart, double minDist)
+          : ob::GoalLazySamples(
+                si,
+                [this](const ob::GoalLazySamples *, ob::State *state)
+                {
+                    nb::gil_scoped_acquire gil;
+                    // Cleared by tp_clear, or the destructor is waiting on this thread. Either way, report
+                    // exhaustion and let the sampling thread wind down.
+                    if (dying.load(std::memory_order_relaxed) || !sampler.is_valid())
+                        return false;
+                    return nb::cast<bool>(sampler(wrapper, state));
+                },
+                // Deferred: the base constructor starts the sampling thread, which would call the sampler
+                // before the member holding it is initialised.
+                false, minDist)
+          , sampler(std::move(fn))
         {
-            nb::gil_scoped_acquire gil;
-            fn(state);
-        };
-    }
+            // Borrowed on purpose. This object lives inside its Python wrapper, so the wrapper outlives it and
+            // an owning reference would be a cycle nothing could break -- and a reference taken per sampling
+            // pass would hand the last one to the sampling thread, moving destruction (and the join below)
+            // onto the very thread being joined.
+            wrapper = nb::find(*this);
+            if (!wrapper.is_valid())
+                wrapper = nb::handle(Py_None);
+            if (autoStart)
+                startSampling();
+        }
+
+        ~PyGoalLazySamples() override
+        {
+            // ~GoalLazySamples() joins the sampling thread too, but only once these members are gone, so the
+            // wait has to happen here while they are still alive. `dying` stops the thread from reaching for
+            // the Python wrapper, which is already being deallocated; the GIL has to be released because the
+            // thread needs it to finish the pass it is on before it can see the termination flag.
+            dying.store(true, std::memory_order_relaxed);
+            nb::gil_scoped_release release;
+            stopSampling();
+        }
+
+        // The stored callbacks capture `this`.
+        PyGoalLazySamples(const PyGoalLazySamples &) = delete;
+        PyGoalLazySamples &operator=(const PyGoalLazySamples &) = delete;
+    };
 }  // namespace
 
 void ompl::binding::base::initGoals_GoalLazySamples(nb::module_ &m)
 {
-    nb::class_<ob::GoalLazySamples, ob::GoalStates>(m, "GoalLazySamples")
+    nb::class_<PyGoalLazySamples, ob::GoalStates>(
+        m, "GoalLazySamples",
+        nb::type_slots(
+            gc::gcSlots<PyGoalLazySamples, &PyGoalLazySamples::sampler, &PyGoalLazySamples::newStateCallback>))
         .def(
             "__init__",
-            [](ob::GoalLazySamples *self, const ob::SpaceInformationPtr &si, ob::GoalSamplingFn samplerFunc,
-               bool autoStart, double minDist)
-            { new (self) ob::GoalLazySamples(si, wrapGoalSamplingFn(std::move(samplerFunc)), autoStart, minDist); },
+            [](PyGoalLazySamples *self, const ob::SpaceInformationPtr &si, nb::callable samplerFunc, bool autoStart,
+               double minDist) { new (self) PyGoalLazySamples(si, std::move(samplerFunc), autoStart, minDist); },
             nb::arg("si"), nb::arg("samplerFunc"), nb::arg("autoStart") = true,
             nb::arg("minDist") = std::numeric_limits<double>::epsilon())
         .def("sampleGoal", &ob::GoalLazySamples::sampleGoal, nb::arg("state"))
@@ -46,7 +87,9 @@ void ompl::binding::base::initGoals_GoalLazySamples(nb::module_ &m)
         .def("addState", &ob::GoalLazySamples::addState, nb::arg("state"))
         .def("maxSampleCount", &ob::GoalLazySamples::maxSampleCount)
         .def("startSampling", &ob::GoalLazySamples::startSampling)
-        .def("stopSampling", &ob::GoalLazySamples::stopSampling)
+        // Joining the sampling thread while holding the GIL would deadlock: the thread needs it to call the
+        // sampler one last time before it can see the termination flag.
+        .def("stopSampling", &ob::GoalLazySamples::stopSampling, nb::call_guard<nb::gil_scoped_release>())
         .def("isSampling", &ob::GoalLazySamples::isSampling)
         .def("samplingAttemptsCount", &ob::GoalLazySamples::samplingAttemptsCount,
              "Total calls to the sampler function so far.")
@@ -54,8 +97,19 @@ void ompl::binding::base::initGoals_GoalLazySamples(nb::module_ &m)
              "Require new samples to be at least this far from all existing ones.")
         .def("getMinNewSampleDistance", &ob::GoalLazySamples::getMinNewSampleDistance)
         .def(
-            "setNewStateCallback", [](ob::GoalLazySamples &gls, ob::GoalLazySamples::NewStateCallbackFn callback)
-            { gls.setNewStateCallback(wrapNewStateCallback(std::move(callback))); }, nb::arg("callback"))
+            "setNewStateCallback",
+            [](PyGoalLazySamples &gls, nb::callable callback)
+            {
+                gls.newStateCallback = std::move(callback);
+                gls.setNewStateCallback(
+                    [&gls](const ob::State *state)
+                    {
+                        nb::gil_scoped_acquire gil;
+                        if (gls.newStateCallback.is_valid())
+                            gls.newStateCallback(state);
+                    });
+            },
+            nb::arg("callback"))
         .def("addStateIfDifferent", &ob::GoalLazySamples::addStateIfDifferent, nb::arg("state"), nb::arg("minDistance"))
         .def("couldSample", &ob::GoalLazySamples::couldSample)
         .def("hasStates", &ob::GoalLazySamples::hasStates)
