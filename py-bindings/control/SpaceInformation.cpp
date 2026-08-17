@@ -124,10 +124,14 @@ void ompl::binding::control::init_SpaceInformation(nb::module_ &m)
             [](oc::SpaceInformation &si, nb::callable sp)
             {
                 // See PyGC.h: the strong reference belongs in __dict__, not inside the std::function.
-                nb::object keeper = gc::stash(nb::find(si), "_prop", sp);
+                nb::handle self = nb::find(si);
+                nb::object keeper = gc::keeper(self, sp);
                 si.setStatePropagator([fn = nb::handle(sp), keeper](const ob::State *state, const oc::Control *control,
                                                                     double duration, ob::State *result)
                                       { fn(state, control, duration, result); });
+                // Only now: publishing first would drop the previous callback while OMPL still borrows it.
+                if (self.is_valid())
+                    nb::setattr(self, "_prop", sp);
             },
             nb::arg("sp"))
         .def(
@@ -141,8 +145,8 @@ void ompl::binding::control::init_SpaceInformation(nb::module_ &m)
                     // An owning shared_ptr would make nanobind's caster incref sp untracked, pinning whatever
                     // the propagator holds -- an ODEStatePropagator owns the Python solver. __dict__ keeps it
                     // alive instead, visibly to the collector.
-                    nb::setattr(self, "_prop", sp);
                     si.setStatePropagator(oc::StatePropagatorPtr(prop, [](oc::StatePropagator *) {}));
+                    nb::setattr(self, "_prop", sp);
                 }
                 else
                     si.setStatePropagator(nb::cast<oc::StatePropagatorPtr>(nb::find(*prop)));

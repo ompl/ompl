@@ -64,16 +64,15 @@ namespace ompl::binding::gc
                              {Py_tp_clear, (void *)clear<T, Members...>},
                              {0, 0}};
 
-    /// Moves the strong reference to \e fn into \e owner's __dict__ under \e key, so the owner's tp_traverse
-    /// can report it and its tp_clear can drop it. The functor handed to OMPL should capture a borrowed
-    /// nb::handle plus the returned object, which is empty on success and only non-empty in the unlikely case
-    /// that \e owner has no Python instance to stash on -- there, owning the callable leaks but does not dangle.
-    inline nb::object stash(nb::handle owner, const char *key, nb::handle fn)
+    /// The reference C++ has to keep for itself: empty when \e owner can hold it in __dict__ instead, where
+    /// tp_traverse reports it and tp_clear drops it. Non-empty only when \e owner has no Python instance to
+    /// stash on, where owning the callable leaks but does not dangle.
+    ///
+    /// Capture the result alongside a borrowed nb::handle in the functor handed to OMPL, install that functor,
+    /// and only then write \e fn to __dict__. Publishing first would drop the previous callback while OMPL
+    /// still borrows it, and a __del__ that re-enters the binding would read freed memory.
+    inline nb::object keeper(nb::handle owner, nb::handle fn)
     {
-        if (!owner.is_valid())
-            return nb::borrow(fn);
-
-        nb::setattr(owner, key, fn);
-        return nb::object();
+        return owner.is_valid() ? nb::object() : nb::borrow(fn);
     }
 }  // namespace ompl::binding::gc
