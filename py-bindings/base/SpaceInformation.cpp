@@ -94,18 +94,12 @@ void ompl::binding::base::init_SpaceInformation(nb::module_ &m)
             nb::arg("svc"))
         .def("setStateValidityChecker",
             [](ompl::base::SpaceInformation &si, ompl::base::StateValidityChecker *checker) {
-                nb::handle self = nb::find(si);
-                nb::handle svc = nb::find(*checker);
-                if (self.is_valid() && svc.is_valid()) {
-                    // An owning shared_ptr would carry a py_deleter reference to svc that the collector
-                    // cannot see, making svc a GC root and pinning everything it reaches. __dict__ holds it
-                    // instead, so tp_traverse reports it exactly once and tp_clear can drop it.
-                    si.setStateValidityChecker(ompl::base::StateValidityCheckerPtr(
-                        checker, [](ompl::base::StateValidityChecker *) {}));
-                    nb::setattr(self, "_svc", svc);
-                }
-                else
-                    si.setStateValidityChecker(nb::cast<ompl::base::StateValidityCheckerPtr>(nb::find(*checker)));
+                // An owning shared_ptr would carry a py_deleter reference to the checker that the collector
+                // cannot see, making it a GC root and pinning everything it reaches. __dict__ holds it
+                // instead, so tp_traverse reports it exactly once and tp_clear can drop it.
+                gc::installBorrowed<ompl::base::StateValidityCheckerPtr>(
+                    nb::find(si), "_svc", checker,
+                    [&si](const ompl::base::StateValidityCheckerPtr &svc) { si.setStateValidityChecker(svc); });
             },
             nb::arg("svc"))
         .def("getStateValidityChecker", &ompl::base::SpaceInformation::getStateValidityChecker)

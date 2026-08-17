@@ -75,4 +75,23 @@ namespace ompl::binding::gc
     {
         return owner.is_valid() ? nb::object() : nb::borrow(fn);
     }
+
+    /// Hands \e obj to OMPL through \e set without letting C++ own the only reference to its Python wrapper:
+    /// \e owner keeps that wrapper in __dict__ under \e key, where tp_traverse reports it and tp_clear drops
+    /// it, and OMPL gets a non-owning alias. With no owner to stash on, C++ owns the wrapper instead, which
+    /// leaks but does not dangle. With no wrapper at all \e obj is pure C++ and there is nothing to keep alive.
+    template <typename Ptr, typename T, typename Setter>
+    void installBorrowed(nb::handle owner, const char *key, T *obj, Setter set)
+    {
+        nb::object wrapper = nb::find(*obj);
+        if (owner.is_valid() && wrapper.is_valid())
+        {
+            set(Ptr(obj, [](T *) {}));
+            nb::setattr(owner, key, wrapper);
+        }
+        else if (wrapper.is_valid())
+            set(nb::cast<Ptr>(wrapper));
+        else
+            set(Ptr(obj, [](T *) {}));
+    }
 }  // namespace ompl::binding::gc

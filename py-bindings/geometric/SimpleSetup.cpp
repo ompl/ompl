@@ -202,15 +202,9 @@ void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m)
          [](og::SimpleSetup &ss, ompl::base::StateValidityChecker *checker) {
              // See PyGC.h: an owning shared_ptr would pin the checker behind a py_deleter reference the
              // collector cannot see, so __dict__ holds it and C++ only aliases it.
-             nb::handle self = nb::find(ss);
-             nb::handle svc = nb::find(*checker);
-             if (self.is_valid() && svc.is_valid()) {
-                 ss.setStateValidityChecker(
-                     ompl::base::StateValidityCheckerPtr(checker, [](ompl::base::StateValidityChecker *) {}));
-                 nb::setattr(self, "_svc", svc);
-             }
-             else
-                 ss.setStateValidityChecker(nb::cast<ompl::base::StateValidityCheckerPtr>(nb::find(*checker)));
+             gc::installBorrowed<ompl::base::StateValidityCheckerPtr>(
+                 nb::find(ss), "_svc", checker,
+                 [&ss](const ompl::base::StateValidityCheckerPtr &svc) { ss.setStateValidityChecker(svc); });
          },
           nb::arg("svc"))
 

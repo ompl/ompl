@@ -188,16 +188,9 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
             {
                 // See PyGC.h: an owning shared_ptr would pin the checker behind a py_deleter reference the
                 // collector cannot see, so __dict__ holds it and C++ only aliases it.
-                nb::handle self = nb::find(ss);
-                nb::handle svc = nb::find(*checker);
-                if (self.is_valid() && svc.is_valid())
-                {
-                    ss.setStateValidityChecker(
-                        ompl::base::StateValidityCheckerPtr(checker, [](ompl::base::StateValidityChecker *) {}));
-                    nb::setattr(self, "_svc", svc);
-                }
-                else
-                    ss.setStateValidityChecker(nb::cast<ompl::base::StateValidityCheckerPtr>(nb::find(*checker)));
+                gc::installBorrowed<ompl::base::StateValidityCheckerPtr>(
+                    nb::find(ss), "_svc", checker,
+                    [&ss](const ompl::base::StateValidityCheckerPtr &svc) { ss.setStateValidityChecker(svc); });
             },
             nb::arg("svc"))
 
@@ -206,17 +199,11 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
             "setStatePropagator",
             [](oc::SimpleSetup &ss, oc::StatePropagator *prop)
             {
-                nb::handle self = nb::find(ss);
-                nb::handle sp = nb::find(*prop);
-                if (self.is_valid() && sp.is_valid())
-                {
-                    // See the same overload on control::SpaceInformation: an owning shared_ptr would pin
-                    // everything the propagator holds behind a reference the collector cannot see.
-                    ss.setStatePropagator(oc::StatePropagatorPtr(prop, [](oc::StatePropagator *) {}));
-                    nb::setattr(self, "_prop", sp);
-                }
-                else
-                    ss.setStatePropagator(nb::cast<oc::StatePropagatorPtr>(nb::find(*prop)));
+                // See the same overload on control::SpaceInformation: an owning shared_ptr would pin
+                // everything the propagator holds behind a reference the collector cannot see.
+                gc::installBorrowed<oc::StatePropagatorPtr>(nb::find(ss), "_prop", prop,
+                                                            [&ss](const oc::StatePropagatorPtr &sp)
+                                                            { ss.setStatePropagator(sp); });
             },
             nb::arg("sp"))
         .def(

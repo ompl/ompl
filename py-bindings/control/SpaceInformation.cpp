@@ -138,18 +138,12 @@ void ompl::binding::control::init_SpaceInformation(nb::module_ &m)
             "setStatePropagator",
             [](oc::SpaceInformation &si, oc::StatePropagator *prop)
             {
-                nb::handle self = nb::find(si);
-                nb::handle sp = nb::find(*prop);
-                if (self.is_valid() && sp.is_valid())
-                {
-                    // An owning shared_ptr would make nanobind's caster incref sp untracked, pinning whatever
-                    // the propagator holds -- an ODEStatePropagator owns the Python solver. __dict__ keeps it
-                    // alive instead, visibly to the collector.
-                    si.setStatePropagator(oc::StatePropagatorPtr(prop, [](oc::StatePropagator *) {}));
-                    nb::setattr(self, "_prop", sp);
-                }
-                else
-                    si.setStatePropagator(nb::cast<oc::StatePropagatorPtr>(nb::find(*prop)));
+                // An owning shared_ptr would make nanobind's caster incref the propagator untracked, pinning
+                // whatever it holds -- an ODEStatePropagator owns the Python solver. __dict__ keeps it alive
+                // instead, visibly to the collector.
+                gc::installBorrowed<oc::StatePropagatorPtr>(nb::find(si), "_prop", prop,
+                                                            [&si](const oc::StatePropagatorPtr &sp)
+                                                            { si.setStatePropagator(sp); });
             },
             nb::arg("sp"))
 
