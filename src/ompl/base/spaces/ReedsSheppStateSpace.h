@@ -101,6 +101,7 @@ namespace ompl
             }
 
             double distance(const State *state1, const State *state2) const override;
+            double getMaximumExtent() const override;
             unsigned int validSegmentCount(const State *state1, const State *state2) const override
             {
                 return longestValidSegmentCountFactor_ *
