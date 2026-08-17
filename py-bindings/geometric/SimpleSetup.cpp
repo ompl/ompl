@@ -12,9 +12,11 @@
 #include "ompl/base/Planner.h"
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/geometric/PathGeometric.h"
+#include "PyGC.h"
 #include "init.h"
 
 namespace nb = nanobind;
+namespace gc = ompl::binding::gc;
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
@@ -72,13 +74,8 @@ int simple_setup_geometric_tp_traverse(PyObject *self, visitproc visit, void *ar
                 if (h.is_valid())
                     Py_VISIT(h.ptr());
             }
-            // Visit Callbacks stored in dict (if nb::find fails for them)
-            if (dictptr && *dictptr)
-            {
-                PyObject *svc = PyDict_GetItemString(*dictptr, "_svc");
-                if (svc)
-                    Py_VISIT(svc);
-            }
+            // The validity checker lives in __dict__, already visited above. Reporting it again would claim
+            // one more reference than exists and the collector would treat the cycle as externally held.
         }
     }
     catch (...)
@@ -190,17 +187,27 @@ void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m)
 
      // setStateValidityChecker (two overloads)
      .def("setStateValidityChecker",
-         [](og::SimpleSetup &ss, const ompl::base::StateValidityCheckerFn &svc) {
-             ss.setStateValidityChecker(svc);
-             nb::object self = nb::find(nb::cast(&ss));
-             if (self.is_valid()) nb::setattr(self, "_svc", nb::cast(svc));
+         [](og::SimpleSetup &ss, nb::callable svc) {
+             // See PyGC.h: the strong reference belongs in __dict__, not inside the std::function.
+             nb::object keeper = gc::stash(nb::find(ss), "_svc", svc);
+             ss.setStateValidityChecker(
+                 [fn = nb::handle(svc), keeper](const ompl::base::State *state)
+                 { return nb::cast<bool>(fn(state)); });
          },
           nb::arg("svc"))
      .def("setStateValidityChecker",
-         [](og::SimpleSetup &ss, const ompl::base::StateValidityCheckerPtr &svc) {
-             ss.setStateValidityChecker(svc);
-             nb::object self = nb::find(nb::cast(&ss));
-             if (self.is_valid()) nb::setattr(self, "_svc", nb::cast(svc));
+         [](og::SimpleSetup &ss, ompl::base::StateValidityChecker *checker) {
+             // See PyGC.h: an owning shared_ptr would pin the checker behind a py_deleter reference the
+             // collector cannot see, so __dict__ holds it and C++ only aliases it.
+             nb::handle self = nb::find(ss);
+             nb::handle svc = nb::find(*checker);
+             if (self.is_valid() && svc.is_valid()) {
+                 nb::setattr(self, "_svc", svc);
+                 ss.setStateValidityChecker(
+                     ompl::base::StateValidityCheckerPtr(checker, [](ompl::base::StateValidityChecker *) {}));
+             }
+             else
+                 ss.setStateValidityChecker(nb::cast<ompl::base::StateValidityCheckerPtr>(nb::find(*checker)));
          },
           nb::arg("svc"))
 

@@ -1,5 +1,4 @@
 #include <nanobind/nanobind.h>
-#include <nanobind/stl/function.h>
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/shared_ptr.h>
@@ -9,10 +8,49 @@
 #include <sstream>
 
 #include "ompl/base/GenericParam.h"
+#include "PyGC.h"
 #include "init.h"
 
 namespace nb = nanobind;
+namespace gc = ompl::binding::gc;
 namespace ob = ompl::base;
+
+namespace
+{
+    /// Holds the setter and getter in members so the collector can see them; see PyGC.h. Neither is
+    /// recoverable from SpecificParam, which stores them in private std::functions.
+    template <typename T>
+    struct PySpecificParam : ob::SpecificParam<T>
+    {
+        nb::object setter;
+        nb::object getter;
+
+        PySpecificParam(const std::string &name, nb::object set, nb::object get)
+          : ob::SpecificParam<T>(
+                name, [this](T value) { setter(value); },
+                get.is_none() ? typename ob::SpecificParam<T>::GetterFn() :
+                                typename ob::SpecificParam<T>::GetterFn([this] { return nb::cast<T>(getter()); }))
+          , setter(std::move(set))
+          , getter(std::move(get))
+        {
+        }
+
+        // The stored setter and getter capture `this`.
+        PySpecificParam(const PySpecificParam &) = delete;
+        PySpecificParam &operator=(const PySpecificParam &) = delete;
+    };
+
+    template <typename T>
+    void bindParam(nb::module_ &m, const char *name)
+    {
+        using Param = PySpecificParam<T>;
+        nb::class_<Param, ob::GenericParam>(m, name, nb::type_slots(gc::gcSlots<Param, &Param::setter, &Param::getter>))
+            .def(
+                "__init__", [](Param *self, const std::string &paramName, nb::callable setter, nb::object getter)
+                { new (self) Param(paramName, std::move(setter), std::move(getter)); }, nb::arg("name"),
+                nb::arg("setter"), nb::arg("getter") = nb::none());
+    }
+}  // namespace
 
 void ompl::binding::base::init_GenericParam(nb::module_ &m)
 {
@@ -40,22 +78,10 @@ void ompl::binding::base::init_GenericParam(nb::module_ &m)
         .def("setRangeSuggestion", &ob::GenericParam::setRangeSuggestion, nb::arg("rangeSuggestion"))
         .def("getRangeSuggestion", &ob::GenericParam::getRangeSuggestion);
 
-    nb::class_<ob::SpecificParam<bool>, ob::GenericParam>(m, "BoolParam")
-        .def(nb::init<const std::string &, ob::SpecificParam<bool>::SetterFn, ob::SpecificParam<bool>::GetterFn>(),
-             nb::arg("name"), nb::arg("setter"), nb::arg("getter") = ob::SpecificParam<bool>::GetterFn());
-
-    nb::class_<ob::SpecificParam<int>, ob::GenericParam>(m, "IntParam")
-        .def(nb::init<const std::string &, ob::SpecificParam<int>::SetterFn, ob::SpecificParam<int>::GetterFn>(),
-             nb::arg("name"), nb::arg("setter"), nb::arg("getter") = ob::SpecificParam<int>::GetterFn());
-
-    nb::class_<ob::SpecificParam<double>, ob::GenericParam>(m, "DoubleParam")
-        .def(nb::init<const std::string &, ob::SpecificParam<double>::SetterFn, ob::SpecificParam<double>::GetterFn>(),
-             nb::arg("name"), nb::arg("setter"), nb::arg("getter") = ob::SpecificParam<double>::GetterFn());
-
-    nb::class_<ob::SpecificParam<std::string>, ob::GenericParam>(m, "StringParam")
-        .def(nb::init<const std::string &, ob::SpecificParam<std::string>::SetterFn,
-                      ob::SpecificParam<std::string>::GetterFn>(),
-             nb::arg("name"), nb::arg("setter"), nb::arg("getter") = ob::SpecificParam<std::string>::GetterFn());
+    bindParam<bool>(m, "BoolParam");
+    bindParam<int>(m, "IntParam");
+    bindParam<double>(m, "DoubleParam");
+    bindParam<std::string>(m, "StringParam");
 
     nb::class_<ob::ParamSet>(m, "ParamSet")
         .def(nb::init<>())

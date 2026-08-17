@@ -12,16 +12,18 @@
 #include "ompl/control/Control.h"
 #include "ompl/control/StatePropagator.h"
 #include "ompl/base/SpaceInformation.h"  // ensure the base class is included
+#include "PyGC.h"
 #include "init.h"
 
 namespace nb = nanobind;
+namespace gc = ompl::binding::gc;
 namespace ob = ompl::base;
 namespace oc = ompl::control;
 
 // Helper dictionary access
 static PyObject **get_dict_ptr(PyObject *obj)
 {
-    return _PyObject_GetDictPtr(obj);
+    return gc::dictPtr(obj);
 }
 
 int control_space_information_tp_traverse(PyObject *self, visitproc visit, void *arg)
@@ -30,54 +32,13 @@ int control_space_information_tp_traverse(PyObject *self, visitproc visit, void 
     if (!nb::inst_ready(self))
         return 0;
 
-    // 1. Visit __dict__
+    // The propagator and the validity checker are stashed in __dict__ by their setters, so visiting the dict
+    // covers both. Reporting them a second time from the C++ side would claim more references than exist and
+    // the collector would keep the cycle alive as if something outside held it.
     PyObject **dictptr = get_dict_ptr(self);
     if (dictptr && *dictptr)
     {
         Py_VISIT(*dictptr);
-    }
-
-    try
-    {
-        auto *si = nb::inst_ptr<oc::SpaceInformation>(self);
-        if (si)
-        {
-            // Visit Propagator
-            auto prop = si->getStatePropagator();
-            if (prop)
-            {
-                nb::handle h = nb::find(prop);
-                if (h.is_valid())
-                {
-                    Py_VISIT(h.ptr());
-                }
-                else if (dictptr && *dictptr)
-                {
-                    PyObject *item = PyDict_GetItemString(*dictptr, "_prop");
-                    if (item)
-                        Py_VISIT(item);
-                }
-            }
-            // Visit SVC (Base)
-            auto svc = si->getStateValidityChecker();
-            if (svc)
-            {
-                nb::handle h = nb::find(svc);
-                if (h.is_valid())
-                {
-                    Py_VISIT(h.ptr());
-                }
-                else if (dictptr && *dictptr)
-                {
-                    PyObject *item = PyDict_GetItemString(*dictptr, "_svc");
-                    if (item)
-                        Py_VISIT(item);
-                }
-            }
-        }
-    }
-    catch (...)
-    {
     }
     return 0;
 }
@@ -160,22 +121,31 @@ void ompl::binding::control::init_SpaceInformation(nb::module_ &m)
         // setStatePropagator
         .def(
             "setStatePropagator",
-            [](oc::SpaceInformation &si, const ompl::control::StatePropagatorFn &sp)
+            [](oc::SpaceInformation &si, nb::callable sp)
             {
-                si.setStatePropagator(sp);
-                nb::object self = nb::find(nb::cast(&si));
-                if (self.is_valid())
-                    nb::setattr(self, "_prop", nb::cast(sp));
+                // See PyGC.h: the strong reference belongs in __dict__, not inside the std::function.
+                nb::object keeper = gc::stash(nb::find(si), "_prop", sp);
+                si.setStatePropagator([fn = nb::handle(sp), keeper](const ob::State *state, const oc::Control *control,
+                                                                    double duration, ob::State *result)
+                                      { fn(state, control, duration, result); });
             },
             nb::arg("sp"))
         .def(
             "setStatePropagator",
-            [](oc::SpaceInformation &si, const oc::StatePropagatorPtr &sp)
+            [](oc::SpaceInformation &si, oc::StatePropagator *prop)
             {
-                si.setStatePropagator(sp);
-                nb::object self = nb::find(nb::cast(&si));
-                if (self.is_valid())
-                    nb::setattr(self, "_prop", nb::cast(sp));
+                nb::handle self = nb::find(si);
+                nb::handle sp = nb::find(*prop);
+                if (self.is_valid() && sp.is_valid())
+                {
+                    // An owning shared_ptr would make nanobind's caster incref sp untracked, pinning whatever
+                    // the propagator holds -- an ODEStatePropagator owns the Python solver. __dict__ keeps it
+                    // alive instead, visibly to the collector.
+                    nb::setattr(self, "_prop", sp);
+                    si.setStatePropagator(oc::StatePropagatorPtr(prop, [](oc::StatePropagator *) {}));
+                }
+                else
+                    si.setStatePropagator(nb::cast<oc::StatePropagatorPtr>(nb::find(*prop)));
             },
             nb::arg("sp"))
 

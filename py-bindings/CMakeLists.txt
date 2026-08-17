@@ -6,6 +6,8 @@ nanobind_add_module(_ompl
     STABLE_ABI
     ${PY_OMPL_SOURCES}
 )
+# So sources in any subdirectory can include the shared PyGC.h helper.
+target_include_directories(_ompl PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Ask Python's sysconfig where 'purelib' lands under CMAKE_INSTALL_PREFIX, then
 # strip the prefix to get a relative path. Matches ament_cmake_python's

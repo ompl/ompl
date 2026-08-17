@@ -174,7 +174,6 @@ NB_MODULE(_ompl, m)
     ompl::binding::control::init_ControlSpace(control);
     ompl::binding::control::init_ControlSpaceTypes(control);
     ompl::binding::control::init_DirectedControlSampler(control);
-    ompl::binding::control::init_ODESolver(control);
     ompl::binding::control::init_PathControl(control);
     ompl::binding::control::init_PlannerData(control);
     ompl::binding::control::init_PlannerDataStorage(control);
@@ -182,6 +181,8 @@ NB_MODULE(_ompl, m)
     ompl::binding::control::init_SimpleSetup(control);
     ompl::binding::control::init_SpaceInformation(control);
     ompl::binding::control::init_StatePropagator(control);
+    // ODEStatePropagator derives from StatePropagator, so that base has to be registered first.
+    ompl::binding::control::init_ODESolver(control);
     ompl::binding::control::init_SteeredControlSampler(control);
     ompl::binding::control::initPlannersEst_EST(control);
     ompl::binding::control::initPlannersKpiece_KPIECE1(control);
