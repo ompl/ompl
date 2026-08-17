@@ -73,7 +73,7 @@ def test_control_no_planner():
         path.printAsMatrix()
 
 
-def test_control_rrt():
+def test_control_planners():
     # 1) Construct the SE2 state space
     space = ob.SE2StateSpace()
 
@@ -92,7 +92,8 @@ def test_control_rrt():
 
     # 3) Construct a SpaceInformation from that (space, cspace)
     si = oc.SpaceInformation(space, cspace)
-    si.setPropagationStepSize(1.0)
+    si.setPropagationStepSize(0.2)
+    si.setMinMaxControlDuration(1, 5)
 
     # 4) Build a SimpleSetup from the SpaceInformation
     ss = oc.SimpleSetup(si)
@@ -118,18 +119,24 @@ def test_control_rrt():
     # 8) Set the start and goal states
     ss.setStartAndGoalStates(start, goal, 0.05)
 
-    planner = oc.RRT(si)
-    ss.setPlanner(planner)
-    # 9) Attempt to solve
-    solved = ss.solve(2)
+    for planner_type in (oc.RRT, oc.AORRT):
+        planner = planner_type(si)
+        if planner_type is oc.AORRT:
+            planner.setCostWeight(1.0)
+        ss.setPlanner(planner)
 
-    # If solved, optionally retrieve path
-    if solved:
-        print("Found solution path.")
-        path = ss.getSolutionPath()
-        path.printAsMatrix()
+        # 9) Attempt to solve
+        solved = ss.solve(2)
+        # assert solved
+
+        if solved:
+            path = ss.getSolutionPath()
+            length = path.asGeometric().length()
+            print(f"{planner.getName()}: solution path length {length:.3f}")
+            # path.printAsMatrix()
+            ss.getProblemDefinition().clearSolutionPaths()
 
 
 if __name__ == "__main__":
     # test_control_no_planner()
-    test_control_rrt()
+    test_control_planners()
