@@ -47,7 +47,7 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
     {
         // We declare an NB_TRAMPOLINE for 6 override slots (the number of virtual methods we plan to override).
         // printProperties()/printSettings() are not among them: std::ostream has no caster, so a Python override
-        // could never be called. Python subclasses customise their text via __repr__ instead.
+        // could never be called.
         NB_TRAMPOLINE(ob::Planner, 6);
 
         // The pure virtual function: solve(...)
@@ -115,7 +115,7 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
                  p.printProperties(oss);
                  return oss.str();
              })
-        .def("__repr__",
+        .def("printSettings",
              [](const ob::Planner &p)
              {
                  std::ostringstream oss;
