@@ -93,3 +93,20 @@ Although almost all C++ functionality is exposed to Python, there are some cavea
 
 - C++ threads and python code don't mix well. If you have multi-threaded C++ code where multiple threads can call the Python interpreter at the same time, then this can lead to deadlocks or crashes. This is because in python only one thread can execute code, unless a free-threaded version of python is used, see the [Nanobind thread guide](https://nanobind.readthedocs.io/en/latest/free_threaded.html) for a longer discussion.
 - Just because you \em can create Python classes that derive from C++ classes, this doesn't mean it is a good idea. You pay a performance penalty each time your code crosses the Python-C++ barrier (objects may need to be copied, locks acquired, etc.). This means that it is an especially bad idea to override low-level classes. For low-level functionality it is best to stick to the built-in OMPL functionality and use just the callback functions (e.g., for state validation and state propagation). It is also highly recommended to use the ompl::geometric::SimpleSetup and ompl::control::SimpleSetup classes rather than the lower-level classes for that same reason.
+
+### Excluded from Python bindings {#py_excluded_bindings}
+
+The following C++ APIs are intentionally **not** exposed to Python because they spawn background threads or call into Python without GIL management, which can deadlock or crash the interpreter:
+
+| Class | Module | Reason |
+| ----- | ------ | ------ |
+| `ParallelPlan` | tools | Spawns `std::thread` per planner |
+| `OptimizePlan` | tools | Wraps `ParallelPlan` |
+| `CForest`, `CForestStateSpaceWrapper`, `CForestStateSampler` | geometric | Multi-threaded planner pool |
+| `pRRT` | geometric | Parallel RRT threads |
+| `pSBL` | geometric | Parallel SBL threads |
+| `AnytimePathShortening` | geometric | Parallel planner pool |
+| `Lightning`, `Thunder`, `ExperienceSetup` | tools | Internally use `ParallelPlan` |
+| `Profiler`, `PlannerMonitor` | tools | Background monitor threads |
+
+**Bindable with caution:** `Benchmark` (already bound) and multithreaded roadmap planners such as `LazyPRM`, `SPARS`, and `SPARStwo` may use optional solution-check threads. Avoid Python `StateValidityChecker` trampolines during benchmark runs or when those threads are active.

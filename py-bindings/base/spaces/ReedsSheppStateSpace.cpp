@@ -1,7 +1,6 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
-#include "ompl/base/spaces/DubinsMotionValidator.h"
 #include "ompl/base/SpaceInformation.h"
 #include "../init.h"
 
@@ -26,7 +25,4 @@ void ompl::binding::base::initSpaces_ReedsSheppStateSpace(nb::module_ &m)
         .def("getPath", &ob::ReedsSheppStateSpace::getPath)
         .def("validSegmentCount", &ob::ReedsSheppStateSpace::validSegmentCount)
         .def("allocState", &ob::ReedsSheppStateSpace::allocState);
-
-    nb::class_<ob::DubinsMotionValidator<ob::ReedsSheppStateSpace>, ob::MotionValidator>(m, "ReedsSheppMotionValidator")
-        .def(nb::init<ob::SpaceInformation *>());
 }

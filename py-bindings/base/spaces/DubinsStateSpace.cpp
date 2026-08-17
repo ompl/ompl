@@ -1,7 +1,6 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
 #include "ompl/base/spaces/DubinsStateSpace.h"
-#include "ompl/base/spaces/DubinsMotionValidator.h"
 #include "ompl/base/SpaceInformation.h"
 #include "../init.h"
 
@@ -30,7 +29,4 @@ void ompl::binding::base::initSpaces_DubinsStateSpace(nb::module_ &m)
         .def("hasSymmetricInterpolate", &ob::DubinsStateSpace::hasSymmetricInterpolate)
         .def("validSegmentCount", &ob::DubinsStateSpace::validSegmentCount)
         .def("allocState", &ob::DubinsStateSpace::allocState);
-
-    nb::class_<ob::DubinsMotionValidator<ob::DubinsStateSpace>, ob::MotionValidator>(m, "DubinsMotionValidator")
-        .def(nb::init<ob::SpaceInformation *>());
 }

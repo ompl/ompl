@@ -47,9 +47,9 @@ void ompl::binding::base::init_ProblemDefinition(nb::module_ &m)
 
         // getStartState overloads.
         .def("getStartState", nb::overload_cast<unsigned int>
-             (&ompl::base::ProblemDefinition::getStartState, nb::const_))
+             (&ompl::base::ProblemDefinition::getStartState, nb::const_), nb::rv_policy::reference_internal)
         .def("getStartState", nb::overload_cast<unsigned int>
-             (&ompl::base::ProblemDefinition::getStartState))
+             (&ompl::base::ProblemDefinition::getStartState), nb::rv_policy::reference_internal)
 
         // setGoal and clearGoal
         .def("setGoal", &ompl::base::ProblemDefinition::setGoal)
@@ -65,7 +65,7 @@ void ompl::binding::base::init_ProblemDefinition(nb::module_ &m)
             std::vector<const ompl::base::State*> states;
             pd.getInputStates(states);
             return states;
-        })
+        }, nb::rv_policy::reference_internal)
 
         // setStartAndGoalStates (State* version) with default threshold.
         .def("setStartAndGoalStates", nb::overload_cast<const ompl::base::State*, const ompl::base::State*, double>

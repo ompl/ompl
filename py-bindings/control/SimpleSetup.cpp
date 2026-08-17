@@ -15,9 +15,11 @@
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/base/OptimizationObjective.h"
 
+#include "PyGC.h"
 #include "init.h"
 
 namespace nb = nanobind;
+namespace gc = ompl::binding::gc;
 namespace oc = ompl::control;
 namespace ob = ompl::base;
 
@@ -77,17 +79,9 @@ int simple_setup_tp_traverse(PyObject *self, visitproc visit, void *arg)
                 if (h.is_valid())
                     Py_VISIT(h.ptr());
             }
-            // Visit Callbacks stored in dict (if nb::find fails for them, though SS delegates to SI usually)
-            // But SS also overrides setStateValidityChecker.
-            if (dictptr && *dictptr)
-            {
-                PyObject *svc = PyDict_GetItemString(*dictptr, "_svc");
-                if (svc)
-                    Py_VISIT(svc);
-                PyObject *prop = PyDict_GetItemString(*dictptr, "_prop");
-                if (prop)
-                    Py_VISIT(prop);
-            }
+            // The validity checker and the propagator live in __dict__, already visited above. Reporting them
+            // again would claim more references than exist and the collector would treat the cycle as
+            // externally held.
         }
     }
     catch (...)
@@ -176,44 +170,54 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
         // setStateValidityChecker (two overloads)
         .def(
             "setStateValidityChecker",
-            [](oc::SimpleSetup &ss, const ompl::base::StateValidityCheckerFn &svc)
+            [](oc::SimpleSetup &ss, nb::callable svc)
             {
-                ss.setStateValidityChecker(svc);
-                nb::object self = nb::find(nb::cast(&ss));
+                // See PyGC.h: the strong reference belongs in __dict__, not inside the std::function.
+                nb::handle self = nb::find(ss);
+                nb::object keeper = gc::keeper(self, svc);
+                ss.setStateValidityChecker([fn = nb::handle(svc), keeper](const ompl::base::State *state)
+                                           { return nb::cast<bool>(fn(state)); });
+                // Only now: publishing first would drop the previous callback while OMPL still borrows it.
                 if (self.is_valid())
-                    nb::setattr(self, "_svc", nb::cast(svc));
+                    nb::setattr(self, "_svc", svc);
             },
             nb::arg("svc"))
         .def(
             "setStateValidityChecker",
-            [](oc::SimpleSetup &ss, const ompl::base::StateValidityCheckerPtr &svc)
+            [](oc::SimpleSetup &ss, ompl::base::StateValidityChecker *checker)
             {
-                ss.setStateValidityChecker(svc);
-                nb::object self = nb::find(nb::cast(&ss));
-                if (self.is_valid())
-                    nb::setattr(self, "_svc", nb::cast(svc));
+                // See PyGC.h: an owning shared_ptr would pin the checker behind a py_deleter reference the
+                // collector cannot see, so __dict__ holds it and C++ only aliases it.
+                gc::installBorrowed<ompl::base::StateValidityCheckerPtr>(
+                    nb::find(ss), "_svc", checker,
+                    [&ss](const ompl::base::StateValidityCheckerPtr &svc) { ss.setStateValidityChecker(svc); });
             },
             nb::arg("svc"))
 
         // setStatePropagator (Ptr and Fn)
         .def(
             "setStatePropagator",
-            [](oc::SimpleSetup &ss, const oc::StatePropagatorPtr &sp)
+            [](oc::SimpleSetup &ss, oc::StatePropagator *prop)
             {
-                ss.setStatePropagator(sp);
-                nb::object self = nb::find(nb::cast(&ss));
-                if (self.is_valid())
-                    nb::setattr(self, "_prop", nb::cast(sp));
+                // See the same overload on control::SpaceInformation: an owning shared_ptr would pin
+                // everything the propagator holds behind a reference the collector cannot see.
+                gc::installBorrowed<oc::StatePropagatorPtr>(nb::find(ss), "_prop", prop,
+                                                            [&ss](const oc::StatePropagatorPtr &sp)
+                                                            { ss.setStatePropagator(sp); });
             },
             nb::arg("sp"))
         .def(
             "setStatePropagator",
-            [](oc::SimpleSetup &ss, const oc::StatePropagatorFn &sp)
+            [](oc::SimpleSetup &ss, nb::callable sp)
             {
-                ss.setStatePropagator(sp);
-                nb::object self = nb::find(nb::cast(&ss));
+                nb::handle self = nb::find(ss);
+                nb::object keeper = gc::keeper(self, sp);
+                ss.setStatePropagator([fn = nb::handle(sp), keeper](
+                                          const ompl::base::State *state, const oc::Control *control, double duration,
+                                          ompl::base::State *result) { fn(state, control, duration, result); });
+                // Only now: publishing first would drop the previous callback while OMPL still borrows it.
                 if (self.is_valid())
-                    nb::setattr(self, "_prop", nb::cast(sp));
+                    nb::setattr(self, "_prop", sp);
             },
             nb::arg("sp"))
 

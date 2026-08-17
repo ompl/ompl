@@ -10,13 +10,15 @@
 #include "ompl/base/State.h"
 #include "ompl/base/StateValidityChecker.h"
 #include "ompl/base/ValidStateSampler.h"
+#include "PyGC.h"
 #include "init.h"
 
 namespace nb = nanobind;
+namespace gc = ompl::binding::gc;
 
 static PyObject **get_dict_ptr(PyObject *obj)
 {
-    return _PyObject_GetDictPtr(obj);
+    return gc::dictPtr(obj);
 }
 
 int space_information_tp_traverse(PyObject *self, visitproc visit, void *arg)
@@ -25,42 +27,13 @@ int space_information_tp_traverse(PyObject *self, visitproc visit, void *arg)
     if (!nb::inst_ready(self))
         return 0;
 
-    // 1. Visit __dict__ (handles references stored in Python attributes)
+    // The validity checker is stashed in __dict__ by its setters, so visiting the dict covers it. Reporting it
+    // a second time from the C++ side would claim more references than exist and the collector would keep the
+    // cycle alive as if something outside held it.
     PyObject **dictptr = get_dict_ptr(self);
     if (dictptr && *dictptr)
     {
         Py_VISIT(*dictptr);
-    }
-
-    try
-    {
-        auto *si = nb::inst_ptr<ompl::base::SpaceInformation>(self);
-        if (si)
-        {
-            auto svc = si->getStateValidityChecker();
-            if (svc)
-            {
-                // 2. Try to visit C++ child via nb::find (works for Python Classes)
-                nb::handle h = nb::find(svc);
-                if (h.is_valid())
-                {
-                    Py_VISIT(h.ptr());
-                }
-                else if (dictptr && *dictptr)
-                {
-                    // 3. If nb::find failed (Lambda), visit the proxy in __dict__ explicitely
-                    // to account for the C++ reference (since Lambda + std::function = 2 refs).
-                    PyObject *item = PyDict_GetItemString(*dictptr, "_svc");
-                    if (item)
-                    {
-                        Py_VISIT(item);
-                    }
-                }
-            }
-        }
-    }
-    catch (...)
-    {
     }
     return 0;
 }
@@ -106,23 +79,27 @@ void ompl::binding::base::init_SpaceInformation(nb::module_ &m)
         .def("enforceBounds", &ompl::base::SpaceInformation::enforceBounds)
         .def("printState", [](const ompl::base::SpaceInformation &si, const ompl::base::State *state) { si.printState(state, std::cout); })
         .def("setStateValidityChecker",
-            [](ompl::base::SpaceInformation &si, const std::function<bool(const ompl::base::State*)> &func) {
-                si.setStateValidityChecker(func);
-                // Store in dict for traversal
-                nb::object self = nb::find(nb::cast(&si)); // Should verify find works for self
-                if (self.is_valid()) {
-                    nb::setattr(self, "_svc", nb::cast(func));
-                }
+            [](ompl::base::SpaceInformation &si, nb::callable func) {
+                // The strong reference lives in __dict__ where tp_clear can drop it; handing OMPL a
+                // std::function built by nanobind's caster would instead keep the callable alive with a
+                // Py_INCREF the collector cannot see, and the cycle could never be broken.
+                nb::handle self = nb::find(si);
+                nb::object keeper = gc::keeper(self, func);
+                si.setStateValidityChecker(
+                    [fn = nb::handle(func), keeper](const ompl::base::State *state)
+                    { return nb::cast<bool>(fn(state)); });
+                // Only now: publishing first would drop the previous callback while OMPL still borrows it.
+                if (self.is_valid()) nb::setattr(self, "_svc", func);
             },
             nb::arg("svc"))
         .def("setStateValidityChecker",
-            [](ompl::base::SpaceInformation &si, const ompl::base::StateValidityCheckerPtr &svc) {
-                si.setStateValidityChecker(svc);
-                 // Store in dict for traversal
-                nb::object self = nb::find(nb::cast(&si));
-                if (self.is_valid()) {
-                    nb::setattr(self, "_svc", nb::cast(svc));
-                }
+            [](ompl::base::SpaceInformation &si, ompl::base::StateValidityChecker *checker) {
+                // An owning shared_ptr would carry a py_deleter reference to the checker that the collector
+                // cannot see, making it a GC root and pinning everything it reaches. __dict__ holds it
+                // instead, so tp_traverse reports it exactly once and tp_clear can drop it.
+                gc::installBorrowed<ompl::base::StateValidityCheckerPtr>(
+                    nb::find(si), "_svc", checker,
+                    [&si](const ompl::base::StateValidityCheckerPtr &svc) { si.setStateValidityChecker(svc); });
             },
             nb::arg("svc"))
         .def("getStateValidityChecker", &ompl::base::SpaceInformation::getStateValidityChecker)

@@ -17,7 +17,7 @@ void ompl::binding::base::init_PlannerData(nb::module_ &m)
         .def(nb::init<const ob::State *, int>(), nb::arg("st"), nb::arg("tag") = 0)
         .def("getTag", &ob::PlannerDataVertex::getTag)
         .def("setTag", &ob::PlannerDataVertex::setTag, nb::arg("tag"))
-        .def("getState", &ob::PlannerDataVertex::getState, nb::rv_policy::reference);
+        .def("getState", &ob::PlannerDataVertex::getState, nb::rv_policy::reference_internal);
 
     // PlannerDataEdge
     nb::class_<ob::PlannerDataEdge>(m, "PlannerDataEdge").def(nb::init<>());
@@ -49,11 +49,11 @@ void ompl::binding::base::init_PlannerData(nb::module_ &m)
         // Vertex lookup
         .def("vertexExists", &ob::PlannerData::vertexExists, nb::arg("v"))
         .def("getVertex", nb::overload_cast<unsigned int>(&ob::PlannerData::getVertex, nb::const_), nb::arg("index"),
-             nb::rv_policy::reference)
+             nb::rv_policy::reference_internal)
         .def("getStartVertex", nb::overload_cast<unsigned int>(&ob::PlannerData::getStartVertex, nb::const_),
-             nb::arg("i"), nb::rv_policy::reference)
+             nb::arg("i"), nb::rv_policy::reference_internal)
         .def("getGoalVertex", nb::overload_cast<unsigned int>(&ob::PlannerData::getGoalVertex, nb::const_),
-             nb::arg("i"), nb::rv_policy::reference)
+             nb::arg("i"), nb::rv_policy::reference_internal)
         .def("getStartIndex", &ob::PlannerData::getStartIndex, nb::arg("i"))
         .def("getGoalIndex", &ob::PlannerData::getGoalIndex, nb::arg("i"))
         .def("isStartVertex", &ob::PlannerData::isStartVertex, nb::arg("index"))
@@ -62,7 +62,7 @@ void ompl::binding::base::init_PlannerData(nb::module_ &m)
         // Edge lookup
         .def("edgeExists", &ob::PlannerData::edgeExists, nb::arg("v1"), nb::arg("v2"))
         .def("getEdge", nb::overload_cast<unsigned int, unsigned int>(&ob::PlannerData::getEdge, nb::const_),
-             nb::arg("v1"), nb::arg("v2"), nb::rv_policy::reference)
+             nb::arg("v1"), nb::arg("v2"), nb::rv_policy::reference_internal)
         .def(
             "getEdges",
             [](const ob::PlannerData &pd, unsigned int v)
