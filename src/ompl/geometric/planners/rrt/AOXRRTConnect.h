@@ -223,11 +223,10 @@ namespace ompl
 
             std::size_t sampleAttempts{0};
 
-            /* Pad rootDist to account for floating point error
-               Needed to make sure the root is included in nearest list
-               TODO: Should use some relative epsilon for padding
-               (FLT_EPSILON is good but does not scale with the magnitude of rootDist and may be too small) */
-            const float rootDistPadding = 0.00001;
+            /** \brief Relative padding factor for rootDist to account for floating point error.
+                Needed to make sure the root is included in nearest list.
+                Uses relative epsilon so it scales with any distance metric */
+            static constexpr double rootDistRelativeEps = 1e-6;
 
             /** \brief The start tree */
             TreeData tStart_;
