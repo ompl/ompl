@@ -53,6 +53,7 @@
 #include <ompl/geometric/planners/fmt/FMT.h>
 #include <ompl/geometric/planners/fmt/BFMT.h>
 #include <ompl/geometric/planners/prm/PRMstar.h>
+#include <ompl/geometric/planners/rrt/GreedyRRTstar.h>
 #include <ompl/geometric/planners/rrt/InformedRRTstar.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/rrt/SORRTstar.h>
@@ -82,6 +83,7 @@ enum optimalPlanner
     PLANNER_EITSTAR,
     PLANNER_EIRMSTAR,
     PLANNER_FMTSTAR,
+    PLANNER_GREEDY_RRTSTAR,
     PLANNER_INF_RRTSTAR,
     PLANNER_PRMSTAR,
     PLANNER_RRTSTAR,
@@ -196,6 +198,11 @@ ob::PlannerPtr allocatePlanner(ob::SpaceInformationPtr si, optimalPlanner planne
         case PLANNER_FMTSTAR:
         {
             return std::make_shared<og::FMT>(si);
+            break;
+        }
+        case PLANNER_GREEDY_RRTSTAR:
+        {
+            return std::make_shared<og::GreedyRRTstar>(si);
             break;
         }
         case PLANNER_INF_RRTSTAR:
@@ -455,7 +462,7 @@ bool argParse(int argc, char **argv, double *runTimePtr, optimalPlanner *planner
         "planner,p", bpo::value<std::string>()->default_value("BLITstar"),
         "(Optional) Specify the optimal planner to use, defaults to RRTstar if not given. "
         "Valid options are AITstar, "
-        "AORRTC, BFMTstar, BITstar, BLITstar, CForest, EITstar, EIRMstar, FMTstar, InformedRRTstar, PRMstar, RRTstar, "
+        "AORRTC, BFMTstar, BITstar, BLITstar, CForest, EITstar, EIRMstar, FMTstar, GreedyRRTstar, InformedRRTstar, PRMstar, RRTstar, "
         "and SORRTstar.")  // Alphabetical order
         ("objective,o", bpo::value<std::string>()->default_value("PathLength"),
          "(Optional) Specify the optimization objective, defaults to PathLength if not given. Valid options are "
@@ -546,6 +553,10 @@ bool argParse(int argc, char **argv, double *runTimePtr, optimalPlanner *planner
     else if (boost::iequals("FMTstar", plannerStr))
     {
         *plannerPtr = PLANNER_FMTSTAR;
+    }
+    else if (boost::iequals("GreedyRRTstar", plannerStr))
+    {
+        *plannerPtr = PLANNER_GREEDY_RRTSTAR;
     }
     else if (boost::iequals("InformedRRTstar", plannerStr))
     {

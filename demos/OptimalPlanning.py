@@ -169,6 +169,8 @@ def allocatePlanner(si, plannerType):
         return og.BITstar(si)
     elif plannerType.lower() == "fmtstar":
         return og.FMT(si)
+    elif plannerType.lower() == "greedyrrtstar":
+        return og.GreedyRRTstar(si)
     elif plannerType.lower() == "informedrrtstar":
         return og.InformedRRTstar(si)
     elif plannerType.lower() == "prmstar":
@@ -290,6 +292,7 @@ if __name__ == "__main__":
             "BFMTstar",
             "BITstar",
             "FMTstar",
+            "GreedyRRTstar",
             "InformedRRTstar",
             "PRMstar",
             "RRTstar",
