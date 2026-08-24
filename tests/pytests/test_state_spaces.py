@@ -149,6 +149,32 @@ def test_rv_state_space():
     assert isinstance(dist, float), "Distance should be a float value"
 
 
+def test_copy_reals_without_setup():
+    space = ob.RealVectorStateSpace(3)
+    state = space.allocState()
+
+    space.copyFromReals(state, [1.0, 2.0, 3.0])
+    assert [state[i] for i in range(3)] == [1.0, 2.0, 3.0]
+
+    values = [0.0]
+    space.copyToReals(values, state)
+    assert values == [1.0, 2.0, 3.0]
+
+    with pytest.raises(RuntimeError, match="number of real values"):
+        space.copyFromReals(state, [1.0, 2.0])
+
+
+def test_copy_reals_on_wrapper_space():
+    space = ob.WrapperStateSpace(ob.RealVectorStateSpace(3))
+    state = space.allocState()
+
+    space.copyFromReals(state, [1.0, 2.0, 3.0])
+    values = []
+    space.copyToReals(values, state)
+
+    assert values == [1.0, 2.0, 3.0]
+
+
 def test_compound_state_space():
     ss1 = ob.RealVectorStateSpace(2)
     bound = ob.RealVectorBounds(2)

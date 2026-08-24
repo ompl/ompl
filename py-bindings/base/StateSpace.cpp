@@ -11,6 +11,27 @@
 namespace nb = nanobind;
 namespace ob = ompl::base;
 
+namespace
+{
+    void copyToReals(ob::StateSpace &space, nb::typed<nb::list, double> reals, const ob::State *source)
+    {
+        space.computeLocations();
+
+        std::vector<double> values;
+        space.copyToReals(values, source);
+
+        reals.attr("clear")();
+        for (const double value : values)
+            reals.append(value);
+    }
+
+    void copyFromReals(ob::StateSpace &space, ob::State *destination, const std::vector<double> &reals)
+    {
+        space.computeLocations();
+        space.copyFromReals(destination, reals);
+    }
+}  // namespace
+
 void ompl::binding::base::init_StateSpace(nb::module_ &m)
 {
     nb::class_<ob::StateSpace>(m, "StateSpace")
@@ -77,8 +98,8 @@ void ompl::binding::base::init_StateSpace(nb::module_ &m)
              nb::overload_cast<const ob::StateSpacePtr &, std::vector<std::string> &>(
                  &ob::StateSpace::getCommonSubspaces, nb::const_),
              nb::arg("other"), nb::arg("subspaces"))
-        .def("copyToReals", &ob::StateSpace::copyToReals, nb::arg("reals"), nb::arg("source"))
-        .def("copyFromReals", &ob::StateSpace::copyFromReals, nb::arg("destination"), nb::arg("reals"));
+        .def("copyToReals", &copyToReals, nb::arg("reals"), nb::arg("source"))
+        .def("copyFromReals", &copyFromReals, nb::arg("destination"), nb::arg("reals"));
 
     nb::class_<ob::CompoundStateSpace, ob::StateSpace>(m, "CompoundStateSpace")
         .def(nb::init<>())

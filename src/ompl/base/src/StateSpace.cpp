@@ -337,7 +337,10 @@ void ompl::base::StateSpace::copyToReals(std::vector<double> &reals, const State
 void ompl::base::StateSpace::copyFromReals(State *destination, const std::vector<double> &reals) const
 {
     const auto &locations = getValueLocations();
-    assert(reals.size() == locations.size());
+    if (reals.size() != locations.size())
+        throw Exception("The number of real values (" + std::to_string(reals.size()) +
+                        ") does not match the number of state-space value locations (" +
+                        std::to_string(locations.size()) + ")");
     for (std::size_t i = 0; i < reals.size(); ++i)
         *getValueAddressAtLocation(destination, locations[i]) = reals[i];
 }

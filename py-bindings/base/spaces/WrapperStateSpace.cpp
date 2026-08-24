@@ -97,8 +97,6 @@ void ompl::binding::base::initSpaces_WrapperStateSpace(nb::module_ &m)
              nb::overload_cast<ob::State *, const std::string &>(&ob::WrapperStateSpace::getValueAddressAtName,
                                                                  nb::const_),
              nb::arg("state"), nb::arg("name"))
-        .def("copyToReals", &ob::WrapperStateSpace::copyToReals, nb::arg("reals"), nb::arg("source"))
-        .def("copyFromReals", &ob::WrapperStateSpace::copyFromReals, nb::arg("dest"), nb::arg("reals"))
         .def("registerProjections", &ob::WrapperStateSpace::registerProjections)
         .def("printState", &ob::WrapperStateSpace::printState, nb::arg("state"), nb::arg("out"))
         .def("printSettings", &ob::WrapperStateSpace::printSettings, nb::arg("out"))
