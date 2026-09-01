@@ -1,5 +1,6 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/vector.h>
 #include <nanobind/eigen/dense.h>
 #include "ompl/base/spaces/WrapperStateSpace.h"
 #include "ompl/base/StateSampler.h"
@@ -97,8 +98,31 @@ void ompl::binding::base::initSpaces_WrapperStateSpace(nb::module_ &m)
              nb::overload_cast<ob::State *, const std::string &>(&ob::WrapperStateSpace::getValueAddressAtName,
                                                                  nb::const_),
              nb::arg("state"), nb::arg("name"))
-        .def("copyToReals", &ob::WrapperStateSpace::copyToReals, nb::arg("reals"), nb::arg("source"))
-        .def("copyFromReals", &ob::WrapperStateSpace::copyFromReals, nb::arg("dest"), nb::arg("reals"))
+        .def(
+            "copyToReals",
+            [](const ob::WrapperStateSpace &space, nb::list reals, const ob::State *source)
+            {
+                std::vector<double> values;
+                space.copyToReals(values, source);
+                reals.attr("clear")();
+                for (double value : values)
+                    reals.append(value);
+            },
+            nb::arg("reals"), nb::arg("source"))
+        .def(
+            "copyToReals",
+            [](const ob::WrapperStateSpace &space, const ob::State *source)
+            {
+                std::vector<double> values;
+                space.copyToReals(values, source);
+                return values;
+            },
+            nb::arg("source"))
+        .def(
+            "copyFromReals",
+            [](const ob::WrapperStateSpace &space, ob::State *destination, const std::vector<double> &reals)
+            { space.copyFromReals(destination, reals); },
+            nb::arg("dest"), nb::arg("reals"))
         .def("registerProjections", &ob::WrapperStateSpace::registerProjections)
         .def("printState", &ob::WrapperStateSpace::printState, nb::arg("state"), nb::arg("out"))
         .def("printSettings", &ob::WrapperStateSpace::printSettings, nb::arg("out"))

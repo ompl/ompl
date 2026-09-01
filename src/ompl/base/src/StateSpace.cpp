@@ -328,6 +328,9 @@ ompl::base::StateSpace::getValueLocationsByName() const
 
 void ompl::base::StateSpace::copyToReals(std::vector<double> &reals, const State *source) const
 {
+    if (valueLocationsInOrder_.empty())
+        const_cast<StateSpace *>(this)->computeLocations();
+
     const auto &locations = getValueLocations();
     reals.resize(locations.size());
     for (std::size_t i = 0; i < locations.size(); ++i)
@@ -336,8 +339,14 @@ void ompl::base::StateSpace::copyToReals(std::vector<double> &reals, const State
 
 void ompl::base::StateSpace::copyFromReals(State *destination, const std::vector<double> &reals) const
 {
+    if (valueLocationsInOrder_.empty())
+        const_cast<StateSpace *>(this)->computeLocations();
+
     const auto &locations = getValueLocations();
-    assert(reals.size() == locations.size());
+    if (reals.size() != locations.size())
+        throw Exception("State value count mismatch: expected " + std::to_string(locations.size()) + " values, got " +
+                        std::to_string(reals.size()));
+
     for (std::size_t i = 0; i < reals.size(); ++i)
         *getValueAddressAtLocation(destination, locations[i]) = reals[i];
 }

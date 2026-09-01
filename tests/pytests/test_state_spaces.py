@@ -2,6 +2,8 @@ import sys
 import pytest
 import math
 import numpy as np
+import subprocess
+import textwrap
 from ompl import base as ob
 
 
@@ -646,6 +648,41 @@ def test_projection_evaluator():
 
     assert out[0] == pytest.approx(0.25)
     assert out[1] == pytest.approx(0.75)
+
+
+def test_copy_reals_without_setup():
+    script = textwrap.dedent(
+        """
+        from ompl import base as ob
+
+        space = ob.RealVectorStateSpace(3)
+        bounds = ob.RealVectorBounds(3)
+        bounds.setLow(-2)
+        bounds.setHigh(2)
+        space.setBounds(bounds)
+
+        state = space.allocState()
+        space.copyFromReals(state, [1.0, 2.0, 3.0])
+        assert [state[i] for i in range(3)] == [1.0, 2.0, 3.0]
+
+        values = []
+        space.copyToReals(values, state)
+        assert values == [1.0, 2.0, 3.0]
+        assert space.copyToReals(state) == [1.0, 2.0, 3.0]
+
+        print("ok")
+        """
+    )
+
+    result = subprocess.run(
+        [sys.executable, "-c", script], capture_output=True, text=True
+    )
+
+    assert result.returncode == 0, (
+        f"child process failed with code {result.returncode}:"
+        f"\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+    )
+    assert result.stdout.strip() == "ok"
 
 
 if __name__ == "__main__":

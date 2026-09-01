@@ -77,8 +77,31 @@ void ompl::binding::base::init_StateSpace(nb::module_ &m)
              nb::overload_cast<const ob::StateSpacePtr &, std::vector<std::string> &>(
                  &ob::StateSpace::getCommonSubspaces, nb::const_),
              nb::arg("other"), nb::arg("subspaces"))
-        .def("copyToReals", &ob::StateSpace::copyToReals, nb::arg("reals"), nb::arg("source"))
-        .def("copyFromReals", &ob::StateSpace::copyFromReals, nb::arg("destination"), nb::arg("reals"));
+        .def(
+            "copyToReals",
+            [](const ob::StateSpace &space, nb::list reals, const ob::State *source)
+            {
+                std::vector<double> values;
+                space.copyToReals(values, source);
+                reals.attr("clear")();
+                for (double value : values)
+                    reals.append(value);
+            },
+            nb::arg("reals"), nb::arg("source"))
+        .def(
+            "copyToReals",
+            [](const ob::StateSpace &space, const ob::State *source)
+            {
+                std::vector<double> values;
+                space.copyToReals(values, source);
+                return values;
+            },
+            nb::arg("source"))
+        .def(
+            "copyFromReals",
+            [](const ob::StateSpace &space, ob::State *destination, const std::vector<double> &reals)
+            { space.copyFromReals(destination, reals); },
+            nb::arg("destination"), nb::arg("reals"));
 
     nb::class_<ob::CompoundStateSpace, ob::StateSpace>(m, "CompoundStateSpace")
         .def(nb::init<>())
