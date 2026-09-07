@@ -77,6 +77,11 @@ namespace ompl
             /** \brief Add a planner allocator to use. */
             void addPlannerAllocator(const base::PlannerAllocator &pa);
 
+            /** \brief Clear all internal datastructures of planners. Planner
+                settings are not affected. Subsequent calls to solve()
+                will ignore all previous work. */
+            void clear();
+
             /** \brief Clear the set of paths recorded for hybrididzation */
             void clearHybridizationPaths();
 
