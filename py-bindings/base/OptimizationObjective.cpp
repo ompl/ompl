@@ -16,7 +16,9 @@ void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
 {
     struct PyOptimizationObjective : ob::OptimizationObjective
     {
-        NB_TRAMPOLINE(ob::OptimizationObjective, 20);
+        // print() is not routed through the trampoline: std::ostream has no caster, so a Python override could
+        // never be called. Python subclasses customise their text via __repr__ instead.
+        NB_TRAMPOLINE(ob::OptimizationObjective, 19);
         // Optional override
         bool isSatisfied(ob::Cost c) const override
         {
@@ -131,12 +133,6 @@ void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
         {
             NB_OVERRIDE(motionCostBestEstimate, s1, s2);
         }
-
-        // Optional override
-        void print(std::ostream &out) const override
-        {
-            NB_OVERRIDE(print, out);
-        }
     };
 
     nb::class_<ob::OptimizationObjective, PyOptimizationObjective /* <-- trampoline */>(m, "OptimizationObjective")
@@ -170,13 +166,6 @@ void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
         .def("averageStateCost", &ob::OptimizationObjective::averageStateCost, nb::arg("numStates"))
         .def("motionCostHeuristic", &ob::OptimizationObjective::motionCostHeuristic, nb::arg("s1"), nb::arg("s2"))
         .def("motionCostBestEstimate", &ob::OptimizationObjective::motionCostBestEstimate, nb::arg("s1"), nb::arg("s2"))
-        .def("print",
-             [](const ob::OptimizationObjective &obj)
-             {
-                 std::ostringstream oss;
-                 obj.print(oss);
-                 return oss.str();
-             })
         .def("__repr__",
              [](const ob::OptimizationObjective &obj)
              {

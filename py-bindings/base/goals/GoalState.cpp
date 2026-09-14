@@ -26,5 +26,5 @@ void ompl::binding::base::initGoals_GoalState(nb::module_ &m)
              })
         .def("setState", nb::overload_cast<const ob::State *>(&ob::GoalState::setState), nb::arg("state"))
         .def("getState", nb::overload_cast<>(&ob::GoalState::getState, nb::const_), nb::rv_policy::reference_internal)
-        .def("getState", nb::overload_cast<>(&ob::GoalState::getState));
+        .def("getState", nb::overload_cast<>(&ob::GoalState::getState), nb::rv_policy::reference_internal);
 }

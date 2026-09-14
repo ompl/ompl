@@ -31,7 +31,16 @@ void ompl::binding::base::init_ProjectionEvaluator(nb::module_ &m)
         .def("computeRandom",
              nb::overload_cast<unsigned int, unsigned int>(&ompl::base::ProjectionMatrix::computeRandom),
              nb::arg("from"), nb::arg("to"))
-        .def("project", &ompl::base::ProjectionMatrix::project, nb::arg("from"), nb::arg("to"))
+        .def(
+            "project",
+            [](const ompl::base::ProjectionMatrix &pm, const std::vector<double> &from, Eigen::Ref<Eigen::VectorXd> to)
+            {
+                // project() reads mat.cols() doubles through the raw pointer.
+                if (from.size() != static_cast<std::size_t>(pm.mat.cols()))
+                    throw nb::value_error("from must have one entry per matrix column");
+                pm.project(from.data(), to);
+            },
+            nb::arg("from"), nb::arg("to"))
         .def("print", [](const ompl::base::ProjectionMatrix &pm) { pm.print(std::cout); })
         .def("__repr__",
              [](const ompl::base::ProjectionMatrix &pm)

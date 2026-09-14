@@ -1,10 +1,33 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/trampoline.h>
 #include "ompl/util/Console.h"
 #include "init.h"
 
 namespace nb = nanobind;
 namespace om = ompl;
+
+class PyOutputHandler : public om::msg::OutputHandler
+{
+public:
+    NB_TRAMPOLINE(om::msg::OutputHandler, 1);
+
+    void log(const std::string &text, om::msg::LogLevel level, const char *filename, int line) override
+    {
+        NB_OVERRIDE_PURE(log, text, level, filename, line);
+    }
+};
+
+class PyOutputHandlerSTD : public om::msg::OutputHandlerSTD
+{
+public:
+    NB_TRAMPOLINE(om::msg::OutputHandlerSTD, 1);
+
+    void log(const std::string &text, om::msg::LogLevel level, const char *filename, int line) override
+    {
+        NB_OVERRIDE(log, text, level, filename, line);
+    }
+};
 
 void ompl::binding::util::init_Console(nb::module_ &m)
 {
@@ -20,15 +43,13 @@ void ompl::binding::util::init_Console(nb::module_ &m)
         .export_values();
 
     // Bind OutputHandler base class
-    nb::class_<om::msg::OutputHandler>(m, "OutputHandler")
+    nb::class_<om::msg::OutputHandler, PyOutputHandler>(m, "OutputHandler")
         .def("log", &om::msg::OutputHandler::log, nb::arg("text"), nb::arg("level"), nb::arg("filename"),
              nb::arg("line"));
 
     // Bind OutputHandlerSTD
-    nb::class_<om::msg::OutputHandlerSTD, om::msg::OutputHandler>(m, "OutputHandlerSTD")
-        .def(nb::init<>())
-        .def("log", &om::msg::OutputHandlerSTD::log, nb::arg("text"), nb::arg("level"), nb::arg("filename"),
-             nb::arg("line"));
+    nb::class_<om::msg::OutputHandlerSTD, PyOutputHandlerSTD, om::msg::OutputHandler>(m, "OutputHandlerSTD")
+        .def(nb::init<>());
 
     // Bind OutputHandlerFile
     nb::class_<om::msg::OutputHandlerFile, om::msg::OutputHandler>(m, "OutputHandlerFile")

@@ -45,8 +45,10 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
         .def("getSampledGoalsCount", &ompl::base::PlannerInputStates::getSampledGoalsCount);
     struct PyPlanner : ob::Planner
     {
-        // We declare an NB_TRAMPOLINE for 8 override slots (the number of virtual methods we plan to override).
-        NB_TRAMPOLINE(ob::Planner, 8);
+        // We declare an NB_TRAMPOLINE for 6 override slots (the number of virtual methods we plan to override).
+        // printProperties()/printSettings() are not among them: std::ostream has no caster, so a Python override
+        // could never be called.
+        NB_TRAMPOLINE(ob::Planner, 6);
 
         // The pure virtual function: solve(...)
         ob::PlannerStatus solve(const ob::PlannerTerminationCondition &ptc) override
@@ -78,16 +80,6 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
         void checkValidity() override
         {
             NB_OVERRIDE(checkValidity);
-        }
-
-        void printProperties(std::ostream &out) const override
-        {
-            NB_OVERRIDE(printProperties, out);
-        }
-
-        void printSettings(std::ostream &out) const override
-        {
-            NB_OVERRIDE(printSettings, out);
         }
     };
 
@@ -130,4 +122,14 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
                  p.printSettings(oss);
                  return oss.str();
              });
+
+    nb::class_<ob::PlannerSpecs>(m, "PlannerSpecs")
+        .def(nb::init<>())
+        .def_rw("recognizedGoal", &ob::PlannerSpecs::recognizedGoal)
+        .def_rw("multithreaded", &ob::PlannerSpecs::multithreaded)
+        .def_rw("approximateSolutions", &ob::PlannerSpecs::approximateSolutions)
+        .def_rw("optimizingPaths", &ob::PlannerSpecs::optimizingPaths)
+        .def_rw("directed", &ob::PlannerSpecs::directed)
+        .def_rw("provingSolutionNonExistence", &ob::PlannerSpecs::provingSolutionNonExistence)
+        .def_rw("canReportIntermediateSolutions", &ob::PlannerSpecs::canReportIntermediateSolutions);
 }

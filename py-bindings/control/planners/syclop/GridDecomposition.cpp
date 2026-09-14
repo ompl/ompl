@@ -34,8 +34,23 @@ void ompl::binding::control::initPlannersSyclop_GridDecomposition(nb::module_ &m
         .def("getBounds", &oc::GridDecomposition::getBounds, nb::rv_policy::reference_internal)
         .def("getNumRegions", &oc::GridDecomposition::getNumRegions)
         .def("getRegionVolume", &oc::GridDecomposition::getRegionVolume, nb::arg("region"))
-        .def("getNeighbors", &oc::GridDecomposition::getNeighbors, nb::arg("rid"), nb::arg("neighbors"))
+        .def(
+            "getNeighbors",
+            [](const oc::GridDecomposition &d, int rid)
+            {
+                std::vector<int> neighbors;
+                d.getNeighbors(rid, neighbors);
+                return neighbors;
+            },
+            nb::arg("rid"))
         .def("locateRegion", &oc::GridDecomposition::locateRegion, nb::arg("state"))
-        .def("sampleFromRegion", &oc::GridDecomposition::sampleFromRegion, nb::arg("rid"), nb::arg("rng"),
-             nb::arg("coord"));
+        .def(
+            "sampleFromRegion",
+            [](const oc::GridDecomposition &d, int rid, ompl::RNG &rng)
+            {
+                std::vector<double> coord;
+                d.sampleFromRegion(rid, rng, coord);
+                return coord;
+            },
+            nb::arg("rid"), nb::arg("rng"));
 }

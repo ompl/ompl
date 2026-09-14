@@ -2,7 +2,6 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/optional.h>
 #include "ompl/base/spaces/OwenStateSpace.h"
-#include "ompl/base/spaces/Dubins3DMotionValidator.h"
 #include "ompl/base/SpaceInformation.h"
 #include "../init.h"
 
@@ -48,7 +47,4 @@ void ompl::binding::base::initSpaces_OwenStateSpace(nb::module_ &m)
         .def("validSegmentCount", &ob::OwenStateSpace::validSegmentCount)
         .def("allocState", &ob::OwenStateSpace::allocState)
         .def("registerProjections", &ob::OwenStateSpace::registerProjections);
-
-    nb::class_<ob::Dubins3DMotionValidator<ob::OwenStateSpace>, ob::MotionValidator>(m, "OwenMotionValidator")
-        .def(nb::init<ob::SpaceInformation *>());
 }

@@ -34,7 +34,15 @@ void ompl::binding::util::init_RandomNumbers(nb::module_ &m)
                  return rpy;
              })
         .def("uniformNormalVector", &ompl::RNG::uniformNormalVector, nb::arg("v"))
-        .def("uniformInBall", &ompl::RNG::uniformInBall, nb::arg("r"), nb::arg("v"))
+        .def(
+            "uniformInBall",
+            [](ompl::RNG &rng, double r, unsigned int dim)
+            {
+                std::vector<double> v(dim);
+                rng.uniformInBall(r, v);
+                return v;
+            },
+            nb::arg("r"), nb::arg("dim"))
         .def("setLocalSeed", &ompl::RNG::setLocalSeed, nb::arg("localSeed"))
         .def("getLocalSeed", &ompl::RNG::getLocalSeed)
         .def_static("getSeed", &ompl::RNG::getSeed)

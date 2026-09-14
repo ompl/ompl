@@ -33,7 +33,13 @@ void ompl::binding::base::init_StateSpace(nb::module_ &m)
         .def("setValidSegmentCountFactor", &ob::StateSpace::setValidSegmentCountFactor, nb::arg("factor"))
         .def("getValidSegmentCountFactor", &ob::StateSpace::getValidSegmentCountFactor)
         .def("getLongestValidSegmentLength", &ob::StateSpace::getLongestValidSegmentLength)
-        .def("computeSignature", &ob::StateSpace::computeSignature, nb::arg("signature"))
+        .def("computeSignature",
+             [](const ob::StateSpace &space)
+             {
+                 std::vector<int> signature;
+                 space.computeSignature(signature);
+                 return signature;
+             })
         .def("cloneState", &ob::StateSpace::cloneState, nb::arg("source"), nb::rv_policy::take_ownership)
         .def("getSerializationLength", &ob::StateSpace::getSerializationLength)
         .def("getValueAddressAtIndex",
@@ -73,11 +79,24 @@ void ompl::binding::base::init_StateSpace(nb::module_ &m)
              nb::arg("state"), nb::arg("loc"), nb::rv_policy::reference_internal)
         .def("getSubstateLocationsByName", &ob::StateSpace::getSubstateLocationsByName,
              nb::rv_policy::reference_internal)
-        .def("getCommonSubspaces",
-             nb::overload_cast<const ob::StateSpacePtr &, std::vector<std::string> &>(
-                 &ob::StateSpace::getCommonSubspaces, nb::const_),
-             nb::arg("other"), nb::arg("subspaces"))
-        .def("copyToReals", &ob::StateSpace::copyToReals, nb::arg("reals"), nb::arg("source"))
+        .def(
+            "getCommonSubspaces",
+            [](const ob::StateSpace &space, const ob::StateSpacePtr &other)
+            {
+                std::vector<std::string> subspaces;
+                space.getCommonSubspaces(other, subspaces);
+                return subspaces;
+            },
+            nb::arg("other"))
+        .def(
+            "copyToReals",
+            [](const ob::StateSpace &space, const ob::State *source)
+            {
+                std::vector<double> reals;
+                space.copyToReals(reals, source);
+                return reals;
+            },
+            nb::arg("source"))
         .def("copyFromReals", &ob::StateSpace::copyFromReals, nb::arg("destination"), nb::arg("reals"));
 
     nb::class_<ob::CompoundStateSpace, ob::StateSpace>(m, "CompoundStateSpace")
