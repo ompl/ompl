@@ -338,10 +338,30 @@ namespace ompl::base
 
     Eigen::VectorXd FlatMotion::evaluate(double t) const
     {
-        Eigen::VectorXd value = Eigen::VectorXd::Zero(coefficients_.cols());
-        for (Eigen::Index i = coefficients_.rows() - 1; i >= 0; --i)
-            value = value * t + coefficients_.row(i).transpose();
+        Eigen::VectorXd value(coefficients_.cols());
+        evaluate(t, 0u, value);
         return value;
+    }
+
+    void FlatMotion::evaluate(double t, unsigned int derivativeLevel, Eigen::Ref<Eigen::VectorXd> out) const
+    {
+        out.setZero();
+
+        const auto level = static_cast<Eigen::Index>(derivativeLevel);
+        if (level >= coefficients_.rows())
+            return;
+
+        // Horner over the rows at or above the level.
+        // Differentiating row i down to the level leaves the falling factorial i (i - 1) ... (i - level
+        // + 1) in front of it, so weighting each row by that evaluates the derivative without building
+        // its polynomial first.
+        for (Eigen::Index i = coefficients_.rows() - 1; i >= level; --i)
+        {
+            double weight = 1.;
+            for (Eigen::Index k = 0; k < level; ++k)
+                weight *= static_cast<double>(i - k);
+            out = out * t + weight * coefficients_.row(i).transpose();
+        }
     }
 
     FlatMotion FlatMotion::derivative() const

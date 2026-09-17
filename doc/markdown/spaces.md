@@ -9,8 +9,8 @@ This set of state spaces is included in OMPL:
 - SO(3) (rotation in 3D, ompl::base::SO3StateSpace),
 - SE(2) (rotation and translation in the plane, ompl::base::SE2StateSpace),
 - SE(3) (rotation and translation in 3D, ompl::base::SE3StateSpace),
-- Time  (representation of time, ompl::base::TimeStateSpace),
-- Discrete  (representation of discrete states, ompl::base::DiscreteStateSpace),
+- Time (representation of time, ompl::base::TimeStateSpace),
+- Discrete (representation of discrete states, ompl::base::DiscreteStateSpace),
 - Dubins (representation of a Dubins car's state space, ompl::base::DubinsStateSpace),
 - ReedsShepp (representation of a Reeds-Shepp car's state space, ompl::base::ReedsSheppStateSpace),
 - Extensions of the Dubins model to 3D (useful for planning motions for UAVs and UUVs):
@@ -19,6 +19,7 @@ This set of state spaces is included in OMPL:
   - A hybrid of these models proposed by Moll that combines the best elements of both, ompl::base::VanaOwenStatespace,
 - A couple of "special" topological spaces: ompl::base::KleinBottleStateSpace, ompl::base::MobiusStateSpace, ompl::base::SphereStateSpace, and ompl::base::TorusStateSpace,
 - State spaces for hybrid systems ompl::base::HybridStateSpace and ompl::base::HybridTimeStateSpace
+- Differentially flat systems, ompl::base::FlatStateSpace, described in the section below,
 - Constrained state spaces (ompl::base::ConstrainedStateSpace) to represent implicitly defined spaces when [planning with constraints](constrainedPlanning.html). There are several derived classes corresponding to different methodologies for dealing with constraints:
   - ompl::base::ProjectedStateSpace: uses Newton's method to project states in the ambient configuration space onto the constraint manifold.
   - ompl::base::AtlasStateSpace: a state space that incrementally builds up an atlas approximation of the constraint manifold.

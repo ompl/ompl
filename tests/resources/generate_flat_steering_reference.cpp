@@ -46,8 +46,8 @@
 //       -o generate_flat_steering_reference generate_flat_steering_reference.cpp
 //
 // and run it with the output path as its only argument.
-// FLASK computes in single precision, which is why every recorded value is a float and why the test
-// compares to a loose tolerance.
+// FLASK computes in single precision, so every recorded value is a float and the test compares to a
+// loose tolerance.
 //
 // The random draws come straight from the engine rather than from a distribution object, so the same
 // seed gives the same cases on any standard library.
