@@ -172,6 +172,55 @@ BOOST_AUTO_TEST_CASE(DerivativeAndIntegral)
     BOOST_CHECK_SMALL(flat.peakSpeed(), 1e-12);
 }
 
+BOOST_AUTO_TEST_CASE(EvaluateIntoABufferMatchesTheDerivatives)
+{
+    std::mt19937_64 engine(9u);
+    MinimumEffortSteering steering(ORDER);
+
+    for (unsigned int trial = 0; trial < 200u; ++trial)
+    {
+        const auto motion = steering.steer(randomFlatState(engine), randomFlatState(engine));
+        BOOST_REQUIRE(motion.has_value());
+
+        // Each level agrees with differentiating the curve that many times and evaluating that.
+        FlatMotion level = *motion;
+        for (unsigned int derivative = 0; derivative <= motion->degree() + 1u; ++derivative)
+        {
+            for (double fraction : {0., 0.3, 1.})
+            {
+                const double t = fraction * motion->duration();
+                Eigen::VectorXd buffer(motion->outputDimension());
+                motion->evaluate(t, derivative, buffer);
+                BOOST_CHECK_SMALL((buffer - level.evaluate(t)).cwiseAbs().maxCoeff(), 1e-9);
+            }
+            level = level.derivative();
+        }
+
+        // Past the degree the curve is flat, so every level above it reads zero.
+        Eigen::VectorXd buffer(motion->outputDimension());
+        motion->evaluate(0.5 * motion->duration(), motion->degree() + 1u, buffer);
+        BOOST_CHECK_SMALL(buffer.cwiseAbs().maxCoeff(), 1e-12);
+
+        // Level 0 is the curve itself, which is the allocating overload.
+        motion->evaluate(0.25 * motion->duration(), 0u, buffer);
+        BOOST_CHECK_SMALL((buffer - motion->evaluate(0.25 * motion->duration())).cwiseAbs().maxCoeff(), 1e-12);
+    }
+
+    // The buffer can be a view over memory the caller already owns, so a state space can write a sample
+    // straight into a state.
+    Eigen::MatrixXd from = Eigen::MatrixXd::Zero(ORDER, DIMENSION);
+    Eigen::MatrixXd to = Eigen::MatrixXd::Zero(ORDER, DIMENSION);
+    to.row(0) << 1., 2., 3.;
+    const auto motion = steering.steer(from, to);
+    BOOST_REQUIRE(motion.has_value());
+
+    std::vector<double> owned(DIMENSION, -1.);
+    Eigen::Map<Eigen::VectorXd> view(owned.data(), DIMENSION);
+    motion->evaluate(motion->duration(), 0u, view);
+    for (unsigned int axis = 0; axis < DIMENSION; ++axis)
+        BOOST_CHECK_CLOSE(owned[axis], to(0, axis), 1e-6);
+}
+
 BOOST_AUTO_TEST_CASE(CostMatchesNumericIntegration)
 {
     std::mt19937_64 engine(4u);
@@ -279,7 +328,7 @@ BOOST_AUTO_TEST_CASE(BellmanConsistency)
                                  costOverDuration(middle, to, duration - split, steering.getRho());
             BOOST_CHECK_CLOSE(parts, steering.cost(*whole), 1e-6);
 
-            // The tail of an optimal motion is the optimal motion for its own endpoints, duration
+            // The tail of an optimal motion is the optimal motion for the pair it joins, duration
             // included, which lets a planner charge edge costs that add up along a path.
             const auto tail = steering.optimalDuration(middle, to);
             BOOST_REQUIRE(tail.has_value());

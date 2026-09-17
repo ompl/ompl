@@ -103,6 +103,15 @@ namespace ompl::base
             duration. */
         Eigen::VectorXd evaluate(double t) const;
 
+        /** \brief Write derivative level \e derivativeLevel of the flat output at time \e t into \e out,
+            which needs one entry per output dimension.
+
+            Levels above the degree come out zero.
+            This allocates nothing, so a caller walking a motion sample by sample can hand back the same
+            buffer every time rather than paying for a vector per sample.
+        */
+        void evaluate(double t, unsigned int derivativeLevel, Eigen::Ref<Eigen::VectorXd> out) const;
+
         /** \brief The derivative with respect to time, over the same duration.
 
             The derivative of a constant curve is the zero curve of the same dimension rather than an empty
