@@ -183,7 +183,7 @@ namespace ompl::base
 
         /** \brief The motion from \e from to \e to, or nothing when the two coincide and there's nothing
             to steer through. */
-        std::optional<FlatMotion> steer(const State *from, const State *to) const;
+        virtual std::optional<FlatMotion> steer(const State *from, const State *to) const;
 
         /** \brief Write the flat state \e state carries into \e flatState, which comes out with one row per
             derivative level and one column per flat output dimension. */
