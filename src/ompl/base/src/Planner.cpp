@@ -37,6 +37,7 @@
 #include "ompl/base/Planner.h"
 #include "ompl/util/Exception.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
+#include "ompl/base/spaces/FlatStateSpace.h"
 #include <sstream>
 #include <thread>
 #include <utility>
@@ -101,6 +102,9 @@ void ompl::base::Planner::setup()
         OMPL_WARN("%s: Planner setup called multiple times", getName().c_str());
     else
         setup_ = true;
+
+    if (const auto *flat = dynamic_cast<const FlatStateSpace *>(si_->getStateSpace().get()))
+        flat->checkPlanner(this);
 }
 
 void ompl::base::Planner::checkValidity()
