@@ -323,6 +323,12 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
         return base::PlannerStatus::UNRECOGNIZED_GOAL_TYPE;
     }
 
+    /* The straight-line check below presets gs = REACHED, so the first pass through the
+       main loop skips growTree() on the start tree. Remember the start motion so that
+       pass can still identify the node it "added" to the start tree. */
+    Motion *initStartMotion = nullptr;
+    bool straightLinePass = false;
+
     while (const base::State *st = pis_.nextStart())
     {
         auto *motion = new Motion(si_);
@@ -331,6 +337,8 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
         motion->cost = 0;
         tStart_->add(motion);
         startState = motion->state;
+        initStartMotion = motion;
+        straightLinePass = true;
 
         /* Straight line check for first search loop
            Nested here for PDT visualize, which calls solve for each iteration */
@@ -398,7 +406,13 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
         if (gs != TRAPPED)
         {
             /* remember which motion was added in the last grow */
-            Motion *addedMotion = tgi.xmotion;
+            /* On the straight-line pass no grow has happened yet (gs was preset to
+               REACHED), and tgi.xmotion still holds the goal tree root that was assigned
+               when tGoal_ was seeded above -- not a node of `tree`. Using it here makes
+               startMotion a goal-tree node, so the reconstructed path starts at the goal
+               instead of the start. */
+            Motion *addedMotion = straightLinePass ? initStartMotion : tgi.xmotion;
+            straightLinePass = false;
 
             /* if reached, it means we used rstate directly, no need to copy again */
             if (gs != REACHED)
@@ -420,7 +434,9 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
             }
 
             /* Keep trying to connect until we reach the other tree or fail to advance */
-            while (gsc == ADVANCED)
+            /* ptc is checked here as well: without it this loop is unbounded and a
+               single solve() call can run far past its time budget. */
+            while (gsc == ADVANCED && !ptc)
             {
                 gsc = growTree(otherTree, tgi, cmotion);
             }
@@ -434,9 +450,12 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
                 /* it must be the case that either the start tree or the goal tree has made some progress
                    so one of the parents is not nullptr. We go one step 'back' to avoid having a duplicate state
                    on the solution path */
+                /* Both can be roots when the two single-node trees connect directly; in
+                   that case there is no duplicate state to remove. Without this guard
+                   goalMotion becomes nullptr and connectionPoint_ dereferences it. */
                 if (startMotion->parent != nullptr)
                     startMotion = startMotion->parent;
-                else
+                else if (goalMotion->parent != nullptr)
                     goalMotion = goalMotion->parent;
 
                 connectionPoint_ = std::make_pair(startMotion->state, goalMotion->state);
