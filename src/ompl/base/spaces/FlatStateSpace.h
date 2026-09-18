@@ -45,6 +45,8 @@
 
 namespace ompl::base
 {
+    class Planner;
+
     /// @cond IGNORE
     OMPL_CLASS_FORWARD(FlatStateSpace);
     /// @endcond
@@ -62,13 +64,14 @@ namespace ompl::base
         Bounds on those components are the velocity and acceleration limits of the system.
         The flat output space has to derive from ompl::base::RealVectorStateSpace.
 
-        Distance is the flat output distance plus a weighted Euclidean distance per derivative level.
-        It's symmetric and it satisfies the triangle inequality, so nearest-neighbor structures that prune
-        on those properties stay usable.
+        Distance defaults to the flat output distance plus a weighted Euclidean distance per derivative
+        level, which is symmetric, satisfies the triangle inequality, and needs no steering solve, so
+        nearest-neighbor structures that prune on those properties stay usable.
+        \ref setDistanceType enables other distances, such as edge traversal cost.
 
         Edges run forward in time, so \ref hasSymmetricInterpolate reports false.
-        Planners that traverse an edge backwards return paths this space rejects, and \ref spaces names
-         the ones that only ever extend forward.
+        Planners that check an edge one way and then walk it the other return paths this space rejects, and
+        \ref checkPlanner warns by name when one of them gets set up here.
     */
     class FlatStateSpace : public CompoundStateSpace
     {
@@ -104,6 +107,30 @@ namespace ompl::base
             {
                 return components[level]->as<RealVectorStateSpace::StateType>();
             }
+        };
+
+        /** \brief The choice of measurement for \ref distance.
+         *
+         *  If you want to plan using a distance not available in this enumeration, you shoud subclass FlatStateSpace.
+         */
+        enum DistanceType
+        {
+            /** \brief The flat output distance plus a weighted Euclidean distance per derivative level.
+
+                It's symmetric, it satisfies the triangle inequality, and it costs no steering solve, so
+                nearest-neighbor structures that prune on those properties stay usable.
+            */
+            FLAT_STATE_METRIC,
+
+            /** \brief The cost of traversing a steering motion, meaning its control effort plus rho
+                times its duration.
+
+                It costs a steering solve per query and it runs one way, so nearest-neighbor structures
+                fall back to a linear scan.
+                Reach for it when a planner keys its search on edge cost and you'd rather it did that
+                directly than through an optimization objective.
+            */
+            TRAJECTORY_COST
         };
 
         /** \brief Build a flat state space over \e output holding \e order derivative levels, counting the
@@ -181,6 +208,30 @@ namespace ompl::base
             return steering_;
         }
 
+        /** \brief Pick the distance measurement returned from \ref distance.
+
+            This also moves \ref isMetricSpace and \ref hasSymmetricDistance, so set it before a planner
+            builds its nearest-neighbor structure.
+        */
+        void setDistanceType(DistanceType type)
+        {
+            distanceType_ = type;
+        }
+
+        /** \brief Get the distance measurement type. */
+        DistanceType getDistanceType() const
+        {
+            return distanceType_;
+        }
+
+        /** \brief The cost of traversing the steering polynomial from \e from to \e to, meaning its
+            control effort plus rho times its duration.
+
+            Getting from a flat state to itself costs nothing, and a pair no polynomial reaches costs
+            infinity.
+        */
+        double steeringCost(const State *from, const State *to) const;
+
         /** \brief The motion from \e from to \e to, or nothing when the two coincide and there's nothing
             to steer through. */
         virtual std::optional<FlatMotion> steer(const State *from, const State *to) const;
@@ -231,11 +282,44 @@ namespace ompl::base
         /** \brief Calculate the number of segments of maximal valid length on \e motion. */
         unsigned int validSegmentCount(const FlatMotion &motion) const;
 
+        /** \brief The distance from \e state1 to \e state2 under the current distance type. */
+        double distance(const State *state1, const State *state2) const override;
+
+        /** \brief Only \ref FLAT_STATE_METRIC is a metric. */
+        bool isMetricSpace() const override
+        {
+            return distanceType_ == FLAT_STATE_METRIC && CompoundStateSpace::isMetricSpace();
+        }
+
+        /** \brief Only \ref FLAT_STATE_METRIC measures the same both ways. */
+        bool hasSymmetricDistance() const override
+        {
+            return distanceType_ == FLAT_STATE_METRIC && CompoundStateSpace::hasSymmetricDistance();
+        }
+
         /** \brief Motions run forward in time, so a motion and its reverse are different motions. */
         bool hasSymmetricInterpolate() const override
         {
             return false;
         }
+
+        /** \brief Run the checks that apply under the current distance type. */
+        void sanityChecks() const override;
+
+        /** \brief Run the checks \e flags asks for, to the tolerances \e zero and \e eps. */
+        using CompoundStateSpace::sanityChecks;
+
+        /** \brief Warn about anything in \e planner's setup this space can't deliver on.
+
+            Edges here run forward in time, so a planner that checks an edge one way and then walks it the
+            other hands back a path that ompl::geometric::PathGeometric::check rejects.
+            An optimizing planner with no ompl::base::FlatEffortObjective optimizes a sum of flat state
+            distances, which isn't what traversing a path costs.
+            Both come out as warnings, so planning runs either way.
+
+            ompl::base::Planner::setup calls this.
+        */
+        void checkPlanner(const Planner *planner) const;
 
         void registerProjections() override;
 
@@ -258,6 +342,9 @@ namespace ompl::base
 
         /** \brief The steering that joins two flat states. */
         MinimumEffortSteering steering_{2};
+
+        /** \brief What \ref distance measures. */
+        DistanceType distanceType_{FLAT_STATE_METRIC};
 
         /** \brief The number of flat output dimensions. */
         unsigned int outputDimension_;

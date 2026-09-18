@@ -244,10 +244,11 @@ namespace ompl::base
 
     /** \brief Steering over the duration that minimizes control effort plus the time penalty.
 
-        The duration is the smallest positive one at which the cost bottoms out, read off the roots of the
-        derivative of the cost with respect to duration.
+        The duration is the cheapest of the positive durations at which the cost bottoms out, read off the
+        roots of the derivative of the cost with respect to duration.
         Effort alone shrinks as the duration grows without bound, so the time penalty keeps the duration finite.
-        Flat states that already coincide have no such duration and steering between them reports failure.
+        Flat states that already sit still at the same flat output have no such duration and steering
+        between them reports failure.
     */
     class MinimumEffortSteering : public FlatSteering
     {
@@ -257,8 +258,8 @@ namespace ompl::base
             The order has to be 2. */
         explicit MinimumEffortSteering(unsigned int order);
 
-        /** \brief The smallest positive duration at which \ref cost bottoms out over motions from
-            \e from to \e to, or nothing when there's none. */
+        /** \brief The positive duration at which \ref cost is lowest over motions from \e from to
+            \e to, or nothing when there's none. */
         std::optional<double> optimalDuration(const Eigen::Ref<const Eigen::MatrixXd> &from,
                                               const Eigen::Ref<const Eigen::MatrixXd> &to) const;
 

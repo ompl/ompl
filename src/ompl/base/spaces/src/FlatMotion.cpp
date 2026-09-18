@@ -44,6 +44,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <vector>
 
 /** Helper functions for manipulating polynomials. */
@@ -307,21 +308,21 @@ namespace
         return roots;
     }
 
-    /** \brief The smallest strictly positive point at which the polynomial with ascending-power
-        coefficients \e c crosses from negative to positive, or nothing when it has none.
+    /** \brief Every strictly positive point at which the polynomial with ascending-power coefficients
+        \e c crosses from negative to positive.
 
         The polynomial here is the derivative of a cost, so an upward crossing is a local minimum of that
         cost and a root the polynomial only touches is not.
         Demanding the crossing also throws out the spurious roots that a repeated root at zero produces.
     */
-    std::optional<double> smallestUpwardCrossing(const Eigen::VectorXd &c)
+    std::vector<double> upwardCrossings(const Eigen::VectorXd &c)
     {
         const Eigen::VectorXd slope = differentiatePolynomial(c);
-        std::optional<double> best;
+        std::vector<double> crossings;
         for (double root : polynomialRoots(c))
-            if (root > 0. && evaluatePolynomial(slope, root) > 0. && (!best.has_value() || root < *best))
-                best = root;
-        return best;
+            if (root > 0. && evaluatePolynomial(slope, root) > 0.)
+                crossings.push_back(root);
+        return crossings;
     }
 }  // namespace
 
@@ -504,13 +505,35 @@ namespace ompl::base
         //     J(T) = 4 (|v0|^2 + v0 . vf + |vf|^2) / T - 12 offset . (v0 + vf) / T^2 + 12 |offset|^2 / T^3
         //            + rho T,
         // and clearing T^4 out of dJ/dT leaves this quartic.
+        const double speedTerm = 4. * (v0.squaredNorm() + vf.squaredNorm() + v0.dot(vf));
+        const double crossTerm = 12. * (v0 + vf).dot(offset);
+        const double offsetTerm = 12. * offset.squaredNorm();
+
         Eigen::VectorXd quartic(5);
-        quartic[0] = -36. * offset.squaredNorm();
-        quartic[1] = 24. * (v0 + vf).dot(offset);
-        quartic[2] = -4. * (v0.squaredNorm() + vf.squaredNorm() + v0.dot(vf));
+        quartic[0] = -3. * offsetTerm;
+        quartic[1] = 2. * crossTerm;
+        quartic[2] = -speedTerm;
         quartic[3] = 0.;
         quartic[4] = rho_;
-        return smallestUpwardCrossing(quartic);
+
+        // The quartic can cross upward twice, which puts two local minima on J, so each crossing gets
+        // priced and the cheapest one wins.
+        // Taking the first crossing instead would sometimes charge several times what the motion needs to
+        // cost, and an optimizing planner would steer through it believing the price.
+        std::optional<double> best;
+        double bestCost = std::numeric_limits<double>::infinity();
+        for (double duration : upwardCrossings(quartic))
+        {
+            const double cost = offsetTerm / (duration * duration * duration) - crossTerm / (duration * duration) +
+                                speedTerm / duration + rho_ * duration;
+            if (cost < bestCost)
+            {
+                bestCost = cost;
+                best = duration;
+            }
+        }
+
+        return best;
     }
 
     std::optional<FlatMotion> MinimumEffortSteering::steer(const Eigen::Ref<const Eigen::MatrixXd> &from,

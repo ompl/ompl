@@ -252,57 +252,60 @@ BOOST_AUTO_TEST_CASE(CostMatchesNumericIntegration)
     }
 }
 
-BOOST_AUTO_TEST_CASE(OptimalDurationMatchesBisection)
+BOOST_AUTO_TEST_CASE(OptimalDurationIsTheCheapestDuration)
 {
     std::mt19937_64 engine(5u);
     MinimumEffortSteering steering(ORDER);
     const double rho = steering.getRho();
 
-    for (unsigned int trial = 0; trial < 50u; ++trial)
+    // Only a few flat state pairs in a thousand put a second dip in the cost, so the trial count gives this test
+    // something to find.
+    for (unsigned int trial = 0; trial < 1000u; ++trial)
     {
         const Eigen::MatrixXd from = randomFlatState(engine);
         const Eigen::MatrixXd to = randomFlatState(engine);
 
         const auto duration = steering.optimalDuration(from, to);
         BOOST_REQUIRE(duration.has_value());
+        const double best = costOverDuration(from, to, *duration, rho);
 
-        // Walk a fine grid until the cost stops falling, which brackets the first duration at which it
-        // bottoms out, then bisect the slope inside that bracket.
-        const double step = 1e-3;
-        const unsigned int steps = 40000u;
-        double bracketLow = step;
-        double previous = costOverDuration(from, to, step, rho);
-        bool bracketed = false;
-        for (unsigned int index = 2; index <= steps; ++index)
-        {
-            const double t = static_cast<double>(index) * step;
-            const double current = costOverDuration(from, to, t, rho);
-            if (current > previous)
-            {
-                bracketLow = t - 2. * step;
-                bracketed = true;
-                break;
-            }
-            previous = current;
-        }
-        BOOST_REQUIRE(bracketed);
+        // The cost has up to two durations where it bottoms out, so it isn't enough for the slope to
+        // vanish at the one that comes back.
+        // A sweep of the whole range has to find nothing cheaper.
+        const double step = 5e-3;
+        for (unsigned int index = 1; index <= 4000u; ++index)
+            BOOST_REQUIRE_LE(best, costOverDuration(from, to, static_cast<double>(index) * step, rho) + 1e-9);
 
-        double low = std::max(bracketLow, 1e-9);
-        double high = low + 2. * step;
-        for (unsigned int iteration = 0; iteration < 80u; ++iteration)
-        {
-            const double middle = 0.5 * (low + high);
-            const double slope =
-                (costOverDuration(from, to, middle + 1e-7, rho) - costOverDuration(from, to, middle - 1e-7, rho)) /
-                2e-7;
-            if (slope < 0.)
-                low = middle;
-            else
-                high = middle;
-        }
-
-        BOOST_CHECK_CLOSE(*duration, 0.5 * (low + high), 1e-2);
+        // The cost is flat there, which makes it a minimum rather than an endpoint of the sweep.
+        const double slope =
+            (costOverDuration(from, to, *duration + 1e-7, rho) - costOverDuration(from, to, *duration - 1e-7, rho)) /
+            2e-7;
+        BOOST_CHECK_SMALL(slope, 1e-3);
     }
+}
+
+BOOST_AUTO_TEST_CASE(TheCheaperOfTwoLocalMinimaWins)
+{
+    MinimumEffortSteering steering(ORDER);
+    const double rho = steering.getRho();
+
+    // Barely any ground to cover and a lot of speed to pick up along the way.
+    // Slamming through the gap right away puts one dip in the cost just after zero, and taking the long
+    // way around puts a much deeper one out past three seconds.
+    Eigen::MatrixXd from(ORDER, 1), to(ORDER, 1);
+    from << 0.8, 1.4;
+    to << 0.82, 2.8;
+
+    const auto duration = steering.optimalDuration(from, to);
+    BOOST_REQUIRE(duration.has_value());
+
+    // The early dip is the one a walk out from zero reaches first, and it costs six times what the later
+    // one does.
+    const double best = costOverDuration(from, to, *duration, rho);
+    BOOST_CHECK_GT(*duration, 1.);
+    BOOST_CHECK_GT(costOverDuration(from, to, 0.01, rho), 6. * best);
+    for (unsigned int index = 1; index <= 20000u; ++index)
+        BOOST_REQUIRE_LE(best, costOverDuration(from, to, static_cast<double>(index) * 1e-3, rho) + 1e-9);
 }
 
 BOOST_AUTO_TEST_CASE(BellmanConsistency)

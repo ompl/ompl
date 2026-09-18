@@ -36,13 +36,39 @@
 
 #include "ompl/base/spaces/FlatStateSpace.h"
 
+#include "ompl/base/Planner.h"
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/base/StateSpaceTypes.h"
+#include "ompl/base/objectives/FlatEffortObjective.h"
+#include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <set>
+#include <stdexcept>
+#include <string>
+
+namespace
+{
+    /** \brief The name each distance type answers to in a parameter set. */
+    const char *const DISTANCE_TYPE_NAMES[] = {"flat_state_metric", "trajectory_cost"};
+
+    /** \brief Planners that hand back a path with an edge on it they never checked in the direction the
+        path runs through it.
+
+        A bidirectional search grows one of its trees from the goal, and a roadmap search comes out of the
+        graph whichever way round each edge happens to sit.
+        Either way the planner checked a curve the path doesn't follow.
+        Planners that pick their check direction from the tree they're growing stay off this list, so
+        RRTConnect and BiTRRT aren't on it.
+        Neither are the ones that already warn about asymmetric spaces themselves.
+    */
+    const std::set<std::string> REVERSING_PLANNERS = {"BFMT",        "BiEST",     "BiRLRT", "BKPIECE1", "LazyPRM",
+                                                      "LazyPRMstar", "LBKPIECE1", "PDST",   "PRM",      "PRMstar",
+                                                      "pSBL",        "SBL",       "SPARS",  "SPARStwo"};
+}  // namespace
 
 namespace ompl::base
 {
@@ -92,6 +118,23 @@ namespace ompl::base
     void FlatStateSpace::declareParams()
     {
         params_.declareParam<double>("rho", [this](double value) { setRho(value); }, [this] { return getRho(); });
+
+        params_.declareParam<std::string>(
+            "distance_type",
+            [this](const std::string &value)
+            {
+                if (value == DISTANCE_TYPE_NAMES[FLAT_STATE_METRIC])
+                    setDistanceType(FLAT_STATE_METRIC);
+                else if (value == DISTANCE_TYPE_NAMES[TRAJECTORY_COST])
+                    setDistanceType(TRAJECTORY_COST);
+                else
+                    throw std::invalid_argument("a flat state space measures distance as " +
+                                                std::string(DISTANCE_TYPE_NAMES[FLAT_STATE_METRIC]) + " or " +
+                                                std::string(DISTANCE_TYPE_NAMES[TRAJECTORY_COST]));
+            },
+            [this] { return std::string(DISTANCE_TYPE_NAMES[distanceType_]); });
+        params_["distance_type"].setRangeSuggestion(std::string(DISTANCE_TYPE_NAMES[FLAT_STATE_METRIC]) + "," +
+                                                    DISTANCE_TYPE_NAMES[TRAJECTORY_COST]);
     }
 
     void FlatStateSpace::checkComponent(const StateSpacePtr &space, unsigned int dimension, const char *role)
@@ -159,6 +202,23 @@ namespace ompl::base
         return steering_.steer(start, finish);
     }
 
+    double FlatStateSpace::steeringCost(const State *from, const State *to) const
+    {
+        // Nobody has to move to get from a flat state to itself, whatever velocity it carries.
+        if (equalStates(from, to))
+            return 0.;
+
+        const std::optional<FlatMotion> motion = steer(from, to);
+        return motion.has_value() ? steering_.cost(*motion) : std::numeric_limits<double>::infinity();
+    }
+
+    double FlatStateSpace::distance(const State *state1, const State *state2) const
+    {
+        if (distanceType_ == FLAT_STATE_METRIC)
+            return CompoundStateSpace::distance(state1, state2);
+        return steeringCost(state1, state2);
+    }
+
     void FlatStateSpace::interpolate(const State *from, const State *to, double t, State *state) const
     {
         bool firstTime = true;
@@ -224,6 +284,46 @@ namespace ompl::base
         const double span = motion.duration() * motion.peakSpeed();
         const auto count = static_cast<unsigned int>(std::ceil(span / longestValidSegment_));
         return std::max(1u, longestValidSegmentCountFactor_ * count);
+    }
+
+    void FlatStateSpace::sanityChecks() const
+    {
+        unsigned int flags = ~0u;
+        if (distanceType_ == TRAJECTORY_COST)
+        {
+            // A cost isn't a length.
+            // It runs one way, it climbs with the effort the edge spends rather than staying inside the
+            // extent of the space, and it jumps either side of coincidence, since a flat state carrying a
+            // velocity has to fly a whole loop to get back to where it already is.
+            // The checks that read distance as a length go with it.
+            flags &= ~(STATESPACE_DISTANCE_SYMMETRIC | STATESPACE_TRIANGLE_INEQUALITY | STATESPACE_DISTANCE_BOUND |
+                       STATESPACE_INTERPOLATION);
+        }
+
+        sanityChecks(std::numeric_limits<double>::epsilon(), std::numeric_limits<float>::epsilon(), flags);
+    }
+
+    void FlatStateSpace::checkPlanner(const Planner *planner) const
+    {
+        if (planner == nullptr)
+            return;
+
+        const std::string &name = planner->getName();
+        if (REVERSING_PLANNERS.count(name) > 0u)
+            OMPL_WARN("%s doesn't check every edge in the direction its path runs through it, and edges in "
+                      "%s run forward in time. The paths it returns fail PathGeometric::check().",
+                      name.c_str(), getName().c_str());
+
+        if (!planner->getSpecs().optimizingPaths)
+            return;
+
+        const ProblemDefinitionPtr &definition = planner->getProblemDefinition();
+        const OptimizationObjectivePtr objective =
+            definition == nullptr ? nullptr : definition->getOptimizationObjective();
+        if (dynamic_cast<const FlatEffortObjective *>(objective.get()) == nullptr)
+            OMPL_WARN("%s optimizes paths through %s without a FlatEffortObjective, so it minimizes a sum of "
+                      "flat state distances rather than what traversing the path costs.",
+                      name.c_str(), getName().c_str());
     }
 
     void FlatStateSpace::registerProjections()
