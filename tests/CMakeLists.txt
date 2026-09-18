@@ -44,6 +44,7 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_flat_state_space base/flat_state_space.cpp)
     add_ompl_test(test_flat_motion_validator base/flat_motion_validator.cpp)
     add_ompl_test(test_flat_objective base/flat_objective.cpp)
+    add_ompl_test(test_flat_conveniences base/flat_conveniences.cpp)
     add_ompl_test(test_state_storage base/state_storage.cpp)
     add_ompl_test(test_planner_data base/planner_data.cpp)
 
