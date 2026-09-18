@@ -496,7 +496,13 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
             {
                 /* We didn't reach the goal, but if we were extending the start
                    tree, then we can mark/improve the approximate path so far. */
-                if (tgi.start)
+                /* `tgi.start` alone does not tell which tree tgi.xmotion belongs to.
+                   On the straight line check pass no growTree has run on the start
+                   tree yet (gs was preset to REACHED), so tgi.xmotion still holds the
+                   goal tree root assigned when tGoal_ was seeded.  Recording it as
+                   approxsol makes the approximate path start at the goal.  Every
+                   motion carries the root of its own tree, so test that directly. */
+                if (tgi.start && tgi.xmotion->root == startState)
                 {
                     /* We were working from the startTree. */
                     double dist = 0.0;
