@@ -61,7 +61,7 @@ namespace
 
         bool satisfiesBounds(const ob::State *state) const override
         {
-            return norm(state) <= radius_ + std::numeric_limits<float>::epsilon();
+            return norm(state) <= radius_;
         }
 
         void enforceBounds(ob::State *state) const override
@@ -69,9 +69,14 @@ namespace
             const double length = norm(state);
             if (length > radius_)
             {
+                // Aiming at exactly the radius rounds the wrong way often enough to matter, leaving over
+                // a quarter of enforced states above it at a radius of 3, so this aims a few of the last
+                // bits inside and satisfiesBounds above can compare exactly.
+                // Clamping to a box needs none of this, since assigning a bound lands on it exactly.
+                const double target = radius_ * (1. - 4. * std::numeric_limits<double>::epsilon());
                 double *values = state->as<StateType>()->values;
                 for (unsigned int i = 0; i < getDimension(); ++i)
-                    values[i] *= radius_ / length;
+                    values[i] *= target / length;
             }
         }
 
