@@ -47,6 +47,7 @@
 #include "ompl/util/Exception.h"
 
 #include <cmath>
+#include <limits>
 #include <optional>
 #include <string>
 #include <thread>
@@ -498,7 +499,7 @@ namespace
 
         bool satisfiesBounds(const State *state) const override
         {
-            return norm(state) <= radius_ + std::numeric_limits<float>::epsilon();
+            return norm(state) <= radius_;
         }
 
         void enforceBounds(State *state) const override
@@ -506,9 +507,12 @@ namespace
             const double length = norm(state);
             if (length > radius_)
             {
+                // Aiming at exactly the radius rounds the wrong way often enough to matter, so this aims
+                // a few of the last bits inside and satisfiesBounds above can compare exactly.
+                const double target = radius_ * (1. - 4. * std::numeric_limits<double>::epsilon());
                 double *values = state->as<StateType>()->values;
                 for (unsigned int i = 0; i < getDimension(); ++i)
-                    values[i] *= radius_ / length;
+                    values[i] *= target / length;
             }
         }
 
@@ -607,6 +611,20 @@ BOOST_AUTO_TEST_CASE(SubstitutedDerivativeSpaceIsHonored)
     for (unsigned int trial = 0; trial < 2000u; ++trial)
     {
         sampler->sampleUniform(state.get());
+        BOOST_REQUIRE(space->satisfiesBounds(state.get()));
+    }
+
+    // Whatever enforceBounds leaves behind, satisfiesBounds has to accept.
+    // Scaling a vector to a given length rounds either way, so a ball has to aim inside where a box can
+    // assign its bound exactly.
+    ompl::RNG rng;
+    for (unsigned int trial = 0; trial < 5000u; ++trial)
+    {
+        double *velocity = state->as<CompoundState>()->components[1]->as<RealVectorStateSpace::StateType>()->values;
+        for (unsigned int axis = 0; axis < DIMENSION; ++axis)
+            velocity[axis] = rng.uniformReal(-4. * radius, 4. * radius);
+
+        space->enforceBounds(state.get());
         BOOST_REQUIRE(space->satisfiesBounds(state.get()));
     }
 }
