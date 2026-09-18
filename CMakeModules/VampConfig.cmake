@@ -13,6 +13,21 @@ function(apply_vamp_simd_flags TARGET_NAME)
     message(STATUS "Applied VAMP SIMD flags to ${TARGET_NAME}")
 endfunction()
 
+# Function to apply VAMP SIMD flags to a target and to everything linking it.
+#
+# The flags move the instruction set a translation unit is compiled for, which moves the alignment Eigen
+# picks for a heap matrix and with it the allocator Eigen frees that matrix through. A library handing
+# out Eigen objects therefore has to be compiled the same way as the code destroying them, so the two
+# ends agree on which allocator owns the memory.
+function(apply_vamp_simd_flags_publicly TARGET_NAME)
+    if(NOT DEFINED VAMP_SIMD_FLAGS)
+        return()
+    endif()
+
+    target_compile_options(${TARGET_NAME} PUBLIC ${VAMP_SIMD_FLAGS})
+    message(STATUS "Applied VAMP SIMD flags to ${TARGET_NAME} and to everything linking it")
+endfunction()
+
 # VAMP configuration function
 function(configure_vamp)
     if(NOT OMPL_BUILD_VAMP)
@@ -48,6 +63,9 @@ function(configure_vamp)
 
     # Configure VAMP targets
     configure_vamp_targets()
+
+    # Hand the flags back to the caller, which needs them for OMPL itself.
+    set(VAMP_SIMD_FLAGS ${VAMP_SIMD_FLAGS} PARENT_SCOPE)
 
     set(OMPL_HAVE_VAMP TRUE CACHE BOOL "Whether VAMP integration is available" FORCE)
     message(STATUS "VAMP integration configured successfully")

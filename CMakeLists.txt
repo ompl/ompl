@@ -84,6 +84,12 @@ if(OMPL_BUILD_VAMP)
         # Top level install requires this file so we add a dummy one
         file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/external/vamp/cmake_install.cmake" "# skipped for SKBUILD")
     endif()
+
+    # VAMP forces its SIMD flags on every translation unit that includes its headers, and OMPL hands out
+    # Eigen objects across its own boundary, so the library gets the same flags and passes them on to
+    # everything linking it.
+    apply_vamp_simd_flags_publicly(ompl)
+
     message(STATUS "VAMP integration enabled via OMPL_BUILD_VAMP=ON")
 else()
     set(OMPL_HAVE_VAMP FALSE CACHE BOOL "Whether VAMP integration is available" FORCE)
