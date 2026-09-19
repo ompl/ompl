@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Clayton Ramsey */
+/* Author: Clayton W. Ramsey */
 
 // Generates flat_steering_reference.txt, the minimum-effort steering data that
 // tests/base/flat_motion.cpp checks ompl::base::MinimumEffortSteering against.

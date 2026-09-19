@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Clayton Ramsey */
+/* Author: Clayton W. Ramsey */
 
 #include "ompl/base/spaces/FlatStateSpace.h"
 

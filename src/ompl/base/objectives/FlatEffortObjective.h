@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Clayton Ramsey */
+/* Author: Clayton W. Ramsey */
 
 #ifndef OMPL_BASE_OBJECTIVES_FLAT_EFFORT_OBJECTIVE_
 #define OMPL_BASE_OBJECTIVES_FLAT_EFFORT_OBJECTIVE_
