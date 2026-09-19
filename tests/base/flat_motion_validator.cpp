@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Clayton Ramsey */
+/* Author: Clayton W. Ramsey */
 
 #define BOOST_TEST_MODULE "FlatMotionValidator"
 #include <boost/test/unit_test.hpp>

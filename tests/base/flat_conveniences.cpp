@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Clayton Ramsey */
+/* Author: Clayton W. Ramsey */
 
 #define BOOST_TEST_MODULE "FlatConveniences"
 #include <boost/test/unit_test.hpp>

@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Clayton Ramsey */
+/* Author: Clayton W. Ramsey */
 
 #ifndef OMPL_BASE_SPACES_FLAT_MOTION_
 #define OMPL_BASE_SPACES_FLAT_MOTION_
