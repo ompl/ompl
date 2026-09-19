@@ -58,6 +58,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <random>
+#include <string>
 
 namespace
 {
@@ -90,10 +91,20 @@ namespace
         return values;
     }
 
-    void writeVector(std::FILE *out, const std::array<float, dimension> &values)
+    // Every field goes on after a separating space, so a finished line carries no trailing blank.
+    void appendNumber(std::string &line, double value)
+    {
+        char buffer[32];
+        std::snprintf(buffer, sizeof(buffer), "%.9g", value);
+        if (!line.empty())
+            line.push_back(' ');
+        line.append(buffer);
+    }
+
+    void appendVector(std::string &line, const std::array<float, dimension> &values)
     {
         for (float value : values)
-            std::fprintf(out, "%.9g ", value);
+            appendNumber(line, value);
     }
 }  // namespace
 
@@ -128,10 +139,11 @@ int main(int argc, char **argv)
         const auto yf = (index % 16 == 0) ? y0 : drawPosition();
         const auto vf = (index % 32 == 0) ? v0 : drawVelocity();
 
-        writeVector(out, y0);
-        writeVector(out, v0);
-        writeVector(out, yf);
-        writeVector(out, vf);
+        std::string line;
+        appendVector(line, y0);
+        appendVector(line, v0);
+        appendVector(line, yf);
+        appendVector(line, vf);
 
         float duration = -1.f;
         auto polynomial = vamp::planning::opt_time_traj<dimension>(
@@ -140,23 +152,24 @@ int main(int argc, char **argv)
 
         if (duration > 0.f)
         {
-            std::fprintf(out, "1 %.9g %.9g ", duration, polynomial.cost(duration, rho));
+            appendNumber(line, 1.);
+            appendNumber(line, duration);
+            appendNumber(line, polynomial.cost(duration, rho));
             for (std::size_t sample = 1; sample <= samples; ++sample)
             {
                 const auto value =
                     polynomial.eval(duration * static_cast<float>(sample) / static_cast<float>(samples + 1));
                 const auto packed = value.to_array();
                 for (std::size_t axis = 0; axis < dimension; ++axis)
-                    std::fprintf(out, "%.9g ", packed[axis]);
+                    appendNumber(line, packed[axis]);
             }
         }
         else
         {
-            std::fprintf(out, "0 0 0 ");
-            for (std::size_t axis = 0; axis < samples * dimension; ++axis)
-                std::fprintf(out, "0 ");
+            for (std::size_t field = 0; field < 3 + samples * dimension; ++field)
+                appendNumber(line, 0.);
         }
-        std::fprintf(out, "\n");
+        std::fprintf(out, "%s\n", line.c_str());
     }
 
     std::fclose(out);
