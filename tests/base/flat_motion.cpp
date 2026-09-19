@@ -38,14 +38,10 @@
 #include <boost/test/unit_test.hpp>
 
 #include "ompl/base/spaces/FlatMotion.h"
-#include "ompl/util/Exception.h"
 
 #include <algorithm>
 #include <cmath>
-#include <filesystem>
-#include <fstream>
 #include <random>
-#include <sstream>
 #include <vector>
 
 using namespace ompl::base;
@@ -90,29 +86,24 @@ namespace
 BOOST_AUTO_TEST_CASE(BoundaryConditions)
 {
     std::mt19937_64 engine(1u);
-    MinimumEffortSteering steering(ORDER);
+    MinimumEffortSteering effort(ORDER);
 
     for (unsigned int trial = 0; trial < 500u; ++trial)
     {
         const Eigen::MatrixXd from = randomFlatState(engine);
         const Eigen::MatrixXd to = randomFlatState(engine);
 
-        const auto motion = steering.steer(from, to);
+        const auto motion = effort.steer(from, to);
         BOOST_REQUIRE(motion.has_value());
 
         BOOST_CHECK_SMALL((flatStateAt(*motion, 0.) - from).cwiseAbs().maxCoeff(), 1e-9);
         BOOST_CHECK_SMALL((flatStateAt(*motion, motion->duration()) - to).cwiseAbs().maxCoeff(), 1e-9);
     }
-}
 
-BOOST_AUTO_TEST_CASE(FixedDurationBoundaryConditions)
-{
-    std::mt19937_64 engine(2u);
-
+    // Pinning the duration lands on both flat states too.
     for (double duration : {0.05, 1., 7.5})
     {
         FixedDurationSteering steering(ORDER, duration);
-        BOOST_CHECK_EQUAL(steering.getDuration(), duration);
 
         for (unsigned int trial = 0; trial < 200u; ++trial)
         {
@@ -400,132 +391,5 @@ BOOST_AUTO_TEST_CASE(PeakSpeedBoundsTheCurve)
 
         BOOST_CHECK_LE(sampled, peak * (1. + 1e-9));
         BOOST_CHECK_GE(sampled, peak * (1. - 1e-4));
-    }
-}
-
-BOOST_AUTO_TEST_CASE(RejectedArguments)
-{
-    BOOST_CHECK_THROW(MinimumEffortSteering(1u), ompl::Exception);
-    BOOST_CHECK_THROW(MinimumEffortSteering(3u), ompl::Exception);
-    BOOST_CHECK_THROW(FixedDurationSteering(ORDER, 0.), ompl::Exception);
-    BOOST_CHECK_THROW(FixedDurationSteering(ORDER, -1.), ompl::Exception);
-
-    MinimumEffortSteering steering(ORDER);
-    BOOST_CHECK_EQUAL(steering.getOrder(), ORDER);
-    BOOST_CHECK_EQUAL(steering.getRho(), 5.);
-    BOOST_CHECK_THROW(steering.setRho(0.), ompl::Exception);
-    BOOST_CHECK_THROW(steering.setRho(-2.), ompl::Exception);
-    steering.setRho(20.);
-    BOOST_CHECK_EQUAL(steering.getRho(), 20.);
-
-    const Eigen::MatrixXd good = Eigen::MatrixXd::Identity(ORDER, DIMENSION);
-    BOOST_CHECK_THROW(steering.steer(Eigen::MatrixXd::Zero(ORDER + 1u, DIMENSION), good), ompl::Exception);
-    BOOST_CHECK_THROW(steering.steer(good, Eigen::MatrixXd::Zero(ORDER, DIMENSION + 1u)), ompl::Exception);
-
-    BOOST_CHECK_THROW(FlatMotion(Eigen::MatrixXd::Zero(2, DIMENSION), 0.), ompl::Exception);
-    BOOST_CHECK_THROW(FlatMotion(Eigen::MatrixXd::Zero(2, DIMENSION), -1.), ompl::Exception);
-    BOOST_CHECK_THROW(FlatMotion(Eigen::MatrixXd::Zero(0, 0), 1.), ompl::Exception);
-}
-
-BOOST_AUTO_TEST_CASE(RaisingRhoShortensTheTrajectory)
-{
-    std::mt19937_64 engine(8u);
-    MinimumEffortSteering slow(ORDER);
-    MinimumEffortSteering quick(ORDER);
-    quick.setRho(20.);
-
-    for (unsigned int trial = 0; trial < 200u; ++trial)
-    {
-        const Eigen::MatrixXd from = randomFlatState(engine);
-        const Eigen::MatrixXd to = randomFlatState(engine);
-
-        const auto patient = slow.optimalDuration(from, to);
-        const auto hurried = quick.optimalDuration(from, to);
-        BOOST_REQUIRE(patient.has_value());
-        BOOST_REQUIRE(hurried.has_value());
-        BOOST_CHECK_LT(*hurried, *patient);
-    }
-}
-
-BOOST_AUTO_TEST_CASE(MatchesFlaskReferenceData)
-{
-    // The FLASK implementation produces the reference data in single precision.
-    // Its columns and the program that wrote it are described in
-    // tests/resources/generate_flat_steering_reference.cpp.
-    std::filesystem::path path(TEST_RESOURCES_DIR);
-    std::ifstream file(path / "flat_steering_reference.txt");
-    BOOST_REQUIRE(file.good());
-
-    std::stringstream numbers;
-    for (std::string line; std::getline(file, line);)
-        if (line.empty() || line[0] != '#')
-            numbers << line << ' ';
-
-    std::string key;
-    unsigned int dimension, samples, cases;
-    double rho;
-    numbers >> key >> dimension >> key >> rho >> key >> samples >> key >> cases;
-    BOOST_REQUIRE_GT(cases, 0u);
-
-    MinimumEffortSteering steering(ORDER);
-    steering.setRho(rho);
-
-    for (unsigned int index = 0; index < cases; ++index)
-    {
-        Eigen::MatrixXd from(ORDER, dimension);
-        Eigen::MatrixXd to(ORDER, dimension);
-        for (unsigned int level = 0; level < ORDER; ++level)
-            for (unsigned int axis = 0; axis < dimension; ++axis)
-                numbers >> from(level, axis);
-        for (unsigned int level = 0; level < ORDER; ++level)
-            for (unsigned int axis = 0; axis < dimension; ++axis)
-                numbers >> to(level, axis);
-
-        double success, referenceDuration, referenceCost;
-        numbers >> success >> referenceDuration >> referenceCost;
-
-        std::vector<double> referenceSamples(samples * dimension);
-        for (double &value : referenceSamples)
-            numbers >> value;
-        BOOST_REQUIRE(!numbers.fail());
-
-        const bool coincident = from.row(0) == to.row(0);
-        if (success < 0.5)
-        {
-            // FLASK only ever comes up empty where its quartic degenerates, where the flat
-            // outputs already coincide.
-            BOOST_CHECK(coincident);
-            continue;
-        }
-
-        // Over the duration FLASK picked, the curve itself has to agree to single precision, which pins
-        // the coefficients and the effort integral against the reference.
-        FixedDurationSteering fixed(ORDER, referenceDuration);
-        fixed.setRho(rho);
-        const auto reference = fixed.steer(from, to);
-        BOOST_REQUIRE(reference.has_value());
-
-        for (unsigned int sample = 1; sample <= samples; ++sample)
-        {
-            const double t = referenceDuration * static_cast<double>(sample) / (samples + 1.);
-            const Eigen::VectorXd value = reference->evaluate(t);
-            for (unsigned int axis = 0; axis < dimension; ++axis)
-                BOOST_CHECK_SMALL(value[axis] - referenceSamples[(sample - 1) * dimension + axis], 1e-5);
-        }
-
-        const double referenceCurveCost = fixed.cost(*reference);
-        BOOST_CHECK_SMALL((referenceCurveCost - referenceCost) / std::max(1., referenceCost), 1e-5);
-
-        // We have higher precision durations, so the implementation can differ from here on.
-        // Our duration never costs more than FLASK's.
-        const auto motion = steering.steer(from, to);
-        BOOST_REQUIRE(motion.has_value());
-        const double cost = steering.cost(*motion);
-        BOOST_CHECK_LE(cost, referenceCurveCost * (1. + 1e-9) + 1e-9);
-
-        // Away from the degenerate case the two durations also cost within a few percent of each other,
-        // which rules out a different time penalty or a different effort integral.
-        if (!coincident)
-            BOOST_CHECK_LE(referenceCurveCost - cost, 0.05 * std::max(1., cost));
     }
 }

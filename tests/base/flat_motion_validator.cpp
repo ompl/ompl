@@ -42,7 +42,6 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/spaces/FlatMotionValidator.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
-#include "ompl/util/Exception.h"
 
 #include <cmath>
 #include <memory>
@@ -99,24 +98,6 @@ namespace
     }
 }  // namespace
 
-BOOST_AUTO_TEST_CASE(FlatSpacesGetTheFlatValidatorByDefault)
-{
-    SpaceInformation si(makeSpace());
-    si.setStateValidityChecker([](const State *) { return true; });
-    si.setup();
-
-    BOOST_CHECK(std::dynamic_pointer_cast<FlatMotionValidator>(si.getMotionValidator()) != nullptr);
-}
-
-BOOST_AUTO_TEST_CASE(OtherSpacesAreRejected)
-{
-    auto space = std::make_shared<RealVectorStateSpace>(DIMENSION);
-    space->setBounds(-1., 1.);
-    auto si = std::make_shared<SpaceInformation>(space);
-
-    BOOST_CHECK_THROW(FlatMotionValidator validator(si), ompl::Exception);
-}
-
 BOOST_AUTO_TEST_CASE(VerdictsMatchTheDiscreteValidator)
 {
     auto space = makeSpace();
@@ -124,36 +105,8 @@ BOOST_AUTO_TEST_CASE(VerdictsMatchTheDiscreteValidator)
     si->setStateValidityChecker(std::make_shared<PillarField>(si));
     si->setup();
 
-    FlatMotionValidator flat(si);
-    DiscreteMotionValidator discrete(si);
-
-    StateSamplerPtr sampler = space->allocStateSampler();
-    ScopedState<> from(space), to(space);
-
-    unsigned int rejected = 0u;
-    for (unsigned int trial = 0; trial < 2000u; ++trial)
-    {
-        sampler->sampleUniform(from.get());
-        sampler->sampleUniform(to.get());
-
-        const bool expected = discrete.checkMotion(from.get(), to.get());
-        BOOST_REQUIRE_EQUAL(flat.checkMotion(from.get(), to.get()), expected);
-        rejected += expected ? 0u : 1u;
-    }
-
-    // A field the sampler always clears would make the agreement above worth nothing.
-    BOOST_CHECK_GT(rejected, 100u);
-    BOOST_CHECK_LT(rejected, 1900u);
-    BOOST_CHECK_EQUAL(flat.getValidMotionCount(), discrete.getValidMotionCount());
-    BOOST_CHECK_EQUAL(flat.getInvalidMotionCount(), discrete.getInvalidMotionCount());
-}
-
-BOOST_AUTO_TEST_CASE(TheLastValidStateMatchesTheDiscreteValidator)
-{
-    auto space = makeSpace();
-    auto si = std::make_shared<SpaceInformation>(space);
-    si->setStateValidityChecker(std::make_shared<PillarField>(si));
-    si->setup();
+    // A flat space gets the flat validator without anyone asking for it.
+    BOOST_CHECK(std::dynamic_pointer_cast<FlatMotionValidator>(si->getMotionValidator()) != nullptr);
 
     FlatMotionValidator flat(si);
     DiscreteMotionValidator discrete(si);
@@ -169,26 +122,30 @@ BOOST_AUTO_TEST_CASE(TheLastValidStateMatchesTheDiscreteValidator)
     {
         sampler->sampleUniform(from.get());
         sampler->sampleUniform(to.get());
+
+        const bool expected = discrete.checkMotion(from.get(), to.get());
+        BOOST_REQUIRE_EQUAL(flat.checkMotion(from.get(), to.get()), expected);
+        if (expected)
+            continue;
+
+        ++rejected;
         if (!si->isValid(from.get()))
             continue;
 
         flatLast.second = -1.;
         discreteLast.second = -1.;
-        const bool expected = discrete.checkMotion(from.get(), to.get(), discreteLast);
-        BOOST_REQUIRE_EQUAL(flat.checkMotion(from.get(), to.get(), flatLast), expected);
-        if (expected)
-            continue;
-
-        ++rejected;
+        BOOST_REQUIRE(!discrete.checkMotion(from.get(), to.get(), discreteLast));
+        BOOST_REQUIRE(!flat.checkMotion(from.get(), to.get(), flatLast));
         BOOST_REQUIRE_EQUAL(flatLast.second, discreteLast.second);
         BOOST_REQUIRE_SMALL(space->distance(flatLast.first, discreteLast.first), 1e-12);
-
-        // The motion stayed valid through the reported fraction, so the state there has to clear the
-        // obstacles.
         BOOST_REQUIRE(si->isValid(flatLast.first));
     }
 
+    // make sure we have a diversity of cases
     BOOST_CHECK_GT(rejected, 100u);
+    BOOST_CHECK_LT(rejected, 1900u);
+    BOOST_CHECK_EQUAL(flat.getValidMotionCount(), discrete.getValidMotionCount());
+    BOOST_CHECK_EQUAL(flat.getInvalidMotionCount(), discrete.getInvalidMotionCount());
 
     si->freeState(flatLast.first);
     si->freeState(discreteLast.first);

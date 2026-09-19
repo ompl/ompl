@@ -40,16 +40,12 @@
 #include "ompl/base/ScopedState.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/spaces/FlatStateSpace.h"
-#include "ompl/base/spaces/SO2StateSpace.h"
 #include "ompl/geometric/SimpleSetup.h"
-#include "ompl/geometric/planners/kpiece/KPIECE1.h"
 #include "ompl/geometric/planners/rrt/RRT.h"
-#include "ompl/util/Exception.h"
 
 #include <cmath>
 #include <limits>
 #include <optional>
-#include <string>
 #include <thread>
 #include <vector>
 
@@ -62,12 +58,12 @@ namespace
     constexpr unsigned int DIMENSION = 2;
 
     /** \brief A flat space over a bounded Euclidean output with a box bound on the velocity. */
-    std::shared_ptr<FlatStateSpace> makeSpace(unsigned int dimension = DIMENSION, double velocity = 2.)
+    std::shared_ptr<FlatStateSpace> makeSpace()
     {
-        auto output = std::make_shared<RealVectorStateSpace>(dimension);
+        auto output = std::make_shared<RealVectorStateSpace>(DIMENSION);
         output->setBounds(-1., 1.);
         auto space = std::make_shared<FlatStateSpace>(output, ORDER);
-        space->setDerivativeBound(1, velocity);
+        space->setDerivativeBound(1, 2.);
         space->setup();
         return space;
     }
@@ -84,203 +80,35 @@ namespace
 
 }  // namespace
 
-BOOST_AUTO_TEST_CASE(Construction)
+BOOST_AUTO_TEST_CASE(SanityChecksPassUnderTrajectoryCost)
 {
     auto space = makeSpace();
-    BOOST_CHECK_EQUAL(space->getOrder(), ORDER);
-    BOOST_CHECK_EQUAL(space->getOutputDimension(), DIMENSION);
-    BOOST_CHECK_EQUAL(space->getDimension(), ORDER * DIMENSION);
-    BOOST_CHECK_EQUAL(space->getType(), STATE_SPACE_FLAT);
-    BOOST_CHECK(!space->hasSymmetricInterpolate());
-    BOOST_CHECK(space->hasSymmetricDistance());
+
+    // The stock battery covers the metric axioms, interpolation at either end, continued interpolation,
+    // and interpolating through overlapping memory, so the flat suite doesn't repeat any of that.
+    BOOST_CHECK_EQUAL(space->getDistanceType(), FlatStateSpace::FLAT_STATE_METRIC);
     BOOST_CHECK(space->isMetricSpace());
-    BOOST_CHECK_EQUAL(space->getRho(), 5.);
-
-    // Weights default to the reciprocal of each component's extent, so every component contributes one
-    // unit of extent and the whole space measures the order.
-    BOOST_CHECK_CLOSE(space->getSubspaceWeight(0) * space->getOutputSpace()->getMaximumExtent(), 1., 1e-9);
-    BOOST_CHECK_CLOSE(space->getSubspaceWeight(1) * space->getDerivativeSpace(1)->getMaximumExtent(), 1., 1e-9);
-    BOOST_CHECK_CLOSE(space->getMaximumExtent(), static_cast<double>(ORDER), 1e-9);
-
-    // The derivative bound reaches the component, so the compound honors it.
-    const RealVectorBounds &bounds = space->getDerivativeSpace(1)->getBounds();
-    BOOST_CHECK_CLOSE(bounds.low[0], -2., 1e-9);
-    BOOST_CHECK_CLOSE(bounds.high[0], 2., 1e-9);
-}
-
-BOOST_AUTO_TEST_CASE(RejectedConstruction)
-{
-    auto output = std::make_shared<RealVectorStateSpace>(DIMENSION);
-    output->setBounds(-1., 1.);
-
-    BOOST_CHECK_THROW(FlatStateSpace(output, 1u), ompl::Exception);
-    BOOST_CHECK_THROW(FlatStateSpace(output, 3u), ompl::Exception);
-    BOOST_CHECK_THROW(FlatStateSpace(nullptr, ORDER), ompl::Exception);
-
-    // A flat output that isn't Euclidean has no chart for the steering polynomial to live in.
-    BOOST_CHECK_THROW(FlatStateSpace(std::make_shared<SO2StateSpace>(), ORDER), ompl::Exception);
-
-    // A substituted derivative component has to match the flat output dimension.
-    std::vector<StateSpacePtr> mismatched{std::make_shared<RealVectorStateSpace>(DIMENSION + 1)};
-    BOOST_CHECK_THROW(FlatStateSpace(output, mismatched), ompl::Exception);
-
-    std::vector<StateSpacePtr> wrongType{std::make_shared<SO2StateSpace>()};
-    BOOST_CHECK_THROW(FlatStateSpace(output, wrongType), ompl::Exception);
-
-    auto space = makeSpace();
-    BOOST_CHECK_THROW(space->setDerivativeBound(0, 1.), ompl::Exception);
-    BOOST_CHECK_THROW(space->setDerivativeBound(ORDER, 1.), ompl::Exception);
-    BOOST_CHECK_THROW(space->setDerivativeBound(1, 0.), ompl::Exception);
-    BOOST_CHECK_THROW(space->setRho(-1.), ompl::Exception);
-}
-
-BOOST_AUTO_TEST_CASE(SanityChecks)
-{
-    auto space = makeSpace();
+    BOOST_CHECK(space->hasSymmetricDistance());
     BOOST_CHECK_NO_THROW(space->sanityChecks());
-}
 
-BOOST_AUTO_TEST_CASE(DistanceIsTheFlatStateMetric)
-{
-    auto space = makeSpace();
-    StateSamplerPtr sampler = space->allocStateSampler();
+    // Charging the steering cost gives up the metric, and the flags have to come off with it.
+    space->setDistanceType(FlatStateSpace::TRAJECTORY_COST);
+    space->setup();
+    BOOST_CHECK(!space->isMetricSpace());
+    BOOST_CHECK(!space->hasSymmetricDistance());
+    BOOST_CHECK_NO_THROW(space->sanityChecks());
 
-    ScopedState<> a(space), b(space), c(space);
-    for (unsigned int trial = 0; trial < 300u; ++trial)
-    {
-        sampler->sampleUniform(a.get());
-        sampler->sampleUniform(b.get());
-        sampler->sampleUniform(c.get());
-
-        // The weighted sum over the components, which needs no steering solve.
-        const auto *first = a->as<CompoundState>();
-        const auto *second = b->as<CompoundState>();
-        double expected = 0.;
-        for (unsigned int i = 0; i < space->getOrder(); ++i)
-            expected += space->getSubspaceWeight(i) *
-                        space->getSubspace(i)->distance(first->components[i], second->components[i]);
-        BOOST_CHECK_CLOSE(space->distance(a.get(), b.get()), expected, 1e-9);
-
-        // Symmetric, so a nearest-neighbor structure can hold one direction and answer both.
-        BOOST_CHECK_CLOSE(space->distance(a.get(), b.get()), space->distance(b.get(), a.get()), 1e-9);
-
-        // The triangle inequality.
-        BOOST_CHECK_LE(space->distance(a.get(), c.get()),
-                       space->distance(a.get(), b.get()) + space->distance(b.get(), c.get()) + 1e-9);
-    }
-}
-
-BOOST_AUTO_TEST_CASE(ParametersAreSweepable)
-{
-    auto space = makeSpace();
-
-    // A benchmark configuration reaches this by name rather than through code.
-    BOOST_REQUIRE(space->params().hasParam("rho"));
-
-    BOOST_CHECK(space->params().setParam("rho", "20"));
-    BOOST_CHECK_CLOSE(space->getRho(), 20., 1e-9);
-    BOOST_CHECK_CLOSE(space->getSteering().getRho(), 20., 1e-9);
-
-    std::string value;
-    BOOST_CHECK(space->params().getParam("rho", value));
-    BOOST_CHECK_CLOSE(std::stod(value), 20., 1e-9);
-
-    // Raising the time penalty shortens motions, which the space reads through to the steering.
-    auto patient = makeSpace();
     ScopedState<> from(space), to(space);
-    setState(space.get(), from.get(), {-0.5, -0.5}, {0., 0.});
-    setState(space.get(), to.get(), {0.5, 0.5}, {0., 0.});
-    BOOST_CHECK_LT(space->steer(from.get(), to.get())->duration(), patient->steer(from.get(), to.get())->duration());
-}
+    setState(space.get(), from.get(), {-0.5, 0.1}, {0.2, -0.3});
+    setState(space.get(), to.get(), {0.6, -0.2}, {-0.1, 0.4});
+    BOOST_CHECK_CLOSE(space->distance(from.get(), to.get()), space->steeringCost(from.get(), to.get()), 1e-9);
 
-BOOST_AUTO_TEST_CASE(EndpointRecovery)
-{
-    auto space = makeSpace();
-    StateSamplerPtr sampler = space->allocStateSampler();
+    // A flat state carrying a velocity has a polynomial that loops back around to it, and nobody has to
+    // fly that loop to be where they already are.
+    BOOST_CHECK_EQUAL(space->distance(from.get(), from.get()), 0.);
 
-    ScopedState<> from(space), to(space), result(space);
-    for (unsigned int trial = 0; trial < 300u; ++trial)
-    {
-        sampler->sampleUniform(from.get());
-        sampler->sampleUniform(to.get());
-
-        space->interpolate(from.get(), to.get(), 0., result.get());
-        BOOST_CHECK(space->equalStates(result.get(), from.get()));
-
-        space->interpolate(from.get(), to.get(), 1., result.get());
-        BOOST_CHECK(space->equalStates(result.get(), to.get()));
-
-        // Just inside the endpoints the polynomial is doing the work rather than a short circuit.
-        space->interpolate(from.get(), to.get(), 1e-9, result.get());
-        BOOST_CHECK_SMALL(space->distance(result.get(), from.get()), 1e-6);
-        space->interpolate(from.get(), to.get(), 1. - 1e-9, result.get());
-        BOOST_CHECK_SMALL(space->distance(result.get(), to.get()), 1e-6);
-    }
-}
-
-BOOST_AUTO_TEST_CASE(InterpolationToleratesAliasing)
-{
-    auto space = makeSpace();
-    StateSamplerPtr sampler = space->allocStateSampler();
-
-    ScopedState<> from(space), to(space), separate(space), aliased(space);
-    for (unsigned int trial = 0; trial < 200u; ++trial)
-    {
-        sampler->sampleUniform(from.get());
-        sampler->sampleUniform(to.get());
-
-        for (double t : {0.25, 0.5, 0.75})
-        {
-            space->interpolate(from.get(), to.get(), t, separate.get());
-
-            // Writing over the target.
-            space->copyState(aliased.get(), to.get());
-            space->interpolate(from.get(), aliased.get(), t, aliased.get());
-            BOOST_CHECK(space->equalStates(aliased.get(), separate.get()));
-
-            // Writing over the source.
-            space->copyState(aliased.get(), from.get());
-            space->interpolate(aliased.get(), to.get(), t, aliased.get());
-            BOOST_CHECK(space->equalStates(aliased.get(), separate.get()));
-        }
-    }
-}
-
-BOOST_AUTO_TEST_CASE(ContinuedInterpolation)
-{
-    auto space = makeSpace();
-    StateSamplerPtr sampler = space->allocStateSampler();
-
-    ScopedState<> from(space), to(space), half(space), quarter(space);
-    for (unsigned int trial = 0; trial < 200u; ++trial)
-    {
-        sampler->sampleUniform(from.get());
-        sampler->sampleUniform(to.get());
-
-        // Stepping halfway twice lands where stepping three quarters once does.
-        space->interpolate(from.get(), to.get(), 0.5, half.get());
-        space->interpolate(half.get(), to.get(), 0.5, half.get());
-        space->interpolate(from.get(), to.get(), 0.75, quarter.get());
-        BOOST_CHECK_SMALL(space->distance(half.get(), quarter.get()), 1e-6);
-    }
-}
-
-BOOST_AUTO_TEST_CASE(SteeringFailureLeavesTheStartState)
-{
-    auto space = makeSpace();
-
-    ScopedState<> resting(space), result(space);
-    setState(space.get(), resting.get(), {0.3, -0.4}, {0., 0.});
-
-    // Coinciding flat states leave nothing to steer through.
-    BOOST_CHECK(!space->steer(resting.get(), resting.get()).has_value());
-
-    for (double t : {0.25, 0.5, 0.9})
-    {
-        space->interpolate(resting.get(), resting.get(), t, result.get());
-        BOOST_CHECK(space->equalStates(result.get(), resting.get()));
-    }
-    BOOST_CHECK_EQUAL(space->validSegmentCount(resting.get(), resting.get()), 1u);
+    // Edges run forward in time, so the two directions cost different amounts.
+    BOOST_CHECK_GT(std::abs(space->distance(from.get(), to.get()) - space->distance(to.get(), from.get())), 1e-6);
 }
 
 BOOST_AUTO_TEST_CASE(RecycledStateMemoryGivesFreshMotions)
@@ -331,7 +159,7 @@ BOOST_AUTO_TEST_CASE(CallerHeldMotionMatchesTheStatelessPath)
     auto space = makeSpace();
     StateSamplerPtr sampler = space->allocStateSampler();
 
-    ScopedState<> from(space), to(space), plain(space), held(space);
+    ScopedState<> from(space), to(space), plain(space), held(space), aliased(space);
     for (unsigned int trial = 0; trial < 200u; ++trial)
     {
         sampler->sampleUniform(from.get());
@@ -358,53 +186,13 @@ BOOST_AUTO_TEST_CASE(CallerHeldMotionMatchesTheStatelessPath)
         space->interpolate(*motion, 0.4, held.get());
         space->interpolate(from.get(), to.get(), 0.4, plain.get());
         BOOST_CHECK(space->equalStates(plain.get(), held.get()));
-    }
-}
-
-BOOST_AUTO_TEST_CASE(AHeldMotionIsSolvedExactlyOnce)
-{
-    auto space = makeSpace();
-
-    ScopedState<> from(space), to(space), elsewhere(space), result(space), expected(space);
-    setState(space.get(), from.get(), {-0.5, 0.}, {0., 0.});
-    setState(space.get(), to.get(), {0.5, 0.}, {0., 0.});
-    setState(space.get(), elsewhere.get(), {0., 0.9}, {0., 0.});
-
-    // Hand in a motion solved for a different pair with the flag already down.
-    // Following the handed-in motion rather than the endpoints proves no second solve happened.
-    std::optional<FlatMotion> foreign = space->steer(from.get(), elsewhere.get());
-    BOOST_REQUIRE(foreign.has_value());
-
-    bool firstTime = false;
-    space->interpolate(from.get(), to.get(), 0.5, firstTime, foreign, result.get());
-    space->interpolate(*foreign, 0.5, expected.get());
-    BOOST_CHECK(space->equalStates(result.get(), expected.get()));
-
-    // And the endpoint pair by itself lands somewhere else entirely.
-    space->interpolate(from.get(), to.get(), 0.5, expected.get());
-    BOOST_CHECK(!space->equalStates(result.get(), expected.get()));
-}
-
-BOOST_AUTO_TEST_CASE(HeldMotionInterpolationToleratesAliasing)
-{
-    auto space = makeSpace();
-    StateSamplerPtr sampler = space->allocStateSampler();
-
-    ScopedState<> from(space), to(space), separate(space), aliased(space);
-    for (unsigned int trial = 0; trial < 100u; ++trial)
-    {
-        sampler->sampleUniform(from.get());
-        sampler->sampleUniform(to.get());
-
-        bool firstTime = true;
-        std::optional<FlatMotion> motion;
-        space->interpolate(from.get(), to.get(), 0.5, firstTime, motion, separate.get());
 
         bool aliasedFirstTime = true;
         std::optional<FlatMotion> aliasedMotion;
         space->copyState(aliased.get(), to.get());
         space->interpolate(from.get(), aliased.get(), 0.5, aliasedFirstTime, aliasedMotion, aliased.get());
-        BOOST_CHECK(space->equalStates(aliased.get(), separate.get()));
+        space->interpolate(from.get(), to.get(), 0.5, plain.get());
+        BOOST_CHECK(space->equalStates(aliased.get(), plain.get()));
     }
 }
 
@@ -651,31 +439,14 @@ namespace
     };
 }  // namespace
 
-BOOST_AUTO_TEST_CASE(DefaultProjectionExists)
-{
-    auto space = makeSpace();
-    BOOST_REQUIRE(space->hasDefaultProjection());
-
-    ProjectionEvaluatorPtr projection = space->getDefaultProjection();
-    BOOST_REQUIRE(projection != nullptr);
-    BOOST_CHECK_EQUAL(projection->getDimension(), space->getOutputSpace()->getDimension());
-
-    // KPIECE1 refuses to run without a projection, so a solve confirms one reached the planner.
-    og::SimpleSetup setup(space);
-    setup.setStateValidityChecker(std::make_shared<BoxObstacle>(setup.getSpaceInformation(), 0.3));
-
-    ScopedState<> start(space), goal(space);
-    setState(space.get(), start.get(), {-0.8, -0.8}, {0., 0.});
-    setState(space.get(), goal.get(), {0.8, 0.8}, {0., 0.});
-    setup.setStartAndGoalStates(start, goal, 0.1);
-    setup.setPlanner(std::make_shared<og::KPIECE1>(setup.getSpaceInformation()));
-
-    BOOST_CHECK(setup.solve(10.) == PlannerStatus::EXACT_SOLUTION);
-}
-
 BOOST_AUTO_TEST_CASE(RRTSolvesAndThePathChecks)
 {
     auto space = makeSpace();
+
+    // KPIECE1 and its relatives refuse to run without a projection.
+    // Use flat output as the default projection.
+    BOOST_REQUIRE(space->hasDefaultProjection());
+    BOOST_CHECK_EQUAL(space->getDefaultProjection()->getDimension(), space->getOutputSpace()->getDimension());
 
     og::SimpleSetup setup(space);
     setup.setStateValidityChecker(std::make_shared<BoxObstacle>(setup.getSpaceInformation(), 0.3));

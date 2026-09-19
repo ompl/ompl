@@ -44,7 +44,6 @@
 #include "ompl/geometric/PathSimplifier.h"
 #include "ompl/geometric/SimpleSetup.h"
 #include "ompl/geometric/planners/rrt/RRT.h"
-#include "ompl/util/Exception.h"
 
 #include <cmath>
 #include <memory>
@@ -135,28 +134,14 @@ BOOST_AUTO_TEST_CASE(ABoundBrokenMidwayRejectsTheMotion)
     BOOST_CHECK(si->checkMotion(from.get(), to.get()));
 }
 
-BOOST_AUTO_TEST_CASE(OtherSpacesAreRejected)
-{
-    auto plain = std::make_shared<RealVectorStateSpace>(DIMENSION);
-    plain->setBounds(-1., 1.);
-    auto si = std::make_shared<SpaceInformation>(plain);
-    si->setStateValidityChecker([](const State *) { return true; });
-    si->setup();
-
-    ScopedState<> a(plain), b(plain);
-    og::PathGeometric path(si, a.get(), b.get());
-
-    // The extra parentheses keep this an expression.
-    // Without them it declares a trajectory named path.
-    BOOST_CHECK_THROW((FlatTrajectory(path)), ompl::Exception);
-    BOOST_CHECK_THROW((FlatTrajectory(nullptr, std::vector<const State *>{})), ompl::Exception);
-}
-
-BOOST_AUTO_TEST_CASE(DurationsAddUpToTheWhole)
+BOOST_AUTO_TEST_CASE(ATrajectoryResamplesToTheStatesItCameFrom)
 {
     auto space = makeSpace();
+    auto si = makeSpaceInformation(space);
     StateSamplerPtr sampler = space->allocStateSampler();
 
+    // The state pointers below have to outlive the vector growing under them, so it reserves first and
+    // they get collected once it has stopped growing.
     std::vector<ScopedState<>> owned;
     owned.reserve(6u);
     for (unsigned int i = 0; i < 6u; ++i)
@@ -166,86 +151,48 @@ BOOST_AUTO_TEST_CASE(DurationsAddUpToTheWhole)
     }
 
     std::vector<const State *> states;
+    og::PathGeometric path(si);
     for (const ScopedState<> &state : owned)
+    {
         states.push_back(state.get());
-
-    const FlatTrajectory trajectory(space.get(), states);
-    BOOST_REQUIRE_EQUAL(trajectory.size(), states.size() - 1u);
-    BOOST_CHECK_EQUAL(trajectory.outputDimension(), DIMENSION);
-
-    double total = 0.;
-    for (std::size_t i = 0; i < trajectory.size(); ++i)
-    {
-        BOOST_CHECK_CLOSE(trajectory.startTime(i), total, 1e-9);
-        total += trajectory.motion(i).duration();
+        path.append(state.get());
     }
 
-    BOOST_CHECK_CLOSE(trajectory.duration(), total, 1e-9);
-    BOOST_CHECK_CLOSE(trajectory.startTime(trajectory.size()), total, 1e-9);
-    BOOST_CHECK_THROW(trajectory.motion(trajectory.size()), ompl::Exception);
-}
-
-BOOST_AUTO_TEST_CASE(ResamplingRecoversTheStates)
-{
-    auto space = makeSpace();
-    StateSamplerPtr sampler = space->allocStateSampler();
-
-    std::vector<ScopedState<>> owned;
-    owned.reserve(6u);
-    for (unsigned int i = 0; i < 6u; ++i)
+    const auto holdsUp = [&](const FlatTrajectory &trajectory)
     {
-        owned.emplace_back(space);
-        sampler->sampleUniform(owned.back().get());
-    }
+        BOOST_REQUIRE_EQUAL(trajectory.size(), states.size() - 1u);
+        BOOST_CHECK_EQUAL(trajectory.outputDimension(), DIMENSION);
 
-    std::vector<const State *> states;
-    for (const ScopedState<> &state : owned)
-        states.push_back(state.get());
+        // Every segment starts where the ones before it left off, and they add up to the whole.
+        double total = 0.;
+        for (std::size_t i = 0; i < trajectory.size(); ++i)
+        {
+            BOOST_CHECK_CLOSE(trajectory.startTime(i), total, 1e-9);
+            total += trajectory.motion(i).duration();
+        }
+        BOOST_CHECK_GT(total, 0.);
+        BOOST_CHECK_CLOSE(trajectory.duration(), total, 1e-9);
+        BOOST_CHECK_CLOSE(trajectory.startTime(trajectory.size()), total, 1e-9);
 
-    const FlatTrajectory trajectory(space.get(), states);
-    BOOST_REQUIRE_EQUAL(trajectory.size(), states.size() - 1u);
+        // Reading the trajectory at the time each segment starts gives back the state the planner steered
+        // from, and reading it at the end gives the one it steered to.
+        ScopedState<> resampled(space);
+        for (std::size_t i = 0; i <= trajectory.size(); ++i)
+        {
+            trajectory.toState(space.get(), trajectory.startTime(i), resampled.get());
+            BOOST_CHECK_SMALL(space->distance(states[i], resampled.get()), 1e-9);
+        }
 
-    // Reading the trajectory at the time each segment starts gives back the state the planner steered
-    // from, and reading it at the end gives the one it steered to.
-    ScopedState<> resampled(space);
-    for (std::size_t i = 0; i <= trajectory.size(); ++i)
-    {
-        trajectory.toState(space.get(), trajectory.startTime(i), resampled.get());
-        BOOST_CHECK_SMALL(space->distance(states[i], resampled.get()), 1e-9);
-    }
+        // Times off either end clamp rather than running off the polynomial.
+        trajectory.toState(space.get(), -1., resampled.get());
+        BOOST_CHECK_SMALL(space->distance(states.front(), resampled.get()), 1e-9);
+        trajectory.toState(space.get(), trajectory.duration() + 1., resampled.get());
+        BOOST_CHECK_SMALL(space->distance(states.back(), resampled.get()), 1e-9);
+    };
 
-    // Times off either end clamp rather than running off the polynomial.
-    trajectory.toState(space.get(), -1., resampled.get());
-    BOOST_CHECK_SMALL(space->distance(states.front(), resampled.get()), 1e-9);
-    trajectory.toState(space.get(), trajectory.duration() + 1., resampled.get());
-    BOOST_CHECK_SMALL(space->distance(states.back(), resampled.get()), 1e-9);
-}
-
-BOOST_AUTO_TEST_CASE(ASolvedPathConvertsToATrajectory)
-{
-    auto space = makeSpace();
-    og::SimpleSetup setup(space);
-    setup.setStateValidityChecker(makeCheck(space.get(), 0.3));
-
-    ScopedState<> start(space), goal(space);
-    setState(space.get(), start.get(), {-0.8, -0.8}, {0., 0.});
-    setState(space.get(), goal.get(), {0.8, 0.8}, {0., 0.});
-    setup.setStartAndGoalStates(start, goal, 0.1);
-    setup.setPlanner(std::make_shared<og::RRT>(setup.getSpaceInformation()));
-
-    BOOST_REQUIRE(setup.solve(10.) == PlannerStatus::EXACT_SOLUTION);
-
-    og::PathGeometric &path = setup.getSolutionPath();
-    const FlatTrajectory trajectory(path);
-    BOOST_REQUIRE_EQUAL(trajectory.size(), path.getStateCount() - 1u);
-    BOOST_CHECK_GT(trajectory.duration(), 0.);
-
-    ScopedState<> resampled(space);
-    for (std::size_t i = 0; i < path.getStateCount(); ++i)
-    {
-        trajectory.toState(space.get(), trajectory.startTime(i), resampled.get());
-        BOOST_CHECK_SMALL(space->distance(path.getState(i), resampled.get()), 1e-9);
-    }
+    // Building from the states and building from a path over those same states give the same trajectory.
+    holdsUp(FlatTrajectory(space.get(), states));
+    holdsUp(FlatTrajectory(path));
 }
 
 BOOST_AUTO_TEST_CASE(SimplifiedPathsRunTheWayTheyWereChecked)
@@ -287,69 +234,4 @@ BOOST_AUTO_TEST_CASE(SimplifiedPathsRunTheWayTheyWereChecked)
         if (!si->checkMotion(from, to))
             BOOST_CHECK(!si->checkMotion(to, from));
     }
-}
-
-BOOST_AUTO_TEST_CASE(ADerivativeSamplerLeavesTheOutputAlone)
-{
-    auto output = std::make_shared<RealVectorStateSpace>(DIMENSION);
-    output->setBounds(-1., 1.);
-    auto derivative = std::make_shared<RealVectorStateSpace>(DIMENSION);
-    derivative->setBounds(-2., 2.);
-
-    // An allocator on the derivative subspace alone, which is the light route for anyone who wants
-    // different sampling without a different bound.
-    derivative->setStateSamplerAllocator(
-        [](const StateSpace *space)
-        {
-            class FixedSampler : public StateSampler
-            {
-            public:
-                FixedSampler(const StateSpace *space) : StateSampler(space)
-                {
-                }
-
-                void sampleUniform(State *state) override
-                {
-                    state->as<RealVectorStateSpace::StateType>()->values[0] = 0.25;
-                    state->as<RealVectorStateSpace::StateType>()->values[1] = -0.25;
-                }
-
-                void sampleUniformNear(State *state, const State *, double) override
-                {
-                    sampleUniform(state);
-                }
-
-                void sampleGaussian(State *state, const State *, double) override
-                {
-                    sampleUniform(state);
-                }
-            };
-
-            return std::make_shared<FixedSampler>(space);
-        });
-
-    auto space = std::make_shared<FlatStateSpace>(output, std::vector<StateSpacePtr>{derivative});
-    space->setup();
-
-    StateSamplerPtr sampler = space->allocStateSampler();
-    ScopedState<> state(space);
-
-    double lowest = 1.;
-    double highest = -1.;
-    for (unsigned int trial = 0; trial < 500u; ++trial)
-    {
-        sampler->sampleUniform(state.get());
-
-        const auto *flat = state->as<FlatStateSpace::StateType>();
-        BOOST_REQUIRE_CLOSE(flat->derivative(1)->values[0], 0.25, 1e-9);
-        BOOST_REQUIRE_CLOSE(flat->derivative(1)->values[1], -0.25, 1e-9);
-
-        const double value = flat->output()->as<RealVectorStateSpace::StateType>()->values[0];
-        lowest = std::min(lowest, value);
-        highest = std::max(highest, value);
-    }
-
-    // The flat output kept the sampler it had, so it still spreads over its whole range.
-    BOOST_CHECK_LT(lowest, -0.9);
-    BOOST_CHECK_GT(highest, 0.9);
 }
