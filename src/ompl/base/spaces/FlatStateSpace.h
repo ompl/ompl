@@ -72,6 +72,11 @@ namespace ompl::base
         Edges run forward in time, so \ref hasSymmetricInterpolate reports false.
         Planners that check an edge one way and then walk it the other return paths this space rejects, and
         \ref checkPlanner warns by name when one of them gets set up here.
+
+        @par External documentation
+        T. Duong, C. W. Ramsey, Z. Kingston, W. Thomason, and L. E. Kavraki, Ultrafast sampling-based kinodynamic
+        planning via differential flatness, in <em>IEEE Transactions on Robotics</em>, 2026.
+        [[PDF]](https://arxiv.org/abs/2603.16059)
     */
     class FlatStateSpace : public CompoundStateSpace
     {
