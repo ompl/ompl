@@ -310,8 +310,8 @@ BOOST_AUTO_TEST_CASE(RecycledStateMemoryGivesFreshMotions)
         result->as<FlatStateSpace::StateType>()->output()->as<RealVectorStateSpace::StateType>()->values[0];
 
     // The two edges run opposite ways along x, so stale state would report the first answer twice.
-    BOOST_CHECK_CLOSE(firstX, 0., 1e-6);
-    BOOST_CHECK_CLOSE(secondX, 0., 1e-6);
+    BOOST_CHECK_SMALL(firstX, 1e-9);
+    BOOST_CHECK_SMALL(secondX, 1e-9);
 
     // A sharper version, where the midpoints differ.
     setState(space.get(), recycledFrom, {-0.9, 0.}, {0., 0.});
