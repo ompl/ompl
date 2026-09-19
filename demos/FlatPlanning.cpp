@@ -5,14 +5,12 @@
 // polynomials that spend the least effort getting from one to the other, and the solution comes back as
 // a trajectory a controller can run rather than a list of waypoints.
 //
-// The whole flat setup is the four lines under "flat setup" below.
+// The whole flat setup is the handful of lines under "flat setup" below.
 // Everything else is the scenario and the reporting.
 
 #include <array>
 #include <chrono>
-#include <cmath>
 #include <iostream>
-#include <limits>
 #include <memory>
 #include <vector>
 
@@ -40,113 +38,12 @@ using Environment = vamp::collision::Environment<vamp::FloatVector<vamp::FloatVe
 namespace
 {
     constexpr unsigned int ORDER = 2;
-    constexpr double SPEED_LIMIT = 3.;
     constexpr double SOLVE_SECONDS = 10.;
 
-    /// A derivative level of a flat state whose Euclidean norm is capped.
-    class BallDerivativeSpace : public ob::RealVectorStateSpace
-    {
-    public:
-        BallDerivativeSpace(unsigned int dimension, double radius)
-          : ob::RealVectorStateSpace(dimension), radius_(radius)
-        {
-            setName("Ball" + getName());
-            setBounds(-radius, radius);
-        }
+    /// The Panda's velocity limit at each joint in radians per second.
+    constexpr std::array<double, Robot::dimension> SPEED_LIMITS{2.175, 2.175, 2.175, 2.175, 2.61, 2.61, 2.61};
 
-        double getRadius() const
-        {
-            return radius_;
-        }
-
-        bool satisfiesBounds(const ob::State *state) const override
-        {
-            return norm(state) <= radius_;
-        }
-
-        void enforceBounds(ob::State *state) const override
-        {
-            const double length = norm(state);
-            if (length > radius_)
-            {
-                // Aiming at exactly the radius rounds the wrong way often enough to matter, leaving over
-                // a quarter of enforced states above it at a radius of 3, so this aims a few of the last
-                // bits inside and satisfiesBounds above can compare exactly.
-                // Clamping to a box needs none of this, since assigning a bound lands on it exactly.
-                const double target = radius_ * (1. - 4. * std::numeric_limits<double>::epsilon());
-                double *values = state->as<StateType>()->values;
-                for (unsigned int i = 0; i < getDimension(); ++i)
-                    values[i] *= target / length;
-            }
-        }
-
-        ob::StateSamplerPtr allocDefaultStateSampler() const override;
-
-        double norm(const ob::State *state) const
-        {
-            const double *values = state->as<StateType>()->values;
-            double total = 0.;
-            for (unsigned int i = 0; i < getDimension(); ++i)
-                total += values[i] * values[i];
-            return std::sqrt(total);
-        }
-
-    private:
-        double radius_;
-    };
-
-    /// Draws uniformly from inside the ball.
-    ///
-    /// Rejecting draws from the box around the ball would work in the plane and not here, since a ball
-    /// takes up under four percent of the box around it in seven dimensions.
-    class BallSampler : public ob::StateSampler
-    {
-    public:
-        explicit BallSampler(const BallDerivativeSpace *space)
-          : ob::StateSampler(space), ball_(space), values_(space->getDimension(), 0.)
-        {
-        }
-
-        void sampleUniform(ob::State *state) override
-        {
-            rng_.uniformInBall(ball_->getRadius(), values_);
-            double *target = state->as<ob::RealVectorStateSpace::StateType>()->values;
-            for (std::size_t i = 0; i < values_.size(); ++i)
-                target[i] = values_[i];
-        }
-
-        void sampleUniformNear(ob::State *state, const ob::State *near, double distance) override
-        {
-            rng_.uniformInBall(distance, values_);
-            const double *center = near->as<ob::RealVectorStateSpace::StateType>()->values;
-            double *target = state->as<ob::RealVectorStateSpace::StateType>()->values;
-            for (std::size_t i = 0; i < values_.size(); ++i)
-                target[i] = center[i] + values_[i];
-
-            ball_->enforceBounds(state);
-        }
-
-        void sampleGaussian(ob::State *state, const ob::State *mean, double stdDev) override
-        {
-            const double *center = mean->as<ob::RealVectorStateSpace::StateType>()->values;
-            double *target = state->as<ob::RealVectorStateSpace::StateType>()->values;
-            for (std::size_t i = 0; i < values_.size(); ++i)
-                target[i] = rng_.gaussian(center[i], stdDev);
-
-            ball_->enforceBounds(state);
-        }
-
-    private:
-        const BallDerivativeSpace *ball_;
-        std::vector<double> values_;
-    };
-
-    ob::StateSamplerPtr BallDerivativeSpace::allocDefaultStateSampler() const
-    {
-        return std::make_shared<BallSampler>(this);
-    }
-
-    /// The cage of spheres the arm has to thread its way out of.
+    /// Construct a sphere cage environment.
     Environment sphereCage()
     {
         vamp::collision::Environment<float> environment;
@@ -179,9 +76,18 @@ int main()
     const Environment environment = sphereCage();
 
     // The flat setup.
+    // The joints move independently under separate velocity limits, so the velocity level is a box with
+    // a side per joint.
     auto output = std::make_shared<ompl::vamp::VampStateSpace<Robot>>();
-    auto velocity = std::make_shared<BallDerivativeSpace>(Robot::dimension, SPEED_LIMIT);
-    auto space = std::make_shared<ob::FlatStateSpace>(output, std::vector<ob::StateSpacePtr>{velocity});
+    auto space = std::make_shared<ob::FlatStateSpace>(output, ORDER);
+
+    ob::RealVectorBounds speeds(Robot::dimension);
+    for (unsigned int i = 0; i < Robot::dimension; ++i)
+    {
+        speeds.setLow(i, -SPEED_LIMITS[i]);
+        speeds.setHigh(i, SPEED_LIMITS[i]);
+    }
+    space->getDerivativeSpace(1u)->setBounds(speeds);
 
     og::SimpleSetup setup(space);
 
@@ -206,8 +112,7 @@ int main()
     atRest(space.get(), goal.get(), {2.35, 1., 0., -0.8, 0., 2.5, 0.785});
     setup.setStartAndGoalStates(start, goal);
 
-    // RRTConnect checks each edge the way its path runs through it, so it holds up on a space whose edges
-    // only run one way.
+    // RRTConnect supports asymmetric edges.
     setup.setPlanner(std::make_shared<og::RRTConnect>(setup.getSpaceInformation()));
 
     const auto began = std::chrono::steady_clock::now();
@@ -225,31 +130,27 @@ int main()
     std::cout << "The path passes its own validity check: " << std::boolalpha << path.check() << "\n";
 
     // A controller runs the trajectory.
-    // Each segment is one polynomial the planner steered through and already checked, so nothing gets
-    // re-fitted on the way out.
     const ob::FlatTrajectory trajectory(path);
     std::cout << "Trajectory of " << trajectory.size() << " segments lasting " << trajectory.duration() << " seconds\n";
 
-    ob::Cost cost = setup.getOptimizationObjective()->identityCost();
+    const auto objective = setup.getOptimizationObjective();
+    ob::Cost cost = objective->identityCost();
     for (std::size_t i = 1; i < path.getStateCount(); ++i)
-        cost = setup.getOptimizationObjective()->combineCosts(
-            cost, setup.getOptimizationObjective()->motionCost(path.getState(i - 1u), path.getState(i)));
+        cost = objective->combineCosts(cost, objective->motionCost(path.getState(i - 1u), path.getState(i)));
     std::cout << "Steering cost " << cost.value() << "\n";
 
-    // Sampling the whole run confirms the velocity limit held everywhere, not only at the states the
-    // planner steered between.
+    // Sampling the whole run confirms every joint held to its limit everywhere, not only at waypoints.
     Eigen::VectorXd rate(Robot::dimension);
-    double fastest = 0.;
-    double fastestJoint = 0.;
+    Eigen::VectorXd fastest = Eigen::VectorXd::Zero(Robot::dimension);
     constexpr unsigned int SAMPLES = 20000;
     for (unsigned int i = 0; i <= SAMPLES; ++i)
     {
         trajectory.evaluate(trajectory.duration() * i / SAMPLES, 1u, rate);
-        fastest = std::max(fastest, rate.norm());
-        fastestJoint = std::max(fastestJoint, rate.cwiseAbs().maxCoeff());
+        fastest = fastest.cwiseMax(rate.cwiseAbs());
     }
 
-    std::cout << "Fastest the arm moves over the run " << fastest << " against a cap of " << SPEED_LIMIT << "\n";
-    std::cout << "Fastest any one joint moves " << fastestJoint << "\n";
-    return fastest <= SPEED_LIMIT ? 0 : 1;
+    const Eigen::VectorXd limits = Eigen::Map<const Eigen::VectorXd>(SPEED_LIMITS.data(), Robot::dimension);
+    std::cout << "Fastest each joint moves over the run " << fastest.transpose() << "\n";
+    std::cout << "Against caps of " << limits.transpose() << "\n";
+    return (fastest.array() <= limits.array()).all() ? 0 : 1;
 }
