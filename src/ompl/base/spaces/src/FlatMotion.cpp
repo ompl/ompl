@@ -44,286 +44,323 @@
 
 #include <algorithm>
 #include <cmath>
+#include <initializer_list>
 #include <limits>
 #include <vector>
 
-/** Helper functions for manipulating polynomials. */
 namespace
 {
-    /** \brief Evaluate the polynomial whose ascending-power coefficients are \e c at \e t. */
-    double evaluatePolynomial(const Eigen::VectorXd &c, double t)
+    /** \brief A polynomial in one variable, carrying one coefficient per power of that variable. */
+    class Polynomial
     {
-        double value = 0.;
-        for (Eigen::Index i = c.size() - 1; i >= 0; --i)
-            value = value * t + c[i];
-        return value;
-    }
-
-    /** \brief The ascending-power coefficients of the derivative of the polynomial whose ascending-power
-        coefficients are \e c. */
-    Eigen::VectorXd differentiatePolynomial(const Eigen::VectorXd &c)
-    {
-        Eigen::VectorXd slope = Eigen::VectorXd::Zero(std::max<Eigen::Index>(c.size() - 1, 1));
-        for (Eigen::Index i = 1; i < c.size(); ++i)
-            slope[i - 1] = static_cast<double>(i) * c[i];
-        return slope;
-    }
-
-    /** \brief Refine \e root with Newton's method, keeping it only while the residual shrinks.
-
-        \e slope has to be the derivative of the polynomial whose ascending-power coefficients are \e c.
-    */
-    double newton(const Eigen::VectorXd &c, const Eigen::VectorXd &slope, double root)
-    {
-        // Companion matrix eigenvalues carry a small backward error against the matrix rather than
-        // against the polynomial, so without this the roots above degree four come back wrong often
-        // enough to matter.
-        // The step budget stops at three because a shrinking residual stops shrinking by then for all
-        // but a few candidates in a thousand.
-        const int budget = 3;
-
-        double best = root;
-        double bestResidual = std::abs(evaluatePolynomial(c, root));
-        for (int step = 0; step < budget; ++step)
+    public:
+        /** \brief Construct the polynomial whose ascending-power coefficients are \e coefficients, so
+            entry \e i is the coefficient of \f$t^i\f$. */
+        explicit Polynomial(Eigen::VectorXd coefficients) : coefficients_(std::move(coefficients))
         {
-            const double denominator = evaluatePolynomial(slope, best);
-            if (denominator == 0.)
-                break;
-            const double candidate = best - evaluatePolynomial(c, best) / denominator;
-            const double residual = std::abs(evaluatePolynomial(c, candidate));
-            if (!std::isfinite(candidate) || residual >= bestResidual)
-                break;
-            best = candidate;
-            bestResidual = residual;
-        }
-        return best;
-    }
-
-    /** \brief The roots of \f$b t^2 + c t + d\f$, where \e b is nonzero. */
-    std::vector<double> quadraticRoots(double b, double c, double d)
-    {
-        const double discriminant = c * c - 4. * b * d;
-        if (discriminant < 0.)
-            return {};
-
-        const double spread = std::sqrt(discriminant);
-        return {(-c - spread) / (2. * b), (-c + spread) / (2. * b)};
-    }
-
-    /** \brief The roots of \f$a t^3 + b t^2 + c t + d\f$, where \e a is nonzero.
-
-        Cardano's method, which always hands back at least one root because a cubic always has one.
-    */
-    std::vector<double> cubicRoots(double a, double b, double c, double d)
-    {
-        const double a2 = b / a;
-        const double a1 = c / a;
-        const double a0 = d / a;
-
-        const double q = (3. * a1 - a2 * a2) / 9.;
-        const double r = (9. * a1 * a2 - 27. * a0 - 2. * a2 * a2 * a2) / 54.;
-        const double discriminant = q * q * q + r * r;
-        const double shift = a2 / 3.;
-
-        // A cubic with a repeated root sits at a discriminant of zero, which rounding turns into a small
-        // number of either sign, so the repeated case gets a band rather than an exact comparison.
-        // Landing in the band by mistake costs precision on the repeated root and rounding out of it
-        // loses that root altogether.
-        const double band = 1e-12 * std::max(std::abs(q * q * q), r * r);
-
-        if (discriminant > band)
-        {
-            const double spread = std::sqrt(discriminant);
-            return {std::cbrt(r + spread) + std::cbrt(r - spread) - shift};
-        }
-        if (discriminant >= -band)
-        {
-            const double s = std::cbrt(r);
-            return {2. * s - shift, -s - shift};
         }
 
-        const double theta = std::acos(r / std::sqrt(-q * q * q));
-        const double radius = 2. * std::sqrt(-q);
-        const double third = boost::math::constants::two_pi<double>() / 3.;
-        return {radius * std::cos(theta / 3.) - shift, radius * std::cos(theta / 3. + third) - shift,
-                radius * std::cos(theta / 3. + 2. * third) - shift};
-    }
-
-    /** \brief The roots of \f$a t^4 + b t^3 + c t^2 + d t + e\f$, where \e a is nonzero, or nothing when
-        no resolvent root leaves a factorization to read them off.
-
-        Ferrari's method, which splits the quartic into two quadratics once a root of its resolvent cubic
-        is in hand.
-        Whichever resolvent root splits the quartic widest gets used, because a narrow split loses the outer
-        pair of roots to cancellation and a resolvent cubic with a repeated root offers a split that is no
-        split at all.
-    */
-    std::optional<std::vector<double>> quarticRoots(double a, double b, double c, double d, double e)
-    {
-        const double a3 = b / a;
-        const double a2 = c / a;
-        const double a1 = d / a;
-        const double a0 = e / a;
-
-        double resolvent = 0.;
-        double square = -1.;
-        for (double candidate : cubicRoots(1., -a2, a1 * a3 - 4. * a0, 4. * a2 * a0 - a1 * a1 - a3 * a3 * a0))
+        /** \brief Construct the polynomial whose ascending-power coefficients are \e coefficients. */
+        Polynomial(std::initializer_list<double> coefficients)
+          : coefficients_(
+                Eigen::Map<const Eigen::VectorXd>(coefficients.begin(), static_cast<Eigen::Index>(coefficients.size())))
         {
-            const double split = a3 * a3 / 4. - a2 + candidate;
-            if (split > square)
+        }
+
+        /** \brief The value at \e t, evaluated by Horner's method. */
+        double operator()(double t) const
+        {
+            double value = 0.;
+            for (Eigen::Index i = coefficients_.size() - 1; i >= 0; --i)
+                value = value * t + coefficients_[i];
+            return value;
+        }
+
+        /** \brief The derivative with respect to the variable.
+
+            The derivative of a constant is the zero polynomial carrying one coefficient rather than an
+            empty one, so repeated differentiation always yields a usable polynomial.
+        */
+        Polynomial derivative() const
+        {
+            Eigen::VectorXd slope = Eigen::VectorXd::Zero(std::max<Eigen::Index>(coefficients_.size() - 1, 1));
+            for (Eigen::Index i = 1; i < coefficients_.size(); ++i)
+                slope[i - 1] = static_cast<double>(i) * coefficients_[i];
+            return Polynomial(std::move(slope));
+        }
+
+        /** \brief The real roots.
+
+            Degrees up to four go through closed forms and anything higher through the eigenvalues of the
+            companion matrix.
+            Every candidate gets refined and then checked against the polynomial, and the companion matrix
+            takes over whenever a closed form hands back something the polynomial doesn't vanish at, which
+            is how an ill-conditioned resolvent stays out of the answer.
+            A closed form that comes back empty hands over too, because a quartic whose resolvent declines
+            to split it looks from the outside like one with no roots at all.
+        */
+        std::vector<double> roots() const
+        {
+            const Eigen::Index degree = leadingDegree();
+            if (degree < 1)
+                return {};
+
+            std::optional<std::vector<double>> closed;
+            switch (degree)
             {
-                resolvent = candidate;
-                square = split;
+                case 1:
+                    closed = std::vector<double>{-coefficients_[0] / coefficients_[1]};
+                    break;
+                case 2:
+                    closed = quadraticRoots(coefficients_[2], coefficients_[1], coefficients_[0]);
+                    break;
+                case 3:
+                    closed = cubicRoots(coefficients_[3], coefficients_[2], coefficients_[1], coefficients_[0]);
+                    break;
+                case 4:
+                    closed = quarticRoots(coefficients_[4], coefficients_[3], coefficients_[2], coefficients_[1],
+                                          coefficients_[0]);
+                    break;
+                default:
+                    break;
             }
-        }
-        if (square < 0.)
-            return std::nullopt;
 
-        const double root = std::sqrt(square);
-        double upper, lower;
-        if (root != 0.)
+            const Polynomial slope = derivative();
+            if (closed.has_value() && !closed->empty())
+            {
+                for (double &root : *closed)
+                    root = newton(slope, root);
+                if (std::all_of(closed->begin(), closed->end(), [this](double root) { return vanishesAt(root); }))
+                    return std::move(*closed);
+            }
+
+            std::vector<double> refined = companionRoots(degree);
+            for (double &root : refined)
+                root = newton(slope, root);
+            return refined;
+        }
+
+        /** \brief Every strictly positive point at which the polynomial crosses from negative to positive.
+
+            The polynomial this runs on is the derivative of a cost, so an upward crossing is a local
+            minimum of that cost and a root the polynomial only touches is not.
+            Demanding the crossing also throws out the spurious roots that a repeated root at zero
+            produces.
+        */
+        std::vector<double> upwardCrossings() const
         {
-            const double base = 0.75 * a3 * a3 - square - 2. * a2;
-            const double offset = 0.25 * (4. * a3 * a2 - 8. * a1 - a3 * a3 * a3) / root;
-            upper = std::sqrt(base + offset);
-            lower = std::sqrt(base - offset);
+            const Polynomial slope = derivative();
+            std::vector<double> crossings;
+            for (double root : roots())
+                if (root > 0. && slope(root) > 0.)
+                    crossings.push_back(root);
+            return crossings;
         }
-        else
+
+    private:
+        /** \brief The index of the highest-power coefficient large enough next to the rest to lead, or
+            zero when nothing is left to solve.
+
+            A coefficient far below the largest one is the residue of a cancellation rather than a leading
+            term, and handing the root finder the degree it implies asks for roots that aren't there.
+        */
+        Eigen::Index leadingDegree() const
         {
-            const double base = 0.75 * a3 * a3 - 2. * a2;
-            const double offset = 2. * std::sqrt(resolvent * resolvent - 4. * a0);
-            upper = std::sqrt(base + offset);
-            lower = std::sqrt(base - offset);
+            if (coefficients_.size() < 2)
+                return 0;
+
+            const double scale = coefficients_.cwiseAbs().maxCoeff();
+            if (scale == 0.)
+                return 0;
+
+            Eigen::Index degree = coefficients_.size() - 1;
+            while (degree > 0 && std::abs(coefficients_[degree]) <= 1e-12 * scale)
+                --degree;
+            return degree;
         }
 
-        std::vector<double> roots;
-        const double shift = a3 / 4.;
-        if (!std::isnan(upper))
+        /** \brief Whether the polynomial vanishes at \e root to the precision its coefficients support. */
+        bool vanishesAt(double root) const
         {
-            roots.push_back(-shift + (root + upper) / 2.);
-            roots.push_back(-shift + (root - upper) / 2.);
+            double value = 0.;
+            double scale = 0.;
+            for (Eigen::Index i = coefficients_.size() - 1; i >= 0; --i)
+            {
+                value = value * root + coefficients_[i];
+                scale = scale * std::abs(root) + std::abs(coefficients_[i]);
+            }
+            return std::abs(value) <= 1e-9 * scale;
         }
-        if (!std::isnan(lower))
+
+        /** \brief Refine \e root with Newton's method, keeping it only while the residual shrinks.
+
+            \e slope has to be the derivative of this polynomial.
+        */
+        double newton(const Polynomial &slope, double root) const
         {
-            roots.push_back(-shift - (root - lower) / 2.);
-            roots.push_back(-shift - (root + lower) / 2.);
-        }
-        return roots;
-    }
+            // Companion matrix eigenvalues carry a small backward error against the matrix rather than
+            // against the polynomial, so without this the roots above degree four come back wrong often
+            // enough to matter.
+            // The step budget stops at three because a shrinking residual stops shrinking by then for all
+            // but a few candidates in a thousand.
+            const int budget = 3;
 
-    /** \brief Whether the polynomial whose ascending-power coefficients are \e c vanishes at \e root to
-        the precision its coefficients support. */
-    bool vanishesAt(const Eigen::VectorXd &c, double root)
-    {
-        double value = 0.;
-        double scale = 0.;
-        for (Eigen::Index i = c.size() - 1; i >= 0; --i)
+            double best = root;
+            double bestResidual = std::abs((*this)(root));
+            for (int step = 0; step < budget; ++step)
+            {
+                const double denominator = slope(best);
+                if (denominator == 0.)
+                    break;
+                const double candidate = best - (*this)(best) / denominator;
+                const double residual = std::abs((*this)(candidate));
+                if (!std::isfinite(candidate) || residual >= bestResidual)
+                    break;
+                best = candidate;
+                bestResidual = residual;
+            }
+            return best;
+        }
+
+        /** \brief The roots read off the eigenvalues of the companion matrix of the polynomial truncated
+            to \e degree, which has to be the index of a leading coefficient.
+            Roots with an imaginary part are dropped. */
+        std::vector<double> companionRoots(Eigen::Index degree) const
         {
-            value = value * root + c[i];
-            scale = scale * std::abs(root) + std::abs(c[i]);
-        }
-        return std::abs(value) <= 1e-9 * scale;
-    }
+            Eigen::MatrixXd companion = Eigen::MatrixXd::Zero(degree, degree);
+            companion.col(degree - 1) = -coefficients_.head(degree) / coefficients_[degree];
+            if (degree > 1)
+                companion.block(1, 0, degree - 1, degree - 1).setIdentity();
 
-    /** \brief The roots of the polynomial whose ascending-power coefficients are \e c and whose leading
-        coefficient sits at index \e degree, read off the eigenvalues of its companion matrix.
-        Roots with an imaginary part are dropped. */
-    std::vector<double> companionRoots(const Eigen::VectorXd &c, Eigen::Index degree)
-    {
-        Eigen::MatrixXd companion = Eigen::MatrixXd::Zero(degree, degree);
-        companion.col(degree - 1) = -c.head(degree) / c[degree];
-        if (degree > 1)
-            companion.block(1, 0, degree - 1, degree - 1).setIdentity();
+            const Eigen::EigenSolver<Eigen::MatrixXd> solver(companion, false);
+            const auto &values = solver.eigenvalues();
 
-        const Eigen::EigenSolver<Eigen::MatrixXd> solver(companion, false);
-        const auto &values = solver.eigenvalues();
-
-        std::vector<double> roots;
-        for (Eigen::Index i = 0; i < values.size(); ++i)
-        {
-            const std::complex<double> &value = values[i];
-            if (std::abs(value.imag()) <= 1e-8 * (1. + std::abs(value.real())))
-                roots.push_back(value.real());
-        }
-        return roots;
-    }
-
-    /** \brief The roots of the polynomial whose ascending-power coefficients are \e c.
-
-        Degrees up to four go through closed forms and anything higher through the eigenvalues of the
-        companion matrix.
-        Every candidate gets refined and then checked against the polynomial, and the companion matrix
-        takes over whenever a closed form hands back something the polynomial doesn't vanish at, which is
-        how an ill-conditioned resolvent stays out of the answer.
-        A closed form that comes back empty hands over too, because a quartic whose resolvent declines to
-        split it looks from the outside like one with no roots at all.
-    */
-    std::vector<double> polynomialRoots(const Eigen::VectorXd &c)
-    {
-        std::vector<double> roots;
-        if (c.size() < 2)
+            std::vector<double> roots;
+            for (Eigen::Index i = 0; i < values.size(); ++i)
+            {
+                const std::complex<double> &value = values[i];
+                if (std::abs(value.imag()) <= 1e-8 * (1. + std::abs(value.real())))
+                    roots.push_back(value.real());
+            }
             return roots;
-
-        const double scale = c.cwiseAbs().maxCoeff();
-        if (scale == 0.)
-            return roots;
-
-        Eigen::Index degree = c.size() - 1;
-        while (degree > 0 && std::abs(c[degree]) <= 1e-12 * scale)
-            --degree;
-        if (degree < 1)
-            return roots;
-
-        std::optional<std::vector<double>> closed;
-        switch (degree)
-        {
-            case 1:
-                closed = std::vector<double>{-c[0] / c[1]};
-                break;
-            case 2:
-                closed = quadraticRoots(c[2], c[1], c[0]);
-                break;
-            case 3:
-                closed = cubicRoots(c[3], c[2], c[1], c[0]);
-                break;
-            case 4:
-                closed = quarticRoots(c[4], c[3], c[2], c[1], c[0]);
-                break;
-            default:
-                break;
         }
 
-        const Eigen::VectorXd slope = differentiatePolynomial(c);
-        if (closed.has_value() && !closed->empty())
+        /** \brief The roots of \f$b t^2 + c t + d\f$, where \e b is nonzero. */
+        static std::vector<double> quadraticRoots(double b, double c, double d)
         {
-            for (double &root : *closed)
-                root = newton(c, slope, root);
-            if (std::all_of(closed->begin(), closed->end(), [&c](double root) { return vanishesAt(c, root); }))
-                return std::move(*closed);
+            const double discriminant = c * c - 4. * b * d;
+            if (discriminant < 0.)
+                return {};
+
+            const double spread = std::sqrt(discriminant);
+            return {(-c - spread) / (2. * b), (-c + spread) / (2. * b)};
         }
 
-        roots = companionRoots(c, degree);
-        for (double &root : roots)
-            root = newton(c, slope, root);
-        return roots;
-    }
+        /** \brief The roots of \f$a t^3 + b t^2 + c t + d\f$, where \e a is nonzero.
 
-    /** \brief Every strictly positive point at which the polynomial with ascending-power coefficients
-        \e c crosses from negative to positive.
+            Cardano's method, which always hands back at least one root because a cubic always has one.
+        */
+        static std::vector<double> cubicRoots(double a, double b, double c, double d)
+        {
+            const double a2 = b / a;
+            const double a1 = c / a;
+            const double a0 = d / a;
 
-        The polynomial here is the derivative of a cost, so an upward crossing is a local minimum of that
-        cost and a root the polynomial only touches is not.
-        Demanding the crossing also throws out the spurious roots that a repeated root at zero produces.
-    */
-    std::vector<double> upwardCrossings(const Eigen::VectorXd &c)
-    {
-        const Eigen::VectorXd slope = differentiatePolynomial(c);
-        std::vector<double> crossings;
-        for (double root : polynomialRoots(c))
-            if (root > 0. && evaluatePolynomial(slope, root) > 0.)
-                crossings.push_back(root);
-        return crossings;
-    }
+            const double q = (3. * a1 - a2 * a2) / 9.;
+            const double r = (9. * a1 * a2 - 27. * a0 - 2. * a2 * a2 * a2) / 54.;
+            const double discriminant = q * q * q + r * r;
+            const double shift = a2 / 3.;
+
+            // A cubic with a repeated root sits at a discriminant of zero, which rounding turns into a
+            // small number of either sign, so the repeated case gets a band rather than an exact
+            // comparison.
+            // Landing in the band by mistake costs precision on the repeated root and rounding out of it
+            // loses that root altogether.
+            const double band = 1e-12 * std::max(std::abs(q * q * q), r * r);
+
+            if (discriminant > band)
+            {
+                const double spread = std::sqrt(discriminant);
+                return {std::cbrt(r + spread) + std::cbrt(r - spread) - shift};
+            }
+            if (discriminant >= -band)
+            {
+                const double s = std::cbrt(r);
+                return {2. * s - shift, -s - shift};
+            }
+
+            const double theta = std::acos(r / std::sqrt(-q * q * q));
+            const double radius = 2. * std::sqrt(-q);
+            const double third = boost::math::constants::two_pi<double>() / 3.;
+            return {radius * std::cos(theta / 3.) - shift, radius * std::cos(theta / 3. + third) - shift,
+                    radius * std::cos(theta / 3. + 2. * third) - shift};
+        }
+
+        /** \brief The roots of \f$a t^4 + b t^3 + c t^2 + d t + e\f$, where \e a is nonzero, or nothing
+            when no resolvent root leaves a factorization to read them off.
+
+            Ferrari's method, which splits the quartic into two quadratics once a root of its resolvent
+            cubic is in hand.
+            Whichever resolvent root splits the quartic widest gets used, because a narrow split loses the
+            outer pair of roots to cancellation and a resolvent cubic with a repeated root offers a split
+            that is no split at all.
+        */
+        static std::optional<std::vector<double>> quarticRoots(double a, double b, double c, double d, double e)
+        {
+            const double a3 = b / a;
+            const double a2 = c / a;
+            const double a1 = d / a;
+            const double a0 = e / a;
+
+            double resolvent = 0.;
+            double square = -1.;
+            for (double candidate : cubicRoots(1., -a2, a1 * a3 - 4. * a0, 4. * a2 * a0 - a1 * a1 - a3 * a3 * a0))
+            {
+                const double split = a3 * a3 / 4. - a2 + candidate;
+                if (split > square)
+                {
+                    resolvent = candidate;
+                    square = split;
+                }
+            }
+            if (square < 0.)
+                return std::nullopt;
+
+            const double root = std::sqrt(square);
+            double upper, lower;
+            if (root != 0.)
+            {
+                const double base = 0.75 * a3 * a3 - square - 2. * a2;
+                const double offset = 0.25 * (4. * a3 * a2 - 8. * a1 - a3 * a3 * a3) / root;
+                upper = std::sqrt(base + offset);
+                lower = std::sqrt(base - offset);
+            }
+            else
+            {
+                const double base = 0.75 * a3 * a3 - 2. * a2;
+                const double offset = 2. * std::sqrt(resolvent * resolvent - 4. * a0);
+                upper = std::sqrt(base + offset);
+                lower = std::sqrt(base - offset);
+            }
+
+            std::vector<double> roots;
+            const double shift = a3 / 4.;
+            if (!std::isnan(upper))
+            {
+                roots.push_back(-shift + (root + upper) / 2.);
+                roots.push_back(-shift + (root - upper) / 2.);
+            }
+            if (!std::isnan(lower))
+            {
+                roots.push_back(-shift - (root - lower) / 2.);
+                roots.push_back(-shift - (root + lower) / 2.);
+            }
+            return roots;
+        }
+
+        /** \brief Ascending-power coefficients, one per power of the variable. */
+        Eigen::VectorXd coefficients_;
+    };
 }  // namespace
 
 namespace ompl::base
@@ -408,22 +445,16 @@ namespace ompl::base
         const Eigen::MatrixXd velocity = derivative().coefficients_;
         const Eigen::MatrixXd gram = velocity * velocity.transpose();
 
-        Eigen::VectorXd squared = Eigen::VectorXd::Zero(2 * gram.rows() - 1);
+        Eigen::VectorXd coefficients = Eigen::VectorXd::Zero(2 * gram.rows() - 1);
         for (Eigen::Index i = 0; i < gram.rows(); ++i)
             for (Eigen::Index j = 0; j < gram.cols(); ++j)
-                squared[i + j] += gram(i, j);
+                coefficients[i + j] += gram(i, j);
 
-        double peak = std::max(evaluatePolynomial(squared, 0.), evaluatePolynomial(squared, duration_));
-        if (squared.size() > 1)
-        {
-            Eigen::VectorXd slope(squared.size() - 1);
-            for (Eigen::Index i = 1; i < squared.size(); ++i)
-                slope[i - 1] = static_cast<double>(i) * squared[i];
-
-            for (double t : polynomialRoots(slope))
-                if (t > 0. && t < duration_)
-                    peak = std::max(peak, evaluatePolynomial(squared, t));
-        }
+        const Polynomial v_squared(std::move(coefficients));
+        double peak = std::max(v_squared(0.), v_squared(duration_));
+        for (double t : v_squared.derivative().roots())
+            if (t > 0. && t < duration_)
+                peak = std::max(peak, v_squared(t));
         return std::sqrt(std::max(peak, 0.));
     }
 
@@ -509,12 +540,7 @@ namespace ompl::base
         const double crossTerm = 12. * (v0 + vf).dot(offset);
         const double offsetTerm = 12. * offset.squaredNorm();
 
-        Eigen::VectorXd quartic(5);
-        quartic[0] = -3. * offsetTerm;
-        quartic[1] = 2. * crossTerm;
-        quartic[2] = -speedTerm;
-        quartic[3] = 0.;
-        quartic[4] = rho_;
+        const Polynomial quartic = {-3. * offsetTerm, 2. * crossTerm, -speedTerm, 0., rho_};
 
         // The quartic can cross upward twice, which puts two local minima on J, so each crossing gets
         // priced and the cheapest one wins.
@@ -522,14 +548,13 @@ namespace ompl::base
         // cost, and an optimizing planner would steer through it believing the price.
         std::optional<double> best;
         double bestCost = std::numeric_limits<double>::infinity();
-        for (double duration : upwardCrossings(quartic))
+        for (double t : quartic.upwardCrossings())
         {
-            const double cost = offsetTerm / (duration * duration * duration) - crossTerm / (duration * duration) +
-                                speedTerm / duration + rho_ * duration;
+            const double cost = offsetTerm / (t * t * t) - crossTerm / (t * t) + speedTerm / t + rho_ * t;
             if (cost < bestCost)
             {
                 bestCost = cost;
-                best = duration;
+                best = t;
             }
         }
 
