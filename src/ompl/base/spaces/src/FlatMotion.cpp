@@ -442,13 +442,16 @@ namespace ompl::base
 
     double FlatMotion::peakSpeed() const
     {
-        const Eigen::MatrixXd velocity = derivative().coefficients_;
-        const Eigen::MatrixXd gram = velocity * velocity.transpose();
-
-        Eigen::VectorXd coefficients = Eigen::VectorXd::Zero(2 * gram.rows() - 1);
-        for (Eigen::Index i = 0; i < gram.rows(); ++i)
-            for (Eigen::Index j = 0; j < gram.cols(); ++j)
-                coefficients[i + j] += gram(i, j);
+        const Eigen::Index rows = coefficients_.rows();
+        Eigen::VectorXd coefficients = Eigen::VectorXd::Zero(std::max<Eigen::Index>(2 * rows - 3, 1));
+        for (Eigen::Index i = 1; i < rows; ++i)
+        {
+            const double weight = static_cast<double>(i);
+            coefficients[2 * (i - 1)] += weight * weight * coefficients_.row(i).squaredNorm();
+            for (Eigen::Index j = i + 1; j < rows; ++j)
+                coefficients[i + j - 2] +=
+                    2. * weight * static_cast<double>(j) * coefficients_.row(i).dot(coefficients_.row(j));
+        }
 
         const Polynomial v_squared(std::move(coefficients));
         double peak = std::max(v_squared(0.), v_squared(duration_));
