@@ -48,7 +48,7 @@ namespace ompl::base
     OMPL_CLASS_FORWARD(FlatTrajectory);
     /// @endcond
 
-    /** \brief A run of polynomial curves joined end to end, parameterized by time.
+    /** \brief A sequence of polynomial curves joined end to end, parameterized by time.
 
         The PathGeometric objects returned by geometric planners don't include the polynomial interpolations between
        states, so this class performs the necessary interpolation to produce dynamically valid paths.
