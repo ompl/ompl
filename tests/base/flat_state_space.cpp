@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_CASE(CallerHeldMotionMatchesTheStatelessPath)
         BOOST_CHECK_EQUAL(space->validSegmentCount(from.get(), to.get()), space->validSegmentCount(*motion));
 
         // Following the motion by itself matches following the endpoints.
-        space->interpolate(*motion, 0.4, held.get());
+        space->interpolate(from.get(), *motion, 0.4, held.get());
         space->interpolate(from.get(), to.get(), 0.4, plain.get());
         BOOST_CHECK(space->equalStates(plain.get(), held.get()));
 

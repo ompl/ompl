@@ -179,19 +179,19 @@ BOOST_AUTO_TEST_CASE(ATrajectoryResamplesToTheStatesItCameFrom)
         ScopedState<> resampled(space);
         for (std::size_t i = 0; i <= trajectory.size(); ++i)
         {
-            trajectory.toState(space.get(), trajectory.startTime(i), resampled.get());
+            trajectory.toState(trajectory.startTime(i), resampled.get());
             BOOST_CHECK_SMALL(space->distance(states[i], resampled.get()), 1e-9);
         }
 
         // Times off either end clamp rather than running off the polynomial.
-        trajectory.toState(space.get(), -1., resampled.get());
+        trajectory.toState(-1., resampled.get());
         BOOST_CHECK_SMALL(space->distance(states.front(), resampled.get()), 1e-9);
-        trajectory.toState(space.get(), trajectory.duration() + 1., resampled.get());
+        trajectory.toState(trajectory.duration() + 1., resampled.get());
         BOOST_CHECK_SMALL(space->distance(states.back(), resampled.get()), 1e-9);
     };
 
     // Building from the states and building from a path over those same states give the same trajectory.
-    holdsUp(FlatTrajectory(space.get(), states));
+    holdsUp(FlatTrajectory(space, states));
     holdsUp(FlatTrajectory(path));
 }
 

@@ -45,28 +45,10 @@ namespace ompl::base
 {
     namespace
     {
-        /** \brief The motions steering through \e states in order, under \e space. */
-        std::vector<FlatMotion> steerThrough(const FlatStateSpace *space, const std::vector<const State *> &states)
-        {
-            if (space == nullptr)
-                throw Exception("FlatTrajectory needs a FlatStateSpace");
-
-            std::vector<FlatMotion> motions;
-            motions.reserve(states.empty() ? 0u : states.size() - 1u);
-            for (std::size_t i = 1; i < states.size(); ++i)
-            {
-                std::optional<FlatMotion> motion = space->steer(states[i - 1u], states[i]);
-                if (motion.has_value())
-                    motions.push_back(std::move(*motion));
-            }
-
-            return motions;
-        }
-
         /** \brief The flat state space \e path runs through. */
-        const FlatStateSpace *flatSpaceOf(const geometric::PathGeometric &path)
+        FlatStateSpacePtr flatSpaceOf(const geometric::PathGeometric &path)
         {
-            const auto *space = dynamic_cast<const FlatStateSpace *>(path.getSpaceInformation()->getStateSpace().get());
+            auto space = std::dynamic_pointer_cast<FlatStateSpace>(path.getSpaceInformation()->getStateSpace());
             if (space == nullptr)
                 throw Exception("FlatTrajectory needs a path through a FlatStateSpace");
             return space;
@@ -82,23 +64,46 @@ namespace ompl::base
         }
     }  // namespace
 
-    FlatTrajectory::FlatTrajectory(std::vector<FlatMotion> motions) : motions_(std::move(motions))
+    FlatTrajectory::FlatTrajectory(FlatStateSpacePtr space, const std::vector<const State *> &states)
+      : space_(std::move(space))
     {
-        starts_.reserve(motions_.size() + 1u);
+        if (space_ == nullptr)
+            throw Exception("FlatTrajectory needs a FlatStateSpace");
+        if (states.empty())
+            return;
+
+        const unsigned int dimension = space_->getOutputDimension();
+        Eigen::MatrixXd first(space_->getOrder(), dimension);
+        space_->toFlatState(states.front(), first);
+
+        motions_.reserve(states.size() - 1u);
+        waypoints_.reserve(states.size());
+        offsets_.reserve(states.size());
+        starts_.reserve(states.size());
+
+        Eigen::VectorXd offset = first.row(0).transpose();
         double elapsed = 0.;
-        for (const FlatMotion &motion : motions_)
+        for (std::size_t i = 1; i < states.size(); ++i)
         {
-            if (motion.outputDimension() != motions_.front().outputDimension())
-                throw Exception("FlatTrajectory needs every motion to move through the same dimensions");
+            std::optional<FlatMotion> motion = space_->steer(states[i - 1u], states[i]);
+            if (!motion.has_value())
+                continue;
 
-            elapsed += motion.duration();
+            waypoints_.emplace_back(space_);
+            waypoints_.back() = states[i - 1u];
+            offsets_.push_back(offset);
+
+            // Adding up the coordinates of each motion in turn keeps level 0 continuous across the joins,
+            // where the flat output itself might wrap.
+            offset += motion->evaluate(motion->duration());
+            elapsed += motion->duration();
             starts_.push_back(elapsed);
+            motions_.push_back(std::move(*motion));
         }
-    }
 
-    FlatTrajectory::FlatTrajectory(const FlatStateSpace *space, const std::vector<const State *> &states)
-      : FlatTrajectory(steerThrough(space, states))
-    {
+        waypoints_.emplace_back(space_);
+        waypoints_.back() = states.back();
+        offsets_.push_back(offset);
     }
 
     FlatTrajectory::FlatTrajectory(const geometric::PathGeometric &path)
@@ -130,6 +135,15 @@ namespace ompl::base
         return motions_.empty() ? 0u : motions_.front().outputDimension();
     }
 
+    std::size_t FlatTrajectory::motionAt(double t) const
+    {
+        // The last start at or below t belongs to the motion covering t, and the run ends on the last
+        // motion rather than on the entry past it.
+        const auto after = std::upper_bound(starts_.begin(), starts_.end(), t);
+        return std::min(motions_.size() - 1u, static_cast<std::size_t>(std::distance(starts_.begin(), after)) -
+                                                  (after == starts_.begin() ? 0u : 1u));
+    }
+
     void FlatTrajectory::evaluate(double t, unsigned int level, Eigen::Ref<Eigen::VectorXd> out) const
     {
         if (motions_.empty())
@@ -138,15 +152,11 @@ namespace ompl::base
             return;
         }
 
-        // The last start at or below t belongs to the motion covering t, and the run ends on the last
-        // motion rather than on the entry past it.
-        const auto after = std::upper_bound(starts_.begin(), starts_.end(), t);
-        const auto index =
-            std::min(motions_.size() - 1u, static_cast<std::size_t>(std::distance(starts_.begin(), after)) -
-                                               (after == starts_.begin() ? 0u : 1u));
-
+        const std::size_t index = motionAt(t);
         const FlatMotion &motion = motions_[index];
         motion.evaluate(std::clamp(t - starts_[index], 0., motion.duration()), level, out);
+        if (level == 0u)
+            out += offsets_[index];
     }
 
     Eigen::VectorXd FlatTrajectory::evaluate(double t) const
@@ -156,15 +166,20 @@ namespace ompl::base
         return value;
     }
 
-    void FlatTrajectory::toState(const FlatStateSpace *space, double t, State *state) const
+    void FlatTrajectory::toState(double t, State *state) const
     {
-        auto *compound = state->as<CompoundState>();
-        for (unsigned int level = 0; level < space->getOrder(); ++level)
-        {
-            double *values = compound->components[level]->as<RealVectorStateSpace::StateType>()->values;
-            Eigen::Map<Eigen::VectorXd> output(values, space->getOutputDimension());
-            evaluate(t, level, output);
-        }
-    }
+        if (waypoints_.empty())
+            throw Exception("FlatTrajectory holds no states to write");
 
+        if (motions_.empty())
+        {
+            space_->copyState(state, waypoints_.front().get());
+            return;
+        }
+
+        const std::size_t index = motionAt(t);
+        const FlatMotion &motion = motions_[index];
+        const double fraction = std::clamp((t - starts_[index]) / motion.duration(), 0., 1.);
+        space_->interpolate(waypoints_[index].get(), motion, fraction, state);
+    }
 }  // namespace ompl::base

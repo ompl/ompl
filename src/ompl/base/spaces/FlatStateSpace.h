@@ -38,6 +38,7 @@
 #define OMPL_BASE_SPACES_FLAT_STATE_SPACE_
 
 #include "ompl/base/StateSpace.h"
+#include "ompl/base/spaces/FlatChart.h"
 #include "ompl/base/spaces/FlatMotion.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 
@@ -62,7 +63,12 @@ namespace ompl::base
         The space is a compound of the flat output space the caller supplies at component 0 and one
         ompl::base::RealVectorStateSpace per derivative level from 1 through the order minus one.
         Bounds on those components are the velocity and acceleration limits of the system.
-        The flat output space has to derive from ompl::base::RealVectorStateSpace.
+
+        Each edge between states in a flat state space is a polynomial, which is called a steering polynomial.
+        To handle non-Euclidean state spaces, the polynomials live inside of a ompl::base::FlatChart, which provides
+        a coordinate system for constructing these polynomials.
+        Euclidean spaces, SO(2), and compounds of them, such as SE(2) and tori, get an exact chart without
+        being asked.
 
         Distance defaults to the flat output distance plus a weighted Euclidean distance per derivative
         level, which is symmetric, satisfies the triangle inequality, and needs no steering solve, so
@@ -143,9 +149,12 @@ namespace ompl::base
 
             The derivative components come out unbounded, so call \ref setDerivativeBound for each level
             before planning.
-            The order has to be 2 and \e output has to derive from ompl::base::RealVectorStateSpace.
+            The order has to be 2.
+            The steering polynomials between states run in \e chart, which has to carry one coordinate per
+            dimension of \e output.
+            If \e chart is unspecified, ompl::base::allocFlatChart will generate a default chart based on \e output.
         */
-        FlatStateSpace(const StateSpacePtr &output, unsigned int order);
+        FlatStateSpace(const StateSpacePtr &output, unsigned int order, FlatChartPtr chart = nullptr);
 
         /** \brief Build a flat state space over \e output whose derivative levels are the spaces in
             \e derivatives, so the order is one more than their count.
@@ -157,8 +166,12 @@ namespace ompl::base
             the caller's to decide.
             Overriding enforceBounds, satisfiesBounds, and allocDefaultStateSampler on a derivative
             component reaches enforcement, checking, and sampling through compound delegation.
+            The steering polynomials between states run in \e chart, which has to carry one coordinate per
+            dimension of \e output.
+            If \e chart is unspecified, ompl::base::allocFlatChart will generate a default chart based on \e output.
         */
-        FlatStateSpace(const StateSpacePtr &output, const std::vector<StateSpacePtr> &derivatives);
+        FlatStateSpace(const StateSpacePtr &output, const std::vector<StateSpacePtr> &derivatives,
+                       FlatChartPtr chart = nullptr);
 
         ~FlatStateSpace() override = default;
 
@@ -178,6 +191,12 @@ namespace ompl::base
         const StateSpacePtr &getOutputSpace() const
         {
             return components_[0];
+        }
+
+        /** \brief The chart containing steering polynomials. */
+        const FlatChartPtr &getChart() const
+        {
+            return chart_;
         }
 
         /** \brief The component holding derivative level \e level, which has to be between 1 and the order
@@ -238,15 +257,24 @@ namespace ompl::base
         double steeringCost(const State *from, const State *to) const;
 
         /** \brief The motion from \e from to \e to, or nothing when the two coincide and there's nothing
-            to steer through. */
+            to steer through.
+        */
         virtual std::optional<FlatMotion> steer(const State *from, const State *to) const;
 
         /** \brief Write the flat state \e state carries into \e flatState, which comes out with one row per
-            derivative level and one column per flat output dimension. */
+            derivative level and one column per flat output dimension.
+
+            Row 0 holds the values of the flat output in the order getValueAddressAtIndex lists them, so
+            this throws unless the flat output space carries one value per dimension.
+        */
         void toFlatState(const State *state, Eigen::Ref<Eigen::MatrixXd> flatState) const;
 
         /** \brief Read the flat state in \e flatState into \e state, which needs one row per derivative
-            level and one column per flat output dimension. */
+            level and one column per flat output dimension.
+
+            Row 0 holds the values of the flat output in the order getValueAddressAtIndex lists them, so
+            this throws unless the flat output space carries one value per dimension.
+        */
         void fromFlatState(const Eigen::Ref<const Eigen::MatrixXd> &flatState, State *state) const;
 
         /** \brief The state reached by following the steering polynomial from \e from toward \e to for
@@ -273,8 +301,12 @@ namespace ompl::base
         void interpolate(const State *from, const State *to, double t, bool &firstTime,
                          std::optional<FlatMotion> &motion, State *state) const;
 
-        /** \brief The state reached by following \e motion for \e t of its duration. */
-        void interpolate(const FlatMotion &motion, double t, State *state) const;
+        /** \brief The state reached by following \e motion from \e from for \e t of its duration.
+
+            \e motion has to run in the chart at the flat output of \e from, the way \ref steer builds it.
+            \e state is allowed to alias \e from.
+        */
+        void interpolate(const State *from, const FlatMotion &motion, double t, State *state) const;
 
         /** \brief Calculate the number of segments of maximal valid length on the motion from \e state1 to
             \e state2.
@@ -337,9 +369,21 @@ namespace ompl::base
             touching code. */
         void declareParams();
 
-        /** \brief Throw unless \e space derives from ompl::base::RealVectorStateSpace and carries
+        /** \brief Throw unless \e output carries at least one dimension and \e chart one coordinate per
+            dimension of it. */
+        static void checkOutput(const StateSpacePtr &output, const FlatChartPtr &chart);
+
+        /** \brief Throw unless \e derivative derives from ompl::base::RealVectorStateSpace and carries
             \e dimension dimensions. */
-        static void checkComponent(const StateSpacePtr &space, unsigned int dimension, const char *role);
+        static void checkDerivative(const StateSpacePtr &derivative, unsigned int dimension);
+
+        /** \brief The value of the flat output in \e state at \e index, throwing unless the flat output
+            space carries exactly one value per dimension. */
+        double *outputValue(State *state, unsigned int index) const;
+
+        /** \brief The value of the flat output in \e state at \e index, throwing unless the flat output
+            space carries exactly one value per dimension. */
+        const double *outputValue(const State *state, unsigned int index) const;
 
         /** \brief Set every component weight to the reciprocal of its maximum extent, so the flat output
             and every derivative level contribute comparably whatever their units. */
@@ -347,6 +391,9 @@ namespace ompl::base
 
         /** \brief The steering that joins two flat states. */
         MinimumEffortSteering steering_{2};
+
+        /** \brief The chart that maintains coordinates for steering polynomials. */
+        FlatChartPtr chart_;
 
         /** \brief What \ref distance measures. */
         DistanceType distanceType_{FLAT_STATE_METRIC};

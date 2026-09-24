@@ -44,11 +44,13 @@
 #include "ompl/util/Exception.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace
 {
@@ -72,12 +74,13 @@ namespace
 
 namespace ompl::base
 {
-    FlatStateSpace::FlatStateSpace(const StateSpacePtr &output, unsigned int order)
+    FlatStateSpace::FlatStateSpace(const StateSpacePtr &output, unsigned int order, FlatChartPtr chart)
     {
         if (order != 2u)
             throw Exception("FlatStateSpace only supports order 2");
 
-        checkComponent(output, 0u, "flat output");
+        chart_ = chart == nullptr ? allocFlatChart(output) : std::move(chart);
+        checkOutput(output, chart_);
         outputDimension_ = output->getDimension();
 
         setName("Flat" + output->getName());
@@ -92,12 +95,14 @@ namespace ompl::base
         declareParams();
     }
 
-    FlatStateSpace::FlatStateSpace(const StateSpacePtr &output, const std::vector<StateSpacePtr> &derivatives)
+    FlatStateSpace::FlatStateSpace(const StateSpacePtr &output, const std::vector<StateSpacePtr> &derivatives,
+                                   FlatChartPtr chart)
     {
         if (derivatives.size() != 1u)
             throw Exception("FlatStateSpace only supports order 2, so it needs exactly one derivative space");
 
-        checkComponent(output, 0u, "flat output");
+        chart_ = chart == nullptr ? allocFlatChart(output) : std::move(chart);
+        checkOutput(output, chart_);
         outputDimension_ = output->getDimension();
 
         setName("Flat" + output->getName());
@@ -106,7 +111,7 @@ namespace ompl::base
         addSubspace(output, 1.);
         for (const StateSpacePtr &derivative : derivatives)
         {
-            checkComponent(derivative, outputDimension_, "derivative level");
+            checkDerivative(derivative, outputDimension_);
             addSubspace(derivative, 1.);
         }
         lock();
@@ -137,18 +142,40 @@ namespace ompl::base
                                                     DISTANCE_TYPE_NAMES[TRAJECTORY_COST]);
     }
 
-    void FlatStateSpace::checkComponent(const StateSpacePtr &space, unsigned int dimension, const char *role)
+    void FlatStateSpace::checkOutput(const StateSpacePtr &output, const FlatChartPtr &chart)
     {
-        if (space == nullptr)
-            throw Exception(std::string("FlatStateSpace needs a ") + role + " space");
-        if (dynamic_cast<const RealVectorStateSpace *>(space.get()) == nullptr)
-            throw Exception(std::string("FlatStateSpace needs a ") + role +
-                            " space deriving from RealVectorStateSpace");
-        if (space->getDimension() < 1u)
-            throw Exception(std::string("FlatStateSpace needs a ") + role + " space of at least one dimension");
-        if (dimension > 0u && space->getDimension() != dimension)
-            throw Exception(std::string("FlatStateSpace needs its ") + role +
-                            " space to match the flat output dimension");
+        if (output == nullptr)
+            throw Exception("FlatStateSpace needs a flat output space");
+        if (output->getDimension() < 1u)
+            throw Exception("FlatStateSpace needs a flat output space of at least one dimension");
+        if (chart->getDimension() != output->getDimension())
+            throw Exception("FlatStateSpace needs a chart with one coordinate per flat output dimension");
+    }
+
+    void FlatStateSpace::checkDerivative(const StateSpacePtr &derivative, unsigned int dimension)
+    {
+        if (derivative == nullptr)
+            throw Exception("FlatStateSpace needs a derivative level space");
+        if (dynamic_cast<const RealVectorStateSpace *>(derivative.get()) == nullptr)
+            throw Exception("FlatStateSpace needs a derivative level space deriving from RealVectorStateSpace");
+        if (derivative->getDimension() != dimension)
+            throw Exception("FlatStateSpace needs its derivative level space to match the flat output dimension");
+    }
+
+    double *FlatStateSpace::outputValue(State *state, unsigned int index) const
+    {
+        return const_cast<double *>(outputValue(static_cast<const State *>(state), index));
+    }
+
+    const double *FlatStateSpace::outputValue(const State *state, unsigned int index) const
+    {
+        const StateSpacePtr &output = components_[0];
+        const State *flatOutput = state->as<CompoundState>()->components[0];
+        const double *value = output->getValueAddressAtIndex(flatOutput, index);
+        if (value == nullptr || output->getValueAddressAtIndex(flatOutput, outputDimension_) != nullptr)
+            throw Exception("FlatStateSpace can only read a flat state into a matrix when the flat output space "
+                            "carries one value per dimension");
+        return value;
     }
 
     void FlatStateSpace::setDefaultWeights()
@@ -173,8 +200,11 @@ namespace ompl::base
 
     void FlatStateSpace::toFlatState(const State *state, Eigen::Ref<Eigen::MatrixXd> flatState) const
     {
+        for (unsigned int axis = 0; axis < outputDimension_; ++axis)
+            flatState(0, axis) = *outputValue(state, axis);
+
         const auto *compound = state->as<CompoundState>();
-        for (unsigned int level = 0; level < componentCount_; ++level)
+        for (unsigned int level = 1; level < componentCount_; ++level)
         {
             const double *values = compound->components[level]->as<RealVectorStateSpace::StateType>()->values;
             for (unsigned int axis = 0; axis < outputDimension_; ++axis)
@@ -184,8 +214,11 @@ namespace ompl::base
 
     void FlatStateSpace::fromFlatState(const Eigen::Ref<const Eigen::MatrixXd> &flatState, State *state) const
     {
+        for (unsigned int axis = 0; axis < outputDimension_; ++axis)
+            *outputValue(state, axis) = flatState(0, axis);
+
         auto *compound = state->as<CompoundState>();
-        for (unsigned int level = 0; level < componentCount_; ++level)
+        for (unsigned int level = 1; level < componentCount_; ++level)
         {
             double *values = compound->components[level]->as<RealVectorStateSpace::StateType>()->values;
             for (unsigned int axis = 0; axis < outputDimension_; ++axis)
@@ -195,11 +228,96 @@ namespace ompl::base
 
     std::optional<FlatMotion> FlatStateSpace::steer(const State *from, const State *to) const
     {
-        Eigen::MatrixXd start(componentCount_, outputDimension_);
-        Eigen::MatrixXd finish(componentCount_, outputDimension_);
-        toFlatState(from, start);
-        toFlatState(to, finish);
-        return steering_.steer(start, finish);
+        const auto *start = from->as<CompoundState>();
+        const auto *finish = to->as<CompoundState>();
+
+        Eigen::MatrixXd initial(componentCount_, outputDimension_);
+        Eigen::MatrixXd terminal(componentCount_, outputDimension_);
+        Eigen::VectorXd displacement(outputDimension_);
+        chart_->difference(start->components[0], finish->components[0], displacement);
+
+        // in all charts, we center about the start
+        initial.row(0).setZero();
+        terminal.row(0) = displacement.transpose();
+
+        for (unsigned int level = 1; level < componentCount_; ++level)
+        {
+            initial.row(level) = Eigen::Map<const Eigen::RowVectorXd>(
+                start->components[level]->as<RealVectorStateSpace::StateType>()->values, outputDimension_);
+            terminal.row(level) = Eigen::Map<const Eigen::RowVectorXd>(
+                finish->components[level]->as<RealVectorStateSpace::StateType>()->values, outputDimension_);
+        }
+
+        std::optional<FlatMotion> motion = steering_.steer(initial, terminal);
+        if (!motion.has_value())
+            return motion;
+
+        // A coordinate that wraps reaches the target at every whole number of periods from the nearest
+        // copy, and the nearest copy isn't the cheapest when the flat output is already moving fast.
+        // Taking it anyway would break continued interpolation, since the tail of a motion swinging more
+        // than a half period round has a different nearest copy from the motion as a whole.
+        //
+        // Over a fixed duration T, an axis with velocities v0 and vf and displacement o costs
+        //     12 (o - (v0 + vf) T / 2)^2 / T^3 + (v0 - vf)^2 / T,
+        // so the cheapest copy at T is the one nearest (v0 + vf) T / 2, and it changes only where that
+        // point passes halfway between two copies.
+        // The cheapest motion overall takes the cheapest copies, so walking those
+        // crossings in order of time and steering to each new set of copies finds it.
+        // A motion costs at least rho times its duration, so crossings later than the cheapest cost so
+        // far over rho can't lead anywhere cheaper and the walk stops there.
+        const std::vector<double> &periods = chart_->getPeriods();
+        const auto moving = [&](unsigned int axis)
+        { return periods[axis] > 0. && initial(1, axis) + terminal(1, axis) != 0.; };
+        bool anyMoving = false;
+        for (unsigned int axis = 0; axis < outputDimension_ && !anyMoving; ++axis)
+            anyMoving = moving(axis);
+        if (!anyMoving)
+            return motion;
+
+        std::vector<std::pair<double, unsigned int>> crossings;
+        double cost = steering_.cost(*motion);
+        const double horizon = cost / steering_.getRho();
+        for (unsigned int axis = 0; axis < outputDimension_; ++axis)
+        {
+            if (!moving(axis))
+                continue;
+            const double period = periods[axis];
+            const double sum = initial(1, axis) + terminal(1, axis);
+
+            // The nearest copy starts out as the one the chart picked, which lies within half a period of
+            // the origin, and moves a period in the direction of travel at each crossing.
+            const double direction = sum > 0. ? 1. : -1.;
+            for (double halfway = terminal(0, axis) + 0.5 * direction * period;; halfway += direction * period)
+            {
+                // Written this way round, a velocity of NaN ends the walk rather than spinning forever.
+                const double time = 2. * halfway / sum;
+                if (!(time <= horizon))
+                    break;
+                if (time > 0.)
+                    crossings.emplace_back(time, axis);
+            }
+        }
+
+        std::sort(crossings.begin(), crossings.end());
+        for (const auto &[time, axis] : crossings)
+        {
+            if (time > cost / steering_.getRho())
+                break;
+
+            terminal(0, axis) += initial(1, axis) + terminal(1, axis) > 0. ? periods[axis] : -periods[axis];
+            std::optional<FlatMotion> candidate = steering_.steer(initial, terminal);
+            if (!candidate.has_value())
+                continue;
+
+            const double candidateCost = steering_.cost(*candidate);
+            if (candidateCost < cost)
+            {
+                motion = std::move(candidate);
+                cost = candidateCost;
+            }
+        }
+
+        return motion;
     }
 
     double FlatStateSpace::steeringCost(const State *from, const State *to) const
@@ -256,21 +374,37 @@ namespace ompl::base
             return;
         }
 
-        interpolate(*motion, t, state);
+        interpolate(from, *motion, t, state);
     }
 
-    void FlatStateSpace::interpolate(const FlatMotion &motion, double t, State *state) const
+    void FlatStateSpace::interpolate(const State *from, const FlatMotion &motion, double t, State *state) const
     {
-        // Each component holds its values contiguously, so the motion writes its derivative levels
-        // straight into the state and nothing is allocated per sample.
+        // Each derivative component holds its values contiguously, so the motion writes those straight
+        // into the state.
         const double time = t * motion.duration();
         auto *compound = state->as<CompoundState>();
-        for (unsigned int level = 0; level < componentCount_; ++level)
+        for (unsigned int level = 1; level < componentCount_; ++level)
         {
+            // derivatives are always real-valued, so this is sound
             double *values = compound->components[level]->as<RealVectorStateSpace::StateType>()->values;
-            Eigen::Map<Eigen::VectorXd> output(values, outputDimension_);
-            motion.evaluate(time, level, output);
+            Eigen::Map<Eigen::VectorXd> derivative(values, outputDimension_);
+            motion.evaluate(time, level, derivative);
         }
+
+        // for states less than 16 dimensions, allocate on the stack to go fast :)
+        constexpr unsigned int STACK_DIMENSION = 16u;
+        std::array<double, STACK_DIMENSION> stack;
+        std::vector<double> heap;
+        double *buffer = stack.data();
+        if (outputDimension_ > STACK_DIMENSION)
+        {
+            heap.resize(outputDimension_);
+            buffer = heap.data();
+        }
+
+        Eigen::Map<Eigen::VectorXd> coordinates(buffer, outputDimension_);
+        motion.evaluate(time, 0u, coordinates);
+        chart_->advance(from->as<CompoundState>()->components[0], coordinates, compound->components[0]);
     }
 
     unsigned int FlatStateSpace::validSegmentCount(const State *state1, const State *state2) const
@@ -328,7 +462,8 @@ namespace ompl::base
 
     void FlatStateSpace::registerProjections()
     {
-        registerDefaultProjection(std::make_shared<SubspaceProjectionEvaluator>(this, 0u));
+        if (components_[0]->hasDefaultProjection())
+            registerDefaultProjection(std::make_shared<SubspaceProjectionEvaluator>(this, 0u));
     }
 
     void FlatStateSpace::setup()
