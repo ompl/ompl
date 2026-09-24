@@ -37,6 +37,7 @@
 #ifndef OMPL_BASE_SPACES_FLAT_TRAJECTORY_
 #define OMPL_BASE_SPACES_FLAT_TRAJECTORY_
 
+#include "ompl/base/ScopedState.h"
 #include "ompl/base/spaces/FlatStateSpace.h"
 #include "ompl/geometric/PathGeometric.h"
 
@@ -51,7 +52,7 @@ namespace ompl::base
     /** \brief A sequence of polynomial curves joined end to end, parameterized by time.
 
         The PathGeometric objects returned by geometric planners don't include the polynomial interpolations between
-       states, so this class performs the necessary interpolation to produce dynamically valid paths.
+        states, so this class performs the necessary interpolation to produce dynamically valid paths.
 
         Time runs from zero through \ref duration across the whole run rather than restarting per segment,
         and \ref evaluate takes a time on that clock.
@@ -62,22 +63,19 @@ namespace ompl::base
         /** \brief An empty trajectory of no duration. */
         FlatTrajectory() = default;
 
-        /** \brief The trajectory following \e motions in the order given.
-
-            Every motion needs the same output dimension.
-        */
-        explicit FlatTrajectory(std::vector<FlatMotion> motions);
-
         /** \brief The trajectory steering through \e states in order, under \e space.
 
             Consecutive states that coincide have no polynomial between them and contribute no motion, so
             the trajectory can come out shorter than the list it was built from.
+            The first state gets read through ompl::base::FlatStateSpace::toFlatState, so this throws
+            wherever that does.
         */
-        FlatTrajectory(const FlatStateSpace *space, const std::vector<const State *> &states);
+        FlatTrajectory(FlatStateSpacePtr space, const std::vector<const State *> &states);
 
         /** \brief The trajectory steering through the states of \e path.
 
-            \e path has to run through an ompl::base::FlatStateSpace.
+            \e path has to run through an ompl::base::FlatStateSpace, and its first state gets read through
+            ompl::base::FlatStateSpace::toFlatState, so this throws wherever that does.
         */
         explicit FlatTrajectory(const geometric::PathGeometric &path);
 
@@ -87,7 +85,11 @@ namespace ompl::base
             return motions_.size();
         }
 
-        /** \brief The motions strung together. */
+        /** \brief The motions strung together.
+
+            Each one runs in the chart at the flat state it starts from, the way
+            ompl::base::FlatStateSpace::steer builds it.
+        */
         const std::vector<FlatMotion> &motions() const
         {
             return motions_;
@@ -109,20 +111,43 @@ namespace ompl::base
         /** \brief Write derivative level \e level of the flat output at time \e t into \e out, which needs
             one entry per output dimension.
 
+            Level 0 starts from the values of the first flat output and adds up the coordinates each motion
+            covers, so an angle keeps turning past a half turn rather than wrapping, and a controller
+            tracking it sees no jump.
             Times outside zero through \ref duration clamp to the nearer end.
             This allocates nothing.
         */
         void evaluate(double t, unsigned int level, Eigen::Ref<Eigen::VectorXd> out) const;
 
-        /** \brief The flat output at time \e t. */
+        /** \brief Level 0 of the flat output at time \e t. */
         Eigen::VectorXd evaluate(double t) const;
 
-        /** \brief Write the flat state at time \e t into \e state, which \e space has to have allocated. */
-        void toState(const FlatStateSpace *space, double t, State *state) const;
+        /** \brief Write the flat state at time \e t into \e state, which the space of this trajectory has
+            to have allocated.
+
+            The flat output goes through the chart of the space, so it lands inside the space the way the
+            planner saw it.
+            Times outside zero through \ref duration clamp to the nearer end.
+        */
+        void toState(double t, State *state) const;
 
     private:
+        /** \brief The index of the motion covering time \e t, which has to be on a nonempty trajectory. */
+        std::size_t motionAt(double t) const;
+
+        /** \brief The space the trajectory runs through. */
+        FlatStateSpacePtr space_;
+
         /** \brief The motions strung together. */
         std::vector<FlatMotion> motions_;
+
+        /** \brief The flat state each motion starts from, with the state the last one reaches on the end,
+            so this holds one more entry than \ref motions_ for a trajectory built from any states at all. */
+        std::vector<ScopedState<>> waypoints_;
+
+        /** \brief The level 0 value each motion starts from, which \ref evaluate adds the coordinates of
+            the motion to, with the value at the end of the run on the end. */
+        std::vector<Eigen::VectorXd> offsets_;
 
         /** \brief The time each motion starts at, with the duration of the whole run on the end, so this
             always holds one more entry than \ref motions_. */
