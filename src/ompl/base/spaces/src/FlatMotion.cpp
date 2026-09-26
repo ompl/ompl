@@ -425,18 +425,34 @@ namespace ompl::base
 
     double FlatMotion::cost(unsigned int derivativeLevel, double rho) const
     {
-        FlatMotion level = *this;
-        for (unsigned int i = 0; i < derivativeLevel; ++i)
-            level = level.derivative();
-
-        const Eigen::MatrixXd gram = level.coefficients_ * level.coefficients_.transpose();
+        // Integrate the squared norm of the derivative at the level over the duration.
+        // Differentiating row i down to the level scales it by the falling factorial i (i - 1) ... (i -
+        // level + 1) and leaves it at power i - level, so the integral sums over pairs of rows at or above
+        // the level without building the derivative.
+        // Each off-diagonal pair counts twice.
+        const auto level = static_cast<Eigen::Index>(derivativeLevel);
         double effort = 0.;
-        for (Eigen::Index i = 0; i < gram.rows(); ++i)
-            for (Eigen::Index j = 0; j < gram.cols(); ++j)
+        for (Eigen::Index i = level; i < coefficients_.rows(); ++i)
+        {
+            double weightI = 1.;
+            for (Eigen::Index k = 0; k < level; ++k)
+                weightI *= static_cast<double>(i - k);
+
+            double weightJ = weightI;
+            double durationPower = std::pow(duration_, static_cast<double>(2 * (i - level) + 1));
+            for (Eigen::Index j = i; j < coefficients_.rows(); ++j)
             {
-                const double power = static_cast<double>(i + j + 1);
-                effort += gram(i, j) * std::pow(duration_, power) / power;
+                const double power = static_cast<double>(i + j - 2 * level + 1);
+                const double term =
+                    weightI * weightJ * coefficients_.row(i).dot(coefficients_.row(j)) * durationPower / power;
+
+                // double-count off-diagonals
+                effort += i == j ? term : 2. * term;
+
+                weightJ *= static_cast<double>(j + 1) / static_cast<double>(j + 1 - level);
+                durationPower *= duration_;
             }
+        }
         return effort + rho * duration_;
     }
 
