@@ -72,7 +72,7 @@ namespace
         /** \brief Construct the zero polynomial carrying \e size coefficients, for the caller to fill in
             through \ref operator[].
 
-            Filling the polynomial in place keeps can sometimes help avoid calling memcpy.
+            Filling the polynomial in place can sometimes help avoid calling memcpy.
         */
         explicit Polynomial(Eigen::Index size) : coefficients_(static_cast<std::size_t>(size), 0.)
         {
@@ -612,19 +612,21 @@ namespace ompl::base
         checkFlatStates(from, to);
 
         const double T = duration_;
-        const auto y0 = from.row(0);
-        const auto v0 = from.row(1);
-        const auto yf = to.row(0);
-        const auto vf = to.row(1);
 
-        const Eigen::RowVectorXd offset = yf - y0 - v0 * T;
-        const Eigen::RowVectorXd change = vf - v0;
-
+        // scalar path below is not as concise as building rows, but avoids allocation.
         Eigen::MatrixXd coefficients(4, from.cols());
-        coefficients.row(0) = y0;
-        coefficients.row(1) = v0;
-        coefficients.row(2) = 3. * offset / (T * T) - change / T;
-        coefficients.row(3) = -2. * offset / (T * T * T) + change / (T * T);
+        for (Eigen::Index k = 0; k < from.cols(); ++k)
+        {
+            const double y0 = from(0, k);
+            const double v0 = from(1, k);
+            const double offset = to(0, k) - y0 - v0 * T;
+            const double change = to(1, k) - v0;
+
+            coefficients(0, k) = y0;
+            coefficients(1, k) = v0;
+            coefficients(2, k) = 3. * offset / (T * T) - change / T;
+            coefficients(3, k) = -2. * offset / (T * T * T) + change / (T * T);
+        }
         return FlatMotion(std::move(coefficients), T);
     }
 
