@@ -40,29 +40,43 @@
 
 #include <Eigen/Eigenvalues>
 
+#include <boost/container/small_vector.hpp>
 #include <boost/math/constants/constants.hpp>
 
 #include <algorithm>
 #include <cmath>
 #include <initializer_list>
-#include <vector>
 
 namespace
 {
+    /** \brief Ascending-power polynomial coefficients, held without touching the heap up to degree four. */
+    using Coefficients = boost::container::small_vector<double, 5>;
+
+    /** \brief Real roots of a polynomial, held without touching the heap up to the four. */
+    using Roots = boost::container::small_vector<double, 4>;
+
     /** \brief A polynomial in one variable, carrying one coefficient per power of that variable. */
     class Polynomial
     {
     public:
+        /** \brief The value of a polynomial and its derivative at one point. */
+        struct Evaluation
+        {
+            /** \brief The value of the polynomial. */
+            double value;
+
+            /** \brief The value of the derivative. */
+            double slope;
+        };
+
         /** \brief Construct the polynomial whose ascending-power coefficients are \e coefficients, so
             entry \e i is the coefficient of \f$t^i\f$. */
-        explicit Polynomial(Eigen::VectorXd coefficients) : coefficients_(std::move(coefficients))
+        explicit Polynomial(Coefficients coefficients) : coefficients_(std::move(coefficients))
         {
         }
 
         /** \brief Construct the polynomial whose ascending-power coefficients are \e coefficients. */
-        Polynomial(std::initializer_list<double> coefficients)
-          : coefficients_(
-                Eigen::Map<const Eigen::VectorXd>(coefficients.begin(), static_cast<Eigen::Index>(coefficients.size())))
+        Polynomial(std::initializer_list<double> coefficients) : coefficients_(coefficients)
         {
         }
 
@@ -70,9 +84,22 @@ namespace
         double operator()(double t) const
         {
             double value = 0.;
-            for (Eigen::Index i = coefficients_.size() - 1; i >= 0; --i)
+            for (Eigen::Index i = size() - 1; i >= 0; --i)
                 value = value * t + coefficients_[i];
             return value;
+        }
+
+        /** \brief The value and derivative at \e t, evaluated together by Horner's method so the derivative
+            never needs a polynomial of its own. */
+        Evaluation evaluate(double t) const
+        {
+            Evaluation result{0., 0.};
+            for (Eigen::Index i = size() - 1; i >= 0; --i)
+            {
+                result.slope = result.slope * t + result.value;
+                result.value = result.value * t + coefficients_[i];
+            }
+            return result;
         }
 
         /** \brief The derivative with respect to the variable.
@@ -82,8 +109,8 @@ namespace
         */
         Polynomial derivative() const
         {
-            Eigen::VectorXd slope = Eigen::VectorXd::Zero(std::max<Eigen::Index>(coefficients_.size() - 1, 1));
-            for (Eigen::Index i = 1; i < coefficients_.size(); ++i)
+            Coefficients slope(std::max<Eigen::Index>(size() - 1, 1), 0.);
+            for (Eigen::Index i = 1; i < size(); ++i)
                 slope[i - 1] = static_cast<double>(i) * coefficients_[i];
             return Polynomial(std::move(slope));
         }
@@ -98,17 +125,17 @@ namespace
             A closed form that comes back empty hands over too, because a quartic whose resolvent declines
             to split it looks from the outside like one with no roots at all.
         */
-        std::vector<double> roots() const
+        Roots roots() const
         {
             const Eigen::Index degree = leadingDegree();
             if (degree < 1)
                 return {};
 
-            std::optional<std::vector<double>> closed;
+            Roots closed;
             switch (degree)
             {
                 case 1:
-                    closed = std::vector<double>{-coefficients_[0] / coefficients_[1]};
+                    closed = {-coefficients_[0] / coefficients_[1]};
                     break;
                 case 2:
                     closed = quadraticRoots(coefficients_[2], coefficients_[1], coefficients_[0]);
@@ -124,18 +151,17 @@ namespace
                     break;
             }
 
-            const Polynomial slope = derivative();
-            if (closed.has_value() && !closed->empty())
+            if (!closed.empty())
             {
-                for (double &root : *closed)
-                    root = newton(slope, root);
-                if (std::all_of(closed->begin(), closed->end(), [this](double root) { return vanishesAt(root); }))
-                    return std::move(*closed);
+                for (double &root : closed)
+                    root = newton(root);
+                if (std::all_of(closed.begin(), closed.end(), [this](double root) { return vanishesAt(root); }))
+                    return closed;
             }
 
-            std::vector<double> refined = companionRoots(degree);
+            Roots refined = companionRoots(degree);
             for (double &root : refined)
-                root = newton(slope, root);
+                root = newton(root);
             return refined;
         }
 
@@ -146,17 +172,28 @@ namespace
             Demanding the crossing also throws out the spurious roots that a repeated root at zero
             produces.
         */
-        std::vector<double> upwardCrossings() const
+        Roots upwardCrossings() const
         {
-            const Polynomial slope = derivative();
-            std::vector<double> crossings;
+            Roots crossings;
             for (double root : roots())
-                if (root > 0. && slope(root) > 0.)
+                if (root > 0. && evaluate(root).slope > 0.)
                     crossings.push_back(root);
             return crossings;
         }
 
     private:
+        /** \brief The number of coefficients. */
+        Eigen::Index size() const
+        {
+            return static_cast<Eigen::Index>(coefficients_.size());
+        }
+
+        /** \brief The coefficients as a vector for Eigen to work on. */
+        Eigen::Map<const Eigen::VectorXd> vector() const
+        {
+            return {coefficients_.data(), size()};
+        }
+
         /** \brief The index of the highest-power coefficient large enough next to the rest to lead, or
             zero when nothing is left to solve.
 
@@ -165,14 +202,14 @@ namespace
         */
         Eigen::Index leadingDegree() const
         {
-            if (coefficients_.size() < 2)
+            if (size() < 2)
                 return 0;
 
-            const double scale = coefficients_.cwiseAbs().maxCoeff();
+            const double scale = vector().cwiseAbs().maxCoeff();
             if (scale == 0.)
                 return 0;
 
-            Eigen::Index degree = coefficients_.size() - 1;
+            Eigen::Index degree = size() - 1;
             while (degree > 0 && std::abs(coefficients_[degree]) <= 1e-12 * scale)
                 --degree;
             return degree;
@@ -183,7 +220,7 @@ namespace
         {
             double value = 0.;
             double scale = 0.;
-            for (Eigen::Index i = coefficients_.size() - 1; i >= 0; --i)
+            for (Eigen::Index i = size() - 1; i >= 0; --i)
             {
                 value = value * root + coefficients_[i];
                 scale = scale * std::abs(root) + std::abs(coefficients_[i]);
@@ -191,11 +228,8 @@ namespace
             return std::abs(value) <= 1e-9 * scale;
         }
 
-        /** \brief Refine \e root with Newton's method, keeping it only while the residual shrinks.
-
-            \e slope has to be the derivative of this polynomial.
-        */
-        double newton(const Polynomial &slope, double root) const
+        /** \brief Refine \e root with Newton's method, keeping it only while the residual shrinks. */
+        double newton(double root) const
         {
             // Companion matrix eigenvalues carry a small backward error against the matrix rather than
             // against the polynomial, so without this the roots above degree four come back wrong often
@@ -205,18 +239,17 @@ namespace
             const int budget = 3;
 
             double best = root;
-            double bestResidual = std::abs((*this)(root));
+            Evaluation atBest = evaluate(best);
             for (int step = 0; step < budget; ++step)
             {
-                const double denominator = slope(best);
-                if (denominator == 0.)
+                if (atBest.slope == 0.)
                     break;
-                const double candidate = best - (*this)(best) / denominator;
-                const double residual = std::abs((*this)(candidate));
-                if (!std::isfinite(candidate) || residual >= bestResidual)
+                const double candidate = best - atBest.value / atBest.slope;
+                const Evaluation atCandidate = evaluate(candidate);
+                if (!std::isfinite(candidate) || std::abs(atCandidate.value) >= std::abs(atBest.value))
                     break;
                 best = candidate;
-                bestResidual = residual;
+                atBest = atCandidate;
             }
             return best;
         }
@@ -224,17 +257,17 @@ namespace
         /** \brief The roots read off the eigenvalues of the companion matrix of the polynomial truncated
             to \e degree, which has to be the index of a leading coefficient.
             Roots with an imaginary part are dropped. */
-        std::vector<double> companionRoots(Eigen::Index degree) const
+        Roots companionRoots(Eigen::Index degree) const
         {
             Eigen::MatrixXd companion = Eigen::MatrixXd::Zero(degree, degree);
-            companion.col(degree - 1) = -coefficients_.head(degree) / coefficients_[degree];
+            companion.col(degree - 1) = -vector().head(degree) / coefficients_[degree];
             if (degree > 1)
                 companion.block(1, 0, degree - 1, degree - 1).setIdentity();
 
             const Eigen::EigenSolver<Eigen::MatrixXd> solver(companion, false);
             const auto &values = solver.eigenvalues();
 
-            std::vector<double> roots;
+            Roots roots;
             for (Eigen::Index i = 0; i < values.size(); ++i)
             {
                 const std::complex<double> &value = values[i];
@@ -245,7 +278,7 @@ namespace
         }
 
         /** \brief The roots of \f$b t^2 + c t + d\f$, where \e b is nonzero. */
-        static std::vector<double> quadraticRoots(double b, double c, double d)
+        static Roots quadraticRoots(double b, double c, double d)
         {
             const double discriminant = c * c - 4. * b * d;
             if (discriminant < 0.)
@@ -259,7 +292,7 @@ namespace
 
             Cardano's method, which always hands back at least one root because a cubic always has one.
         */
-        static std::vector<double> cubicRoots(double a, double b, double c, double d)
+        static Roots cubicRoots(double a, double b, double c, double d)
         {
             const double a2 = b / a;
             const double a1 = c / a;
@@ -295,7 +328,7 @@ namespace
                     radius * std::cos(theta / 3. + 2. * third) - shift};
         }
 
-        /** \brief The roots of \f$a t^4 + b t^3 + c t^2 + d t + e\f$, where \e a is nonzero, or nothing
+        /** \brief The roots of \f$a t^4 + b t^3 + c t^2 + d t + e\f$, where \e a is nonzero, or none
             when no resolvent root leaves a factorization to read them off.
 
             Ferrari's method, which splits the quartic into two quadratics once a root of its resolvent
@@ -304,7 +337,7 @@ namespace
             outer pair of roots to cancellation and a resolvent cubic with a repeated root offers a split
             that is no split at all.
         */
-        static std::optional<std::vector<double>> quarticRoots(double a, double b, double c, double d, double e)
+        static Roots quarticRoots(double a, double b, double c, double d, double e)
         {
             const double a3 = b / a;
             const double a2 = c / a;
@@ -323,7 +356,7 @@ namespace
                 }
             }
             if (square < 0.)
-                return std::nullopt;
+                return {};
 
             const double root = std::sqrt(square);
             double upper, lower;
@@ -342,7 +375,7 @@ namespace
                 lower = std::sqrt(base - offset);
             }
 
-            std::vector<double> roots;
+            Roots roots;
             const double shift = a3 / 4.;
             if (!std::isnan(upper))
             {
@@ -358,7 +391,7 @@ namespace
         }
 
         /** \brief Ascending-power coefficients, one per power of the variable. */
-        Eigen::VectorXd coefficients_;
+        Coefficients coefficients_;
     };
 
     /** \brief The duration-independent terms in the cost of the optimal fixed-duration steer between two
@@ -497,7 +530,7 @@ namespace ompl::base
     double FlatMotion::peakSpeed() const
     {
         const Eigen::Index rows = coefficients_.rows();
-        Eigen::VectorXd coefficients = Eigen::VectorXd::Zero(std::max<Eigen::Index>(2 * rows - 3, 1));
+        Coefficients coefficients(std::max<Eigen::Index>(2 * rows - 3, 1), 0.);
         for (Eigen::Index i = 1; i < rows; ++i)
         {
             const double weight = static_cast<double>(i);
