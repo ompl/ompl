@@ -326,11 +326,9 @@ namespace ompl::base
         if (equalStates(from, to))
             return 0.;
 
-        Eigen::MatrixXd start(componentCount_, outputDimension_);
-        Eigen::MatrixXd finish(componentCount_, outputDimension_);
-        toFlatState(from, start);
-        toFlatState(to, finish);
-        return steering_.steeringCost(start, finish).value_or(std::numeric_limits<double>::infinity());
+        // pricing in raw coordinates is wrong, as wrapping logic may give better solutions futher away.
+        const std::optional<FlatMotion> motion = steer(from, to);
+        return motion.has_value() ? steering_.cost(*motion) : std::numeric_limits<double>::infinity();
     }
 
     double FlatStateSpace::distance(const State *state1, const State *state2) const

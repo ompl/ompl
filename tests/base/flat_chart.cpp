@@ -153,6 +153,27 @@ BOOST_AUTO_TEST_CASE(SteeringPicksTheCheapestTurnOfEachAngle)
     BOOST_CHECK_GT(wound, 20u);
 }
 
+BOOST_AUTO_TEST_CASE(SteeringCostPricesTheSteeredMotion)
+{
+    // The cost has to come from the same chart and the same choice of turns as the motion itself, or a
+    // planner optimizing it would be pricing edges it never flies.
+    for (const auto &space : {makeTorusSpace(), makeSE2Space()})
+    {
+        StateSamplerPtr sampler = space->allocStateSampler();
+        ScopedState<> from(space), to(space);
+        for (unsigned int trial = 0; trial < 2000u; ++trial)
+        {
+            sampler->sampleUniform(from.get());
+            sampler->sampleUniform(to.get());
+
+            const std::optional<FlatMotion> motion = space->steer(from.get(), to.get());
+            BOOST_REQUIRE(motion.has_value());
+            BOOST_REQUIRE_CLOSE(space->steeringCost(from.get(), to.get()), space->getSteering().cost(*motion),
+                                1e-9);
+        }
+    }
+}
+
 BOOST_AUTO_TEST_CASE(TheHeadingRunsOnAcrossAJoin)
 {
     auto space = makeSE2Space();
