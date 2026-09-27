@@ -52,7 +52,7 @@ namespace
     /** \brief Ascending-power polynomial coefficients, held without touching the heap up to degree four. */
     using Coefficients = boost::container::small_vector<double, 5>;
 
-    /** \brief Real roots of a polynomial, held without touching the heap up to the four. */
+    /** \brief Real roots of a polynomial, held without touching the heap up to degree four. */
     using Roots = boost::container::small_vector<double, 4>;
 
     /** \brief A polynomial in one variable, carrying one coefficient per power of that variable. */
@@ -69,15 +69,24 @@ namespace
             double slope;
         };
 
-        /** \brief Construct the polynomial whose ascending-power coefficients are \e coefficients, so
-            entry \e i is the coefficient of \f$t^i\f$. */
-        explicit Polynomial(Coefficients coefficients) : coefficients_(std::move(coefficients))
+        /** \brief Construct the zero polynomial carrying \e size coefficients, for the caller to fill in
+            through \ref operator[].
+
+            Filling the polynomial in place keeps can sometimes help avoid calling memcpy.
+        */
+        explicit Polynomial(Eigen::Index size) : coefficients_(static_cast<std::size_t>(size), 0.)
         {
         }
 
         /** \brief Construct the polynomial whose ascending-power coefficients are \e coefficients. */
         Polynomial(std::initializer_list<double> coefficients) : coefficients_(coefficients)
         {
+        }
+
+        /** \brief The coefficient of \f$t^i\f$. */
+        double &operator[](Eigen::Index i)
+        {
+            return coefficients_[static_cast<std::size_t>(i)];
         }
 
         /** \brief The value at \e t, evaluated by Horner's method. */
@@ -109,10 +118,10 @@ namespace
         */
         Polynomial derivative() const
         {
-            Coefficients slope(std::max<Eigen::Index>(size() - 1, 1), 0.);
+            Polynomial slope(std::max<Eigen::Index>(size() - 1, 1));
             for (Eigen::Index i = 1; i < size(); ++i)
                 slope[i - 1] = static_cast<double>(i) * coefficients_[i];
-            return Polynomial(std::move(slope));
+            return slope;
         }
 
         /** \brief The real roots.
@@ -131,38 +140,18 @@ namespace
             if (degree < 1)
                 return {};
 
-            Roots closed;
-            switch (degree)
-            {
-                case 1:
-                    closed = {-coefficients_[0] / coefficients_[1]};
-                    break;
-                case 2:
-                    closed = quadraticRoots(coefficients_[2], coefficients_[1], coefficients_[0]);
-                    break;
-                case 3:
-                    closed = cubicRoots(coefficients_[3], coefficients_[2], coefficients_[1], coefficients_[0]);
-                    break;
-                case 4:
-                    closed = quarticRoots(coefficients_[4], coefficients_[3], coefficients_[2], coefficients_[1],
-                                          coefficients_[0]);
-                    break;
-                default:
-                    break;
-            }
-
-            if (!closed.empty())
-            {
-                for (double &root : closed)
-                    root = newton(root);
-                if (std::all_of(closed.begin(), closed.end(), [this](double root) { return vanishesAt(root); }))
-                    return closed;
-            }
-
-            Roots refined = companionRoots(degree);
-            for (double &root : refined)
+            // Everything lands in one named result so the compiler can build it in the caller's storage.
+            Roots roots = closedFormRoots(degree);
+            for (double &root : roots)
                 root = newton(root);
-            return refined;
+            if (roots.empty() ||
+                !std::all_of(roots.begin(), roots.end(), [this](double root) { return vanishesAt(root); }))
+            {
+                roots = companionRoots(degree);
+                for (double &root : roots)
+                    root = newton(root);
+            }
+            return roots;
         }
 
         /** \brief Every strictly positive point at which the polynomial crosses from negative to positive.
@@ -174,10 +163,10 @@ namespace
         */
         Roots upwardCrossings() const
         {
-            Roots crossings;
-            for (double root : roots())
-                if (root > 0. && evaluate(root).slope > 0.)
-                    crossings.push_back(root);
+            Roots crossings = roots();
+            crossings.erase(std::remove_if(crossings.begin(), crossings.end(),
+                                           [this](double root) { return !(root > 0. && evaluate(root).slope > 0.); }),
+                            crossings.end());
             return crossings;
         }
 
@@ -226,6 +215,28 @@ namespace
                 scale = scale * std::abs(root) + std::abs(coefficients_[i]);
             }
             return std::abs(value) <= 1e-9 * scale;
+        }
+
+        /** \brief The roots the closed form for \e degree finds, or none for a degree above four.
+
+            \e degree has to be the index of a leading coefficient.
+        */
+        Roots closedFormRoots(Eigen::Index degree) const
+        {
+            switch (degree)
+            {
+                case 1:
+                    return {-coefficients_[0] / coefficients_[1]};
+                case 2:
+                    return quadraticRoots(coefficients_[2], coefficients_[1], coefficients_[0]);
+                case 3:
+                    return cubicRoots(coefficients_[3], coefficients_[2], coefficients_[1], coefficients_[0]);
+                case 4:
+                    return quarticRoots(coefficients_[4], coefficients_[3], coefficients_[2], coefficients_[1],
+                                        coefficients_[0]);
+                default:
+                    return {};
+            }
         }
 
         /** \brief Refine \e root with Newton's method, keeping it only while the residual shrinks. */
@@ -530,17 +541,16 @@ namespace ompl::base
     double FlatMotion::peakSpeed() const
     {
         const Eigen::Index rows = coefficients_.rows();
-        Coefficients coefficients(std::max<Eigen::Index>(2 * rows - 3, 1), 0.);
+        Polynomial v_squared(std::max<Eigen::Index>(2 * rows - 3, 1));
         for (Eigen::Index i = 1; i < rows; ++i)
         {
             const double weight = static_cast<double>(i);
-            coefficients[2 * (i - 1)] += weight * weight * coefficients_.row(i).squaredNorm();
+            v_squared[2 * (i - 1)] += weight * weight * coefficients_.row(i).squaredNorm();
             for (Eigen::Index j = i + 1; j < rows; ++j)
-                coefficients[i + j - 2] +=
+                v_squared[i + j - 2] +=
                     2. * weight * static_cast<double>(j) * coefficients_.row(i).dot(coefficients_.row(j));
         }
 
-        const Polynomial v_squared(std::move(coefficients));
         double peak = std::max(v_squared(0.), v_squared(duration_));
         for (double t : v_squared.derivative().roots())
             if (t > 0. && t < duration_)
