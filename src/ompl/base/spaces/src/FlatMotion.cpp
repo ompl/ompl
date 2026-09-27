@@ -45,7 +45,6 @@
 #include <algorithm>
 #include <cmath>
 #include <initializer_list>
-#include <limits>
 #include <vector>
 
 namespace
@@ -361,6 +360,45 @@ namespace
         /** \brief Ascending-power coefficients, one per power of the variable. */
         Eigen::VectorXd coefficients_;
     };
+
+    /** \brief The duration-independent terms in the cost of the optimal fixed-duration steer between two
+        flat states of order 2.
+
+        Over duration T that cost is
+            J(T) = 4 (|v0|^2 + v0 . vf + |vf|^2) / T - 12 offset . (v0 + vf) / T^2 + 12 |offset|^2 / T^3
+                   + rho T,
+        where offset is the change in flat output.
+    */
+    struct EffortTerms
+    {
+        /** \brief Construct the terms for steering from \e from to \e to. */
+        EffortTerms(const Eigen::Ref<const Eigen::MatrixXd> &from, const Eigen::Ref<const Eigen::MatrixXd> &to)
+        {
+            const auto v0 = from.row(1);
+            const auto vf = to.row(1);
+            const auto offset = to.row(0) - from.row(0);
+
+            speedTerm = 4. * (v0.squaredNorm() + vf.squaredNorm() + v0.dot(vf));
+            crossTerm = 12. * (v0 + vf).dot(offset);
+            offsetTerm = 12. * offset.squaredNorm();
+        }
+
+        /** \brief The cost J(T) of steering over \e duration with time penalty \e rho. */
+        double cost(double duration, double rho) const
+        {
+            const double T = duration;
+            return offsetTerm / (T * T * T) - crossTerm / (T * T) + speedTerm / T + rho * T;
+        }
+
+        /** \brief The coefficient of 1 / T. */
+        double speedTerm;
+
+        /** \brief The negated coefficient of 1 / T^2. */
+        double crossTerm;
+
+        /** \brief The coefficient of 1 / T^3. */
+        double offsetTerm;
+    };
 }  // namespace
 
 namespace ompl::base
@@ -495,6 +533,15 @@ namespace ompl::base
         return motion.cost(order_, rho_);
     }
 
+    std::optional<double> FlatSteering::steeringCost(const Eigen::Ref<const Eigen::MatrixXd> &from,
+                                                     const Eigen::Ref<const Eigen::MatrixXd> &to) const
+    {
+        const std::optional<FlatMotion> motion = steer(from, to);
+        if (!motion.has_value())
+            return {};
+        return cost(*motion);
+    }
+
     void FlatSteering::checkFlatStates(const Eigen::Ref<const Eigen::MatrixXd> &from,
                                        const Eigen::Ref<const Eigen::MatrixXd> &to) const
     {
@@ -538,6 +585,13 @@ namespace ompl::base
         return FlatMotion(std::move(coefficients), T);
     }
 
+    std::optional<double> FixedDurationSteering::steeringCost(const Eigen::Ref<const Eigen::MatrixXd> &from,
+                                                              const Eigen::Ref<const Eigen::MatrixXd> &to) const
+    {
+        checkFlatStates(from, to);
+        return EffortTerms(from, to).cost(duration_, rho_);
+    }
+
     MinimumEffortSteering::MinimumEffortSteering(unsigned int order) : FlatSteering(order)
     {
     }
@@ -545,36 +599,40 @@ namespace ompl::base
     std::optional<double> MinimumEffortSteering::optimalDuration(const Eigen::Ref<const Eigen::MatrixXd> &from,
                                                                  const Eigen::Ref<const Eigen::MatrixXd> &to) const
     {
+        const std::optional<PricedDuration> cheapest = cheapestDuration(from, to);
+        if (!cheapest.has_value())
+            return {};
+        return cheapest->duration;
+    }
+
+    std::optional<double> MinimumEffortSteering::steeringCost(const Eigen::Ref<const Eigen::MatrixXd> &from,
+                                                              const Eigen::Ref<const Eigen::MatrixXd> &to) const
+    {
+        const std::optional<PricedDuration> cheapest = cheapestDuration(from, to);
+        if (!cheapest.has_value())
+            return {};
+        return cheapest->cost;
+    }
+
+    std::optional<MinimumEffortSteering::PricedDuration> MinimumEffortSteering::cheapestDuration(
+        const Eigen::Ref<const Eigen::MatrixXd> &from, const Eigen::Ref<const Eigen::MatrixXd> &to) const
+    {
         checkFlatStates(from, to);
 
-        const auto v0 = from.row(1);
-        const auto vf = to.row(1);
-        const Eigen::RowVectorXd offset = to.row(0) - from.row(0);
-
-        // The cost of the optimal fixed-duration steer is
-        //     J(T) = 4 (|v0|^2 + v0 . vf + |vf|^2) / T - 12 offset . (v0 + vf) / T^2 + 12 |offset|^2 / T^3
-        //            + rho T,
-        // and clearing T^4 out of dJ/dT leaves this quartic.
-        const double speedTerm = 4. * (v0.squaredNorm() + vf.squaredNorm() + v0.dot(vf));
-        const double crossTerm = 12. * (v0 + vf).dot(offset);
-        const double offsetTerm = 12. * offset.squaredNorm();
-
-        const Polynomial quartic = {-3. * offsetTerm, 2. * crossTerm, -speedTerm, 0., rho_};
+        // Clearing T^4 out of dJ/dT leaves this quartic.
+        const EffortTerms terms(from, to);
+        const Polynomial quartic = {-3. * terms.offsetTerm, 2. * terms.crossTerm, -terms.speedTerm, 0., rho_};
 
         // The quartic can cross upward twice, which puts two local minima on J, so each crossing gets
         // priced and the cheapest one wins.
         // Taking the first crossing instead would sometimes charge several times what the motion needs to
         // cost, and an optimizing planner would steer through it believing the price.
-        std::optional<double> best;
-        double bestCost = std::numeric_limits<double>::infinity();
+        std::optional<PricedDuration> best;
         for (double t : quartic.upwardCrossings())
         {
-            const double cost = offsetTerm / (t * t * t) - crossTerm / (t * t) + speedTerm / t + rho_ * t;
-            if (cost < bestCost)
-            {
-                bestCost = cost;
-                best = t;
-            }
+            const double cost = terms.cost(t, rho_);
+            if (!best.has_value() || cost < best->cost)
+                best = PricedDuration{t, cost};
         }
 
         return best;

@@ -193,6 +193,15 @@ namespace ompl::base
         virtual std::optional<FlatMotion> steer(const Eigen::Ref<const Eigen::MatrixXd> &from,
                                                 const Eigen::Ref<const Eigen::MatrixXd> &to) const = 0;
 
+        /** \brief The \ref cost of the motion that \ref steer makes from \e from to \e to, or nothing
+            when no motion joins them.
+
+            By default this steers and prices the result.
+            A subclass that knows the cost in closed form should override this to skip building the motion.
+        */
+        virtual std::optional<double> steeringCost(const Eigen::Ref<const Eigen::MatrixXd> &from,
+                                                   const Eigen::Ref<const Eigen::MatrixXd> &to) const;
+
     protected:
         /** \brief Throw unless both flat states carry one row per derivative level of this steering and
             share a column count of at least one. */
@@ -233,6 +242,9 @@ namespace ompl::base
         std::optional<FlatMotion> steer(const Eigen::Ref<const Eigen::MatrixXd> &from,
                                         const Eigen::Ref<const Eigen::MatrixXd> &to) const override;
 
+        std::optional<double> steeringCost(const Eigen::Ref<const Eigen::MatrixXd> &from,
+                                           const Eigen::Ref<const Eigen::MatrixXd> &to) const override;
+
     private:
         /** \brief The duration every steer takes. */
         double duration_;
@@ -265,6 +277,25 @@ namespace ompl::base
 
         std::optional<FlatMotion> steer(const Eigen::Ref<const Eigen::MatrixXd> &from,
                                         const Eigen::Ref<const Eigen::MatrixXd> &to) const override;
+
+        std::optional<double> steeringCost(const Eigen::Ref<const Eigen::MatrixXd> &from,
+                                           const Eigen::Ref<const Eigen::MatrixXd> &to) const override;
+
+    private:
+        /** \brief A duration to steer over and the cost of steering over it. */
+        struct PricedDuration
+        {
+            /** \brief The duration of the steer. */
+            double duration;
+
+            /** \brief The cost of steering over \e duration. */
+            double cost;
+        };
+
+        /** \brief The duration \ref optimalDuration picks and the cost of steering over it, or nothing
+            when there's no such duration. */
+        std::optional<PricedDuration> cheapestDuration(const Eigen::Ref<const Eigen::MatrixXd> &from,
+                                                       const Eigen::Ref<const Eigen::MatrixXd> &to) const;
     };
 }  // namespace ompl::base
 

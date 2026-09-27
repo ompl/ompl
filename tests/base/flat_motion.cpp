@@ -243,6 +243,43 @@ BOOST_AUTO_TEST_CASE(CostMatchesNumericIntegration)
     }
 }
 
+BOOST_AUTO_TEST_CASE(SteeringCostMatchesTheSteeredMotion)
+{
+    std::mt19937_64 engine(9u);
+    MinimumEffortSteering effort(ORDER);
+
+    for (unsigned int trial = 0; trial < 500u; ++trial)
+    {
+        const Eigen::MatrixXd from = randomFlatState(engine);
+        const Eigen::MatrixXd to = randomFlatState(engine);
+
+        const auto motion = effort.steer(from, to);
+        const auto cost = effort.steeringCost(from, to);
+        BOOST_REQUIRE(motion.has_value());
+        BOOST_REQUIRE(cost.has_value());
+        BOOST_CHECK_CLOSE(*cost, effort.cost(*motion), 1e-9);
+    }
+
+    for (double duration : {0.05, 1., 7.5})
+    {
+        FixedDurationSteering steering(ORDER, duration);
+
+        for (unsigned int trial = 0; trial < 200u; ++trial)
+        {
+            const Eigen::MatrixXd from = randomFlatState(engine);
+            const Eigen::MatrixXd to = randomFlatState(engine);
+
+            const auto cost = steering.steeringCost(from, to);
+            BOOST_REQUIRE(cost.has_value());
+            BOOST_CHECK_CLOSE(*cost, steering.cost(*steering.steer(from, to)), 1e-9);
+        }
+    }
+
+    // Flat states that already sit still at the same flat output have no motion and so no cost.
+    const Eigen::MatrixXd still = Eigen::MatrixXd::Zero(ORDER, DIMENSION);
+    BOOST_CHECK(!effort.steeringCost(still, still).has_value());
+}
+
 BOOST_AUTO_TEST_CASE(OptimalDurationIsTheCheapestDuration)
 {
     std::mt19937_64 engine(5u);
