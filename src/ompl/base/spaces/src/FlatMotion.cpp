@@ -641,25 +641,16 @@ namespace ompl::base
     {
     }
 
-    std::optional<double> MinimumEffortSteering::optimalDuration(const Eigen::Ref<const Eigen::MatrixXd> &from,
-                                                                 const Eigen::Ref<const Eigen::MatrixXd> &to) const
-    {
-        const std::optional<PricedDuration> cheapest = cheapestDuration(from, to);
-        if (!cheapest.has_value())
-            return {};
-        return cheapest->duration;
-    }
-
     std::optional<double> MinimumEffortSteering::steeringCost(const Eigen::Ref<const Eigen::MatrixXd> &from,
                                                               const Eigen::Ref<const Eigen::MatrixXd> &to) const
     {
-        const std::optional<PricedDuration> cheapest = cheapestDuration(from, to);
+        const std::optional<OptimalDuration> cheapest = optimalDuration(from, to);
         if (!cheapest.has_value())
             return {};
         return cheapest->cost;
     }
 
-    std::optional<MinimumEffortSteering::PricedDuration> MinimumEffortSteering::cheapestDuration(
+    std::optional<MinimumEffortSteering::OptimalDuration> MinimumEffortSteering::optimalDuration(
         const Eigen::Ref<const Eigen::MatrixXd> &from, const Eigen::Ref<const Eigen::MatrixXd> &to) const
     {
         checkFlatStates(from, to);
@@ -672,12 +663,12 @@ namespace ompl::base
         // priced and the cheapest one wins.
         // Taking the first crossing instead would sometimes charge several times what the motion needs to
         // cost, and an optimizing planner would steer through it believing the price.
-        std::optional<PricedDuration> best;
+        std::optional<OptimalDuration> best;
         for (double t : quartic.upwardCrossings())
         {
             const double cost = terms.cost(t, rho_);
             if (!best.has_value() || cost < best->cost)
-                best = PricedDuration{t, cost};
+                best = OptimalDuration{t, cost};
         }
 
         return best;
@@ -686,9 +677,9 @@ namespace ompl::base
     std::optional<FlatMotion> MinimumEffortSteering::steer(const Eigen::Ref<const Eigen::MatrixXd> &from,
                                                            const Eigen::Ref<const Eigen::MatrixXd> &to) const
     {
-        const std::optional<double> duration = optimalDuration(from, to);
-        if (!duration.has_value())
+        const std::optional<OptimalDuration> cheapest = optimalDuration(from, to);
+        if (!cheapest.has_value())
             return {};
-        return FixedDurationSteering(order_, *duration).steer(from, to);
+        return FixedDurationSteering(order_, cheapest->duration).steer(from, to);
     }
 }  // namespace ompl::base

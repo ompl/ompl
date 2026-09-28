@@ -82,8 +82,9 @@ namespace ompl::base
 
         /** \brief The period of each coordinate, which is zero for a coordinate that doesn't wrap.
 
-            Adding a whole number of periods to a coordinate reaches the same state, so steering can pick
-            whichever of those copies of the target costs least to reach.
+            Adding a whole number of periods to a coordinate reaches the same state.
+            A choice of how many periods to add to each wrapping coordinate is a winding, and steering picks
+            whichever winding of the target costs least to reach.
         */
         const std::vector<double> &getPeriods() const
         {
