@@ -54,14 +54,21 @@ namespace
     constexpr std::uintmax_t MAX_ITER = 32;
 }  // namespace
 
-OwenStateSpace::OwenStateSpace(double turningRadius, double maxPitch, double minPitch)
-  : rho_(turningRadius), tanMaxPitch_(std::tan(maxPitch)), dubinsSpace_(turningRadius)
+OwenStateSpace::OwenStateSpace(double turningRadius, double maxPitch)
+  : OwenStateSpace(turningRadius, {-maxPitch, maxPitch})
+{
+}
+
+OwenStateSpace::OwenStateSpace(double turningRadius, std::pair<double, double> pitchRange)
+  : rho_(turningRadius)
+  , tanMaxPitch_(std::tan(pitchRange.second))
+  , tanMinPitch_(std::tan(pitchRange.first))
+  , dubinsSpace_(turningRadius)
 {
     setName("Owen" + getName());
     type_ = STATE_SPACE_OWEN;
     addSubspace(std::make_shared<RealVectorStateSpace>(3), 1.0);
     addSubspace(std::make_shared<SO2StateSpace>(), 0.5);
-    tanMinPitch_ = std::isfinite(minPitch) ? std::tan(minPitch) : -std::tan(maxPitch);
     lock();
 }
 

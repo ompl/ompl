@@ -116,8 +116,8 @@ namespace ompl::base
             }
         };
 
-        OwenStateSpace(double turningRadius = 1.0, double maxPitch = boost::math::double_constants::sixth_pi, 
-            double minPitch = std::numeric_limits<double>::quiet_NaN());
+        OwenStateSpace(double turningRadius = 1.0, double maxPitch = boost::math::double_constants::sixth_pi);
+        OwenStateSpace(double turningRadius, std::pair<double, double> pitchRange);
         ~OwenStateSpace() override = default;
 
         bool isMetricSpace() const override
@@ -207,7 +207,8 @@ namespace ompl::base
             return atan(tanMaxPitch_);
         };
 
-        double getMinPitch() const {
+        double getMinPitch() const
+        {
             return atan(tanMinPitch_);
         };
 
@@ -221,7 +222,7 @@ namespace ompl::base
         double rho_;
         /** Tan(pitch), where pitch is the maximum pitch in radians */
         double tanMaxPitch_;
-        /** Tan(pitch), where pitch is the mainimum pitch in radians */
+        /** Tan(pitch), where pitch is the minimum pitch in radians */
         double tanMinPitch_;
         /** Tolerance used to determine convergence when searching for optimal turning radius */
         double tolerance_{1e-8};
