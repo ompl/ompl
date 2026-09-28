@@ -86,10 +86,15 @@ namespace
     /// Whether a quadrotor centered at \e x, \e y, \e z clears every obstacle in the room.
     bool collisionFree(double x, double y, double z)
     {
+        constexpr double CLEARANCE = PILLAR_RADIUS + BODY_RADIUS;
         for (double px : {-2.5, 2.5})
             for (double py : {-3., -1., 1., 3.})
-                if (std::hypot(x - px, y - py) < PILLAR_RADIUS + BODY_RADIUS)
+            {
+                const double dx = x - px;
+                const double dy = y - py;
+                if (dx * dx + dy * dy < CLEARANCE * CLEARANCE)
                     return false;
+            }
 
         if (std::abs(x) < WALL_HALF_THICKNESS + BODY_RADIUS)
         {
