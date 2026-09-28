@@ -1,5 +1,4 @@
-"""Python callbacks called from OMPL's C++ threads must not deadlock or crash.
-"""
+"""Python callbacks called from OMPL's C++ threads must not deadlock or crash."""
 
 import faulthandler
 import gc
@@ -103,7 +102,9 @@ def goal_lazy_samples_destroyed_while_sampling():
         gc.collect()
         stopped_at = len(calls)
         time.sleep(0.01)
-        assert len(calls) == stopped_at, "sampler still called after the goal was destroyed"
+        assert len(calls) == stopped_at, (
+            "sampler still called after the goal was destroyed"
+        )
     assert calls, "sampler never ran"
 
 
@@ -138,12 +139,19 @@ SCENARIOS = {
 def test_no_deadlock_or_crash(scenario):
     env = {**os.environ, "PYTHONPATH": os.pathsep.join(sys.path)}
     try:
-        proc = subprocess.run([sys.executable, __file__, scenario], capture_output=True, text=True,
-                              env=env, timeout=TIMEOUT + 30)
+        proc = subprocess.run(
+            [sys.executable, __file__, scenario],
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=TIMEOUT + 30,
+        )
     except subprocess.TimeoutExpired:
         pytest.fail(f"{scenario}: hung and did not respond to its watchdog")
     # On a hang the child's watchdog dumps all thread stacks to stderr and exits with code 1.
-    assert proc.returncode == 0, f"{scenario} failed (exit code {proc.returncode}):\n{proc.stderr[-4000:]}"
+    assert proc.returncode == 0, (
+        f"{scenario} failed (exit code {proc.returncode}):\n{proc.stderr[-4000:]}"
+    )
 
 
 if __name__ == "__main__":

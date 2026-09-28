@@ -9,6 +9,6 @@ namespace ob = ompl::base;
 
 void ompl::binding::control::initPlannersEst_EST(nb::module_ &m)
 {
-    nb::class_<ompl::control::EST, ob::Planner>(m, "EST")
-        .def(nb::init<const oc::SpaceInformationPtr &>(), nb::arg("si"));
+    nb::class_<ompl::control::EST, ob::Planner>(m, "EST").def(nb::init<const oc::SpaceInformationPtr &>(),
+                                                              nb::arg("si"));
 }

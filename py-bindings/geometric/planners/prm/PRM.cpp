@@ -19,13 +19,15 @@ void ompl::binding::geometric::initPlannersPrm_PRM(nb::module_ &m)
         .def("setDefaultConnectionStrategy", &PRM::setDefaultConnectionStrategy)
         .def("constructRoadmap", &PRM::constructRoadmap, nb::arg("ptc"), nb::call_guard<nb::gil_scoped_release>())
         .def(
-            "constructRoadmap", [](PRM &self, double time)
-            { self.constructRoadmap(timedPlannerTerminationCondition(time)); }, nb::arg("time"),
-            nb::call_guard<nb::gil_scoped_release>())
-        .def("growRoadmap", nb::overload_cast<double>(&PRM::growRoadmap), nb::arg("growTime"), nb::call_guard<nb::gil_scoped_release>())
+            "constructRoadmap",
+            [](PRM &self, double time) { self.constructRoadmap(timedPlannerTerminationCondition(time)); },
+            nb::arg("time"), nb::call_guard<nb::gil_scoped_release>())
+        .def("growRoadmap", nb::overload_cast<double>(&PRM::growRoadmap), nb::arg("growTime"),
+             nb::call_guard<nb::gil_scoped_release>())
         .def("growRoadmapPtc", nb::overload_cast<const PlannerTerminationCondition &>(&PRM::growRoadmap),
              nb::arg("ptc"), nb::call_guard<nb::gil_scoped_release>())
-        .def("expandRoadmap", nb::overload_cast<double>(&PRM::expandRoadmap), nb::arg("expandTime"), nb::call_guard<nb::gil_scoped_release>())
+        .def("expandRoadmap", nb::overload_cast<double>(&PRM::expandRoadmap), nb::arg("expandTime"),
+             nb::call_guard<nb::gil_scoped_release>())
         .def("expandRoadmapPtc", nb::overload_cast<const PlannerTerminationCondition &>(&PRM::expandRoadmap),
              nb::arg("ptc"), nb::call_guard<nb::gil_scoped_release>())
         .def("setup", &PRM::setup)
