@@ -86,8 +86,15 @@ namespace ompl::base
     {
         const double pi = boost::math::constants::pi<double>();
 
-        // This matches SO2StateSpace::enforceBounds, so an advanced angle satisfies the bounds of the space.
-        double angle = std::fmod(from->as<SO2StateSpace::StateType>()->value + delta[0], 2. * pi);
+        // fast path: if we have already satisfied the bounds, return early instead of calling fmod
+        double angle = from->as<SO2StateSpace::StateType>()->value + delta[0];
+        if (angle >= -pi && angle < pi)
+        {
+            out->as<SO2StateSpace::StateType>()->value = angle;
+            return;
+        }
+
+        angle = std::fmod(angle, 2. * pi);
         if (angle < -pi)
             angle += 2. * pi;
         else if (angle >= pi)
