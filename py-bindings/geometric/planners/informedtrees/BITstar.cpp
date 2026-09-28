@@ -17,25 +17,6 @@ void ompl::binding::geometric::initPlannersInformedtrees_BITstar(nb::module_ &m)
         .def(nb::init<const ob::SpaceInformationPtr &, const std::string &>(), nb::arg("si"),
              nb::arg("name") = "kBITstar")
 
-        // solve
-        .def("solve",
-             [](og::BITstar &self, nb::object what)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                 {
-                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-                 }
-             })
-
         // getPlannerData
         .def(
             "getPlannerData", [](const og::BITstar &self, ob::PlannerData &data) { self.getPlannerData(data); },
