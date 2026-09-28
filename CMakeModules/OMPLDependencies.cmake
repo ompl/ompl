@@ -95,6 +95,13 @@ set_package_properties(Nanobind PROPERTIES
 if(OMPL_HAVE_PYTHON AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/nanobind/CMakeLists.txt")
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/nanobind)
     set(OMPL_HAVE_NANOBIND 1)
+elseif(OMPL_HAVE_PYTHON)
+    # Python packages install nanobind's CMake config below site-packages,
+    # which is not part of CMake's default search path.
+    find_package(nanobind CONFIG QUIET
+        PATHS "${Python_SITELIB}/nanobind/cmake"
+              "${Python_SITEARCH}/nanobind/cmake")
+    set(OMPL_HAVE_NANOBIND ${nanobind_FOUND})
 else()
     set(OMPL_HAVE_NANOBIND 0)
 endif()
