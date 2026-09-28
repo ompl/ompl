@@ -98,7 +98,9 @@ add_custom_command(
 # install module
 install(TARGETS _ompl LIBRARY DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
 # install ompl shared lib
-install(TARGETS ompl DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
+if(SKBUILD)
+    install(TARGETS ompl DESTINATION ${OMPL_PYTHON_INSTALL_DIR})
+endif()
 # install python stubs
 install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl
         DESTINATION ${OMPL_PYTHON_INSTALL_DIR}
