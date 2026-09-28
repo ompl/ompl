@@ -17,9 +17,9 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_heap datastructures/heap.cpp)
 
     if(NOT MSVC)
-      add_ompl_test(test_grid datastructures/grid.cpp)
-      add_ompl_test(test_gridb datastructures/gridb.cpp)
-      add_ompl_test(test_nearestneighbors datastructures/nearestneighbors.cpp)
+        add_ompl_test(test_grid datastructures/grid.cpp)
+        add_ompl_test(test_gridb datastructures/gridb.cpp)
+        add_ompl_test(test_nearestneighbors datastructures/nearestneighbors.cpp)
     endif()
 
     if(OMPL_HAVE_FLANN)
@@ -44,7 +44,7 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_planner_data base/planner_data.cpp)
 
     if(NOT MSVC)
-      add_ompl_test(test_ptc base/ptc.cpp)
+        add_ompl_test(test_ptc base/ptc.cpp)
     endif()
 
     # Test kinematic motion planners in 2D environments
@@ -55,6 +55,7 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_2dpath_simplifying geometric/2d/2dpath_simplifying.cpp)
     add_ompl_test(test_fmt_null_goal geometric/test_fmt_null_goal.cpp)
     add_ompl_test(test_directed_specs geometric/2d/directed_specs.cpp)
+    add_ompl_test(test_rrtconnect_progress geometric/test_rrtconnect_progress.cpp)
 
     # Test constrained planning
     add_ompl_test(test_constraint_sphere geometric/constraint/test_sphere.cpp)
