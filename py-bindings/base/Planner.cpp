@@ -99,11 +99,14 @@ void ompl::binding::base::init_Planner(nb::module_ &m)
              static_cast<ob::ProblemDefinitionPtr &(ob::Planner::*)()>(&ob::Planner::getProblemDefinition))
         .def("setProblemDefinition", &ob::Planner::setProblemDefinition, nb::arg("pdef"))
         .def("getPlannerInputStates", &ob::Planner::getPlannerInputStates, nb::rv_policy::reference_internal)
-        .def(
-            "solve", [](ob::Planner &pl, double solveTime) { return pl.solve(solveTime); }, nb::arg("solveTime"))
-        .def(
-            "solve", [](ob::Planner &pl, const ob::PlannerTerminationConditionFn &fn, double checkInterval)
-            { return pl.solve(fn, checkInterval); }, nb::arg("terminationConditionFn"), nb::arg("checkInterval") = 0.0)
+        .def("solve", nb::overload_cast<double>(&ob::Planner::solve), nb::arg("solveTime"),
+             nb::call_guard<nb::gil_scoped_release>())
+        .def("solve", nb::overload_cast<const ob::PlannerTerminationCondition &>(&ob::Planner::solve),
+             nb::arg("ptc"), nb::call_guard<nb::gil_scoped_release>())
+        .def("solve",
+             nb::overload_cast<const ob::PlannerTerminationConditionFn &, double>(&ob::Planner::solve),
+             nb::arg("terminationConditionFn"), nb::arg("checkInterval") = 0.0,
+             nb::call_guard<nb::gil_scoped_release>())
         .def("clearQuery", &ob::Planner::clearQuery)
         .def("clear", &ob::Planner::clear)
         .def("setup", &ob::Planner::setup)

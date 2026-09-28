@@ -262,9 +262,9 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
         .def("setPlannerAllocator", &oc::SimpleSetup::setPlannerAllocator, nb::arg("allocator"))
 
         // solve() methods (two overloads)
-        .def("solve", nb::overload_cast<double>(&oc::SimpleSetup::solve), nb::arg("time") = 1.0)
+        .def("solve", nb::overload_cast<double>(&oc::SimpleSetup::solve), nb::arg("time") = 1.0, nb::call_guard<nb::gil_scoped_release>())
         .def("solve", nb::overload_cast<const ob::PlannerTerminationCondition &>(&oc::SimpleSetup::solve),
-             nb::arg("terminationCondition"))
+             nb::arg("terminationCondition"), nb::call_guard<nb::gil_scoped_release>())
 
         // getLastPlannerStatus, getLastPlanComputationTime
         .def("getLastPlannerStatus", &oc::SimpleSetup::getLastPlannerStatus)

@@ -116,7 +116,7 @@ void ompl::binding::tools::initBenchmark_Benchmark(nb::module_ &m)
         .def("setPostRunEvent", &ot::Benchmark::setPostRunEvent, nb::arg("event"))
 
         // Benchmark execution
-        .def("benchmark", &ot::Benchmark::benchmark, nb::arg("req"))
+        .def("benchmark", &ot::Benchmark::benchmark, nb::arg("req"), nb::call_guard<nb::gil_scoped_release>())
 
         // Status and data access
         .def("getStatus", &ot::Benchmark::getStatus, nb::rv_policy::reference_internal)

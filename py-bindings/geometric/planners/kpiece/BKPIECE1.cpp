@@ -16,25 +16,6 @@ void ompl::binding::geometric::initPlannersKpiece_BKPIECE1(nb::module_ &m)
     nb::class_<og::BKPIECE1, ob::Planner>(m, "BKPIECE1")
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
 
-        // solve
-        .def("solve",
-             [](og::BKPIECE1 &self, nb::object what)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                 {
-                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-                 }
-             })
-
         .def(
             "getPlannerData", [](const og::BKPIECE1 &self, ob::PlannerData &data) { self.getPlannerData(data); },
             nb::arg("data"))
