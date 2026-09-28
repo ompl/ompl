@@ -43,6 +43,8 @@
 #include "ompl/util/Console.h"
 #include "ompl/util/Exception.h"
 
+#include <boost/container/small_vector.hpp>
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -70,6 +72,19 @@ namespace
     const std::set<std::string> REVERSING_PLANNERS = {"BFMT",        "BiEST",     "BiRLRT", "BKPIECE1", "LazyPRM",
                                                       "LazyPRMstar", "LBKPIECE1", "PDST",   "PRM",      "PRMstar",
                                                       "pSBL",        "SBL",       "SPARS",  "SPARStwo"};
+
+    /** \brief The largest flat output dimension whose scratch space stays on the stack. */
+    constexpr unsigned int STACK_DIMENSION = 16u;
+
+    /** \brief Room for one flat output, held on the stack up to \ref STACK_DIMENSION dimensions. */
+    using OutputBuffer = boost::container::small_vector<double, STACK_DIMENSION>;
+
+    /** \brief Room for both endpoints of an edge, containing the start and end flat states.
+
+        Two order-2 flat states hold four values per flat output dimension, so this stays on the stack up
+        to \ref STACK_DIMENSION dimensions at order 2.
+    */
+    using EndpointsBuffer = boost::container::small_vector<double, 4u * STACK_DIMENSION>;
 }  // namespace
 
 namespace ompl::base
@@ -226,19 +241,21 @@ namespace ompl::base
         }
     }
 
-    std::optional<FlatMotion> FlatStateSpace::steer(const State *from, const State *to) const
+    std::optional<MinimumEffortSteering::OptimalDuration>
+    FlatStateSpace::optimalEdge(const State *from, const State *to, Eigen::Ref<Eigen::MatrixXd> initial,
+                                Eigen::Ref<Eigen::MatrixXd> terminal) const
     {
         const auto *start = from->as<CompoundState>();
         const auto *finish = to->as<CompoundState>();
 
-        Eigen::MatrixXd initial(componentCount_, outputDimension_);
-        Eigen::MatrixXd terminal(componentCount_, outputDimension_);
-        Eigen::VectorXd displacement(outputDimension_);
-        chart_->difference(start->components[0], finish->components[0], displacement);
+        // The chart writes into a contiguous vector and a row of a flat state isn't one.
+        OutputBuffer displacement(outputDimension_);
+        Eigen::Map<Eigen::VectorXd> displacementVector(displacement.data(), outputDimension_);
+        chart_->difference(start->components[0], finish->components[0], displacementVector);
 
         // in all charts, we center about the start
         initial.row(0).setZero();
-        terminal.row(0) = displacement.transpose();
+        terminal.row(0) = displacementVector.transpose();
 
         for (unsigned int level = 1; level < componentCount_; ++level)
         {
@@ -248,43 +265,34 @@ namespace ompl::base
                 finish->components[level]->as<RealVectorStateSpace::StateType>()->values, outputDimension_);
         }
 
-        std::optional<FlatMotion> motion = steering_.steer(initial, terminal);
-        if (!motion.has_value())
-            return motion;
+        std::optional<MinimumEffortSteering::OptimalDuration> cheapest = steering_.optimalDuration(initial, terminal);
+        if (!cheapest.has_value())
+            return cheapest;
 
-        // A coordinate that wraps reaches the target at every whole number of periods from the nearest
-        // copy, and the nearest copy isn't the cheapest when the flat output is already moving fast.
-        // Taking it anyway would break continued interpolation, since the tail of a motion swinging more
-        // than a half period round has a different nearest copy from the motion as a whole.
+        // The nearest winding isn't the cheapest when the flat output is already moving fast.
         //
         // Over a fixed duration T, an axis with velocities v0 and vf and displacement o costs
         //     12 (o - (v0 + vf) T / 2)^2 / T^3 + (v0 - vf)^2 / T,
-        // so the cheapest copy at T is the one nearest (v0 + vf) T / 2, and it changes only where that
-        // point passes halfway between two copies.
-        // The cheapest motion overall takes the cheapest copies, so walking those
-        // crossings in order of time and steering to each new set of copies finds it.
+        // so the cheapest winding of that axis at T puts o nearest (v0 + vf) T / 2, and it changes only
+        // where that point passes halfway between two windings.
+        // The cheapest motion overall takes the cheapest winding, so walking those crossings in order of
+        // time and steering to each new winding finds it.
         // A motion costs at least rho times its duration, so crossings later than the cheapest cost so
         // far over rho can't lead anywhere cheaper and the walk stops there.
+        // Every winding gets priced in closed form, and only the winner ever becomes a motion, over the
+        // duration its price already found.
         const std::vector<double> &periods = chart_->getPeriods();
-        const auto moving = [&](unsigned int axis)
-        { return periods[axis] > 0. && initial(1, axis) + terminal(1, axis) != 0.; };
-        bool anyMoving = false;
-        for (unsigned int axis = 0; axis < outputDimension_ && !anyMoving; ++axis)
-            anyMoving = moving(axis);
-        if (!anyMoving)
-            return motion;
-
-        std::vector<std::pair<double, unsigned int>> crossings;
-        double cost = steering_.cost(*motion);
-        const double horizon = cost / steering_.getRho();
+        boost::container::small_vector<std::pair<double, unsigned int>, STACK_DIMENSION> crossings;
+        const double horizon = cheapest->cost / steering_.getRho();
         for (unsigned int axis = 0; axis < outputDimension_; ++axis)
         {
-            if (!moving(axis))
-                continue;
+            // An axis that doesn't wrap, or whose velocities cancel, never changes winding.
             const double period = periods[axis];
             const double sum = initial(1, axis) + terminal(1, axis);
+            if (!(period > 0.) || sum == 0.)
+                continue;
 
-            // The nearest copy starts out as the one the chart picked, which lies within half a period of
+            // The nearest winding starts out as the one the chart picked, which lies within half a period of
             // the origin, and moves a period in the direction of travel at each crossing.
             const double direction = sum > 0. ? 1. : -1.;
             for (double halfway = terminal(0, axis) + 0.5 * direction * period;; halfway += direction * period)
@@ -298,26 +306,39 @@ namespace ompl::base
             }
         }
 
+        if (crossings.empty())
+            return cheapest;
+
         std::sort(crossings.begin(), crossings.end());
+        OutputBuffer cheapestOutput(terminal.row(0).begin(), terminal.row(0).end());
         for (const auto &[time, axis] : crossings)
         {
-            if (time > cost / steering_.getRho())
+            if (time > cheapest->cost / steering_.getRho())
                 break;
 
             terminal(0, axis) += initial(1, axis) + terminal(1, axis) > 0. ? periods[axis] : -periods[axis];
-            std::optional<FlatMotion> candidate = steering_.steer(initial, terminal);
-            if (!candidate.has_value())
-                continue;
-
-            const double candidateCost = steering_.cost(*candidate);
-            if (candidateCost < cost)
+            const std::optional<MinimumEffortSteering::OptimalDuration> candidate =
+                steering_.optimalDuration(initial, terminal);
+            if (candidate.has_value() && candidate->cost < cheapest->cost)
             {
-                motion = std::move(candidate);
-                cost = candidateCost;
+                cheapest = candidate;
+                std::copy(terminal.row(0).begin(), terminal.row(0).end(), cheapestOutput.begin());
             }
         }
 
-        return motion;
+        terminal.row(0) = Eigen::Map<const Eigen::RowVectorXd>(cheapestOutput.data(), outputDimension_);
+        return cheapest;
+    }
+
+    std::optional<FlatMotion> FlatStateSpace::steer(const State *from, const State *to) const
+    {
+        EndpointsBuffer buffer(2u * componentCount_ * outputDimension_);
+        Eigen::Map<Eigen::MatrixXd> initial(buffer.data(), componentCount_, outputDimension_);
+        Eigen::Map<Eigen::MatrixXd> terminal(buffer.data() + initial.size(), componentCount_, outputDimension_);
+        const std::optional<MinimumEffortSteering::OptimalDuration> cheapest = optimalEdge(from, to, initial, terminal);
+        if (!cheapest.has_value())
+            return {};
+        return FixedDurationSteering(steering_.getOrder(), cheapest->duration).steer(initial, terminal);
     }
 
     double FlatStateSpace::steeringCost(const State *from, const State *to) const
@@ -326,9 +347,11 @@ namespace ompl::base
         if (equalStates(from, to))
             return 0.;
 
-        // pricing in raw coordinates is wrong, as wrapping logic may give better solutions futher away.
-        const std::optional<FlatMotion> motion = steer(from, to);
-        return motion.has_value() ? steering_.cost(*motion) : std::numeric_limits<double>::infinity();
+        EndpointsBuffer buffer(2u * componentCount_ * outputDimension_);
+        Eigen::Map<Eigen::MatrixXd> initial(buffer.data(), componentCount_, outputDimension_);
+        Eigen::Map<Eigen::MatrixXd> terminal(buffer.data() + initial.size(), componentCount_, outputDimension_);
+        const std::optional<MinimumEffortSteering::OptimalDuration> cheapest = optimalEdge(from, to, initial, terminal);
+        return cheapest.has_value() ? cheapest->cost : std::numeric_limits<double>::infinity();
     }
 
     double FlatStateSpace::distance(const State *state1, const State *state2) const
@@ -393,7 +416,6 @@ namespace ompl::base
         }
 
         // for states less than 16 dimensions, allocate on the stack to go fast :)
-        constexpr unsigned int STACK_DIMENSION = 16u;
         std::array<double, STACK_DIMENSION> stack;
         std::vector<double> heap;
         double *buffer = stack.data();

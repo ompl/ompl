@@ -389,6 +389,21 @@ namespace ompl::base
             and every derivative level contribute comparably whatever their units. */
         void setDefaultWeights();
 
+        /** \brief Solve the edge from \e from to \e to, writing the flat states it runs between into
+            \e initial and \e terminal and returning the duration and cost of steering along it, or nothing
+            when steering fails.
+
+            The flat states come out in the coordinates of the chart centered on \e from, so the flat output
+            of \e initial is zero and that of \e terminal is the displacement to \e to, at whichever winding
+            is cheapest to steer to.
+            A winding is a choice of how many whole periods to add to each wrapping coordinate of the chart,
+            all of which reach the same flat output.
+            Both need one row per derivative level and one column per flat output dimension.
+        */
+        std::optional<MinimumEffortSteering::OptimalDuration> optimalEdge(const State *from, const State *to,
+                                                                          Eigen::Ref<Eigen::MatrixXd> initial,
+                                                                          Eigen::Ref<Eigen::MatrixXd> terminal) const;
+
         /** \brief The steering that joins two flat states. */
         MinimumEffortSteering steering_{2};
 

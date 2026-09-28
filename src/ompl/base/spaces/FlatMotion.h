@@ -270,20 +270,8 @@ namespace ompl::base
             The order has to be 2. */
         explicit MinimumEffortSteering(unsigned int order);
 
-        /** \brief The positive duration at which \ref cost is lowest over motions from \e from to
-            \e to, or nothing when there's none. */
-        std::optional<double> optimalDuration(const Eigen::Ref<const Eigen::MatrixXd> &from,
-                                              const Eigen::Ref<const Eigen::MatrixXd> &to) const;
-
-        std::optional<FlatMotion> steer(const Eigen::Ref<const Eigen::MatrixXd> &from,
-                                        const Eigen::Ref<const Eigen::MatrixXd> &to) const override;
-
-        std::optional<double> steeringCost(const Eigen::Ref<const Eigen::MatrixXd> &from,
-                                           const Eigen::Ref<const Eigen::MatrixXd> &to) const override;
-
-    private:
-        /** \brief A duration to steer over and the cost of steering over it. */
-        struct PricedDuration
+        /** \brief The duration at which steering between two flat states costs least, and that cost. */
+        struct OptimalDuration
         {
             /** \brief The duration of the steer. */
             double duration;
@@ -292,10 +280,19 @@ namespace ompl::base
             double cost;
         };
 
-        /** \brief The duration \ref optimalDuration picks and the cost of steering over it, or nothing
-            when there's no such duration. */
-        std::optional<PricedDuration> cheapestDuration(const Eigen::Ref<const Eigen::MatrixXd> &from,
+        /** \brief The positive duration at which \ref cost is lowest over motions from \e from to \e to,
+            together with that cost, or nothing when there's no such duration.
+
+            \ref steeringCost reports the cost alone and \ref steer builds the motion over the duration.
+        */
+        std::optional<OptimalDuration> optimalDuration(const Eigen::Ref<const Eigen::MatrixXd> &from,
                                                        const Eigen::Ref<const Eigen::MatrixXd> &to) const;
+
+        std::optional<FlatMotion> steer(const Eigen::Ref<const Eigen::MatrixXd> &from,
+                                        const Eigen::Ref<const Eigen::MatrixXd> &to) const override;
+
+        std::optional<double> steeringCost(const Eigen::Ref<const Eigen::MatrixXd> &from,
+                                           const Eigen::Ref<const Eigen::MatrixXd> &to) const override;
     };
 }  // namespace ompl::base
 

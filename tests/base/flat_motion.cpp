@@ -293,9 +293,10 @@ BOOST_AUTO_TEST_CASE(OptimalDurationIsTheCheapestDuration)
         const Eigen::MatrixXd from = randomFlatState(engine);
         const Eigen::MatrixXd to = randomFlatState(engine);
 
-        const auto duration = steering.optimalDuration(from, to);
-        BOOST_REQUIRE(duration.has_value());
-        const double best = costOverDuration(from, to, *duration, rho);
+        const auto optimal = steering.optimalDuration(from, to);
+        BOOST_REQUIRE(optimal.has_value());
+        const double duration = optimal->duration;
+        const double best = costOverDuration(from, to, duration, rho);
 
         // The cost has up to two durations where it bottoms out, so it isn't enough for the slope to
         // vanish at the one that comes back.
@@ -306,7 +307,7 @@ BOOST_AUTO_TEST_CASE(OptimalDurationIsTheCheapestDuration)
 
         // The cost is flat there, which makes it a minimum rather than an endpoint of the sweep.
         const double slope =
-            (costOverDuration(from, to, *duration + 1e-7, rho) - costOverDuration(from, to, *duration - 1e-7, rho)) /
+            (costOverDuration(from, to, duration + 1e-7, rho) - costOverDuration(from, to, duration - 1e-7, rho)) /
             2e-7;
         BOOST_CHECK_SMALL(slope, 1e-3);
     }
@@ -324,13 +325,14 @@ BOOST_AUTO_TEST_CASE(TheCheaperOfTwoLocalMinimaWins)
     from << 0.8, 1.4;
     to << 0.82, 2.8;
 
-    const auto duration = steering.optimalDuration(from, to);
-    BOOST_REQUIRE(duration.has_value());
+    const auto optimal = steering.optimalDuration(from, to);
+    BOOST_REQUIRE(optimal.has_value());
+    const double duration = optimal->duration;
 
     // The early dip is the one a walk out from zero reaches first, and it costs six times what the later
     // one does.
-    const double best = costOverDuration(from, to, *duration, rho);
-    BOOST_CHECK_GT(*duration, 1.);
+    const double best = costOverDuration(from, to, duration, rho);
+    BOOST_CHECK_GT(duration, 1.);
     BOOST_CHECK_GT(costOverDuration(from, to, 0.01, rho), 6. * best);
     for (unsigned int index = 1; index <= 20000u; ++index)
         BOOST_REQUIRE_LE(best, costOverDuration(from, to, static_cast<double>(index) * 1e-3, rho) + 1e-9);
@@ -363,7 +365,7 @@ BOOST_AUTO_TEST_CASE(BellmanConsistency)
             // included, which lets a planner charge edge costs that add up along a path.
             const auto tail = steering.optimalDuration(middle, to);
             BOOST_REQUIRE(tail.has_value());
-            BOOST_CHECK_CLOSE(*tail, duration - split, 1e-6);
+            BOOST_CHECK_CLOSE(tail->duration, duration - split, 1e-6);
         }
     }
 }
@@ -387,7 +389,7 @@ BOOST_AUTO_TEST_CASE(DegenerateInputs)
     moving.row(1) << 0.6, -0.8, 0.;
     const auto looping = steering.optimalDuration(moving, moving);
     BOOST_REQUIRE(looping.has_value());
-    BOOST_CHECK_CLOSE(*looping, moving.row(1).norm() * std::sqrt(12. / rho), 1e-6);
+    BOOST_CHECK_CLOSE(looping->duration, moving.row(1).norm() * std::sqrt(12. / rho), 1e-6);
 
     // Coming to rest at both ends costs effort 12 |offset|^2 / T^3, which settles at the fourth root below.
     Eigen::MatrixXd start = Eigen::MatrixXd::Zero(ORDER, DIMENSION);
@@ -395,7 +397,7 @@ BOOST_AUTO_TEST_CASE(DegenerateInputs)
     finish.row(0) << 3., 4., 0.;
     const auto restToRest = steering.optimalDuration(start, finish);
     BOOST_REQUIRE(restToRest.has_value());
-    BOOST_CHECK_CLOSE(*restToRest, std::pow(36. * finish.row(0).squaredNorm() / rho, 0.25), 1e-6);
+    BOOST_CHECK_CLOSE(restToRest->duration, std::pow(36. * finish.row(0).squaredNorm() / rho, 0.25), 1e-6);
 
     // A fixed-duration steer between identical resting flat states is the curve that stays put.
     const auto still = FixedDurationSteering(ORDER, 1.5).steer(start, start);
