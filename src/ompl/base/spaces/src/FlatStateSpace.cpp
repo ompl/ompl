@@ -81,8 +81,8 @@ namespace
 
     /** \brief Room for both endpoints of an edge, containing the start and end flat states.
 
-        Two order-2 flat states hold four values per flat output dimension, so this stays on the stack up
-        to \ref STACK_DIMENSION dimensions at order 2.
+        Two flat states of order \e k hold 2 \e k values per flat output dimension, so this stays on the
+        stack up to \ref STACK_DIMENSION dimensions at order 2.
     */
     using EndpointsBuffer = boost::container::small_vector<double, 4u * STACK_DIMENSION>;
 }  // namespace
@@ -90,10 +90,8 @@ namespace
 namespace ompl::base
 {
     FlatStateSpace::FlatStateSpace(const StateSpacePtr &output, unsigned int order, FlatChartPtr chart)
+      : steering_(order)
     {
-        if (order != 2u)
-            throw Exception("FlatStateSpace only supports order 2");
-
         chart_ = chart == nullptr ? allocFlatChart(output) : std::move(chart);
         checkOutput(output, chart_);
         outputDimension_ = output->getDimension();
@@ -112,10 +110,8 @@ namespace ompl::base
 
     FlatStateSpace::FlatStateSpace(const StateSpacePtr &output, const std::vector<StateSpacePtr> &derivatives,
                                    FlatChartPtr chart)
+      : steering_(static_cast<unsigned int>(derivatives.size()) + 1u)
     {
-        if (derivatives.size() != 1u)
-            throw Exception("FlatStateSpace only supports order 2, so it needs exactly one derivative space");
-
         chart_ = chart == nullptr ? allocFlatChart(output) : std::move(chart);
         checkOutput(output, chart_);
         outputDimension_ = output->getDimension();
@@ -245,6 +241,24 @@ namespace ompl::base
     FlatStateSpace::optimalEdge(const State *from, const State *to, Eigen::Ref<Eigen::MatrixXd> initial,
                                 Eigen::Ref<Eigen::MatrixXd> terminal) const
     {
+        /** \brief A change in the cheapest winding of one axis, which the walk sorts by time. */
+        struct Change
+        {
+            /** \brief The duration from which the new winding is cheapest. */
+            double time;
+
+            /** \brief The axis changing winding. */
+            unsigned int axis;
+
+            /** \brief The number of whole periods the new winding adds to the chart's displacement. */
+            double winding;
+
+            bool operator<(const Change &other) const
+            {
+                return time < other.time || (time == other.time && axis < other.axis);
+            }
+        };
+
         const auto *start = from->as<CompoundState>();
         const auto *finish = to->as<CompoundState>();
 
@@ -269,54 +283,39 @@ namespace ompl::base
         if (!cheapest.has_value())
             return cheapest;
 
-        // The nearest winding isn't the cheapest when the flat output is already moving fast.
+        // On a wrapping axis, the flat output can reach the goal after any whole number of extra windings.
+        // The winding with the shortest displacement isn't always the cheapest, such as when the flat output
+        // starts out moving fast.
         //
-        // Over a fixed duration T, an axis with velocities v0 and vf and displacement o costs
-        //     12 (o - (v0 + vf) T / 2)^2 / T^3 + (v0 - vf)^2 / T,
-        // so the cheapest winding of that axis at T puts o nearest (v0 + vf) T / 2, and it changes only
-        // where that point passes halfway between two windings.
-        // The cheapest motion overall takes the cheapest winding, so walking those crossings in order of
-        // time and steering to each new winding finds it.
-        // A motion costs at least rho times its duration, so crossings later than the cheapest cost so
-        // far over rho can't lead anywhere cheaper and the walk stops there.
-        // Every winding gets priced in closed form, and only the winner ever becomes a motion, over the
-        // duration its price already found.
+        // At a fixed duration, the cost splits into one quadratic per axis in that axis's displacement.
+        // Each quadratic is least at the ideal winding, which is usually fractional, so the cheapest motion at
+        // that duration picks the whole winding nearest the ideal winding on every axis.
+        // As the duration grows, that combination of windings changes only at the times windingChanges reports.
+        // The cheapest motion therefore uses one of the combinations between those times, and the loop prices
+        // each one at its best duration.
+        // Every motion costs at least rho times its duration, so a change later than the cheapest cost so far
+        // divided by rho can't lead to anything cheaper, and the loop stops there.
         const std::vector<double> &periods = chart_->getPeriods();
-        boost::container::small_vector<std::pair<double, unsigned int>, STACK_DIMENSION> crossings;
+        std::vector<Change> changes;
         const double horizon = cheapest->cost / steering_.getRho();
         for (unsigned int axis = 0; axis < outputDimension_; ++axis)
-        {
-            // An axis that doesn't wrap, or whose velocities cancel, never changes winding.
-            const double period = periods[axis];
-            const double sum = initial(1, axis) + terminal(1, axis);
-            if (!(period > 0.) || sum == 0.)
-                continue;
+            if (periods[axis] > 0.)
+                for (const MinimumEffortSteering::WindingChange &change :
+                     steering_.windingChanges(initial, terminal, axis, periods[axis], horizon))
+                    changes.push_back(Change{change.time, axis, change.winding});
 
-            // The nearest winding starts out as the one the chart picked, which lies within half a period of
-            // the origin, and moves a period in the direction of travel at each crossing.
-            const double direction = sum > 0. ? 1. : -1.;
-            for (double halfway = terminal(0, axis) + 0.5 * direction * period;; halfway += direction * period)
-            {
-                // Written this way round, a velocity of NaN ends the walk rather than spinning forever.
-                const double time = 2. * halfway / sum;
-                if (!(time <= horizon))
-                    break;
-                if (time > 0.)
-                    crossings.emplace_back(time, axis);
-            }
-        }
-
-        if (crossings.empty())
+        if (changes.empty())
             return cheapest;
 
-        std::sort(crossings.begin(), crossings.end());
-        OutputBuffer cheapestOutput(terminal.row(0).begin(), terminal.row(0).end());
-        for (const auto &[time, axis] : crossings)
+        std::sort(changes.begin(), changes.end());
+        const OutputBuffer nearest(terminal.row(0).begin(), terminal.row(0).end());
+        OutputBuffer cheapestOutput = nearest;
+        for (const Change &change : changes)
         {
-            if (time > cheapest->cost / steering_.getRho())
+            if (change.time > cheapest->cost / steering_.getRho())
                 break;
 
-            terminal(0, axis) += initial(1, axis) + terminal(1, axis) > 0. ? periods[axis] : -periods[axis];
+            terminal(0, change.axis) = nearest[change.axis] + change.winding * periods[change.axis];
             const std::optional<MinimumEffortSteering::OptimalDuration> candidate =
                 steering_.optimalDuration(initial, terminal);
             if (candidate.has_value() && candidate->cost < cheapest->cost)
@@ -338,7 +337,7 @@ namespace ompl::base
         const std::optional<MinimumEffortSteering::OptimalDuration> cheapest = optimalEdge(from, to, initial, terminal);
         if (!cheapest.has_value())
             return {};
-        return FixedDurationSteering(steering_.getOrder(), cheapest->duration).steer(initial, terminal);
+        return steering_.motion(initial, terminal, cheapest->duration);
     }
 
     double FlatStateSpace::steeringCost(const State *from, const State *to) const

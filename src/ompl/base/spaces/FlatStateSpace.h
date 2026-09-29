@@ -149,7 +149,7 @@ namespace ompl::base
 
             The derivative components come out unbounded, so call \ref setDerivativeBound for each level
             before planning.
-            The order has to be 2.
+            The order has to be at least 1.
             The steering polynomials between states run in \e chart, which has to carry one coordinate per
             dimension of \e output.
             If \e chart is unspecified, ompl::base::allocFlatChart will generate a default chart based on \e output.
@@ -405,7 +405,7 @@ namespace ompl::base
                                                                           Eigen::Ref<Eigen::MatrixXd> terminal) const;
 
         /** \brief The steering that joins two flat states. */
-        MinimumEffortSteering steering_{2};
+        MinimumEffortSteering steering_;
 
         /** \brief The chart that maintains coordinates for steering polynomials. */
         FlatChartPtr chart_;

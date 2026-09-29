@@ -58,8 +58,17 @@ namespace
     constexpr unsigned int ORDER = 2;
     const double PI = boost::math::constants::pi<double>();
 
-    /** \brief An SE(2) flat output over a square with a box bound on every velocity. */
-    std::shared_ptr<FlatStateSpace> makeSE2Space()
+    /** \brief Bound every derivative level of \e space to plus and minus 2 and set it up. */
+    std::shared_ptr<FlatStateSpace> boundAndSetup(std::shared_ptr<FlatStateSpace> space)
+    {
+        for (unsigned int level = 1; level < space->getOrder(); ++level)
+            space->setDerivativeBound(level, 2.);
+        space->setup();
+        return space;
+    }
+
+    /** \brief An SE(2) flat output of order \e order over a square with a box bound on every derivative. */
+    std::shared_ptr<FlatStateSpace> makeSE2Space(unsigned int order = ORDER)
     {
         auto output = std::make_shared<SE2StateSpace>();
         RealVectorBounds bounds(2);
@@ -67,19 +76,13 @@ namespace
         bounds.setHigh(1.);
         output->setBounds(bounds);
 
-        auto space = std::make_shared<FlatStateSpace>(output, ORDER);
-        space->setDerivativeBound(1, 2.);
-        space->setup();
-        return space;
+        return boundAndSetup(std::make_shared<FlatStateSpace>(output, order));
     }
 
-    /** \brief A flat output on the torus with a box bound on both angular velocities. */
-    std::shared_ptr<FlatStateSpace> makeTorusSpace()
+    /** \brief A flat output of order \e order on the torus with a box bound on every derivative. */
+    std::shared_ptr<FlatStateSpace> makeTorusSpace(unsigned int order = ORDER)
     {
-        auto space = std::make_shared<FlatStateSpace>(std::make_shared<TorusStateSpace>(), ORDER);
-        space->setDerivativeBound(1, 2.);
-        space->setup();
-        return space;
+        return boundAndSetup(std::make_shared<FlatStateSpace>(std::make_shared<TorusStateSpace>(), order));
     }
 
     /** \brief Write a flat output and a velocity into \e state. */
@@ -101,63 +104,78 @@ namespace
 
 BOOST_AUTO_TEST_CASE(SanityChecksPassOverWrappingOutputs)
 {
-    BOOST_CHECK_NO_THROW(makeTorusSpace()->sanityChecks());
-    BOOST_CHECK_NO_THROW(makeSE2Space()->sanityChecks());
+    // Continued interpolation fails whenever steering from partway along a motion picks a different turn
+    // from the motion as a whole, and the ideal winding the turns follow moves along a curve above order 2.
+    for (unsigned int order = 1; order <= 3u; ++order)
+    {
+        BOOST_TEST_CONTEXT("order " << order)
+        {
+            BOOST_CHECK_NO_THROW(makeTorusSpace(order)->sanityChecks());
+            BOOST_CHECK_NO_THROW(makeSE2Space(order)->sanityChecks());
+        }
+    }
 }
 
 BOOST_AUTO_TEST_CASE(SteeringPicksTheCheapestTurnOfEachAngle)
 {
-    auto space = makeTorusSpace();
-    const MinimumEffortSteering &steering = space->getSteering();
-    StateSamplerPtr sampler = space->allocStateSampler();
-
-    // A flat output spinning fast can reach its target more cheaply by carrying on round than by turning
-    // back, so steering has to weigh every whole number of turns on each angle, and this weighs them all
-    // by brute force.
-    ScopedState<> from(space), to(space);
-    Eigen::MatrixXd initial(ORDER, 2), terminal(ORDER, 2);
-    Eigen::VectorXd nearest(2);
-    unsigned int wound = 0u;
-    for (unsigned int trial = 0; trial < 2000u; ++trial)
+    // Above order 2 the ideal winding the cheapest turn follows moves along a curve rather than a line.
+    for (unsigned int order = 2; order <= 3u; ++order)
     {
-        sampler->sampleUniform(from.get());
-        sampler->sampleUniform(to.get());
+        BOOST_TEST_CONTEXT("order " << order)
+        {
+            auto space = makeTorusSpace(order);
+            const MinimumEffortSteering &steering = space->getSteering();
+            StateSamplerPtr sampler = space->allocStateSampler();
 
-        const std::optional<FlatMotion> motion = space->steer(from.get(), to.get());
-        BOOST_REQUIRE(motion.has_value());
-        const double cost = steering.cost(*motion);
-
-        space->toFlatState(from.get(), initial);
-        space->toFlatState(to.get(), terminal);
-        space->getChart()->difference(from->as<FlatStateSpace::StateType>()->output(),
-                                      to->as<FlatStateSpace::StateType>()->output(), nearest);
-        initial.row(0).setZero();
-
-        double cheapest = std::numeric_limits<double>::infinity();
-        for (int first = -3; first <= 3; ++first)
-            for (int second = -3; second <= 3; ++second)
+            // A flat output spinning fast can reach its target more cheaply by carrying on round than by turning
+            // back, so steering has to weigh every whole number of turns on each angle, and this weighs them all
+            // by brute force.
+            ScopedState<> from(space), to(space);
+            Eigen::MatrixXd initial(order, 2), terminal(order, 2);
+            Eigen::VectorXd nearest(2);
+            unsigned int wound = 0u;
+            for (unsigned int trial = 0; trial < 2000u; ++trial)
             {
-                terminal(0, 0) = nearest[0] + 2. * PI * first;
-                terminal(0, 1) = nearest[1] + 2. * PI * second;
-                const std::optional<FlatMotion> candidate = steering.steer(initial, terminal);
-                if (candidate.has_value())
-                    cheapest = std::min(cheapest, steering.cost(*candidate));
+                sampler->sampleUniform(from.get());
+                sampler->sampleUniform(to.get());
+
+                const std::optional<FlatMotion> motion = space->steer(from.get(), to.get());
+                BOOST_REQUIRE(motion.has_value());
+                const double cost = steering.cost(*motion);
+
+                space->toFlatState(from.get(), initial);
+                space->toFlatState(to.get(), terminal);
+                space->getChart()->difference(from->as<FlatStateSpace::StateType>()->output(),
+                                              to->as<FlatStateSpace::StateType>()->output(), nearest);
+                initial.row(0).setZero();
+
+                double cheapest = std::numeric_limits<double>::infinity();
+                for (int first = -3; first <= 3; ++first)
+                    for (int second = -3; second <= 3; ++second)
+                    {
+                        terminal(0, 0) = nearest[0] + 2. * PI * first;
+                        terminal(0, 1) = nearest[1] + 2. * PI * second;
+                        const std::optional<FlatMotion> candidate = steering.steer(initial, terminal);
+                        if (candidate.has_value())
+                            cheapest = std::min(cheapest, steering.cost(*candidate));
+                    }
+
+                BOOST_REQUIRE_LE(cost, cheapest * (1. + 1e-12));
+                if (motion->evaluate(motion->duration()).cwiseAbs().maxCoeff() > PI)
+                    ++wound;
             }
 
-        BOOST_REQUIRE_LE(cost, cheapest * (1. + 1e-12));
-        if (motion->evaluate(motion->duration()).cwiseAbs().maxCoeff() > PI)
-            ++wound;
+            // Enough of the draws carry on round for the comparison to mean something.
+            BOOST_CHECK_GT(wound, 20u);
+        }
     }
-
-    // Enough of the draws carry on round for the comparison to mean something.
-    BOOST_CHECK_GT(wound, 20u);
 }
 
 BOOST_AUTO_TEST_CASE(SteeringCostPricesTheSteeredMotion)
 {
     // The cost has to come from the same chart and the same choice of turns as the motion itself, or a
     // planner optimizing it would be pricing edges it never flies.
-    for (const auto &space : {makeTorusSpace(), makeSE2Space()})
+    for (const auto &space : {makeTorusSpace(), makeSE2Space(), makeTorusSpace(3u), makeSE2Space(3u)})
     {
         StateSamplerPtr sampler = space->allocStateSampler();
         ScopedState<> from(space), to(space);
@@ -168,8 +186,7 @@ BOOST_AUTO_TEST_CASE(SteeringCostPricesTheSteeredMotion)
 
             const std::optional<FlatMotion> motion = space->steer(from.get(), to.get());
             BOOST_REQUIRE(motion.has_value());
-            BOOST_REQUIRE_CLOSE(space->steeringCost(from.get(), to.get()), space->getSteering().cost(*motion),
-                                1e-9);
+            BOOST_REQUIRE_CLOSE(space->steeringCost(from.get(), to.get()), space->getSteering().cost(*motion), 1e-9);
         }
     }
 }
