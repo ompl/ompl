@@ -467,7 +467,7 @@ namespace ompl::base
         const std::string &name = planner->getName();
         if (REVERSING_PLANNERS.count(name) > 0u)
             OMPL_WARN("%s doesn't check every edge in the direction its path runs through it, and edges in "
-                      "%s run forward in time. The paths it returns fail PathGeometric::check().",
+                      "%s run forward in time. The paths it returns may fail PathGeometric::check().",
                       name.c_str(), getName().c_str());
 
         if (!planner->getSpecs().optimizingPaths)
