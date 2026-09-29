@@ -38,8 +38,8 @@
 #define OMPL_BASE_SPACES_FLAT_STATE_SPACE_
 
 #include "ompl/base/StateSpace.h"
-#include "ompl/base/spaces/FlatChart.h"
-#include "ompl/base/spaces/FlatMotion.h"
+#include "ompl/base/spaces/flat/FlatChart.h"
+#include "ompl/base/spaces/flat/FlatMotion.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 
 #include <vector>

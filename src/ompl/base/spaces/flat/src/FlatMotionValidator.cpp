@@ -34,7 +34,7 @@
 
 /* Author: Clayton W. Ramsey */
 
-#include "ompl/base/spaces/FlatMotionValidator.h"
+#include "ompl/base/spaces/flat/FlatMotionValidator.h"
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/util/Exception.h"

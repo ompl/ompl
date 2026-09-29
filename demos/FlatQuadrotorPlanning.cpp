@@ -48,8 +48,8 @@
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/SpaceInformation.h>
 #include <ompl/base/objectives/FlatEffortObjective.h>
-#include <ompl/base/spaces/FlatStateSpace.h>
-#include <ompl/base/spaces/FlatTrajectory.h>
+#include <ompl/base/spaces/flat/FlatStateSpace.h>
+#include <ompl/base/spaces/flat/FlatTrajectory.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/base/spaces/SO2StateSpace.h>
 #include <ompl/geometric/PathSimplifier.h>

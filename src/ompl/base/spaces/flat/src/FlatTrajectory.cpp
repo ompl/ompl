@@ -34,7 +34,7 @@
 
 /* Author: Clayton W. Ramsey */
 
-#include "ompl/base/spaces/FlatTrajectory.h"
+#include "ompl/base/spaces/flat/FlatTrajectory.h"
 
 #include "ompl/util/Exception.h"
 

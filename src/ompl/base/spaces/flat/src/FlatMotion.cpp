@@ -34,7 +34,7 @@
 
 /* Author: Clayton W. Ramsey */
 
-#include "ompl/base/spaces/FlatMotion.h"
+#include "ompl/base/spaces/flat/FlatMotion.h"
 
 #include "ompl/util/Exception.h"
 

@@ -34,7 +34,7 @@
 
 /* Author: Clayton W. Ramsey */
 
-#include "ompl/base/spaces/FlatStateSpace.h"
+#include "ompl/base/spaces/flat/FlatStateSpace.h"
 
 #include "ompl/base/Planner.h"
 #include "ompl/base/ProjectionEvaluator.h"

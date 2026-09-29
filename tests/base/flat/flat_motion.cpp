@@ -37,7 +37,7 @@
 #define BOOST_TEST_MODULE "FlatMotion"
 #include <boost/test/unit_test.hpp>
 
-#include "ompl/base/spaces/FlatMotion.h"
+#include "ompl/base/spaces/flat/FlatMotion.h"
 
 #include <algorithm>
 #include <cmath>

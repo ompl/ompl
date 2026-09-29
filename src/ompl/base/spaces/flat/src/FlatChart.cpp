@@ -34,7 +34,7 @@
 
 /* Author: Clayton W. Ramsey */
 
-#include "ompl/base/spaces/FlatChart.h"
+#include "ompl/base/spaces/flat/FlatChart.h"
 
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/base/spaces/SO2StateSpace.h"

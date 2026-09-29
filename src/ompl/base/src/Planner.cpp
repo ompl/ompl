@@ -37,7 +37,7 @@
 #include "ompl/base/Planner.h"
 #include "ompl/util/Exception.h"
 #include "ompl/base/goals/GoalSampleableRegion.h"
-#include "ompl/base/spaces/FlatStateSpace.h"
+#include "ompl/base/spaces/flat/FlatStateSpace.h"
 #include <sstream>
 #include <thread>
 #include <utility>
