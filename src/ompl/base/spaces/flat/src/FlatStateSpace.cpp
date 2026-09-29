@@ -496,6 +496,10 @@ namespace ompl::base
             setDefaultWeights();
 
         CompoundStateSpace::setup();
+
+        longestValidSegment_ = components_[0]->getMaximumExtent() * longestValidSegmentFraction_;
+        if (!(longestValidSegment_ >= std::numeric_limits<double>::epsilon()))
+            throw Exception("FlatStateSpace needs a flat output space with a positive maximum extent");
     }
 
     State *FlatStateSpace::allocState() const
