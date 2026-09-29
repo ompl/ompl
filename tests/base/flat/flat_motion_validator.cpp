@@ -40,7 +40,7 @@
 #include "ompl/base/DiscreteMotionValidator.h"
 #include "ompl/base/ScopedState.h"
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/base/spaces/FlatMotionValidator.h"
+#include "ompl/base/spaces/flat/FlatMotionValidator.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 
 #include <cmath>

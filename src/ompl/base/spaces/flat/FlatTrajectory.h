@@ -38,7 +38,7 @@
 #define OMPL_BASE_SPACES_FLAT_TRAJECTORY_
 
 #include "ompl/base/ScopedState.h"
-#include "ompl/base/spaces/FlatStateSpace.h"
+#include "ompl/base/spaces/flat/FlatStateSpace.h"
 #include "ompl/geometric/PathGeometric.h"
 
 #include <vector>

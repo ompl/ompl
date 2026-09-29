@@ -38,8 +38,8 @@
 #include <boost/test/unit_test.hpp>
 
 #include "ompl/base/ScopedState.h"
-#include "ompl/base/spaces/FlatStateSpace.h"
-#include "ompl/base/spaces/FlatTrajectory.h"
+#include "ompl/base/spaces/flat/FlatStateSpace.h"
+#include "ompl/base/spaces/flat/FlatTrajectory.h"
 #include "ompl/base/spaces/SE2StateSpace.h"
 #include "ompl/base/spaces/special/TorusStateSpace.h"
 

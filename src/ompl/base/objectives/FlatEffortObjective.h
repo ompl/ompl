@@ -38,7 +38,7 @@
 #define OMPL_BASE_OBJECTIVES_FLAT_EFFORT_OBJECTIVE_
 
 #include "ompl/base/OptimizationObjective.h"
-#include "ompl/base/spaces/FlatStateSpace.h"
+#include "ompl/base/spaces/flat/FlatStateSpace.h"
 
 namespace ompl::base
 {

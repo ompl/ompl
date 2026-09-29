@@ -46,7 +46,7 @@
 #include "ompl/base/spaces/VanaOwenStateSpace.h"
 #include "ompl/base/spaces/Dubins3DMotionValidator.h"
 #include "ompl/base/spaces/DubinsMotionValidator.h"
-#include "ompl/base/spaces/FlatMotionValidator.h"
+#include "ompl/base/spaces/flat/FlatMotionValidator.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
 #include "ompl/base/spaces/TrochoidStateSpace.h"
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"

@@ -38,7 +38,7 @@
 #define OMPL_BASE_SPACES_FLAT_MOTION_VALIDATOR_
 
 #include "ompl/base/MotionValidator.h"
-#include "ompl/base/spaces/FlatStateSpace.h"
+#include "ompl/base/spaces/flat/FlatStateSpace.h"
 
 namespace ompl::base
 {

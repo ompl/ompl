@@ -39,7 +39,7 @@
 
 #include "ompl/base/ScopedState.h"
 #include "ompl/base/SpaceInformation.h"
-#include "ompl/base/spaces/FlatTrajectory.h"
+#include "ompl/base/spaces/flat/FlatTrajectory.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/geometric/PathSimplifier.h"
 #include "ompl/geometric/SimpleSetup.h"
