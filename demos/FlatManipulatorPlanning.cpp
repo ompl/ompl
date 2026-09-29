@@ -57,6 +57,7 @@
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 
+#include <ompl/vamp/FlatVampMotionValidator.h>
 #include <ompl/vamp/VampStateSpace.h>
 #include <ompl/vamp/VampStateValidityChecker.h>
 
@@ -125,6 +126,11 @@ int main()
 
     og::SimpleSetup setup(space);
 
+    // VAMP checks a straight motion Robot::resolution times per radian, and edges here get checked just as
+    // densely.
+    const double resolution = 1. / (Robot::resolution * output->getMaximumExtent());
+    setup.getSpaceInformation()->setStateValidityCheckingResolution(resolution);
+
     // The collision checker only knows about joint angles, so it gets handed the flat output and nothing
     // else.
     // The bounds go in the same check because the steering polynomial overshoots, and a velocity inside
@@ -137,6 +143,10 @@ int main()
             return space->satisfiesBounds(state) &&
                    collision->isValid(state->as<ob::FlatStateSpace::StateType>()->output());
         });
+
+    // use batched motion validation
+    setup.getSpaceInformation()->setMotionValidator(
+        std::make_shared<ompl::vamp::FlatVampMotionValidator<Robot>>(setup.getSpaceInformation(), environment));
 
     setup.setOptimizationObjective(std::make_shared<ob::FlatEffortObjective>(setup.getSpaceInformation()));
 
