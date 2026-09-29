@@ -49,7 +49,6 @@
 #include <array>
 #include <cmath>
 #include <limits>
-#include <set>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -58,20 +57,6 @@ namespace
 {
     /** \brief The name each distance type answers to in a parameter set. */
     const char *const DISTANCE_TYPE_NAMES[] = {"flat_state_metric", "trajectory_cost"};
-
-    /** \brief Planners that hand back a path with an edge on it they never checked in the direction the
-        path runs through it.
-
-        A bidirectional search grows one of its trees from the goal, and a roadmap search comes out of the
-        graph whichever way round each edge happens to sit.
-        Either way the planner checked a curve the path doesn't follow.
-        Planners that pick their check direction from the tree they're growing stay off this list, so
-        RRTConnect and BiTRRT aren't on it.
-        Neither are the ones that already warn about asymmetric spaces themselves.
-    */
-    const std::set<std::string> REVERSING_PLANNERS = {"BFMT",        "BiEST",     "BiRLRT", "BKPIECE1", "LazyPRM",
-                                                      "LazyPRMstar", "LBKPIECE1", "PDST",   "PRM",      "PRMstar",
-                                                      "pSBL",        "SBL",       "SPARS",  "SPARStwo"};
 
     /** \brief The largest flat output dimension whose scratch space stays on the stack. */
     constexpr unsigned int STACK_DIMENSION = 16u;
@@ -464,12 +449,6 @@ namespace ompl::base
         if (planner == nullptr)
             return;
 
-        const std::string &name = planner->getName();
-        if (REVERSING_PLANNERS.count(name) > 0u)
-            OMPL_WARN("%s doesn't check every edge in the direction its path runs through it, and edges in "
-                      "%s run forward in time. The paths it returns may fail PathGeometric::check().",
-                      name.c_str(), getName().c_str());
-
         if (!planner->getSpecs().optimizingPaths)
             return;
 
@@ -478,8 +457,8 @@ namespace ompl::base
             definition == nullptr ? nullptr : definition->getOptimizationObjective();
         if (dynamic_cast<const FlatEffortObjective *>(objective.get()) == nullptr)
             OMPL_WARN("%s optimizes paths through %s without a FlatEffortObjective, so it minimizes a sum of "
-                      "flat state distances rather than what traversing the path costs.",
-                      name.c_str(), getName().c_str());
+                      "flat state distances rather than the cost of traversal.",
+                      planner->getName().c_str(), getName().c_str());
     }
 
     void FlatStateSpace::registerProjections()

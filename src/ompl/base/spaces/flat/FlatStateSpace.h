@@ -76,8 +76,6 @@ namespace ompl::base
         \ref setDistanceType enables other distances, such as edge traversal cost.
 
         Edges run forward in time, so \ref hasSymmetricInterpolate reports false.
-        Planners that check an edge one way and then walk it the other return paths this space rejects, and
-        \ref checkPlanner warns by name when one of them gets set up here.
 
         @par External documentation
         T. Duong, C. W. Ramsey, Z. Kingston, W. Thomason, and L. E. Kavraki, Ultrafast sampling-based kinodynamic
@@ -348,11 +346,9 @@ namespace ompl::base
 
         /** \brief Warn about anything in \e planner's setup this space can't deliver on.
 
-            Edges here run forward in time, so a planner that checks an edge one way and then walks it the
-            other hands back a path that ompl::geometric::PathGeometric::check rejects.
             An optimizing planner with no ompl::base::FlatEffortObjective optimizes a sum of flat state
             distances, which isn't what traversing a path costs.
-            Both come out as warnings, so planning runs either way.
+            This comes out as a warning, so planning runs either way.
 
             ompl::base::Planner::setup calls this.
         */
