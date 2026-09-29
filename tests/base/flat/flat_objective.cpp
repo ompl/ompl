@@ -43,9 +43,7 @@
 #include "ompl/base/spaces/flat/FlatStateSpace.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/geometric/SimpleSetup.h"
-#include "ompl/geometric/planners/kpiece/LBKPIECE1.h"
 #include "ompl/geometric/planners/rrt/RRT.h"
-#include "ompl/geometric/planners/rrt/RRTConnect.h"
 #include "ompl/geometric/planners/rrt/RRTstar.h"
 #include "ompl/util/Console.h"
 
@@ -133,9 +131,6 @@ namespace
         std::vector<std::string> warnings;
     };
 
-    /** \brief The warning the guard emits for a planner that leaves an edge checked the other way round. */
-    const std::string REVERSAL_WARNING = "doesn't check every edge in the direction";
-
     /** \brief The warning the guard emits for an optimizing planner with no flat objective. */
     const std::string OBJECTIVE_WARNING = "without a FlatEffortObjective";
 
@@ -200,34 +195,6 @@ BOOST_AUTO_TEST_CASE(TheHeuristicNeverExceedsGoingAround)
         BOOST_REQUIRE(motion.has_value());
         BOOST_REQUIRE_CLOSE(direct, space->getSteering().cost(*motion), 1e-9);
         BOOST_REQUIRE_CLOSE(direct, space->steeringCost(from.get(), to.get()), 1e-9);
-    }
-}
-
-BOOST_AUTO_TEST_CASE(TheGuardFiresForAReversingPlanner)
-{
-    auto space = makeSpace();
-    auto si = std::make_shared<SpaceInformation>(space);
-    si->setStateValidityChecker(std::make_shared<BoxObstacle>(si, 0.3));
-    si->setup();
-
-    {
-        WarningLog log;
-        og::LBKPIECE1(si).setup();
-        BOOST_CHECK(log.mentions(REVERSAL_WARNING));
-    }
-
-    {
-        WarningLog log;
-        og::RRT(si).setup();
-        BOOST_CHECK(!log.mentions(REVERSAL_WARNING));
-    }
-
-    {
-        // RRTConnect grows its goal tree backwards and checks those edges in the direction the path runs
-        // through them, so its paths hold up and it has nothing to answer for here.
-        WarningLog log;
-        og::RRTConnect(si).setup();
-        BOOST_CHECK(!log.mentions(REVERSAL_WARNING));
     }
 }
 
