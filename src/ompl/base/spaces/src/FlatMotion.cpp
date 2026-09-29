@@ -40,12 +40,15 @@
 
 #include <Eigen/Eigenvalues>
 
+#include <boost/config.hpp>
 #include <boost/container/small_vector.hpp>
 #include <boost/math/constants/constants.hpp>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <initializer_list>
+#include <type_traits>
 
 namespace
 {
@@ -85,6 +88,12 @@ namespace
 
         /** \brief The coefficient of \f$t^i\f$. */
         double &operator[](Eigen::Index i)
+        {
+            return coefficients_[static_cast<std::size_t>(i)];
+        }
+
+        /** \brief The coefficient of \f$t^i\f$. */
+        double operator[](Eigen::Index i) const
         {
             return coefficients_[static_cast<std::size_t>(i)];
         }
@@ -405,43 +414,185 @@ namespace
         Coefficients coefficients_;
     };
 
-    /** \brief The duration-independent terms in the cost of the optimal fixed-duration steer between two
-        flat states of order 2.
+    /** \brief Scratch room for a small matrix at any order other than 2. */
+    using Scratch = boost::container::small_vector<double, 25>;
 
-        Over duration T that cost is
-            J(T) = 4 (|v0|^2 + v0 . vf + |vf|^2) / T - 12 offset . (v0 + vf) / T^2 + 12 |offset|^2 / T^3
-                   + rho T,
-        where offset is the change in flat output.
+    /** \brief Run \e kernel with the order as a compile-time constant at 2, and as 0 at
+        every other order, which tells the kernel to read the order at runtime.
+
+        Unrolling the loops over derivative levels at order 2 makes steering there cost what the closed forms
+        it replaced did.
     */
-    struct EffortTerms
+    template <class Kernel>
+    decltype(auto) withOrder(Eigen::Index order, Kernel &&kernel)
     {
-        /** \brief Construct the terms for steering from \e from to \e to. */
-        EffortTerms(const Eigen::Ref<const Eigen::MatrixXd> &from, const Eigen::Ref<const Eigen::MatrixXd> &to)
-        {
-            const auto v0 = from.row(1);
-            const auto vf = to.row(1);
-            const auto offset = to.row(0) - from.row(0);
+        if (order == 2)
+            return kernel(std::integral_constant<int, 2>());
+        return kernel(std::integral_constant<int, 0>());
+    }
 
-            speedTerm = 4. * (v0.squaredNorm() + vf.squaredNorm() + v0.dot(vf));
-            crossTerm = 12. * (v0 + vf).dot(offset);
-            offsetTerm = 12. * offset.squaredNorm();
+    /** \brief Room for \e size values, on the stack when \e Size is positive and in \ref Scratch
+        otherwise. */
+    template <int Size>
+    auto allocBuffer(Eigen::Index size)
+    {
+        if constexpr (Size > 0)
+            return std::array<double, static_cast<std::size_t>(Size)>();
+        else
+            return Scratch(static_cast<std::size_t>(size));
+    }
+
+    /** \brief The falling factorial i (i - 1) ... (i - count + 1), which differentiating \f$t^i\f$ \e count
+        times leaves in front of it. */
+    double fallingFactorial(Eigen::Index i, Eigen::Index count)
+    {
+        double product = 1.;
+        for (Eigen::Index j = 0; j < count; ++j)
+            product *= static_cast<double>(i - j);
+        return product;
+    }
+
+    /** \brief The binomial coefficient C(n, r), which is exact while it stays below 2^53, since every partial
+        product is itself a binomial coefficient. */
+    double binomial(Eigen::Index n, Eigen::Index r)
+    {
+        double result = 1.;
+        for (Eigen::Index i = 1; i <= r; ++i)
+            result = result * static_cast<double>(n - r + i) / static_cast<double>(i);
+        return result;
+    }
+
+    /** \brief \e base to the power \e exponent, by repeated multiplication. */
+    double power(double base, Eigen::Index exponent)
+    {
+        double result = 1.;
+        for (Eigen::Index i = 0; i < exponent; ++i)
+            result *= base;
+        return result;
+    }
+
+    /** \brief Write into \e shortfall what the Taylor expansion at \e from leaves undone at \e to along
+        coordinate \e axis, as polynomials in the duration T.
+
+        Entry \e l + \e k \e p holds the coefficient of \f$T^p\f$ in
+            T^l yf^(l) - sum over i from l through k - 1 of y0^(i) T^i / (i - l)!,
+        for \e l and \e p from 0 through \e k - 1.
+        That polynomial is T^l times whatever of derivative level \e l at \e to the Taylor expansion at
+        \e from leaves over, and scaling level \e l by T^l writes the shortfall in time scaled by the
+        duration.
+        Entries with \e p below \e l are zero.
+    */
+    template <int Order>
+    void writeShortfall(const Eigen::Ref<const Eigen::MatrixXd> &from, const Eigen::Ref<const Eigen::MatrixXd> &to,
+                        Eigen::Index axis, double *shortfall)
+    {
+        const Eigen::Index k = Order > 0 ? Order : from.rows();
+        for (Eigen::Index l = 0; l < k; ++l)
+        {
+            for (Eigen::Index p = 0; p < l; ++p)
+                shortfall[l + k * p] = 0.;
+            shortfall[l + k * l] = to(l, axis);
+            double factorial = 1.;
+            for (Eigen::Index i = l; i < k; ++i)
+            {
+                if (i > l)
+                {
+                    factorial *= static_cast<double>(i - l);
+                    shortfall[l + k * i] = 0.;
+                }
+                shortfall[l + k * i] -= from(i, axis) / factorial;
+            }
+        }
+    }
+
+    /** \brief The least control effort of a steer between two flat states of order \e k over a duration T,
+        which comes to Q(T) / T^(2k - 1) for a polynomial Q of degree 2k - 2.
+
+        With the shortfall at the far end written as polynomials s(T) by \ref writeShortfall, Q sums
+        s(T)' W s(T) over every axis, where W is the effort form of the steering.
+    */
+    class Effort
+    {
+    public:
+        /** \brief Construct the effort of steering from \e from to \e to under the effort form \e form.
+
+            Inlining this into \ref ompl::base::MinimumEffortSteering::optimalDuration made steering at
+            order 2 about 10 percent slower.
+        */
+        BOOST_NOINLINE Effort(const Eigen::MatrixXd &form, const Eigen::Ref<const Eigen::MatrixXd> &from,
+                              const Eigen::Ref<const Eigen::MatrixXd> &to)
+          : order_(from.rows()), numerator_(2 * from.rows() - 1)
+        {
+            withOrder(order_, [&](auto order) { accumulate<decltype(order)::value>(form.data(), from, to); });
         }
 
         /** \brief The cost J(T) of steering over \e duration with time penalty \e rho. */
         double cost(double duration, double rho) const
         {
-            const double T = duration;
-            return offsetTerm / (T * T * T) - crossTerm / (T * T) + speedTerm / T + rho * T;
+            return numerator_(duration) / power(duration, 2 * order_ - 1) + rho * duration;
         }
 
-        /** \brief The coefficient of 1 / T. */
-        double speedTerm;
+        /** \brief T^(2k) times the derivative of \ref cost with respect to T, which is a polynomial of
+            degree 2k and so has the same positive roots and signs. */
+        Polynomial slope(double rho) const
+        {
+            // T Q'(T) + (1 - 2k) Q(T) + rho T^(2k), taken a power at a time.
+            Polynomial result(2 * order_ + 1);
+            for (Eigen::Index m = 0; m < 2 * order_ - 1; ++m)
+                result[m] = static_cast<double>(m + 1 - 2 * order_) * numerator_[m];
+            result[2 * order_] = rho;
+            return result;
+        }
 
-        /** \brief The negated coefficient of 1 / T^2. */
-        double crossTerm;
+    private:
+        /** \brief Add the effort along every axis into \ref numerator_, reading the effort form from the
+            column-major \e form. */
+        template <int Order>
+        void accumulate(const double *form, const Eigen::Ref<const Eigen::MatrixXd> &from,
+                        const Eigen::Ref<const Eigen::MatrixXd> &to)
+        {
+            const Eigen::Index k = Order > 0 ? Order : order_;
+            auto shortfall = allocBuffer<Order * Order>(k * k);
+            auto weighted = allocBuffer<Order * Order>(k * k);
 
-        /** \brief The coefficient of 1 / T^3. */
-        double offsetTerm;
+            // Local copies tell the compiler that the numerator and the form never overlap, and they keep
+            // the sum out of memory until the end.
+            auto local = allocBuffer<Order * Order>(k * k);
+            std::copy(form, form + k * k, local.begin());
+            auto sums = allocBuffer<(Order > 0 ? 2 * Order - 1 : 0)>(2 * k - 1);
+            std::fill(sums.begin(), sums.end(), 0.);
+            for (Eigen::Index axis = 0; axis < from.cols(); ++axis)
+            {
+                writeShortfall<Order>(from, to, axis, shortfall.data());
+
+                // Row l of the shortfall vanishes below power l, which the loops skip.
+                for (Eigen::Index p = 0; p < k; ++p)
+                    for (Eigen::Index l = 0; l < k; ++l)
+                    {
+                        double sum = 0.;
+                        for (Eigen::Index m = 0; m <= p; ++m)
+                            sum += local[l + k * m] * shortfall[m + k * p];
+                        weighted[l + k * p] = sum;
+                    }
+
+                for (Eigen::Index p = 0; p < k; ++p)
+                    for (Eigen::Index q = 0; q < k; ++q)
+                    {
+                        double sum = 0.;
+                        for (Eigen::Index l = 0; l <= p; ++l)
+                            sum += shortfall[l + k * p] * weighted[l + k * q];
+                        sums[p + q] += sum;
+                    }
+            }
+            for (Eigen::Index m = 0; m < 2 * k - 1; ++m)
+                numerator_[m] = sums[m];
+        }
+
+        /** \brief The number of derivative levels in each flat state. */
+        Eigen::Index order_;
+
+        /** \brief The polynomial Q. */
+        Polynomial numerator_;
     };
 }  // namespace
 
@@ -560,8 +711,52 @@ namespace ompl::base
 
     FlatSteering::FlatSteering(unsigned int order) : order_(order)
     {
-        if (order != 2u)
-            throw Exception("FlatSteering only supports order 2");
+        if (order < 1u)
+            throw Exception("FlatSteering needs an order of at least 1");
+
+        // In time scaled by the duration, the top k coefficients c_k through c_(2k - 1) of a steer meet
+        // derivative level l at the far end through the matrix M_lj = (k + j)! / (k + j - l)!, which doesn't
+        // depend on the duration.
+        // Writing M_lj = l! C(k + j, l) and splitting C(k + j, l) by Vandermonde's identity factors M into
+        // diag(l!) times a lower triangular Toeplitz matrix of C(k, l - r) times an upper triangular Pascal
+        // matrix of C(j, r).
+        // Both triangular factors invert in closed form, the Toeplitz one through the series of
+        // (1 + x)^-k, which leaves
+        //     (M^-1)_jl = (-1)^(j + l) / l! sum over r from max(j, l) through k - 1 of C(r, j) C(k - 1 + r - l, r - l).
+        // The sum is an integer, so each entry rounds once, when it divides by l!.
+        const auto k = static_cast<Eigen::Index>(order);
+        endDerivativesInverse_.resize(k, k);
+        for (Eigen::Index j = 0; j < k; ++j)
+            for (Eigen::Index l = 0; l < k; ++l)
+            {
+                double sum = 0.;
+                for (Eigen::Index r = std::max(j, l); r < k; ++r)
+                    sum += binomial(r, j) * binomial(k - 1 + r - l, r - l);
+                const double sign = (j + l) % 2 == 0 ? 1. : -1.;
+                endDerivativesInverse_(j, l) = sign * sum / fallingFactorial(l, l);
+            }
+
+        // The effort form is the inverse of the controllability Gramian of a chain of k integrators over a
+        // duration of 1, and reindexing that Gramian by i = k - 1 - l makes it F H F, where H is the
+        // Hilbert matrix and F = diag(1 / i!).
+        // So the form is diag(i!) H^-1 diag(i!), whose entries are integers, and the Hilbert inverse has
+        // the closed form
+        //     (H^-1)_ij = (-1)^(i + j) (i + j + 1) C(k + i, k - j - 1) C(k + j, k - i - 1) C(i + j, i)^2.
+        // Every factor is an integer, so through order 8, where every entry stays below 2^53, this is exact.
+        effortForm_.resize(k, k);
+        for (Eigen::Index l = 0; l < k; ++l)
+        {
+            for (Eigen::Index m = 0; m < k; ++m)
+            {
+                const Eigen::Index i = k - 1 - l;
+                const Eigen::Index j = k - 1 - m;
+                const double sign = (i + j) % 2 == 0 ? 1. : -1.;
+                const double center = binomial(i + j, i);
+                effortForm_(l, m) = sign * fallingFactorial(i, i) * fallingFactorial(j, j) *
+                                    static_cast<double>(i + j + 1) * binomial(k + i, k - j - 1) *
+                                    binomial(k + j, k - i - 1) * center * center;
+            }
+        }
     }
 
     void FlatSteering::setRho(double rho)
@@ -583,6 +778,57 @@ namespace ompl::base
         if (!motion.has_value())
             return {};
         return cost(*motion);
+    }
+
+    Eigen::MatrixXd FlatSteering::coefficientsOver(const Eigen::Ref<const Eigen::MatrixXd> &from,
+                                                   const Eigen::Ref<const Eigen::MatrixXd> &to, double duration) const
+    {
+        Eigen::MatrixXd coefficients(2 * static_cast<Eigen::Index>(order_), from.cols());
+        withOrder(order_,
+                  [&](auto order)
+                  {
+                      constexpr int Order = decltype(order)::value;
+                      const Eigen::Index k = Order > 0 ? Order : static_cast<Eigen::Index>(order_);
+                      const double T = duration;
+
+                      // Scaling the top half back out of time scaled by T divides power k + a by T^(k + a).
+                      auto scales = allocBuffer<Order>(k);
+                      scales[0] = 1. / power(T, k);
+                      for (Eigen::Index a = 1; a < k; ++a)
+                          scales[a] = scales[a - 1] / T;
+
+                      auto shortfall = allocBuffer<Order * Order>(k * k);
+                      auto shortfallAt = allocBuffer<Order>(k);
+                      for (Eigen::Index axis = 0; axis < from.cols(); ++axis)
+                      {
+                          // The Taylor expansion at from fixes the bottom half.
+                          double factorial = 1.;
+                          for (Eigen::Index i = 0; i < k; ++i)
+                          {
+                              if (i > 0)
+                                  factorial *= static_cast<double>(i);
+                              coefficients(i, axis) = from(i, axis) / factorial;
+                          }
+
+                          writeShortfall<Order>(from, to, axis, shortfall.data());
+                          for (Eigen::Index l = 0; l < k; ++l)
+                          {
+                              double value = 0.;
+                              for (Eigen::Index p = k - 1; p >= l; --p)
+                                  value = value * T + shortfall[l + k * p];
+                              shortfallAt[l] = value * power(T, l);
+                          }
+
+                          for (Eigen::Index a = 0; a < k; ++a)
+                          {
+                              double scaled = 0.;
+                              for (Eigen::Index l = 0; l < k; ++l)
+                                  scaled += endDerivativesInverse_(a, l) * shortfallAt[l];
+                              coefficients(k + a, axis) = scaled * scales[a];
+                          }
+                      }
+                  });
+        return coefficients;
     }
 
     void FlatSteering::checkFlatStates(const Eigen::Ref<const Eigen::MatrixXd> &from,
@@ -610,31 +856,14 @@ namespace ompl::base
                                                            const Eigen::Ref<const Eigen::MatrixXd> &to) const
     {
         checkFlatStates(from, to);
-
-        const double T = duration_;
-
-        // scalar path below is not as concise as building rows, but avoids allocation.
-        Eigen::MatrixXd coefficients(4, from.cols());
-        for (Eigen::Index k = 0; k < from.cols(); ++k)
-        {
-            const double y0 = from(0, k);
-            const double v0 = from(1, k);
-            const double offset = to(0, k) - y0 - v0 * T;
-            const double change = to(1, k) - v0;
-
-            coefficients(0, k) = y0;
-            coefficients(1, k) = v0;
-            coefficients(2, k) = 3. * offset / (T * T) - change / T;
-            coefficients(3, k) = -2. * offset / (T * T * T) + change / (T * T);
-        }
-        return FlatMotion(std::move(coefficients), T);
+        return FlatMotion(coefficientsOver(from, to, duration_), duration_);
     }
 
     std::optional<double> FixedDurationSteering::steeringCost(const Eigen::Ref<const Eigen::MatrixXd> &from,
                                                               const Eigen::Ref<const Eigen::MatrixXd> &to) const
     {
         checkFlatStates(from, to);
-        return EffortTerms(from, to).cost(duration_, rho_);
+        return Effort(effortForm_, from, to).cost(duration_, rho_);
     }
 
     MinimumEffortSteering::MinimumEffortSteering(unsigned int order) : FlatSteering(order)
@@ -655,18 +884,18 @@ namespace ompl::base
     {
         checkFlatStates(from, to);
 
-        // Clearing T^4 out of dJ/dT leaves this quartic.
-        const EffortTerms terms(from, to);
-        const Polynomial quartic = {-3. * terms.offsetTerm, 2. * terms.crossTerm, -terms.speedTerm, 0., rho_};
+        // Clearing T^(2k) out of dJ/dT leaves a polynomial of degree 2k, which is a quartic at order 2.
+        const Effort effort(effortForm_, from, to);
+        const Polynomial slope = effort.slope(rho_);
 
-        // The quartic can cross upward twice, which puts two local minima on J, so each crossing gets
-        // priced and the cheapest one wins.
+        // The slope can cross upward more than once, which puts several local minima on J, so each crossing
+        // gets priced and the cheapest one wins.
         // Taking the first crossing instead would sometimes charge several times what the motion needs to
         // cost, and an optimizing planner would steer through it believing the price.
         std::optional<OptimalDuration> best;
-        for (double t : quartic.upwardCrossings())
+        for (double t : slope.upwardCrossings())
         {
-            const double cost = terms.cost(t, rho_);
+            const double cost = effort.cost(t, rho_);
             if (!best.has_value() || cost < best->cost)
                 best = OptimalDuration{t, cost};
         }
@@ -680,6 +909,124 @@ namespace ompl::base
         const std::optional<OptimalDuration> cheapest = optimalDuration(from, to);
         if (!cheapest.has_value())
             return {};
-        return FixedDurationSteering(order_, cheapest->duration).steer(from, to);
+        return motion(from, to, cheapest->duration);
+    }
+
+    FlatMotion MinimumEffortSteering::motion(const Eigen::Ref<const Eigen::MatrixXd> &from,
+                                             const Eigen::Ref<const Eigen::MatrixXd> &to, double duration) const
+    {
+        checkFlatStates(from, to);
+        if (!(duration > 0.))
+            throw Exception("MinimumEffortSteering needs a positive duration");
+        return FlatMotion(coefficientsOver(from, to, duration), duration);
+    }
+
+    boost::container::small_vector<MinimumEffortSteering::WindingChange, 4> MinimumEffortSteering::windingChanges(
+        const Eigen::Ref<const Eigen::MatrixXd> &from, const Eigen::Ref<const Eigen::MatrixXd> &to, unsigned int axis,
+        double period, double horizon) const
+    {
+        checkFlatStates(from, to);
+
+        boost::container::small_vector<WindingChange, 4> changes;
+        if (!(period > 0.) || !(horizon > 0.) || !std::isfinite(horizon))
+            return changes;
+
+        // The displacement enters only the constant term of row 0 of the shortfall, so over a fixed duration
+        // the effort is least where row 0 settles at minus the sum of form(0, m) times row m over form(0, 0).
+        // That minimum, measured from the flat output of to in periods, is the ideal winding, and it puts
+        // the halfway points between whole windings at the half integers.
+        const auto k = static_cast<Eigen::Index>(order_);
+        // Every division here sits on the path to the first crossing, so the reciprocals get taken up front
+        // where they don't wait on anything.
+        const double inversePeriod = 1. / period;
+        const double inverseLead = 1. / effortForm_(0, 0);
+        Polynomial idealWinding(k);
+        withOrder(k,
+                  [&](auto order)
+                  {
+                      constexpr int Order = decltype(order)::value;
+                      auto shortfall = allocBuffer<Order * Order>(k * k);
+                      writeShortfall<Order>(from, to, axis, shortfall.data());
+                      for (Eigen::Index p = 0; p < k; ++p)
+                      {
+                          double settled = 0.;
+                          for (Eigen::Index m = 1; m <= p; ++m)
+                              settled -= effortForm_(0, m) * shortfall[m + k * p];
+                          idealWinding[p] = (settled * inverseLead - shortfall[k * p]) * inversePeriod;
+                      }
+                  });
+
+        // At order 2 the ideal winding grows linearly with the duration, so it only ever moves one way.
+        // Each time it passes halfway between two whole windings, the nearest winding steps by one in that
+        // direction.
+        if (k == 2)
+        {
+            double winding = std::round(idealWinding[0]);
+            if (winding != 0.)
+                changes.push_back(WindingChange{0., winding});
+
+            const double direction = idealWinding[1] > 0. ? 1. : -1.;
+            if (!(idealWinding[1] != 0.))
+                return changes;
+
+            // A line crosses the halfway points at evenly spaced times.
+            // Each time comes from the first one rather than from adding up spacings, so rounding doesn't
+            // build up, and a velocity of NaN makes every time NaN, which fails the loop condition and ends
+            // the walk rather than spinning forever.
+            const double pace = 1. / idealWinding[1];
+            const double first = (winding + 0.5 * direction - idealWinding[0]) * pace;
+            const double spacing = std::abs(pace);
+            unsigned long crossings = 0;
+            for (double time = first; time < horizon; time = first + static_cast<double>(crossings) * spacing)
+            {
+                winding += direction;
+                changes.push_back(WindingChange{time, winding});
+                ++crossings;
+            }
+            return changes;
+        }
+
+        double low = std::min(idealWinding(0.), idealWinding(horizon));
+        double high = std::max(idealWinding(0.), idealWinding(horizon));
+        for (double t : idealWinding.derivative().roots())
+            if (t > 0. && t < horizon)
+            {
+                low = std::min(low, idealWinding(t));
+                high = std::max(high, idealWinding(t));
+            }
+        // A velocity of NaN ends the search rather than spinning forever.
+        if (!std::isfinite(low) || !std::isfinite(high))
+            return changes;
+
+        Roots crossings;
+        for (double halfway = std::ceil(low - 0.5) + 0.5; halfway < high; halfway += 1.)
+        {
+            Polynomial shifted = idealWinding;
+            shifted[0] -= halfway;
+            for (double t : shifted.roots())
+                if (t > 0. && t < horizon)
+                    crossings.push_back(t);
+        }
+        std::sort(crossings.begin(), crossings.end());
+        crossings.erase(std::unique(crossings.begin(), crossings.end()), crossings.end());
+        crossings.push_back(horizon);
+
+        // The nearest winding stays constant between two neighboring crossings, so rounding the ideal winding
+        // at the midpoint between them gives the winding for that whole interval.
+        // Counting crossings doesn't work, since the ideal winding can touch a halfway point and turn back
+        // without changing the nearest winding.
+        double winding = 0.;
+        double start = 0.;
+        for (double end : crossings)
+        {
+            const double nearest = std::round(idealWinding(0.5 * (start + end)));
+            if (nearest != winding)
+            {
+                changes.push_back(WindingChange{start, nearest});
+                winding = nearest;
+            }
+            start = end;
+        }
+        return changes;
     }
 }  // namespace ompl::base

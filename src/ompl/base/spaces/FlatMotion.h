@@ -41,6 +41,8 @@
 
 #include <Eigen/Core>
 
+#include <boost/container/small_vector.hpp>
+
 #include <optional>
 
 namespace ompl::base
@@ -160,12 +162,16 @@ namespace ompl::base
 
         Steering is directed, so the motion from \e from to \e to is not the reverse of the motion from
         \e to to \e from.
+
+        Over a fixed duration, a steering of order \e k joins two flat states with the curve that fixes
+        derivative levels 0 through \e k - 1 at both ends and spends the least control effort, meaning the
+        integral of the squared norm of derivative level \e k.
+        That curve is a polynomial of degree 2 \e k - 1 in every output dimension.
     */
     class FlatSteering
     {
     public:
-        /** \brief Construct a steering generator for states of order \e order.
-            The order has to be 2. */
+        /** \brief Construct a steering generator for states of order \e order, which has to be at least 1. */
         explicit FlatSteering(unsigned int order);
 
         virtual ~FlatSteering() = default;
@@ -208,11 +214,48 @@ namespace ompl::base
         void checkFlatStates(const Eigen::Ref<const Eigen::MatrixXd> &from,
                              const Eigen::Ref<const Eigen::MatrixXd> &to) const;
 
+        /** \brief Calculate the coefficients of the least-effort polynomial from \e from to \e to over \e duration, one
+            column per axis.
+
+            Below is a summary of the calculation procedure for these coefficients:
+
+            At order \e k, the Taylor expansion at \e from fixes the lowest \e k coefficients.
+            Knowing the bottom \e k coefficients, we can calculate residuals to find higher coefficients.
+            Evaluating the residuals, we see a linear system with one equation per derivative level at \e to and one
+            unknown per top coefficient.
+            Scaling top coefficient \e j by \f$T^{k + j}\f$ and residual \e l by \f$T^l\f$,
+            where \e T is the duration, writes the system in the time \f$\sigma = t / T\f$ scaled to run from 0 to 1.
+            The entry in row \e l and column \e j of its matrix is then derivative level \e l of
+            \f$\sigma^{k + j}\f$ at \f$\sigma = 1\f$.
+            That matrix is the same for every duration, and its inverse sits in \ref endDerivativesInverse_.
+        */
+        Eigen::MatrixXd coefficientsOver(const Eigen::Ref<const Eigen::MatrixXd> &from,
+                                         const Eigen::Ref<const Eigen::MatrixXd> &to, double duration) const;
+
         /** \brief The number of derivative levels a flat state carries. */
         unsigned int order_;
 
         /** \brief The time penalty charged per unit duration. */
         double rho_{5.};
+
+        /** \brief The inverse of the matrix of the linear system \ref coefficientsOver solves for the top
+            \e k coefficients of a steer.
+
+            In the scaled time \f$\sigma\f$ that \ref coefficientsOver describes, the entry in row \e l and
+            column \e j of that matrix is derivative level \e l of \f$\sigma^{k + j}\f$ at \f$\sigma = 1\f$.
+            Multiplying the scaled residuals at the far end by this inverse gives the scaled top
+            coefficients.
+            Each entry comes from a closed form and is correctly rounded.
+        */
+        Eigen::MatrixXd endDerivativesInverse_;
+
+        /** \brief The quadratic form giving the control effort of a steer, scaled to a duration of 1, in
+            terms of the shortfall its top \e k coefficients make up at the far end.
+
+            This is the inverse of the controllability Gramian of a chain of \e k integrators over a duration
+            of 1, and its entries are integers.
+        */
+        Eigen::MatrixXd effortForm_;
     };
 
     /// @cond IGNORE
@@ -227,7 +270,7 @@ namespace ompl::base
     {
     public:
         /** \brief Steer between flat states holding \e order derivative levels over \e duration.
-            The order has to be 2 and the duration has to be positive. */
+            The order has to be at least 1 and the duration has to be positive. */
         FixedDurationSteering(unsigned int order, double duration);
 
         /** \brief Set the duration every steer takes, which has to be positive. */
@@ -258,6 +301,7 @@ namespace ompl::base
 
         The duration is the cheapest of the positive durations at which the cost bottoms out, read off the
         roots of the derivative of the cost with respect to duration.
+        At order \e k, clearing denominators out of that derivative leaves a polynomial of degree 2 \e k.
         Effort alone shrinks as the duration grows without bound, so the time penalty keeps the duration finite.
         Flat states that already sit still at the same flat output have no such duration and steering
         between them reports failure.
@@ -267,7 +311,7 @@ namespace ompl::base
     public:
         /** \brief Steer between flat states holding \e order derivative levels, counting the flat output
             itself.
-            The order has to be 2. */
+            The order has to be at least 1. */
         explicit MinimumEffortSteering(unsigned int order);
 
         /** \brief The duration at which steering between two flat states costs least, and that cost. */
@@ -287,6 +331,42 @@ namespace ompl::base
         */
         std::optional<OptimalDuration> optimalDuration(const Eigen::Ref<const Eigen::MatrixXd> &from,
                                                        const Eigen::Ref<const Eigen::MatrixXd> &to) const;
+
+        /** \brief The least-effort motion from \e from to \e to over \e duration, which has to be positive.
+
+            Providing a duration found by \ref optimalDuration allows the motion generator to find a steering without
+            recalculating a duration.
+        */
+        FlatMotion motion(const Eigen::Ref<const Eigen::MatrixXd> &from, const Eigen::Ref<const Eigen::MatrixXd> &to,
+                          double duration) const;
+
+        /** \brief A point in time at which the cheapest winding of one wrapping coordinate changes. */
+        struct WindingChange
+        {
+            /** \brief The duration from which motions reach the new winding most cheaply. */
+            double time;
+
+            /** \brief The number of whole periods the new winding adds to the flat output of \e to. */
+            double winding;
+        };
+
+        /** \brief The durations at which the cheapest winding of coordinate \e axis changes, in order of
+            time, over motions from \e from to \e to lasting up to \e horizon.
+
+            Adding \e n whole periods to the flat output of \e to along a coordinate wrapping with period
+            \e period reaches the same place in the flat output space.
+            Over a fixed duration the cost of the least-effort motion is a quadratic in that displacement,
+            so it's least at one fractional number of periods, the ideal winding.
+            The ideal winding moves along a polynomial in the duration whose degree is one less than the
+            order.
+            The cheapest winding at a duration is the whole number nearest the ideal winding, and each change
+            lists the winding holding from its time until the next change.
+            Winding 0 holds before the first one.
+        */
+        boost::container::small_vector<WindingChange, 4> windingChanges(const Eigen::Ref<const Eigen::MatrixXd> &from,
+                                                                        const Eigen::Ref<const Eigen::MatrixXd> &to,
+                                                                        unsigned int axis, double period,
+                                                                        double horizon) const;
 
         std::optional<FlatMotion> steer(const Eigen::Ref<const Eigen::MatrixXd> &from,
                                         const Eigen::Ref<const Eigen::MatrixXd> &to) const override;
