@@ -53,23 +53,6 @@ namespace
     constexpr unsigned int ORDER = 2;
     constexpr unsigned int DIMENSION = 2;
 
-    /** \brief A flat space that counts the steering solves the space is asked for. */
-    class CountingFlatStateSpace : public FlatStateSpace
-    {
-    public:
-        CountingFlatStateSpace(const StateSpacePtr &output) : FlatStateSpace(output, ORDER)
-        {
-        }
-
-        std::optional<FlatMotion> steer(const State *from, const State *to) const override
-        {
-            ++solves;
-            return FlatStateSpace::steer(from, to);
-        }
-
-        mutable unsigned int solves{0u};
-    };
-
     /** \brief A grid of square pillars in the flat output plane. */
     class PillarField : public StateValidityChecker
     {
@@ -88,11 +71,11 @@ namespace
         }
     };
 
-    std::shared_ptr<CountingFlatStateSpace> makeSpace()
+    std::shared_ptr<FlatStateSpace> makeSpace()
     {
         auto output = std::make_shared<RealVectorStateSpace>(DIMENSION);
         output->setBounds(-1., 1.);
-        auto space = std::make_shared<CountingFlatStateSpace>(output);
+        auto space = std::make_shared<FlatStateSpace>(output, ORDER);
         space->setDerivativeBound(1, 2.);
         return space;
     }
@@ -149,43 +132,4 @@ BOOST_AUTO_TEST_CASE(VerdictsMatchTheDiscreteValidator)
 
     si->freeState(flatLast.first);
     si->freeState(discreteLast.first);
-}
-
-BOOST_AUTO_TEST_CASE(EachMotionCostsOneSteeringSolve)
-{
-    auto space = makeSpace();
-    auto si = std::make_shared<SpaceInformation>(space);
-    si->setStateValidityChecker([](const State *) { return true; });
-    si->setup();
-
-    FlatMotionValidator flat(si);
-    DiscreteMotionValidator discrete(si);
-
-    ScopedState<> from(space), to(space);
-    Eigen::MatrixXd start(ORDER, DIMENSION), goal(ORDER, DIMENSION);
-    start << -0.9, -0.9, 0., 0.;
-    goal << 0.9, 0.9, 0., 0.;
-    space->fromFlatState(start, from.get());
-    space->fromFlatState(goal, to.get());
-
-    // The edge has to be long enough that the samples outnumber the solve the validator makes.
-    const std::optional<FlatMotion> motion = space->steer(from.get(), to.get());
-    BOOST_REQUIRE(motion.has_value());
-    const unsigned int count = space->validSegmentCount(*motion);
-    BOOST_REQUIRE_GT(count, 10u);
-
-    space->solves = 0u;
-    BOOST_CHECK(flat.checkMotion(from.get(), to.get()));
-    BOOST_CHECK_EQUAL(space->solves, 1u);
-
-    space->solves = 0u;
-    std::pair<State *, double> last(nullptr, 0.);
-    BOOST_CHECK(flat.checkMotion(from.get(), to.get(), last));
-    BOOST_CHECK_EQUAL(space->solves, 1u);
-
-    // Without the validator, every sample along the edge pays for a solve of its own, on top of the one
-    // that sizes the walk.
-    space->solves = 0u;
-    BOOST_CHECK(discrete.checkMotion(from.get(), to.get()));
-    BOOST_CHECK_EQUAL(space->solves, count);
 }

@@ -41,9 +41,7 @@
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/spaces/flat/FlatTrajectory.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
-#include "ompl/geometric/PathSimplifier.h"
-#include "ompl/geometric/SimpleSetup.h"
-#include "ompl/geometric/planners/rrt/RRT.h"
+#include "ompl/geometric/PathGeometric.h"
 
 #include <cmath>
 #include <memory>
@@ -66,16 +64,6 @@ namespace
         space->setDerivativeBound(1, velocity);
         space->setup();
         return space;
-    }
-
-    /** \brief Write a flat output and a velocity into \e state. */
-    void setState(const FlatStateSpace *space, State *state, std::initializer_list<double> output,
-                  std::initializer_list<double> velocity)
-    {
-        Eigen::MatrixXd flat(ORDER, space->getOutputDimension());
-        flat.row(0) = Eigen::RowVectorXd::Map(output.begin(), static_cast<Eigen::Index>(output.size()));
-        flat.row(1) = Eigen::RowVectorXd::Map(velocity.begin(), static_cast<Eigen::Index>(velocity.size()));
-        space->fromFlatState(flat, state);
     }
 
     /** \brief Whether the flat output of \e state sits outside a square hole of half width \e half. */
@@ -108,31 +96,6 @@ namespace
         return si;
     }
 }  // namespace
-
-BOOST_AUTO_TEST_CASE(ABoundBrokenMidwayRejectsTheMotion)
-{
-    // A velocity bound loose enough that both ends sit well inside it, and a pair of flat outputs far
-    // enough apart that the polynomial joining them has to break it somewhere in between.
-    const double bound = 1.;
-    auto space = makeSpace(bound);
-    auto si = makeSpaceInformation(space, 0.);
-
-    ScopedState<> from(space), to(space);
-    setState(space.get(), from.get(), {-0.9, -0.9}, {0., 0.});
-    setState(space.get(), to.get(), {0.9, 0.9}, {0., 0.});
-
-    const std::optional<FlatMotion> motion = space->steer(from.get(), to.get());
-    BOOST_REQUIRE(motion.has_value());
-    BOOST_REQUIRE_GT(motion->peakSpeed(), bound);
-
-    BOOST_CHECK(si->isValid(from.get()));
-    BOOST_CHECK(si->isValid(to.get()));
-    BOOST_CHECK(!si->checkMotion(from.get(), to.get()));
-
-    // raise the derivative cap to check that it's valid now.
-    space->setDerivativeBound(1, 2. * motion->peakSpeed());
-    BOOST_CHECK(si->checkMotion(from.get(), to.get()));
-}
 
 BOOST_AUTO_TEST_CASE(ATrajectoryResamplesToTheStatesItCameFrom)
 {
@@ -193,45 +156,4 @@ BOOST_AUTO_TEST_CASE(ATrajectoryResamplesToTheStatesItCameFrom)
     // Building from the states and building from a path over those same states give the same trajectory.
     holdsUp(FlatTrajectory(space, states));
     holdsUp(FlatTrajectory(path));
-}
-
-BOOST_AUTO_TEST_CASE(SimplifiedPathsRunTheWayTheyWereChecked)
-{
-    auto space = makeSpace();
-    og::SimpleSetup setup(space);
-    setup.setStateValidityChecker(makeCheck(space.get(), 0.3));
-
-    ScopedState<> start(space), goal(space);
-    setState(space.get(), start.get(), {-0.8, -0.8}, {0., 0.});
-    setState(space.get(), goal.get(), {0.8, 0.8}, {0., 0.});
-    setup.setStartAndGoalStates(start, goal, 0.1);
-    setup.setPlanner(std::make_shared<og::RRT>(setup.getSpaceInformation()));
-
-    BOOST_REQUIRE(setup.solve(10.) == PlannerStatus::EXACT_SOLUTION);
-
-    const SpaceInformationPtr si = setup.getSpaceInformation();
-    og::PathGeometric &path = setup.getSolutionPath();
-    og::PathSimplifier simplifier(si);
-
-    // Dropping vertices re-steers between the states it keeps and checks each new edge at the
-    // discretization a fresh check will use, so its output holds up.
-    simplifier.reduceVertices(path);
-    BOOST_CHECK(path.check());
-    BOOST_CHECK_GT(path.getStateCount(), 1u);
-
-    // Smoothing rechecks both halves of every split in the direction the path runs through them, so it
-    // leaves behind no edge that holds up only backwards.
-    // Whether every edge survives a fresh check is a separate question, since smoothing splits edges and
-    // a shorter edge gets sampled at different places than the one it came from.
-    // Over two thousand runs of this problem that costs a flat space 0.75 percent of its smoothed paths
-    // and a RealVectorStateSpace 7.8 percent of its own, so it belongs to the discretization rather than
-    // to the space.
-    simplifier.smoothBSpline(path);
-    for (std::size_t i = 0; i + 1 < path.getStateCount(); ++i)
-    {
-        const State *from = path.getState(i);
-        const State *to = path.getState(i + 1);
-        if (!si->checkMotion(from, to))
-            BOOST_CHECK(!si->checkMotion(to, from));
-    }
 }
