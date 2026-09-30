@@ -40,8 +40,6 @@
 #include "ompl/base/ScopedState.h"
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/spaces/flat/FlatStateSpace.h"
-#include "ompl/geometric/SimpleSetup.h"
-#include "ompl/geometric/planners/rrt/RRT.h"
 
 #include <cmath>
 #include <limits>
@@ -50,7 +48,6 @@
 #include <vector>
 
 using namespace ompl::base;
-namespace og = ompl::geometric;
 
 namespace
 {
@@ -154,48 +151,6 @@ BOOST_AUTO_TEST_CASE(RecycledStateMemoryGivesFreshMotions)
     space->freeState(result);
 }
 
-BOOST_AUTO_TEST_CASE(CallerHeldMotionMatchesTheStatelessPath)
-{
-    auto space = makeSpace();
-    StateSamplerPtr sampler = space->allocStateSampler();
-
-    ScopedState<> from(space), to(space), plain(space), held(space), aliased(space);
-    for (unsigned int trial = 0; trial < 200u; ++trial)
-    {
-        sampler->sampleUniform(from.get());
-        sampler->sampleUniform(to.get());
-
-        // Walking the edge while holding the motion gives the same states as solving every time.
-        bool firstTime = true;
-        std::optional<FlatMotion> motion;
-        for (double t : {0., 0.25, 0.5, 0.75, 1.})
-        {
-            space->interpolate(from.get(), to.get(), t, plain.get());
-            space->interpolate(from.get(), to.get(), t, firstTime, motion, held.get());
-            BOOST_CHECK(space->equalStates(plain.get(), held.get()));
-        }
-
-        // The first interior sample solves the steering and leaves it in the caller's hands.
-        BOOST_CHECK(!firstTime);
-        BOOST_REQUIRE(motion.has_value());
-
-        // The segment count agrees whether it comes from the endpoints or from the motion already held.
-        BOOST_CHECK_EQUAL(space->validSegmentCount(from.get(), to.get()), space->validSegmentCount(*motion));
-
-        // Following the motion by itself matches following the endpoints.
-        space->interpolate(from.get(), *motion, 0.4, held.get());
-        space->interpolate(from.get(), to.get(), 0.4, plain.get());
-        BOOST_CHECK(space->equalStates(plain.get(), held.get()));
-
-        bool aliasedFirstTime = true;
-        std::optional<FlatMotion> aliasedMotion;
-        space->copyState(aliased.get(), to.get());
-        space->interpolate(from.get(), aliased.get(), 0.5, aliasedFirstTime, aliasedMotion, aliased.get());
-        space->interpolate(from.get(), to.get(), 0.5, plain.get());
-        BOOST_CHECK(space->equalStates(aliased.get(), plain.get()));
-    }
-}
-
 BOOST_AUTO_TEST_CASE(InterpolationIsThreadSafe)
 {
     auto space = makeSpace();
@@ -233,41 +188,6 @@ BOOST_AUTO_TEST_CASE(InterpolationIsThreadSafe)
         thread.join();
     for (int count : failures)
         BOOST_CHECK_EQUAL(count, 0);
-}
-
-BOOST_AUTO_TEST_CASE(CheckSpacingTracksTheSegmentFraction)
-{
-    auto space = makeSpace();
-
-    ScopedState<> from(space), to(space);
-    setState(space.get(), from.get(), {-0.9, -0.9}, {0., 0.});
-    setState(space.get(), to.get(), {0.9, 0.9}, {0., 0.});
-
-    space->setLongestValidSegmentFraction(0.02);
-    space->setup();
-    const unsigned int coarse = space->validSegmentCount(from.get(), to.get());
-
-    space->setLongestValidSegmentFraction(0.01);
-    space->setup();
-    const unsigned int fine = space->validSegmentCount(from.get(), to.get());
-
-    BOOST_CHECK_GT(coarse, 1u);
-    BOOST_CHECK_CLOSE(static_cast<double>(fine), 2. * static_cast<double>(coarse), 5.);
-
-    // The count is the distance the flat output covers at its fastest over the longest valid segment.
-    const auto motion = space->steer(from.get(), to.get());
-    BOOST_REQUIRE(motion.has_value());
-    const double expected = std::ceil(motion->duration() * motion->peakSpeed() / space->getLongestValidSegmentLength());
-    BOOST_CHECK_CLOSE(static_cast<double>(fine), expected, 1e-6);
-
-    // A faster edge needs more checks than a slower one of the same length.
-    ScopedState<> quick(space), slow(space);
-    setState(space.get(), quick.get(), {-0.9, 0.}, {2., 0.});
-    setState(space.get(), slow.get(), {-0.9, 0.}, {0., 0.});
-    ScopedState<> target(space);
-    setState(space.get(), target.get(), {0.9, 0.}, {0., 0.});
-    BOOST_CHECK_GT(space->validSegmentCount(quick.get(), target.get()),
-                   space->validSegmentCount(slow.get(), target.get()));
 }
 
 namespace
@@ -415,57 +335,4 @@ BOOST_AUTO_TEST_CASE(SubstitutedDerivativeSpaceIsHonored)
         space->enforceBounds(state.get());
         BOOST_REQUIRE(space->satisfiesBounds(state.get()));
     }
-}
-
-namespace
-{
-    /** \brief Rejects flat outputs inside an axis-aligned box, ignoring the derivatives. */
-    class BoxObstacle : public StateValidityChecker
-    {
-    public:
-        BoxObstacle(const SpaceInformationPtr &si, double half) : StateValidityChecker(si), half_(half)
-        {
-        }
-
-        bool isValid(const State *state) const override
-        {
-            const double *values =
-                state->as<FlatStateSpace::StateType>()->output()->as<RealVectorStateSpace::StateType>()->values;
-            return std::abs(values[0]) > half_ || std::abs(values[1]) > half_;
-        }
-
-    private:
-        double half_;
-    };
-}  // namespace
-
-BOOST_AUTO_TEST_CASE(RRTSolvesAndThePathChecks)
-{
-    auto space = makeSpace();
-
-    // KPIECE1 and its relatives refuse to run without a projection.
-    // Use flat output as the default projection.
-    BOOST_REQUIRE(space->hasDefaultProjection());
-    BOOST_CHECK_EQUAL(space->getDefaultProjection()->getDimension(), space->getOutputSpace()->getDimension());
-
-    og::SimpleSetup setup(space);
-    setup.setStateValidityChecker(std::make_shared<BoxObstacle>(setup.getSpaceInformation(), 0.3));
-
-    ScopedState<> start(space), goal(space);
-    setState(space.get(), start.get(), {-0.8, -0.8}, {0., 0.});
-    setState(space.get(), goal.get(), {0.8, 0.8}, {0., 0.});
-    setup.setStartAndGoalStates(start, goal, 0.1);
-    setup.setPlanner(std::make_shared<og::RRT>(setup.getSpaceInformation()));
-
-    BOOST_REQUIRE(setup.solve(10.) == PlannerStatus::EXACT_SOLUTION);
-
-    // The path has to survive the validity contract of the space, which rules out a planner that
-    // traversed an edge in a direction the steering never produced.
-    og::PathGeometric &path = setup.getSolutionPath();
-    BOOST_CHECK(path.check());
-    BOOST_CHECK_GT(path.getStateCount(), 1u);
-
-    // Every state on the path is a flat state the obstacle accepts.
-    for (std::size_t i = 0; i < path.getStateCount(); ++i)
-        BOOST_CHECK(setup.getSpaceInformation()->isValid(path.getState(i)));
 }

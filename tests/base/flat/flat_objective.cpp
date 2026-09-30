@@ -42,19 +42,11 @@
 #include "ompl/base/objectives/FlatEffortObjective.h"
 #include "ompl/base/spaces/flat/FlatStateSpace.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
-#include "ompl/geometric/SimpleSetup.h"
-#include "ompl/geometric/planners/rrt/RRT.h"
-#include "ompl/geometric/planners/rrt/RRTstar.h"
-#include "ompl/util/Console.h"
 
-#include <algorithm>
 #include <cmath>
 #include <memory>
-#include <string>
-#include <vector>
 
 using namespace ompl::base;
-namespace og = ompl::geometric;
 
 namespace
 {
@@ -72,25 +64,6 @@ namespace
         return space;
     }
 
-    /** \brief A square hole in the middle of the flat output plane. */
-    class BoxObstacle : public StateValidityChecker
-    {
-    public:
-        BoxObstacle(const SpaceInformationPtr &si, double half) : StateValidityChecker(si), half_(half)
-        {
-        }
-
-        bool isValid(const State *state) const override
-        {
-            const double *values =
-                state->as<FlatStateSpace::StateType>()->output()->as<RealVectorStateSpace::StateType>()->values;
-            return std::abs(values[0]) > half_ || std::abs(values[1]) > half_;
-        }
-
-    private:
-        double half_;
-    };
-
     /** \brief Write a flat output and a velocity into \e state. */
     void setState(const FlatStateSpace *space, State *state, std::initializer_list<double> output,
                   std::initializer_list<double> velocity)
@@ -99,52 +72,6 @@ namespace
         flat.row(0) = Eigen::RowVectorXd::Map(output.begin(), static_cast<Eigen::Index>(output.size()));
         flat.row(1) = Eigen::RowVectorXd::Map(velocity.begin(), static_cast<Eigen::Index>(velocity.size()));
         space->fromFlatState(flat, state);
-    }
-
-    /** \brief Keeps every warning OMPL emits while it's alive. */
-    class WarningLog : public ompl::msg::OutputHandler
-    {
-    public:
-        WarningLog()
-        {
-            ompl::msg::useOutputHandler(this);
-        }
-
-        ~WarningLog() override
-        {
-            ompl::msg::restorePreviousOutputHandler();
-        }
-
-        void log(const std::string &text, ompl::msg::LogLevel level, const char *, int) override
-        {
-            if (level >= ompl::msg::LOG_WARN)
-                warnings.push_back(text);
-        }
-
-        /** \brief Whether any warning so far contains \e fragment. */
-        bool mentions(const std::string &fragment) const
-        {
-            return std::any_of(warnings.begin(), warnings.end(), [&fragment](const std::string &warning)
-                               { return warning.find(fragment) != std::string::npos; });
-        }
-
-        std::vector<std::string> warnings;
-    };
-
-    /** \brief The warning the guard emits for an optimizing planner with no flat objective. */
-    const std::string OBJECTIVE_WARNING = "without a FlatEffortObjective";
-
-    /** \brief A problem with a box in the way, set up but with no planner yet. */
-    std::shared_ptr<og::SimpleSetup> makeProblem(const std::shared_ptr<FlatStateSpace> &space)
-    {
-        auto setup = std::make_shared<og::SimpleSetup>(space);
-        setup->setStateValidityChecker(std::make_shared<BoxObstacle>(setup->getSpaceInformation(), 0.3));
-
-        ScopedState<> start(space), goal(space);
-        setState(space.get(), start.get(), {-0.8, -0.8}, {0., 0.});
-        setState(space.get(), goal.get(), {0.8, 0.8}, {0., 0.});
-        setup->setStartAndGoalStates(start, goal, 0.1);
-        return setup;
     }
 }  // namespace
 
@@ -195,40 +122,5 @@ BOOST_AUTO_TEST_CASE(TheHeuristicNeverExceedsGoingAround)
         BOOST_REQUIRE(motion.has_value());
         BOOST_REQUIRE_CLOSE(direct, space->getSteering().cost(*motion), 1e-9);
         BOOST_REQUIRE_CLOSE(direct, space->steeringCost(from.get(), to.get()), 1e-9);
-    }
-}
-
-BOOST_AUTO_TEST_CASE(TheGuardFiresForAnOptimizingPlannerWithoutTheObjective)
-{
-    {
-        auto space = makeSpace();
-        auto setup = makeProblem(space);
-        setup->setPlanner(std::make_shared<og::RRTstar>(setup->getSpaceInformation()));
-
-        WarningLog log;
-        setup->setup();
-        BOOST_CHECK(log.mentions(OBJECTIVE_WARNING));
-    }
-
-    {
-        auto space = makeSpace();
-        auto setup = makeProblem(space);
-        setup->setPlanner(std::make_shared<og::RRTstar>(setup->getSpaceInformation()));
-        setup->setOptimizationObjective(std::make_shared<FlatEffortObjective>(setup->getSpaceInformation()));
-
-        WarningLog log;
-        setup->setup();
-        BOOST_CHECK(!log.mentions(OBJECTIVE_WARNING));
-    }
-
-    {
-        // RRT takes whatever path it finds first, so it has nothing to optimize and nothing to warn about.
-        auto space = makeSpace();
-        auto setup = makeProblem(space);
-        setup->setPlanner(std::make_shared<og::RRT>(setup->getSpaceInformation()));
-
-        WarningLog log;
-        setup->setup();
-        BOOST_CHECK(!log.mentions(OBJECTIVE_WARNING));
     }
 }

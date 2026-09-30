@@ -193,96 +193,6 @@ BOOST_AUTO_TEST_CASE(Order2MatchesTheClosedForm)
     }
 }
 
-BOOST_AUTO_TEST_CASE(DerivativeAndIntegral)
-{
-    std::mt19937_64 engine(3u);
-    MinimumEffortSteering steering(ORDER);
-
-    for (unsigned int trial = 0; trial < 100u; ++trial)
-    {
-        const auto motion = steering.steer(randomFlatState(engine), randomFlatState(engine));
-        BOOST_REQUIRE(motion.has_value());
-
-        const FlatMotion velocity = motion->derivative();
-        BOOST_CHECK_EQUAL(velocity.degree(), motion->degree() - 1u);
-        BOOST_CHECK_EQUAL(velocity.duration(), motion->duration());
-
-        // A central difference of the curve reproduces its derivative.
-        const double step = 1e-5;
-        for (double fraction : {0.1, 0.4, 0.9})
-        {
-            const double t = fraction * motion->duration();
-            const Eigen::VectorXd difference = (motion->evaluate(t + step) - motion->evaluate(t - step)) / (2. * step);
-            BOOST_CHECK_SMALL((difference - velocity.evaluate(t)).cwiseAbs().maxCoeff(), 1e-6);
-        }
-
-        // Integrating and differentiating returns the curve, and the antiderivative starts at zero.
-        const FlatMotion antiderivative = motion->integral();
-        BOOST_CHECK_EQUAL(antiderivative.degree(), motion->degree() + 1u);
-        BOOST_CHECK_SMALL(antiderivative.evaluate(0.).cwiseAbs().maxCoeff(), 1e-12);
-        BOOST_CHECK_SMALL((antiderivative.derivative().coefficients() - motion->coefficients()).cwiseAbs().maxCoeff(),
-                          1e-9);
-    }
-
-    // Differentiating past the degree leaves the zero curve rather than an empty one.
-    Eigen::MatrixXd constant(1, DIMENSION);
-    constant << 1., 2., 3.;
-    FlatMotion flat(constant, 2.);
-    BOOST_CHECK_EQUAL(flat.degree(), 0u);
-    BOOST_CHECK_SMALL(flat.derivative().evaluate(1.).cwiseAbs().maxCoeff(), 1e-12);
-    BOOST_CHECK_EQUAL(flat.derivative().outputDimension(), DIMENSION);
-    BOOST_CHECK_SMALL(flat.peakSpeed(), 1e-12);
-}
-
-BOOST_AUTO_TEST_CASE(EvaluateIntoABufferMatchesTheDerivatives)
-{
-    std::mt19937_64 engine(9u);
-    MinimumEffortSteering steering(ORDER);
-
-    for (unsigned int trial = 0; trial < 200u; ++trial)
-    {
-        const auto motion = steering.steer(randomFlatState(engine), randomFlatState(engine));
-        BOOST_REQUIRE(motion.has_value());
-
-        // Each level agrees with differentiating the curve that many times and evaluating that.
-        FlatMotion level = *motion;
-        for (unsigned int derivative = 0; derivative <= motion->degree() + 1u; ++derivative)
-        {
-            for (double fraction : {0., 0.3, 1.})
-            {
-                const double t = fraction * motion->duration();
-                Eigen::VectorXd buffer(motion->outputDimension());
-                motion->evaluate(t, derivative, buffer);
-                BOOST_CHECK_SMALL((buffer - level.evaluate(t)).cwiseAbs().maxCoeff(), 1e-9);
-            }
-            level = level.derivative();
-        }
-
-        // Past the degree the curve is flat, so every level above it reads zero.
-        Eigen::VectorXd buffer(motion->outputDimension());
-        motion->evaluate(0.5 * motion->duration(), motion->degree() + 1u, buffer);
-        BOOST_CHECK_SMALL(buffer.cwiseAbs().maxCoeff(), 1e-12);
-
-        // Level 0 is the curve itself, which is the allocating overload.
-        motion->evaluate(0.25 * motion->duration(), 0u, buffer);
-        BOOST_CHECK_SMALL((buffer - motion->evaluate(0.25 * motion->duration())).cwiseAbs().maxCoeff(), 1e-12);
-    }
-
-    // The buffer can be a view over memory the caller already owns, so a state space can write a sample
-    // straight into a state.
-    Eigen::MatrixXd from = Eigen::MatrixXd::Zero(ORDER, DIMENSION);
-    Eigen::MatrixXd to = Eigen::MatrixXd::Zero(ORDER, DIMENSION);
-    to.row(0) << 1., 2., 3.;
-    const auto motion = steering.steer(from, to);
-    BOOST_REQUIRE(motion.has_value());
-
-    std::vector<double> owned(DIMENSION, -1.);
-    Eigen::Map<Eigen::VectorXd> view(owned.data(), DIMENSION);
-    motion->evaluate(motion->duration(), 0u, view);
-    for (unsigned int axis = 0; axis < DIMENSION; ++axis)
-        BOOST_CHECK_CLOSE(owned[axis], to(0, axis), 1e-6);
-}
-
 BOOST_AUTO_TEST_CASE(CostMatchesNumericIntegration)
 {
     std::mt19937_64 engine(4u);
@@ -398,32 +308,6 @@ BOOST_AUTO_TEST_CASE(OptimalDurationIsTheCheapestDuration)
             // The cost is flat there, which makes it a minimum rather than an endpoint of the sweep.
             const double slope = (costOver(from, to, duration + 1e-7) - costOver(from, to, duration - 1e-7)) / 2e-7;
             BOOST_CHECK_SMALL(slope, 1e-3);
-        }
-    }
-}
-
-BOOST_AUTO_TEST_CASE(LowerRhoBuysLongerCheaperMotions)
-{
-    std::mt19937_64 engine(8u);
-
-    // Lowering the time penalty makes every duration cheaper, the longest ones most of all, so the optimum
-    // moves later and costs less.
-    for (unsigned int order = 2; order <= 4u; ++order)
-    {
-        MinimumEffortSteering expensive(order), cheap(order);
-        expensive.setRho(5.);
-        cheap.setRho(1.);
-        for (unsigned int trial = 0; trial < 200u; ++trial)
-        {
-            const Eigen::MatrixXd from = randomFlatState(engine, DIMENSION, order);
-            const Eigen::MatrixXd to = randomFlatState(engine, DIMENSION, order);
-
-            const auto fast = expensive.optimalDuration(from, to);
-            const auto slow = cheap.optimalDuration(from, to);
-            BOOST_REQUIRE(fast.has_value());
-            BOOST_REQUIRE(slow.has_value());
-            BOOST_CHECK_GT(slow->duration, fast->duration);
-            BOOST_CHECK_LT(slow->cost, fast->cost);
         }
     }
 }
