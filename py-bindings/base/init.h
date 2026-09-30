@@ -9,6 +9,7 @@ namespace ompl::binding::base
     void init_GoalTypes(nanobind::module_ &m);
     void init_MotionValidator(nanobind::module_ &m);
     void init_OptimizationObjective(nanobind::module_ &m);
+    void initObjectives_FlatEffortObjective(nanobind::module_ &m);
     void initObjectives_PathLengthOptimizationObjective(nanobind::module_ &m);
     void initObjectives_StateCostIntegralObjective(nanobind::module_ &m);
     void init_Path(nanobind::module_ &m);
@@ -38,6 +39,11 @@ namespace ompl::binding::base
     void initSpacesConstraint_ConstrainedStateSpace(nanobind::module_ &m);
     void initSpacesConstraint_ProjectedStateSpace(nanobind::module_ &m);
     void initSpacesConstraint_TangentBundleStateSpace(nanobind::module_ &m);
+    void initSpacesFlat_FlatChart(nanobind::module_ &m);
+    void initSpacesFlat_FlatMotion(nanobind::module_ &m);
+    void initSpacesFlat_FlatMotionValidator(nanobind::module_ &m);
+    void initSpacesFlat_FlatStateSpace(nanobind::module_ &m);
+    void initSpacesFlat_FlatTrajectory(nanobind::module_ &m);
     void initSpaces_DiscreteStateSpace(nanobind::module_ &m);
     void initSpaces_DubinsStateSpace(nanobind::module_ &m);
     void initSpaces_EmptyStateSpace(nanobind::module_ &m);
