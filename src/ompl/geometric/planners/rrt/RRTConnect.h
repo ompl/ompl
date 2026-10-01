@@ -102,6 +102,44 @@ namespace ompl
                 return maxDistance_;
             }
 
+            /** \brief Enable/disable tree size balancing heuristic.
+             * 
+             * When enabled, the planner preferentially extends the smaller tree to keep both
+             * trees roughly balanced. This heuristic, recommended by Kuffner (co-author of RRT-Connect),
+             * can improve performance by preventing one tree from dominating exploration.
+             * 
+             * \param balance If true, enable tree balancing (default: true)
+             */
+            void setBalanceTreeSizes(bool balance)
+            {
+                balanceTreeSizes_ = balance;
+            }
+
+            /** \brief Check if tree size balancing is enabled */
+            bool getBalanceTreeSizes() const
+            {
+                return balanceTreeSizes_;
+            }
+
+            /** \brief Set the maximum allowed tree size ratio for balancing.
+             * 
+             * When tree balancing is enabled, trees are only swapped if their size difference
+             * is less than this ratio times the current tree size. A value of 1.0 means trees
+             * can differ by up to 100% of the smaller tree before balancing kicks in.
+             * 
+             * \param ratio Maximum tree size ratio (default: 1.0)
+             */
+            void setMaxTreeSizeRatio(double ratio)
+            {
+                maxTreeSizeRatio_ = ratio;
+            }
+
+            /** \brief Get the maximum allowed tree size ratio */
+            double getMaxTreeSizeRatio() const
+            {
+                return maxTreeSizeRatio_;
+            }
+
             /** \brief Set a different nearest neighbors datastructure */
             template <template <typename T> class NN>
             void setNearestNeighbors()
@@ -185,6 +223,12 @@ namespace ompl
 
             /** \brief Flag indicating whether intermediate states are added to the built tree of motions */
             bool addIntermediateStates_;
+
+            /** \brief Flag indicating whether tree size balancing is enabled */
+            bool balanceTreeSizes_{true};
+
+            /** \brief The maximum allowed tree size ratio for balancing */
+            double maxTreeSizeRatio_{1.0};
 
             /** \brief The random number generator */
             RNG rng_;
