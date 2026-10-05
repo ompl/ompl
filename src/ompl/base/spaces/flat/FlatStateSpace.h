@@ -72,7 +72,7 @@ namespace ompl::base
 
         Distance defaults to the flat output distance plus a weighted Euclidean distance per derivative
         level, which is symmetric, satisfies the triangle inequality, and needs no steering solve, so
-        nearest-neighbor structures that prune on those properties stay usable.
+        planners keep their fast nearest-neighbor search.
         \ref setDistanceType enables other distances, such as edge traversal cost.
 
         Edges run forward in time, so \ref hasSymmetricInterpolate reports false.
@@ -127,7 +127,7 @@ namespace ompl::base
             /** \brief The flat output distance plus a weighted Euclidean distance per derivative level.
 
                 It's symmetric, it satisfies the triangle inequality, and it costs no steering solve, so
-                nearest-neighbor structures that prune on those properties stay usable.
+                planners keep their fast nearest-neighbor search.
             */
             FLAT_STATE_METRIC,
 
@@ -136,8 +136,7 @@ namespace ompl::base
 
                 It costs a steering solve per query and it runs one way, so nearest-neighbor structures
                 fall back to a linear scan.
-                Reach for it when a planner keys its search on edge cost and you'd rather it did that
-                directly than through an optimization objective.
+                Use it when nearest-neighbor queries should rank states by the cost of reaching them.
             */
             TRAJECTORY_COST
         };
@@ -160,10 +159,10 @@ namespace ompl::base
             Using this constructor, client code can implement their own bounds, instead of relying on
             FlatStateSpace to build them.
             Each derivative space has to derive from ompl::base::RealVectorStateSpace and match the dimension of
-            \e output, which keeps the value layout the steering math reads, and everything past that is
-            the caller's to decide.
+            \e output, since steering reads each level as a plain vector of numbers.
             Overriding enforceBounds, satisfiesBounds, and allocDefaultStateSampler on a derivative
-            component reaches enforcement, checking, and sampling through compound delegation.
+            component changes how the space enforces, checks, and samples that level, since FlatStateSpace
+            forwards those calls to each component.
             The steering polynomials between states run in \e chart, which has to carry one coordinate per
             dimension of \e output.
             If \e chart is unspecified, ompl::base::allocFlatChart will generate a default chart based on \e output.

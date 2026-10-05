@@ -164,12 +164,12 @@ You can change \f$\rho\f$ via `ompl::base::FlatStateSpace::setRho`.
 
 `ompl::base::FlatEffortObjective` charges exactly that cost per edge.
 The space warns when an optimizing planner runs without it, because the default objective sums distances between flat states, which says little about the cost of searching through a flat system.
-This objective is also admissible, in the sense of A*-like heuristics.
+Its cost-to-go estimate never overestimates, so planners that use cost heuristics can rely on it.
 
-Since computing the effort objective is expensive, we use a simpler distance function for nearest neighbor queries and range searches.
+Since computing the effort objective is expensive, we use a simpler distance function for nearest-neighbor queries.
 By default, the nearest-neighbor search distance function is the distance in the flat output space plus a weighted Euclidean distance at each derivative level, with each component weighted by the reciprocal of its extent.
 That distance is a metric and needs no steering, so planners keep their fast nearest-neighbor structures.
-Calling `ompl::base::FlatStateSpace::setDistanceType` with `TRAJECTORY_COST` makes distance the edge cost instead, which runs one way and costs a steering solve per query, so nearest-neighbor searches fall back to a linear scan.
+Calling `ompl::base::FlatStateSpace::setDistanceType` with `TRAJECTORY_COST` makes distance the edge cost instead, which runs one way and costs a steering solve per query, so nearest-neighbor searches have to check every state in the tree.
 Set the distance type before the planner sets up.
 
 ## Checking edges
@@ -216,7 +216,7 @@ Before constructing a trajectory, you can simplify a solution path with `ompl::g
 ## Flat outputs with topology
 
 In order to construct the interpolating polynomial between flat states, we need to construct a local coordinate space.
-Given a start state for interpolation, `ompl::base::FlatChart` lays a coordinate space around the start space, and then generates the steering polynomial in that frame.
+Given a start state for interpolation, `ompl::base::FlatChart` builds a local coordinate system centered on that state, and then generates the steering polynomial in that frame.
 `ompl::base::allocFlatChart` builds a chart for anything deriving from `ompl::base::RealVectorStateSpace` or `ompl::base::SO2StateSpace` and for compounds of them, which covers SE(2), tori, and the quadrotor's position and yaw.
 For custom flat output spaces, you have to manually create a chart structure.
 
