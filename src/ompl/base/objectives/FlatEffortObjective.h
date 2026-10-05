@@ -77,8 +77,8 @@ namespace ompl::base
 
         /** \brief Compute the cost of getting from \e s1 to \e s2 with nothing in the way.
 
-            No route from \e s1 to \e s2 comes in under this, so it's admissible, and it's exact whenever
-            the steering polynomial itself is clear.
+            No route from \e s1 to \e s2 comes in under this, so it never overestimates, and it equals the edge
+            cost whenever the steering polynomial is valid.
         */
         Cost motionCostHeuristic(const State *s1, const State *s2) const override;
 

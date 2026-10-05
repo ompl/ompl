@@ -54,7 +54,7 @@ namespace ompl::base
         The PathGeometric objects returned by geometric planners don't include the polynomial interpolations between
         states, so this class performs the necessary interpolation to produce dynamically valid paths.
 
-        Time runs from zero through \ref duration across the whole run rather than restarting per segment,
+        Time runs from zero through \ref duration across the whole trajectory rather than restarting per segment,
         and \ref evaluate takes a time on that clock.
     */
     class FlatTrajectory
@@ -104,7 +104,7 @@ namespace ompl::base
         /** \brief The durations of every motion added up. */
         double duration() const;
 
-        /** \brief The number of flat output dimensions the run moves through, which is zero for an empty
+        /** \brief The number of flat output dimensions the trajectory moves through, which is zero for an empty
             trajectory. */
         unsigned int outputDimension() const;
 
@@ -146,10 +146,10 @@ namespace ompl::base
         std::vector<ScopedState<>> waypoints_;
 
         /** \brief The level 0 value each motion starts from, which \ref evaluate adds the coordinates of
-            the motion to, with the value at the end of the run on the end. */
+            the motion to, with the value at the end of the trajectory on the end. */
         std::vector<Eigen::VectorXd> offsets_;
 
-        /** \brief The time each motion starts at, with the duration of the whole run on the end, so this
+        /** \brief The time each motion starts at, with the duration of the whole trajectory on the end, so this
             always holds one more entry than \ref motions_. */
         std::vector<double> starts_{0.};
     };

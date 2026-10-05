@@ -23,7 +23,7 @@ namespace ompl::vamp
 {
     namespace ob = ompl::base;
 
-    /** \brief A flat motion converted to single precision, evaluating collision with \e rake parallel lanes.
+    /** \brief A flat motion converted to single precision so VAMP can check \e rake samples at once.
      */
     template <std::size_t dimension, std::size_t rake = ::vamp::FloatVectorWidth>
     class FlatVampMotion
@@ -102,8 +102,8 @@ namespace ompl::vamp
         boost::container::small_vector<float, 16 * dimension> coefficients_;
     };
 
-    /** \brief A motion validator for ompl::base::FlatStateSpace over a VAMP robot, \e rake samples at a
-        time.
+    /** \brief A motion validator for ompl::base::FlatStateSpace over a VAMP robot, which checks \e rake samples in
+        one SIMD collision check.
 
         The flat output is the joint configuration of \e Robot, so the flat output space has to derive from
         ompl::base::RealVectorStateSpace with one dimension per joint and the chart has to be an

@@ -101,8 +101,7 @@ namespace ompl::base
             return static_cast<unsigned int>(coefficients_.cols());
         }
 
-        /** \brief The flat output at time \e t, evaluated by Horner's method without clamping \e t to the
-            duration. */
+        /** \brief The flat output at time \e t, without clamping \e t to the duration. */
         Eigen::VectorXd evaluate(double t) const;
 
         /** \brief Write derivative level \e derivativeLevel of the flat output at time \e t into \e out,
@@ -131,7 +130,7 @@ namespace ompl::base
             The control effort is the integral over the duration of the squared Euclidean norm of the flat
             output differentiated \e derivativeLevel times.
 
-            Minimizing this cost value produces minimum-effort steers.
+            Minimizing this cost value produces minimum-effort motions.
             Increasing \e rho buys a shorter motion with more effort.
         */
         double cost(unsigned int derivativeLevel, double rho) const;
@@ -202,7 +201,7 @@ namespace ompl::base
         /** \brief The \ref cost of the motion that \ref steer makes from \e from to \e to, or nothing
             when no motion joins them.
 
-            By default this steers and prices the result.
+            By default this builds the motion with \ref steer and returns its cost.
             A subclass that knows the cost in closed form should override this to skip building the motion.
         */
         virtual std::optional<double> steeringCost(const Eigen::Ref<const Eigen::MatrixXd> &from,
@@ -273,10 +272,10 @@ namespace ompl::base
             The order has to be at least 1 and the duration has to be positive. */
         FixedDurationSteering(unsigned int order, double duration);
 
-        /** \brief Set the duration every steer takes, which has to be positive. */
+        /** \brief Set the duration every motion takes, which has to be positive. */
         void setDuration(double duration);
 
-        /** \brief The duration every steer takes. */
+        /** \brief The duration every motion takes. */
         double getDuration() const
         {
             return duration_;
@@ -289,7 +288,7 @@ namespace ompl::base
                                            const Eigen::Ref<const Eigen::MatrixXd> &to) const override;
 
     private:
-        /** \brief The duration every steer takes. */
+        /** \brief The duration every motion takes. */
         double duration_;
     };
 
@@ -299,9 +298,7 @@ namespace ompl::base
 
     /** \brief Steering over the duration that minimizes control effort plus the time penalty.
 
-        The duration is the cheapest of the positive durations at which the cost bottoms out, read off the
-        roots of the derivative of the cost with respect to duration.
-        At order \e k, clearing denominators out of that derivative leaves a polynomial of degree 2 \e k.
+        The duration is the positive duration at which control effort plus the time penalty is lowest.
         Effort alone shrinks as the duration grows without bound, so the time penalty keeps the duration finite.
         Flat states that already sit still at the same flat output have no such duration and steering
         between them reports failure.
@@ -317,7 +314,7 @@ namespace ompl::base
         /** \brief The duration at which steering between two flat states costs least, and that cost. */
         struct OptimalDuration
         {
-            /** \brief The duration of the steer. */
+            /** \brief The duration of the motion. */
             double duration;
 
             /** \brief The cost of steering over \e duration. */
@@ -340,28 +337,25 @@ namespace ompl::base
         FlatMotion motion(const Eigen::Ref<const Eigen::MatrixXd> &from, const Eigen::Ref<const Eigen::MatrixXd> &to,
                           double duration) const;
 
-        /** \brief A point in time at which the cheapest winding of one wrapping coordinate changes. */
+        /** \brief A duration at which the cheapest number of extra periods for one wrapping coordinate changes. */
         struct WindingChange
         {
-            /** \brief The duration from which motions reach the new winding most cheaply. */
+            /** \brief The duration from which the new number of extra periods is cheapest. */
             double time;
 
-            /** \brief The number of whole periods the new winding adds to the flat output of \e to. */
+            /** \brief The number of whole periods added to the flat output of \e to from this duration on. */
             double winding;
         };
 
-        /** \brief The durations at which the cheapest winding of coordinate \e axis changes, in order of
-            time, over motions from \e from to \e to lasting up to \e horizon.
+        /** \brief The durations at which the cheapest way to reach \e to along wrapping coordinate \e axis
+            changes, in order of time, over motions from \e from to \e to lasting up to \e horizon.
 
-            Adding \e n whole periods to the flat output of \e to along a coordinate wrapping with period
-            \e period reaches the same place in the flat output space.
-            Over a fixed duration the cost of the least-effort motion is a quadratic in that displacement,
-            so it's least at one fractional number of periods, the ideal winding.
-            The ideal winding moves along a polynomial in the duration whose degree is one less than the
-            order.
-            The cheapest winding at a duration is the whole number nearest the ideal winding, and each change
-            lists the winding holding from its time until the next change.
-            Winding 0 holds before the first one.
+            A coordinate wrapping with period \e period reaches the same place in the flat output space
+            after any whole number of extra periods, such as an angle turning one more full turn.
+            Longer motions can afford more extra periods, so the cheapest number changes as the duration
+            grows.
+            Each change holds from its time until the next change, and zero extra periods holds before the
+            first one.
         */
         boost::container::small_vector<WindingChange, 4> windingChanges(const Eigen::Ref<const Eigen::MatrixXd> &from,
                                                                         const Eigen::Ref<const Eigen::MatrixXd> &to,
