@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2010, Rice University
+ *  Copyright (c) 2010-2026, Rice University
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -98,6 +98,9 @@ namespace ompl
 
             /** \brief ompl::base::TrochoidStateSpace */
             STATE_SPACE_TROCHOID = 17,
+
+            /** \brief ompl::base::FlatStateSpace */
+            STATE_SPACE_FLAT = 18,
 
             /** \brief Number of state space types; To add new types,
                 use values that are larger than the count*/
