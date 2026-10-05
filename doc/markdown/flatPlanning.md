@@ -9,15 +9,57 @@ This tutorial gives a walkthrough of planning for kinodynamic systems via _diffe
 We say a system is _differentially flat_ if we can describe a system's state through its _flat output_: some independent set of variables, when combined with their derivatives, that determines exactly the system's state and its applied control inputs.
 We call the combination of a flat output and its derivatives a _flat state_.
 For a robot arm under an acceleration control, the flat output is its joint angles.
-For a quadrotor, the flat output is the drone's Cartesian acceleration and its yaw angle, since we can compute the drone's attitude and thrust from just these values.
+For a quadrotor, the flat output is the drone's Cartesian position and its yaw angle, since we can compute the drone's attitude and thrust from just these values.
 
 Using `ompl::base::FlatStateSpace`, users can use geometric planners to find kinodynamically valid plans for differentially flat systems.
 Each point in a `FlatStateSpace` is a single flat state.
-For any flat system, we can interpolate between two flat states with a polynomial, so `flatStateSpace` looks like a geometric state space to any planner, even though it respects kinodynamic constraints.
+For any flat system, we can interpolate between two flat states with a polynomial, so `FlatStateSpace` looks like a geometric state space to any planner, even though it respects kinodynamic constraints.
 
-Once a planner has solved a problem, it can produce a `ompl::base::FlatTrajectory`, which can be used to generate controller inputs for the system.\
+Once a planner has solved a problem, it can produce a `ompl::base::FlatTrajectory`, which can be used to generate controller inputs for the system.
 
 The approach to flat planning described here follows FLASK, described in T. Duong, C. W. Ramsey, Z. Kingston, W. Thomason, and L. E. Kavraki, [Ultrafast sampling-based kinodynamic planning via differential flatness](https://arxiv.org/abs/2603.16059), <em>IEEE Transactions on Robotics</em>, 2026.
+
+## From dynamics to a planner
+
+Take a system \f$\dot{x} = f(x, u)\f$ with state \f$x\f$ and input \f$u\f$.
+It's flat when some output \f$y\f$, with as many components as \f$u\f$, determines both through its first \f$k\f$ derivatives.
+In other words, if we know \f$y\f$, we may calculate the state \f$x\f$ through some function \f$\phi\left(y, \dot{y}, \ldots, y^{(k-1)}\right)\f$, and likewise the input \f$u\f$ through \f$\psi\left(y, \dot{y}, \ldots, y^{(k)}\right)\f$.
+
+\f[
+x = \phi\left(y, \dot{y}, \ldots, y^{(k-1)}\right), \qquad u = \psi\left(y, \dot{y}, \ldots, y^{(k)}\right)
+\f]
+
+Once you have an arbitrary flat system, you can plan with it in OMPL as follows:
+
+1. Find \f$y\f$, \f$\phi\f$, and \f$\psi\f$.
+   OMPL will accept these functions as givens.
+2. Pick the OMPL state space that contains the flat output \f$y\f$.
+   Real vectors, SO(2), and compounds of them are already implemented as flat output states, and will work out of the box.
+3. Build a `FlatStateSpace` over the flat output space with order \f$k\f$.
+4. Write the constraints on \f$x\f$ in terms of the flat state.
+   Independent limits on each component of a derivative, such as a velocity cap per joint, become derivative bounds.
+   Everything else, such as collisions or a cap on total speed, goes in the state validity checker, which receives the flat state and can apply \f$\phi\f$ itself.
+
+Every motion connecting any two flat states is a polynomial in \f$y\f$, so \f$\phi\f$ and \f$\psi\f$ hold along it by construction.
+The input depends on \f$y^{(k)}\f$, which is not stored in flat states, but can be inferred from motions between flat states.
+To find the input at time \f$t\f$, call `ompl::base::FlatTrajectory::evaluate` at \f$t\f$ once for each derivative level from 0 through \f$k\f$, then pass the results to \f$\psi\f$.
+Input limits act on \f$y^{(k)}\f$ too, so check them against the trajectory after solving.
+The quadrotor planning demo ([FlatQuadrotorPlanning.cpp](FlatQuadrotorPlanning_8cpp_source.html)) does this for its thrust and tilt.
+
+### Robot arms
+
+A fully actuated arm with joint angles \f$\theta\f$ and joint torques \f$\tau\f$ follows the manipulator equation.
+
+\f[
+M(\theta)\ddot{\theta} + C(\theta, \dot{\theta})\dot{\theta} + g(\theta) = \tau
+\f]
+
+Every joint has its own motor, so \f$\theta\f$ is a flat output of a system with \f$k=2\f$.
+The flat state \f$(\theta, \dot{\theta})\f$ is the system state, so \f$\phi\f$ is the identity, and the left-hand side above is \f$\psi\f$.
+
+[FlatManipulatorPlanning.cpp](FlatManipulatorPlanning_8cpp_source.html) plans a Panda in this space.
+The solution comes back as \f$\theta(t)\f$ with continuous velocity and piecewise polynomial acceleration.
+Finally, the demo computes torque values for the solution by evaluating \f$\psi\f$ along the trajectory, and torque limits get checked the same way.
 
 ## Setting up a flat state space
 
@@ -134,7 +176,7 @@ Set the distance type before the planner sets up.
 
 `ompl::base::SpaceInformation` installs `ompl::base::FlatMotionValidator` for a flat state space automatically.
 It solves each edge once and checks samples along the polynomial, spaced so the flat output moves at most a fixed fraction of the extent of the flat output space between samples.
-To adjust the spacing of nodes, you can use `ompl::base::StateSpace::setLongestValidSegmentFraction` on the flat state space, or use`ompl::base::SpaceInformation::setStateValidityCheckingResolution`.
+To adjust the spacing of nodes, you can use `ompl::base::StateSpace::setLongestValidSegmentFraction` on the flat state space, or use `ompl::base::SpaceInformation::setStateValidityCheckingResolution`.
 It also appears in the parameter set of the space as `longest_valid_segment_fraction`, so a benchmark can sweep it.
 
 For robots supported by VAMP, you can check edges with `ompl::vamp::FlatVampMotionValidator`, which evaluates a whole batch of samples in one SIMD collision check.
@@ -149,7 +191,7 @@ This validity checker enforces both non-collision and configuration bounds requi
 
 Given two states, \f$a\f$ and \f$b\f$, the edge running from \f$a\f$ to \f$b\f$ is distinct from the edge running from \f$b\f$ to \f$a\f$.
 This means that flat state spaces are asymmetric, and so certain geometric planners don't work in flat state spaces.
-For instance, the bidirectionality of PRM edges and the rewiring in RRT* mean that they can't be used with flat state spaces.
+For instance, PRM treats its roadmap edges as bidirectional, so it can't be used with flat state spaces.
 
 ## Following the solution
 
@@ -166,7 +208,7 @@ trajectory.evaluate(0.5 * trajectory.duration(), 1, velocity);
 
 `evaluate` reads any derivative level at any time, including levels above the system's order.
 For example, [FlatQuadrotorPlanning.cpp](FlatQuadrotorPlanning_8cpp_source.html) reads the acceleration off its trajectory and turns it into thrust and tilt.
-Since the flat output space can non-Euclidean, states reported in a `FlatTrajectory` are mapped into a local chart, ignoring e.g. the wrapping behavior of a revolute joint.
+Since the flat output space can be non-Euclidean, states reported in a `FlatTrajectory` are mapped into a local chart, ignoring e.g. the wrapping behavior of a revolute joint.
 `ompl::base::FlatTrajectory::toState` writes a flat state at any time, wrapped back into the space.
 
 Before constructing a trajectory, you can simplify a solution path with `ompl::geometric::PathSimplifier::reduceVertices`, which re-steers between intermediate states in the solution.
