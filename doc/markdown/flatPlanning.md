@@ -59,7 +59,7 @@ The flat state \f$(\theta, \dot{\theta})\f$ is the system state, so \f$\phi\f$ i
 
 [FlatManipulatorPlanning.cpp](FlatManipulatorPlanning_8cpp_source.html) plans a Panda in this space.
 The solution comes back as \f$\theta(t)\f$ with continuous velocity and piecewise polynomial acceleration.
-Finally, the demo computes torque values for the solution by evaluating \f$\psi\f$ along the trajectory, and torque limits get checked the same way.
+Finally, the demo evaluates the joint velocities at 20,001 evenly spaced times along the trajectory and reports the fastest speed of each joint against its velocity cap.
 
 ## Setting up a flat state space
 
