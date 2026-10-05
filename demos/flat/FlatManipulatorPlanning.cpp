@@ -177,11 +177,7 @@ int main()
     const ob::FlatTrajectory trajectory(path);
     std::cout << "Trajectory of " << trajectory.size() << " segments lasting " << trajectory.duration() << " seconds\n";
 
-    const auto objective = setup.getOptimizationObjective();
-    ob::Cost cost = objective->identityCost();
-    for (std::size_t i = 1; i < path.getStateCount(); ++i)
-        cost = objective->combineCosts(cost, objective->motionCost(path.getState(i - 1u), path.getState(i)));
-    std::cout << "Steering cost " << cost.value() << "\n";
+    std::cout << "Steering cost " << path.cost(setup.getOptimizationObjective()).value() << "\n";
 
     // Sampling the whole run confirms every joint held to its limit everywhere, not only at waypoints.
     Eigen::VectorXd rate(Robot::dimension);
