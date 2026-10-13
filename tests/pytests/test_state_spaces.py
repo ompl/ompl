@@ -648,6 +648,35 @@ def test_projection_evaluator():
     assert out[1] == pytest.approx(0.75)
 
 
+def test_copy_reals():
+    rvss = ob.RealVectorStateSpace(3)
+    bound = ob.RealVectorBounds(3)
+    bound.setLow(-2)
+    bound.setHigh(2)
+    rvss.setBounds(bound)
+
+    # Value locations only exist once setup() (or computeLocations()) has run. Before that copyToReals
+    # reports nothing and copyFromReals refuses rather than reading out of bounds.
+    state = rvss.allocState()
+    assert rvss.copyToReals(state) == []
+    with pytest.raises(ValueError, match="setup"):
+        rvss.copyFromReals(state, [1.0, 2.0, 3.0])
+
+    rvss.setup()
+
+    rvss.copyFromReals(state, [1.0, 2.0, 3.0])
+    assert rvss.copyToReals(state) == pytest.approx([1.0, 2.0, 3.0])
+    assert state[0:3] == pytest.approx([1.0, 2.0, 3.0])
+
+    other = rvss.allocState()
+    rvss.copyFromReals(other, rvss.copyToReals(state))
+    assert rvss.copyToReals(other) == pytest.approx([1.0, 2.0, 3.0])
+
+    # A mismatched count is reported instead of corrupting memory.
+    with pytest.raises(ValueError):
+        rvss.copyFromReals(state, [1.0, 2.0, 3.0, 4.0])
+
+
 if __name__ == "__main__":
     test_rv_state_space()
     test_compound_state_space()
@@ -660,3 +689,4 @@ if __name__ == "__main__":
     test_vana_state_space()
     test_vana_owen_state_space()
     test_projection_evaluator()
+    test_copy_reals()

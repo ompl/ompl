@@ -239,7 +239,7 @@ namespace ompl
                 /** \brief The state contained by the motion */
                 base::State *state{nullptr};
 
-                /** \brief The connected motions in the exploration graph */
+                /** \brief Motions at the far end of a validated outgoing edge in the exploration graph */
                 std::vector<Motion *> neighbors;
 
                 /** \brief Cost of the state */
@@ -266,7 +266,9 @@ namespace ompl
             /** \brief improve solution found by TRRT */
             void addUsefulCycles(Motion *newMotion, Motion *nearMotion);
 
-            /** \brief Add bidirectional edge between two motions */
+            /** \brief Record the edge from a to b.
+                The caller has already validated that edge.
+                Record the edge from b to a as well, once it holds up on its own. */
             void addEdge(Motion *a, Motion *b);
 
             /** \brief Compute lowest-cost path in graph between two motions */
@@ -293,6 +295,13 @@ namespace ompl
 
             /** \brief The most recent goal motion.  Used for PlannerData computation */
             Motion *lastGoalMotion_{nullptr};
+
+            /** \brief The first start motion.  Used for path extraction and PlannerData computation */
+            Motion *startMotion_{nullptr};
+
+            /** \brief Whether the state space interpolates the same way in both directions.
+                A check in one direction carries over to the other direction only when this holds. */
+            bool symmetricMotions_{true};
 
             /** \brief bool stating which motion cost is better */
             struct MotionCostComparator

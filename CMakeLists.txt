@@ -111,7 +111,7 @@ if(NOT SKBUILD)
         target_link_flags(ompl)
         set(PKG_NAME "ompl")
         set(PKG_DESC "The Open Motion Planning Library")
-        set(PKG_EXTERNAL_DEPS "Eigen3::Eigen ${ompl_PKG_DEPS}")
+        set(PKG_EXTERNAL_DEPS "eigen3 ${ompl_PKG_DEPS}")
         set(PKG_OMPL_LIBS "-lompl ${ompl_LINK_FLAGS}")
         configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc.in"
                        "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc" @ONLY)

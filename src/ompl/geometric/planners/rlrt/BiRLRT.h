@@ -145,19 +145,22 @@ namespace ompl
 
             /// Try to grow the tree randomly.  Return true if a new state was added
             /// xmotion is scratch space for sampling, etc.
-            bool growTreeRangeLimited(std::vector<Motion *> &tree, Motion *xmotion);
+            /// If startTree is set, tree holds start states.
+            bool growTreeRangeLimited(std::vector<Motion *> &tree, Motion *xmotion, bool startTree);
 
             /// Try to grow the tree randomly.  Return true if a new state was added
             /// xmotion is scratch space for sampling, etc.
+            /// If startTree is set, tree holds start states.
             bool growTreeKeepLast(std::vector<Motion *> &tree, Motion *xmotion,
-                                  std::pair<base::State *, double> &lastValid);
+                                  std::pair<base::State *, double> &lastValid, bool startTree);
 
             /// Attempt to connect the given motion (presumed to be in a tree)
             /// to a state in another tree (presumed to be different from the
             /// tree motion is in). If connection is successful, the index of
             /// the motion in the other tree that the motion connects to is
             /// returned.  -1 for failed connection.
-            int connectToTree(const Motion *motion, std::vector<Motion *> &tree);
+            /// If startTree is set, tree holds start states.
+            int connectToTree(const Motion *motion, std::vector<Motion *> &tree, bool startTree);
 
             /// Start tree
             std::vector<Motion *> tStart_;
@@ -182,6 +185,10 @@ namespace ompl
             std::pair<base::State *, base::State *> connectionPoint_{nullptr, nullptr};
 
             bool keepLast_{false};
+
+            /// \brief Whether the state space interpolates the same way in both directions.
+            /// A check in one direction carries over to the other direction only when this holds.
+            bool symmetricMotions_{true};
         };
 
     }  // namespace geometric

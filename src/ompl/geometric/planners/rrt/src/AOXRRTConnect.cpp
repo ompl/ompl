@@ -91,6 +91,21 @@ void ompl::geometric::AOXRRTConnect::setup()
     reset(true);
 }
 
+void ompl::geometric::AOXRRTConnect::clear()
+{
+    Planner::clear();
+    sampler_.reset();
+    freeMemory();
+    if (tStart_)
+        tStart_->clear();
+    if (tGoal_)
+        tGoal_->clear();
+    connectionPoint_ = std::make_pair<base::State *, base::State *>(nullptr, nullptr);
+    startState = nullptr;
+    goalState = nullptr;
+    startTree_ = true;
+}
+
 void ompl::geometric::AOXRRTConnect::freeMemory()
 {
     std::vector<Motion *> motions;
@@ -166,7 +181,6 @@ void ompl::geometric::AOXRRTConnect::setPathCost(double pc)
 ompl::geometric::AOXRRTConnect::Motion *ompl::geometric::AOXRRTConnect::findNeighbour(Motion *sampled_motion,
                                                                                       float rootDist, TreeData &tree)
 {
-    Motion *nearest_motion;
     std::vector<Motion *> nearest_vec;
 
     rootDist += rootDistPadding;
@@ -178,18 +192,16 @@ ompl::geometric::AOXRRTConnect::Motion *ompl::geometric::AOXRRTConnect::findNeig
         return nullptr;
     }
 
-    int idx = 0;
-    nearest_motion = nearest_vec[idx];
-    auto nearest_distance = si_->distance(sampled_motion->state, nearest_motion->state);
-
-    while (nearest_motion->cost > 0 && sampled_motion->cost < nearest_motion->cost + nearest_distance)
+    /* Walk outward and take the first neighbor within the sampled cost budget.
+       When no neighbor in range fits the budget, the search has failed. */
+    for (Motion *candidate : nearest_vec)
     {
-        idx++;
-        nearest_motion = nearest_vec[idx];
-        nearest_distance = si_->distance(sampled_motion->state, nearest_motion->state);
+        auto nearest_distance = si_->distance(sampled_motion->state, candidate->state);
+        if (candidate->cost <= 0 || sampled_motion->cost >= candidate->cost + nearest_distance)
+            return candidate;
     }
 
-    return nearest_motion;
+    return nullptr;
 }
 
 ompl::geometric::AOXRRTConnect::GrowState ompl::geometric::AOXRRTConnect::growTree(TreeData &tree, TreeGrowingInfo &tgi,
@@ -267,13 +279,18 @@ ompl::geometric::AOXRRTConnect::GrowState ompl::geometric::AOXRRTConnect::growTr
             auto rootDist = tree->getDistanceFunction()(rmotion, root_motion);
             Motion *n_nmotion = findNeighbour(rmotion, rootDist, tree);
 
+            if (n_nmotion == nullptr)
+                break;
+
             if (new_cost <= si_->distance(n_nmotion->state, dstate) + n_nmotion->cost || c_range == 0)
             {
                 validMotion = false;
             }
             else
             {
-                validMotion = si_->checkMotion(n_nmotion->state, dstate);
+                // check edges from start to goal
+                validMotion =
+                    tgi.start ? si_->checkMotion(n_nmotion->state, dstate) : si_->checkMotion(dstate, n_nmotion->state);
 
                 if (validMotion)
                 {

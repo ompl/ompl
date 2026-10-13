@@ -62,7 +62,9 @@ namespace ompl
             specs_.multithreaded = false;
             specs_.approximateSolutions = true;
             specs_.optimizingPaths = true;
-            specs_.directed = true;
+            // The reverse search collision checks an edge from the goal side, which the forward search then reuses.
+            // So we require that edges are undirected.
+            specs_.directed = false;
             specs_.provingSolutionNonExistence = false;
             specs_.canReportIntermediateSolutions = true;
 

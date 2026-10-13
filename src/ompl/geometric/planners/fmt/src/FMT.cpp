@@ -57,7 +57,7 @@ ompl::geometric::FMT::FMT(const base::SpaceInformationPtr &si) : base::Planner(s
     lastGoalMotion_ = nullptr;
 
     specs_.approximateSolutions = false;
-    specs_.directed = false;
+    specs_.directed = true;
 
     ompl::base::Planner::declareParam<unsigned int>("num_samples", this, &FMT::setNumSamples, &FMT::getNumSamples,
                                                     "10:10:1000000");

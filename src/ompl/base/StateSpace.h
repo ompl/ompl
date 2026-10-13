@@ -253,7 +253,10 @@ namespace ompl
             virtual void setLongestValidSegmentFraction(double segmentFraction);
 
             /** \brief Count how many segments of the "longest valid length" fit on the motion from \e state1 to \e
-             * state2 */
+                state2.
+
+                The setup() function must have been previously called; otherwise the longest valid segment length is
+                still 0 and the returned count is meaningless. */
             virtual unsigned int validSegmentCount(const State *state1, const State *state2) const;
 
             /** \brief Set \e factor to be the value to multiply the
@@ -267,7 +270,8 @@ namespace ompl
             /** \brief Get the value used to multiply the return value of validSegmentCount().*/
             virtual unsigned int getValidSegmentCountFactor() const;
 
-            /** \brief Get the longest valid segment at the time setup() was called. */
+            /** \brief Get the longest valid segment at the time setup() was called. Returns 0 if setup() has not
+                been called yet. */
             virtual double getLongestValidSegmentLength() const;
 
             /** \brief Compute an array of ints that uniquely identifies the structure of the state space.
@@ -393,17 +397,28 @@ namespace ompl
             /** \brief Const variant of the same function as above; */
             virtual const double *getValueAddressAtLocation(const State *state, const ValueLocation &loc) const;
 
-            /** \brief Get a pointer to the double value in \e state that \e name points to */
+            /** \brief Get a pointer to the double value in \e state that \e name points to, or nullptr if \e name is
+                not a known value location.
+
+                The setup() function (or computeLocations()) must have been previously called; otherwise there are
+                no known value locations and this returns nullptr for every \e name. */
             virtual double *getValueAddressAtName(State *state, const std::string &name) const;
 
             /** \brief Const variant of the same function as above; */
             virtual const double *getValueAddressAtName(const State *state, const std::string &name) const;
 
             /** \brief Copy all the real values from a state \e source to the array \e reals using
-             * getValueAddressAtLocation() */
+                getValueAddressAtLocation(). \e reals is resized to getValueLocations().size().
+
+                The setup() function (or computeLocations()) must have been previously called; otherwise there are
+                no known value locations and \e reals is silently resized to 0 rather than filled. */
             virtual void copyToReals(std::vector<double> &reals, const State *source) const;
 
-            /** \brief Copy the values from \e reals to the state \e destination using getValueAddressAtLocation() */
+            /** \brief Copy the values from \e reals to the state \e destination using getValueAddressAtLocation().
+                \e reals must contain exactly getValueLocations().size() values.
+
+                The setup() function (or computeLocations()) must have been previously called; calling this before
+                then, or with a \e reals of the wrong size, is undefined behavior. */
             virtual void copyFromReals(State *destination, const std::vector<double> &reals) const;
 
             /** @} */
@@ -490,19 +505,28 @@ namespace ompl
             /** \brief Get the substate of \e state that is pointed to by \e loc */
             const State *getSubstateAtLocation(const State *state, const SubstateLocation &loc) const;
 
-            /** \brief Get the list of known substate locations (keys of the map corrspond to names of subspaces) */
+            /** \brief Get the list of known substate locations (keys of the map corrspond to names of subspaces).
+
+                The setup() function (or computeLocations()) must have been previously called; otherwise the
+                returned map is empty. */
             const std::map<std::string, SubstateLocation> &getSubstateLocationsByName() const;
 
             /** \brief Get the set of subspaces that this space and \e other have in common. The computed list of \e
                subspaces does
                 not contain spaces that cover each other, even though they may be common, as that is redundant
-               information. */
+               information.
+
+                The setup() function (or computeLocations()) must have been previously called on both spaces;
+                otherwise no substate locations are known and \e subspaces comes back empty. */
             void getCommonSubspaces(const StateSpacePtr &other, std::vector<std::string> &subspaces) const;
 
             /** \brief Get the set of subspaces that this space and \e other have in common. The computed list of \e
                subspaces does
                 not contain spaces that cover each other, even though they may be common, as that is redundant
-               information. */
+               information.
+
+                The setup() function (or computeLocations()) must have been previously called on both spaces;
+                otherwise no substate locations are known and \e subspaces comes back empty. */
             void getCommonSubspaces(const StateSpace *other, std::vector<std::string> &subspaces) const;
 
             /** \brief Compute the location information for various components of the state space. Either this function

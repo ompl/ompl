@@ -51,6 +51,7 @@ ompl::geometric::TRRTstar::TRRTstar(const base::SpaceInformationPtr &si) : base:
     specs_.approximateSolutions = true;
     specs_.optimizingPaths = true;
     specs_.canReportIntermediateSolutions = true;
+    specs_.directed = true;
 
     Planner::declareParam<double>("range", this, &TRRTstar::setRange, &TRRTstar::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &TRRTstar::setGoalBias, &TRRTstar::getGoalBias, "0.:.05:1.");
@@ -87,9 +88,14 @@ void ompl::geometric::TRRTstar::setup()
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
-    if (!si_->getStateSpace()->hasSymmetricDistance() || !si_->getStateSpace()->hasSymmetricInterpolate())
+    // A solution path runs from the start to the goal, and every motion gets checked that way, so an asymmetric space
+    // still yields valid paths.
+    // A symmetric distance only matters for the rewiring neighborhoods.
+    if (!si_->getStateSpace()->hasSymmetricDistance())
     {
-        OMPL_WARN("%s requires a state space with symmetric distance and symmetric interpolation.", getName().c_str());
+        OMPL_WARN("%s: the state space distance is asymmetric, so the rewiring neighborhoods are approximate "
+                  "and the solution cost can settle above the optimum.",
+                  getName().c_str());
     }
 
     if (!nn_)

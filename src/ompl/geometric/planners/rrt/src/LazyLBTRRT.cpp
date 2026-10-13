@@ -51,7 +51,8 @@ namespace
 ompl::geometric::LazyLBTRRT::LazyLBTRRT(const base::SpaceInformationPtr &si) : base::Planner(si, "LazyLBTRRT")
 {
     specs_.approximateSolutions = true;
-    specs_.directed = true;
+    // The approximation graph is undirected.
+    specs_.directed = false;
 
     Planner::declareParam<double>("range", this, &LazyLBTRRT::setRange, &LazyLBTRRT::getRange, "0.:1.:10000.");
     Planner::declareParam<double>("goal_bias", this, &LazyLBTRRT::setGoalBias, &LazyLBTRRT::getGoalBias, "0.:.05:1.");

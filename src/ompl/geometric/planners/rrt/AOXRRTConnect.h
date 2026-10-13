@@ -146,6 +146,10 @@ namespace ompl
 
             void setup() override;
 
+            /** \brief Drop every motion in both trees and forget the start and goal states.
+                The next call to solve then starts over from the problem definition. */
+            void clear() override;
+
             void reset(bool solvedProblem);
 
             void setPathCost(double pc);

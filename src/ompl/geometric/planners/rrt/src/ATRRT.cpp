@@ -81,6 +81,7 @@ void ompl::geometric::ATRRT::clear()
     if (nearestNeighbors_)
         nearestNeighbors_->clear();
     lastGoalMotion_ = nullptr;
+    startMotion_ = nullptr;
 
     // Clear ATRRT specific variables ---------------------------------------------------------
     temp_ = initTemperature_;
@@ -124,6 +125,8 @@ void ompl::geometric::ATRRT::setup()
 
     // Set the distance function
     nearestNeighbors_->setDistanceFunction([this](const Motion *a, const Motion *b) { return distanceFunction(a, b); });
+
+    symmetricMotions_ = si_->getStateSpace()->hasSymmetricInterpolate();
 
     // Setup ATRRT specific variables ---------------------------------------------------------
     temp_ = initTemperature_;
@@ -170,7 +173,6 @@ ompl::base::PlannerStatus ompl::geometric::ATRRT::solve(const base::PlannerTermi
     // Input States ---------------------------------------------------------------------------------
 
     // Loop through valid input states and add to tree
-    Motion *startMotion = nullptr;
     while (const base::State *state = pis_.nextStart())
     {
         // Allocate memory for a new start state motion based on the "space-information"-size
@@ -189,8 +191,8 @@ ompl::base::PlannerStatus ompl::geometric::ATRRT::solve(const base::PlannerTermi
         nearestNeighbors_->add(motion);
 
         // Keep track of the start motion
-        if (startMotion == nullptr)
-            startMotion = motion;
+        if (startMotion_ == nullptr)
+            startMotion_ = motion;
     }
 
     // Check that input states exist
@@ -303,7 +305,7 @@ ompl::base::PlannerStatus ompl::geometric::ATRRT::solve(const base::PlannerTermi
         // Create a motion
         auto *motion = new Motion(si_);
         si_->copyState(motion->state, newState);
-        addEdge(motion, nearMotion);  // link q_new to q_near as an edge
+        addEdge(nearMotion, motion);  // link q_near to q_new, in the direction just checked
         motion->cost = childCost;
 
         // Add motion to data structure
@@ -355,12 +357,13 @@ ompl::base::PlannerStatus ompl::geometric::ATRRT::solve(const base::PlannerTermi
     {
         lastGoalMotion_ = solution;
 
-        std::vector<Motion *> mpath = computeDijkstraLowestCostPath(startMotion, solution);
+        std::vector<Motion *> mpath = computeDijkstraLowestCostPath(startMotion_, solution);
 
         // set the solution path
+        // computeDijkstraLowestCostPath already returns it in start to goal order
         auto path(std::make_shared<PathGeometric>(si_));
-        for (int i = mpath.size() - 1; i >= 0; --i)
-            path->append(mpath[i]->state);
+        for (auto *m : mpath)
+            path->append(m->state);
 
         pdef_->addSolutionPath(path, approximate, approxDifference, getName());
         solved = true;
@@ -389,14 +392,12 @@ void ompl::geometric::ATRRT::getPlannerData(base::PlannerData &data) const
     if (lastGoalMotion_)
         data.addGoalVertex(base::PlannerDataVertex(lastGoalMotion_->state));
 
+    if (startMotion_)
+        data.addStartVertex(base::PlannerDataVertex(startMotion_->state));
+
     for (auto &motion : motions)
-    {
-        if (motion->neighbors.empty())
-            data.addStartVertex(base::PlannerDataVertex(motion->state));
-        else
-            for (auto &neighbor : motion->neighbors)
-                data.addEdge(base::PlannerDataVertex(neighbor->state), base::PlannerDataVertex(motion->state));
-    }
+        for (auto &neighbor : motion->neighbors)
+            data.addEdge(base::PlannerDataVertex(motion->state), base::PlannerDataVertex(neighbor->state));
 }
 
 bool ompl::geometric::ATRRT::transitionTest(const base::Cost &motionCost)
@@ -467,8 +468,8 @@ void ompl::geometric::ATRRT::addUsefulCycles(Motion *newMotion, Motion *nearMoti
         if (candidate == newMotion || candidate == nearMotion)
             continue;
 
-        // Cost of direct path between newMotion and neighbor
-        base::Cost costSpace = opt_->motionCost(newMotion->state, candidate->state);
+        // Cost of the direct path from the neighbor to newMotion
+        base::Cost costSpace = opt_->motionCost(candidate->state, newMotion->state);
 
         // Cost of existing path in the graph
         base::Cost costGraph = computeCostLowestCostPath(candidate, newMotion);
@@ -476,15 +477,17 @@ void ompl::geometric::ATRRT::addUsefulCycles(Motion *newMotion, Motion *nearMoti
         if ((opt_->isCostBetterThan(costSpace, costGraph)) && si_->checkMotion(candidate->state, newMotion->state))
         {
             // Add edge to the graph
-            addEdge(newMotion, candidate);
+            addEdge(candidate, newMotion);
         }
     }
 }
 
 void ompl::geometric::ATRRT::addEdge(Motion *a, Motion *b)
 {
+    // in asymmetric case, we have to check the reverse edge
     a->neighbors.push_back(b);
-    b->neighbors.push_back(a);
+    if (symmetricMotions_ || si_->checkMotion(b->state, a->state))
+        b->neighbors.push_back(a);
 }
 
 std::vector<ompl::geometric::ATRRT::Motion *> ompl::geometric::ATRRT::computeDijkstraLowestCostPath(Motion *a,

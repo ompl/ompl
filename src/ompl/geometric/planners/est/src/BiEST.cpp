@@ -205,8 +205,9 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
                 continue;
         }
 
-        // Is motion good?
-        if (si_->checkMotion(existing->state, xstate))
+        // A solution path runs from the start to the goal.
+        // The goal tree grows backward along it, so its edges get checked from the new state toward the existing one.
+        if (startTree ? si_->checkMotion(existing->state, xstate) : si_->checkMotion(xstate, existing->state))
         {
             // create a motion
             auto *motion = new Motion(si_);
@@ -224,7 +225,8 @@ ompl::base::PlannerStatus ompl::geometric::BiEST::solve(const base::PlannerTermi
             for (size_t i = 0; i < neighbors.size() && !solved; ++i)
             {
                 if (goal->isStartGoalPairValid(motion->root, neighbors[i]->root) &&
-                    si_->checkMotion(motion->state, neighbors[i]->state))  // win!  solution found.
+                    (startTree ? si_->checkMotion(motion->state, neighbors[i]->state) :
+                                 si_->checkMotion(neighbors[i]->state, motion->state)))  // win!  solution found.
                 {
                     connectionPoint_ = std::make_pair(motion->state, neighbors[i]->state);
 

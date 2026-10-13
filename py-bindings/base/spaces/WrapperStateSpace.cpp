@@ -10,6 +10,7 @@
 #include "ompl/base/StateSpace.h"
 
 #include "../init.h"
+#include "../validation.h"
 
 namespace nb = nanobind;
 namespace ob = ompl::base;
@@ -152,14 +153,21 @@ void ompl::binding::base::initSpaces_WrapperStateSpace(nb::module_ &m)
              nb::arg("state"), nb::arg("name"))
         .def(
             "copyToReals",
-            [](const ob::WrapperStateSpace &space, const ob::State *source)
+            [](const ob::WrapperStateSpace &ss, const ob::State *source)
             {
                 std::vector<double> reals;
-                space.copyToReals(reals, source);
+                ss.copyToReals(reals, source);
                 return reals;
             },
             nb::arg("source"))
-        .def("copyFromReals", &ob::WrapperStateSpace::copyFromReals, nb::arg("dest"), nb::arg("reals"))
+        .def(
+            "copyFromReals",
+            [](const ob::WrapperStateSpace &ss, ob::State *dest, const std::vector<double> &reals)
+            {
+                checkRealsSize(ss, reals, "copyFromReals");
+                ss.copyFromReals(dest, reals);
+            },
+            nb::arg("dest"), nb::arg("reals"))
         .def("registerProjections", &ob::WrapperStateSpace::registerProjections)
         .def("printState", &ob::WrapperStateSpace::printState, nb::arg("state"), nb::arg("out"))
         .def("printSettings", &ob::WrapperStateSpace::printSettings, nb::arg("out"))

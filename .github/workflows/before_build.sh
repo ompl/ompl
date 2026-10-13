@@ -8,6 +8,7 @@ boost_version="1.87.0"
 
 # Collect some information about the build target.
 build_os="$(uname)"
+build_jobs="$(getconf _NPROCESSORS_ONLN)"
 python_version=$(python3 -c 'import sys; v=sys.version_info; print(f"{v.major}.{v.minor}")')
 
 install_yaml_cpp() {
@@ -16,7 +17,7 @@ install_yaml_cpp() {
     pushd "yaml-cpp-${yaml_cpp_version}"
     mkdir -p mkdir
     cmake -Bbuild -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release
-    cmake --build build --parallel
+    cmake --build build --parallel "${build_jobs}"
     cmake --install build
     popd
 }
@@ -28,7 +29,7 @@ install_boost() {
     pushd "boost_${boost_version//./_}"
 
     ./bootstrap.sh
-    sudo ./b2 "${b2_args[@]}" \
+    sudo ./b2 -j"${build_jobs}" "${b2_args[@]}" \
         --with-serialization \
         --with-program_options \
         install

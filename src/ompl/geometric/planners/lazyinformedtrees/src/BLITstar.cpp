@@ -75,7 +75,10 @@ namespace ompl
             specs_.multithreaded = false;
             specs_.approximateSolutions = true;
             specs_.optimizingPaths = true;
-            specs_.directed = true;
+            // The search collision checks an edge from whichever side reaches it first, then whitelists both
+            // directions.
+            // So a solution edge can rest on a check in the opposite direction.
+            specs_.directed = false;
             specs_.provingSolutionNonExistence = false;
             specs_.canReportIntermediateSolutions = true;
             spaceInformation_ = spaceInformation;

@@ -73,6 +73,8 @@ void ompl::geometric::BiRLRT::setup()
 
     if (maxDistNear_ < 1e-4)
         maxDistNear_ = range_ / 20.0;  // make this pretty small
+
+    symmetricMotions_ = si_->getStateSpace()->hasSymmetricInterpolate();
 }
 
 void ompl::geometric::BiRLRT::freeMemory()
@@ -95,20 +97,30 @@ void ompl::geometric::BiRLRT::freeMemory()
 }
 
 /// Try to grow the tree randomly.  Return true if a new state was added
-bool ompl::geometric::BiRLRT::growTreeRangeLimited(std::vector<Motion *> &tree, Motion *xmotion)
+bool ompl::geometric::BiRLRT::growTreeRangeLimited(std::vector<Motion *> &tree, Motion *xmotion, bool startTree)
 {
     assert(tree.size() > 0);
 
     // select a state from tree to expand from
     Motion *randomMotion = tree[rng_.uniformInt(0, tree.size() - 1)];
 
-    // Sample a random direction.  Limit length of motion to range_, if necessary
+    // Sample a random direction.  Limit length of motion to range_, if necessary.
+    // Make sure to check edges in order from start to goal.
     sampler_->sampleUniform(xmotion->state);
-    double d = si_->distance(randomMotion->state, xmotion->state);
+    double d = startTree ? si_->distance(randomMotion->state, xmotion->state) :
+                           si_->distance(xmotion->state, randomMotion->state);
     if (d > range_)
-        si_->getStateSpace()->interpolate(randomMotion->state, xmotion->state, range_ / d, xmotion->state);
+    {
+        if (startTree)
+            si_->getStateSpace()->interpolate(randomMotion->state, xmotion->state, range_ / d, xmotion->state);
+        else
+            si_->getStateSpace()->interpolate(xmotion->state, randomMotion->state, 1.0 - range_ / d, xmotion->state);
+    }
 
-    if (si_->checkMotion(randomMotion->state, xmotion->state))
+    // check edges from start to goal
+    bool valid = startTree ? si_->checkMotion(randomMotion->state, xmotion->state) :
+                             si_->isValid(xmotion->state) && si_->checkMotion(xmotion->state, randomMotion->state);
+    if (valid)
     {
         Motion *motion = new Motion(si_);
         si_->copyState(motion->state, xmotion->state);
@@ -124,7 +136,7 @@ bool ompl::geometric::BiRLRT::growTreeRangeLimited(std::vector<Motion *> &tree, 
 
 /// Try to grow the tree randomly.  Return true if a new state was added
 bool ompl::geometric::BiRLRT::growTreeKeepLast(std::vector<Motion *> &tree, Motion *xmotion,
-                                               std::pair<ompl::base::State *, double> &lastValid)
+                                               std::pair<ompl::base::State *, double> &lastValid, bool startTree)
 {
     assert(tree.size() > 0);
 
@@ -136,22 +148,25 @@ bool ompl::geometric::BiRLRT::growTreeKeepLast(std::vector<Motion *> &tree, Moti
 
     lastValid.second = 0.0;
     bool valid = si_->checkMotion(randomMotion->state, xmotion->state, lastValid);
-    if (valid || lastValid.second > 1e-3)
-    {
-        // create a new motion
-        Motion *motion = new Motion(si_);
-        si_->copyState(motion->state, valid ? xmotion->state : lastValid.first);
-        motion->parent = randomMotion;
-        motion->root = randomMotion->root;
+    if (!valid && lastValid.second <= 1e-3)
+        return false;
 
-        tree.push_back(motion);
-        return true;
-    }
+    // also check for asymmetric reversed edges
+    base::State *kept = valid ? xmotion->state : lastValid.first;
+    if (!startTree && !symmetricMotions_ && !si_->checkMotion(kept, randomMotion->state))
+        return false;
 
-    return false;
+    // create a new motion
+    Motion *motion = new Motion(si_);
+    si_->copyState(motion->state, kept);
+    motion->parent = randomMotion;
+    motion->root = randomMotion->root;
+
+    tree.push_back(motion);
+    return true;
 }
 
-int ompl::geometric::BiRLRT::connectToTree(const Motion *motion, std::vector<Motion *> &tree)
+int ompl::geometric::BiRLRT::connectToTree(const Motion *motion, std::vector<Motion *> &tree, bool startTree)
 {
     assert(tree.size() > 0);
 
@@ -163,7 +178,10 @@ int ompl::geometric::BiRLRT::connectToTree(const Motion *motion, std::vector<Mot
         int randIndex = rng_.uniformInt(0, tree.size() - 1);
         Motion *randomMotion = tree[randIndex];
 
-        if (si_->checkMotion(randomMotion->state, motion->state))
+        // check edges from start to goal
+        bool valid = startTree ? si_->checkMotion(randomMotion->state, motion->state) :
+                                 si_->checkMotion(motion->state, randomMotion->state);
+        if (valid)
             return randIndex;
     }
 
@@ -242,10 +260,12 @@ ompl::base::PlannerStatus ompl::geometric::BiRLRT::solve(const base::PlannerTerm
             }
         }
 
-        bool expanded = keepLast_ ? growTreeKeepLast(*tree, xmotion, lastValid) : growTreeRangeLimited(*tree, xmotion);
+        bool treeIsStart = tree == &tStart_;
+        bool expanded = keepLast_ ? growTreeKeepLast(*tree, xmotion, lastValid, treeIsStart) :
+                                    growTreeRangeLimited(*tree, xmotion, treeIsStart);
         if (expanded)
         {
-            int connectionIdx = connectToTree(tree->back(), *otherTree);
+            int connectionIdx = connectToTree(tree->back(), *otherTree, !treeIsStart);
             if (connectionIdx >= 0)
             {
                 // there is a solution path.  construct it.
