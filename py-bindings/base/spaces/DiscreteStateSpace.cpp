@@ -4,14 +4,16 @@
 #include <sstream>
 
 #include "ompl/base/spaces/DiscreteStateSpace.h"
+#include "base/samplers/OwnerRef.h"
 #include "../init.h"
 namespace nb = nanobind;
 
 void ompl::binding::base::initSpaces_DiscreteStateSpace(nb::module_ &m)
 {
     // Bind the discrete state sampler.
-    nb::class_<ompl::base::DiscreteStateSampler, ompl::base::StateSampler>(m, "DiscreteStateSampler")
-        .def(nb::init<const ompl::base::StateSpace *>())
+    nb::class_<ompl::base::DiscreteStateSampler, ompl::base::StateSampler, WithOwner<ompl::base::DiscreteStateSampler>>(
+        m, "DiscreteStateSampler", nb::type_slots(ownerSlots<ompl::base::DiscreteStateSampler>))
+        .def("__init__", initWithOwner<ompl::base::DiscreteStateSampler, ompl::base::StateSpace>(), nb::arg("space"))
         .def("sampleUniform", &ompl::base::DiscreteStateSampler::sampleUniform)
         .def("sampleUniformNear", &ompl::base::DiscreteStateSampler::sampleUniformNear)
         .def("sampleGaussian", &ompl::base::DiscreteStateSampler::sampleGaussian);

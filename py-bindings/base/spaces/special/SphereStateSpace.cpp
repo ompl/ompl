@@ -4,6 +4,7 @@
 
 #include "ompl/base/spaces/special/SphereStateSpace.h"
 #include "ompl/base/StateSpace.h"
+#include "base/samplers/OwnerRef.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -18,8 +19,9 @@ void ompl::binding::base::initSpacesSpecial_SphereStateSpace(nb::module_ &m)
         .def("setPhi", &ob::SphereStateSpace::StateType::setPhi, nb::arg("phi"))
         .def("setThetaPhi", &ob::SphereStateSpace::StateType::setThetaPhi, nb::arg("theta"), nb::arg("phi"));
 
-    nb::class_<ob::SphereStateSampler, ob::StateSampler>(m, "SphereStateSampler")
-        .def(nb::init<const ob::StateSpace *>(), nb::arg("space"))
+    nb::class_<ob::SphereStateSampler, ob::StateSampler, WithOwner<ob::SphereStateSampler>>(
+        m, "SphereStateSampler", nb::type_slots(ownerSlots<ob::SphereStateSampler>))
+        .def("__init__", initWithOwner<ob::SphereStateSampler, ob::StateSpace>(), nb::arg("space"))
         .def("sampleUniform", &ob::SphereStateSampler::sampleUniform, nb::arg("state"))
         .def("sampleUniformNear", &ob::SphereStateSampler::sampleUniformNear, nb::arg("state"), nb::arg("near"),
              nb::arg("distance"))

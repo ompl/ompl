@@ -6,6 +6,7 @@
 #include "ompl/base/OptimizationObjective.h"
 #include "ompl/geometric/planners/rrt/VFRRT.h"
 #include "PyGC.h"
+#include "base/objectives/VectorField.h"
 #include "../init.h"
 
 namespace nb = nanobind;
@@ -21,8 +22,7 @@ namespace
         nb::object vf;
 
         PyVFUpstreamCriterion(const ob::SpaceInformationPtr &si, nb::object field)
-          : ob::VFUpstreamCriterionOptimizationObjective(si, [this](const ob::State *state)
-                                                         { return nb::cast<Eigen::VectorXd>(vf(state)); })
+          : ob::VFUpstreamCriterionOptimizationObjective(si, [this](const ob::State *state) { return evaluate(state); })
           , vf(std::move(field))
         {
         }
@@ -30,6 +30,11 @@ namespace
         // The stored vector field captures `this`.
         PyVFUpstreamCriterion(const PyVFUpstreamCriterion &) = delete;
         PyVFUpstreamCriterion &operator=(const PyVFUpstreamCriterion &) = delete;
+
+        Eigen::VectorXd evaluate(const ob::State *state) const
+        {
+            return ompl::binding::callVectorField(vf, *si_->getStateSpace(), state);
+        }
     };
 }  // namespace
 
@@ -37,7 +42,7 @@ void ompl::binding::base::initObjectives_VFUpstreamCriterionOptimizationObjectiv
 {
     nb::class_<PyVFUpstreamCriterion, ob::OptimizationObjective>(
         m, "VFUpstreamCriterionOptimizationObjective",
-        nb::type_slots(gc::gcSlots<PyVFUpstreamCriterion, &PyVFUpstreamCriterion::vf>))
+        nb::type_slots(gc::gcSlotsOver<ob::OptimizationObjective, PyVFUpstreamCriterion, &PyVFUpstreamCriterion::vf>))
         .def(
             "__init__", [](PyVFUpstreamCriterion *self, const ob::SpaceInformationPtr &si, nb::callable vf)
             { new (self) PyVFUpstreamCriterion(si, std::move(vf)); }, nb::arg("si"), nb::arg("vf"))

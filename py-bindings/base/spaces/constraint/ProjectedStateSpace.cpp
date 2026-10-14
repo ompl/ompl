@@ -5,6 +5,8 @@
 
 #include "ompl/base/spaces/constraint/ProjectedStateSpace.h"
 #include "ompl/base/Constraint.h"
+#include "base/samplers/OwnerRef.h"
+#include "base/spaces/constraint/OwnedGeodesic.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -13,8 +15,10 @@ namespace ob = ompl::base;
 void ompl::binding::base::initSpacesConstraint_ProjectedStateSpace(nb::module_ &m)
 {
     // TODO [ob::ProjectedStateSampler][TEST]
-    nb::class_<ob::ProjectedStateSampler, ob::WrapperStateSampler>(m, "ProjectedStateSampler")
-        .def(nb::init<const ob::ProjectedStateSpace *, ob::StateSamplerPtr>(), nb::arg("space"), nb::arg("sampler"))
+    nb::class_<ob::ProjectedStateSampler, ob::WrapperStateSampler, WithOwner<ob::ProjectedStateSampler>>(
+        m, "ProjectedStateSampler", nb::type_slots(ownerSlots<ob::ProjectedStateSampler>))
+        .def("__init__", initWithOwner<ob::ProjectedStateSampler, ob::ProjectedStateSpace, ob::StateSamplerPtr>(),
+             nb::arg("space"), nb::arg("sampler"))
         .def("sampleUniform", &ob::ProjectedStateSampler::sampleUniform, nb::arg("state"))
         .def("sampleUniformNear", &ob::ProjectedStateSampler::sampleUniformNear, nb::arg("state"), nb::arg("near"),
              nb::arg("distance"))
@@ -29,11 +33,7 @@ void ompl::binding::base::initSpacesConstraint_ProjectedStateSpace(nb::module_ &
         .def("allocStateSampler", &ob::ProjectedStateSpace::allocStateSampler)
         .def(
             "discreteGeodesic",
-            [](const ob::ProjectedStateSpace &pss, const ob::State *from, const ob::State *to, bool interpolate)
-            {
-                std::vector<ob::State *> geod;
-                bool ok = pss.discreteGeodesic(from, to, interpolate, &geod);
-                return std::make_pair(ok, geod);
-            },
+            [](const std::shared_ptr<ob::ProjectedStateSpace> &self, const ob::State *from, const ob::State *to,
+               bool interpolate) { return ownedGeodesic(self, from, to, interpolate); },
             nb::arg("from"), nb::arg("to"), nb::arg("interpolate") = false);
 }

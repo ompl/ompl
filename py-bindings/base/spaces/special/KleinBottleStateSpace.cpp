@@ -4,6 +4,7 @@
 
 #include "ompl/base/spaces/special/KleinBottleStateSpace.h"
 #include "ompl/base/StateSpace.h"
+#include "base/samplers/OwnerRef.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -18,8 +19,9 @@ void ompl::binding::base::initSpacesSpecial_KleinBottleStateSpace(nb::module_ &m
         .def("setV", &ob::KleinBottleStateSpace::StateType::setV, nb::arg("v"))
         .def("setUV", &ob::KleinBottleStateSpace::StateType::setUV, nb::arg("u"), nb::arg("v"));
 
-    nb::class_<ob::KleinBottleStateSampler, ob::StateSampler>(m, "KleinBottleStateSampler")
-        .def(nb::init<const ob::StateSpace *>(), nb::arg("space"))
+    nb::class_<ob::KleinBottleStateSampler, ob::StateSampler, WithOwner<ob::KleinBottleStateSampler>>(
+        m, "KleinBottleStateSampler", nb::type_slots(ownerSlots<ob::KleinBottleStateSampler>))
+        .def("__init__", initWithOwner<ob::KleinBottleStateSampler, ob::StateSpace>(), nb::arg("space"))
         .def("sampleUniform", &ob::KleinBottleStateSampler::sampleUniform, nb::arg("state"))
         .def("sampleUniformNear", &ob::KleinBottleStateSampler::sampleUniformNear, nb::arg("state"), nb::arg("near"),
              nb::arg("distance"))

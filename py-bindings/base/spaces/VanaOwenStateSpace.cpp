@@ -9,6 +9,16 @@
 namespace nb = nanobind;
 namespace ob = ompl::base;
 
+namespace
+{
+    // operator[] indexes the x, y, z of the RealVector component without a bounds check.
+    void checkPositionIndex(unsigned int i)
+    {
+        if (i >= 3)
+            throw nb::index_error("state index out of range (0, 1 or 2 for x, y, z)");
+    }
+}  // namespace
+
 void ompl::binding::base::initSpaces_VanaOwenStateSpace(nb::module_ &m)
 {
     nb::enum_<ob::VanaOwenStateSpace::PathCategory>(m, "VanaOwenPathCategory")
@@ -27,8 +37,18 @@ void ompl::binding::base::initSpaces_VanaOwenStateSpace(nb::module_ &m)
         .def_rw("numTurns_", &ob::VanaOwenStateSpace::PathType::numTurns_);
 
     nb::class_<ob::VanaOwenStateSpace::StateType, ob::CompoundState>(m, "VanaOwenStateType")
-        .def("__getitem__", [](const ob::VanaOwenStateSpace::StateType *s, unsigned int i) { return (*s)[i]; })
-        .def("__setitem__", [](ob::VanaOwenStateSpace::StateType *s, unsigned int i, double v) { (*s)[i] = v; })
+        .def("__getitem__",
+             [](const ob::VanaOwenStateSpace::StateType *s, unsigned int i)
+             {
+                 checkPositionIndex(i);
+                 return (*s)[i];
+             })
+        .def("__setitem__",
+             [](ob::VanaOwenStateSpace::StateType *s, unsigned int i, double v)
+             {
+                 checkPositionIndex(i);
+                 (*s)[i] = v;
+             })
         .def("getYaw", [](const ob::VanaOwenStateSpace::StateType *s) { return s->yaw(); })
         .def("setYaw", [](ob::VanaOwenStateSpace::StateType *s, double v) { s->yaw() = v; })
         .def("getPitch", [](const ob::VanaOwenStateSpace::StateType *s) { return s->pitch(); })

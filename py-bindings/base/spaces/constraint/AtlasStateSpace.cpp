@@ -7,6 +7,8 @@
 #include <sstream>
 #include "ompl/base/spaces/constraint/AtlasStateSpace.h"
 #include "ompl/base/spaces/constraint/AtlasChart.h"
+#include "base/samplers/OwnerRef.h"
+#include "base/spaces/constraint/OwnedGeodesic.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -23,8 +25,9 @@ void ompl::binding::base::initSpacesConstraint_AtlasStateSpace(nb::module_ &m)
     m.attr("ATLAS_STATE_SPACE_BACKOFF") = nb::cast(0.75);
 
     // TODO [ob::AtlasStateSampler][TEST]
-    nb::class_<ob::AtlasStateSampler, ob::StateSampler>(m, "AtlasStateSampler")
-        .def(nb::init<const ob::AtlasStateSpace *>(), nb::arg("space"))
+    nb::class_<ob::AtlasStateSampler, ob::StateSampler, WithOwner<ob::AtlasStateSampler>>(
+        m, "AtlasStateSampler", nb::type_slots(ownerSlots<ob::AtlasStateSampler>))
+        .def("__init__", initWithOwner<ob::AtlasStateSampler, ob::AtlasStateSpace>(), nb::arg("space"))
         .def("sampleUniform", &ob::AtlasStateSampler::sampleUniform, nb::arg("state"))
         .def("sampleUniformNear", &ob::AtlasStateSampler::sampleUniformNear, nb::arg("state"), nb::arg("near"),
              nb::arg("distance"))
@@ -65,12 +68,8 @@ void ompl::binding::base::initSpacesConstraint_AtlasStateSpace(nb::module_ &m)
         // discrete geodesic
         .def(
             "discreteGeodesic",
-            [](const ob::AtlasStateSpace &space, const ob::State *from, const ob::State *to, bool interpolate)
-            {
-                std::vector<ob::State *> geod;
-                bool ok = space.discreteGeodesic(from, to, interpolate, &geod);
-                return std::make_pair(ok, geod);
-            },
+            [](const std::shared_ptr<ob::AtlasStateSpace> &self, const ob::State *from, const ob::State *to,
+               bool interpolate) { return ownedGeodesic(self, from, to, interpolate); },
             nb::arg("from"), nb::arg("to"), nb::arg("interpolate") = false)
         .def("anchorChart", &ob::AtlasStateSpace::anchorChart, nb::arg("state"), nb::rv_policy::reference_internal)
         .def("estimateFrontierPercent", &ob::AtlasStateSpace::estimateFrontierPercent)

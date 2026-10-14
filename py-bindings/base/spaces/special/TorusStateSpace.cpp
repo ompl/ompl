@@ -4,6 +4,7 @@
 
 #include "ompl/base/spaces/special/TorusStateSpace.h"
 #include "ompl/base/StateSpace.h"
+#include "base/samplers/OwnerRef.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -18,8 +19,9 @@ void ompl::binding::base::initSpacesSpecial_TorusStateSpace(nb::module_ &m)
         .def("setS2", &ob::TorusStateSpace::StateType::setS2, nb::arg("s"))
         .def("setS1S2", &ob::TorusStateSpace::StateType::setS1S2, nb::arg("s1"), nb::arg("s2"));
 
-    nb::class_<ob::TorusStateSampler, ob::StateSampler>(m, "TorusStateSampler")
-        .def(nb::init<const ob::StateSpace *>(), nb::arg("space"))
+    nb::class_<ob::TorusStateSampler, ob::StateSampler, WithOwner<ob::TorusStateSampler>>(
+        m, "TorusStateSampler", nb::type_slots(ownerSlots<ob::TorusStateSampler>))
+        .def("__init__", initWithOwner<ob::TorusStateSampler, ob::StateSpace>(), nb::arg("space"))
         .def("sampleUniform", &ob::TorusStateSampler::sampleUniform, nb::arg("state"))
         .def("sampleUniformNear", &ob::TorusStateSampler::sampleUniformNear, nb::arg("state"), nb::arg("near"),
              nb::arg("distance"))

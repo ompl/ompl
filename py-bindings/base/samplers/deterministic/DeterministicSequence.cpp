@@ -20,7 +20,14 @@ void ompl::binding::base::initSamplersDeterministic_DeterministicSequence(nb::mo
 
         std::vector<double> sample() override
         {
-            NB_OVERRIDE_PURE(sample);
+            nb::detail::ticket nb_ticket(nb_trampoline, "sample", true);
+            auto result = nb::cast<std::vector<double>>(nb_trampoline.base().attr(nb_ticket.key)());
+            // Samplers index the result up to dimensions_ without checking its length.
+            if (result.size() != dimensions_)
+                throw nb::value_error(("DeterministicSequence.sample() returned " + std::to_string(result.size()) +
+                                       " value(s), expected " + std::to_string(dimensions_))
+                                          .c_str());
+            return result;
         }
     };
 

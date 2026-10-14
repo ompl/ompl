@@ -34,6 +34,7 @@ void ompl::binding::base::initObjectives_StateCostIntegralObjective(nb::module_ 
 
     nb::class_<ob::StateCostIntegralObjective, ob::OptimizationObjective,
                PyStateCostIntegralObjective /* <-- trampoline */>(m, "StateCostIntegralObjective")
-        .def(nb::init<const ob::SpaceInformationPtr &, bool>(), nb::arg("si"), nb::arg("enableMotionCostInterpolation"))
+        .def(nb::init<const ob::SpaceInformationPtr &, bool>(), nb::arg("si"),
+             nb::arg("enableMotionCostInterpolation") = false)
         .def("isMotionCostInterpolationEnabled", &ob::StateCostIntegralObjective::isMotionCostInterpolationEnabled);
 }

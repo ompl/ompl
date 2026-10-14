@@ -7,6 +7,7 @@
 #include "ompl/base/objectives/MechanicalWorkOptimizationObjective.h"
 #include "ompl/geometric/planners/rrt/VFRRT.h"
 #include "PyGC.h"
+#include "base/objectives/VectorField.h"
 #include "../init.h"
 
 namespace nb = nanobind;
@@ -22,8 +23,7 @@ namespace
         nb::object vf;
 
         PyVFMechanicalWork(const ob::SpaceInformationPtr &si, nb::object field)
-          : ob::VFMechanicalWorkOptimizationObjective(si, [this](const ob::State *state)
-                                                      { return nb::cast<Eigen::VectorXd>(vf(state)); })
+          : ob::VFMechanicalWorkOptimizationObjective(si, [this](const ob::State *state) { return evaluate(state); })
           , vf(std::move(field))
         {
         }
@@ -31,6 +31,11 @@ namespace
         // The stored vector field captures `this`.
         PyVFMechanicalWork(const PyVFMechanicalWork &) = delete;
         PyVFMechanicalWork &operator=(const PyVFMechanicalWork &) = delete;
+
+        Eigen::VectorXd evaluate(const ob::State *state) const
+        {
+            return ompl::binding::callVectorField(vf, *si_->getStateSpace(), state);
+        }
     };
 }  // namespace
 
@@ -38,7 +43,8 @@ void ompl::binding::base::initObjectives_VFMechanicalWorkOptimizationObjective(n
 {
     nb::class_<PyVFMechanicalWork, ob::MechanicalWorkOptimizationObjective>(
         m, "VFMechanicalWorkOptimizationObjective",
-        nb::type_slots(gc::gcSlots<PyVFMechanicalWork, &PyVFMechanicalWork::vf>))
+        nb::type_slots(
+            gc::gcSlotsOver<ob::MechanicalWorkOptimizationObjective, PyVFMechanicalWork, &PyVFMechanicalWork::vf>))
         .def(
             "__init__", [](PyVFMechanicalWork *self, const ob::SpaceInformationPtr &si, nb::callable vf)
             { new (self) PyVFMechanicalWork(si, std::move(vf)); }, nb::arg("si"), nb::arg("vf"))

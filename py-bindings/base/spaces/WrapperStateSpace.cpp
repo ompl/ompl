@@ -9,18 +9,31 @@
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/base/StateSpace.h"
 
+#include "base/samplers/OwnerRef.h"
 #include "../init.h"
 #include "../validation.h"
 
 namespace nb = nanobind;
 namespace ob = ompl::base;
 
+namespace
+{
+    double *valueAt(const ob::WrapperStateSpace &space, ob::State *state, unsigned int index)
+    {
+        double *value = space.getValueAddressAtIndex(state, index);
+        if (value == nullptr)
+            throw nb::index_error("state value index out of range");
+        return value;
+    }
+}  // namespace
+
 void ompl::binding::base::initSpaces_WrapperStateSpace(nb::module_ &m)
 {
     // TODO [ob::WrapperStateSpace][TEST]
-    nb::class_<ob::WrapperStateSampler, ob::StateSampler>(m, "WrapperStateSampler")
-        .def(nb::init<const ob::StateSpace *, ob::StateSamplerPtr>(), nb::arg("space"), nb::arg("sampler"),
-             "Construct a wrapper sampler that delegates to a given sampler")
+    nb::class_<ob::WrapperStateSampler, ob::StateSampler, WithOwner<ob::WrapperStateSampler>>(
+        m, "WrapperStateSampler", nb::type_slots(ownerSlots<ob::WrapperStateSampler>))
+        .def("__init__", initWithOwner<ob::WrapperStateSampler, ob::StateSpace, ob::StateSamplerPtr>(),
+             nb::arg("space"), nb::arg("sampler"), "Construct a wrapper sampler that delegates to a given sampler")
         .def("sampleUniform", &ob::WrapperStateSampler::sampleUniform, nb::arg("state"),
              "Uniformly sample the wrapped space")
         .def("sampleUniformNear", &ob::WrapperStateSampler::sampleUniformNear, nb::arg("state"), nb::arg("near"),
@@ -44,7 +57,9 @@ void ompl::binding::base::initSpaces_WrapperStateSpace(nb::module_ &m)
             "Project a wrapped state into the low‑dimensional space");
 
     // TODO [ob::WrapperStateSpace::StateType][TEST]
-    nb::class_<ompl::base::WrapperStateSpace::StateType, ompl::base::State> stateType(m, "WrapperStateType");
+    nb::class_<ompl::base::WrapperStateSpace::StateType, ompl::base::State>(m, "WrapperStateType")
+        .def("getState", nb::overload_cast<>(&ob::WrapperStateSpace::StateType::getState),
+             nb::rv_policy::reference_internal, "The state of the wrapped space");
     //
     // WrapperStateSpace
     //
@@ -151,6 +166,12 @@ void ompl::binding::base::initSpaces_WrapperStateSpace(nb::module_ &m)
              nb::overload_cast<ob::State *, const std::string &>(&ob::WrapperStateSpace::getValueAddressAtName,
                                                                  nb::const_),
              nb::arg("state"), nb::arg("name"))
+        .def(
+            "getValue", [](const ob::WrapperStateSpace &space, ob::State *state, unsigned int index)
+            { return *valueAt(space, state, index); }, nb::arg("state"), nb::arg("index"))
+        .def(
+            "setValue", [](const ob::WrapperStateSpace &space, ob::State *state, unsigned int index, double value)
+            { *valueAt(space, state, index) = value; }, nb::arg("state"), nb::arg("index"), nb::arg("value"))
         .def(
             "copyToReals",
             [](const ob::WrapperStateSpace &ss, const ob::State *source)
