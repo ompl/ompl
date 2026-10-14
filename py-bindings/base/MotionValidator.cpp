@@ -5,11 +5,16 @@
 #include "ompl/base/MotionValidator.h"
 #include "ompl/base/SpaceInformation.h"
 #include "init.h"
+#include "validation.h"
 namespace nb = nanobind;  // Trampoline class for Python subclassing
-class PyMotionValidator : public ompl::base::MotionValidator
+class PyMotionValidator : public ompl::base::MotionValidator, public ompl::binding::base::OwnsSpaceInformation
 {
 public:
     NB_TRAMPOLINE(ompl::base::MotionValidator, 2);
+    explicit PyMotionValidator(const ompl::base::SpaceInformationPtr &si)
+      : ompl::base::MotionValidator(si), ompl::binding::base::OwnsSpaceInformation{si}
+    {
+    }
     bool checkMotion(const ompl::base::State *s1, const ompl::base::State *s2) const override
     {
         NB_OVERRIDE_PURE(checkMotion, s1, s2);
@@ -36,8 +41,11 @@ public:
 };
 void ompl::binding::base::init_MotionValidator(nb::module_ &m)
 {
-    nb::class_<ompl::base::MotionValidator, PyMotionValidator>(m, "MotionValidator")
-        .def(nb::init<ompl::base::SpaceInformation *>())
+    nb::class_<ompl::base::MotionValidator, PyMotionValidator>(
+        m, "MotionValidator", nb::type_slots(ompl::binding::base::motionValidatorSlots))
+        .def(
+            "__init__", [](ompl::base::MotionValidator *self, const ompl::base::SpaceInformationPtr &si)
+            { new (self) PyMotionValidator(si); }, nb::arg("si"))
         .def("checkMotion", nb::overload_cast<const ompl::base::State *, const ompl::base::State *>(
                                 &ompl::base::MotionValidator::checkMotion, nb::const_))
         .def(

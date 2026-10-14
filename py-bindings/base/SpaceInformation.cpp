@@ -6,6 +6,7 @@
 #include <nanobind/stl/pair.h>
 #include <nanobind/stl/tuple.h>
 #include <sstream>
+#include <thread>
 
 #include "ompl/base/SpaceInformation.h"
 #include "ompl/base/State.h"
@@ -17,11 +18,6 @@
 namespace nb = nanobind;
 namespace gc = ompl::binding::gc;
 
-static PyObject **get_dict_ptr(PyObject *obj)
-{
-    return gc::dictPtr(obj);
-}
-
 // States handed to Python are owned by their wrapper: ompl::base::State has a protected destructor, so
 // nanobind cannot release one on its own. The deleter holds the space that allocated the state.
 static std::shared_ptr<ompl::base::State> ownedState(const ompl::base::SpaceInformation &si, ompl::base::State *state)
@@ -29,43 +25,89 @@ static std::shared_ptr<ompl::base::State> ownedState(const ompl::base::SpaceInfo
     return {state, [space = si.getStateSpace()](ompl::base::State *s) { space->freeState(s); }};
 }
 
+namespace
+{
+    struct CallableStateValidityChecker : ompl::base::StateValidityChecker, gc::HoldsCallable
+    {
+        CallableStateValidityChecker(ompl::base::SpaceInformation *si, nb::object fn)
+          : ompl::base::StateValidityChecker(si), gc::HoldsCallable(std::move(fn)), owner_(std::this_thread::get_id())
+        {
+        }
+
+        using ompl::base::StateValidityChecker::isValid;
+        bool isValid(const ompl::base::State *state) const override
+        {
+            if (std::this_thread::get_id() == owner_)
+                return gc::call<bool>(callable, state);
+            // An exception escaping a planner's or GoalLazySamples' worker thread would std::terminate.
+            nb::gil_scoped_acquire gil;
+            try
+            {
+                return gc::call<bool>(callable, state);
+            }
+            catch (nb::python_error &e)
+            {
+                e.discard_as_unraisable(callable.get());
+            }
+            catch (const nb::cast_error &)
+            {
+                PyErr_SetString(PyExc_TypeError, "a state validity checker must return a bool");
+                PyErr_WriteUnraisable(callable.get().ptr());
+            }
+            return false;
+        }
+
+    private:
+        std::thread::id owner_;
+    };
+}  // namespace
+
+int ompl::binding::base::visitSpaceInformation(const ompl::base::SpaceInformation &si, visitproc visit, void *arg)
+{
+    if (int rc = gc::visitHeld(si.getStateSpace(), visit, arg))
+        return rc;
+    if (int rc = gc::visitHeld(si.getStateValidityChecker(), visit, arg))
+        return rc;
+    if (int rc = gc::visitHeld(si.getMotionValidator(), visit, arg))
+        return rc;
+    for (const auto &entry : si.params().getParams())
+        if (int rc = gc::visitHeld(entry.second, visit, arg))
+            return rc;
+    return 0;
+}
+
+void ompl::binding::base::clearSpaceInformation(ompl::base::SpaceInformation &si)
+{
+    if (gc::holdsPython(si.getStateValidityChecker()))
+        si.setStateValidityChecker(ompl::base::StateValidityCheckerPtr());
+    if (gc::holdsPython(si.getMotionValidator()))
+        si.setMotionValidator(ompl::base::MotionValidatorPtr());
+    std::vector<std::string> pythonParams;
+    for (const auto &entry : si.params().getParams())
+        if (gc::holdsPython(entry.second))
+            pythonParams.push_back(entry.first);
+    for (const auto &name : pythonParams)
+        si.params().remove(name);
+}
+
 int space_information_tp_traverse(PyObject *self, visitproc visit, void *arg)
 {
     Py_VISIT(Py_TYPE(self));
     if (!nb::inst_ready(self))
         return 0;
-
-    // The validity checker is stashed in __dict__ by its setters, so visiting the dict covers it. Reporting it
-    // a second time from the C++ side would claim more references than exist and the collector would keep the
-    // cycle alive as if something outside held it.
-    PyObject **dictptr = get_dict_ptr(self);
-    if (dictptr && *dictptr)
-    {
-        Py_VISIT(*dictptr);
-    }
-    return 0;
+    if (int rc = gc::visitDict(self, visit, arg))
+        return rc;
+    // A view of a C++-owned SpaceInformation does not own what the C++ object holds.
+    if (!gc::pythonOwned(self))
+        return 0;
+    return ompl::binding::base::visitSpaceInformation(*nb::inst_ptr<ompl::base::SpaceInformation>(self), visit, arg);
 }
 
 int space_information_tp_clear(PyObject *self)
 {
-    // 1. Clear __dict__
-    PyObject **dictptr = get_dict_ptr(self);
-    if (dictptr && *dictptr)
-    {
-        Py_CLEAR(*dictptr);
-    }
-    // 2. Break C++ Cycle
-    try
-    {
-        auto *si = nb::inst_ptr<ompl::base::SpaceInformation>(self);
-        if (si)
-        {
-            si->setStateValidityChecker(ompl::base::StateValidityCheckerPtr(nullptr));
-        }
-    }
-    catch (...)
-    {
-    }
+    if (nb::inst_ready(self) && gc::pythonOwned(self))
+        ompl::binding::base::clearSpaceInformation(*nb::inst_ptr<ompl::base::SpaceInformation>(self));
+    gc::clearDict(self);
     return 0;
 }
 
@@ -86,44 +128,18 @@ void ompl::binding::base::init_SpaceInformation(nb::module_ &m)
         .def("distance", &ompl::base::SpaceInformation::distance)
         .def("enforceBounds", &ompl::base::SpaceInformation::enforceBounds)
         .def("printState", [](const ompl::base::SpaceInformation &si, const ompl::base::State *state) { si.printState(state, std::cout); })
-        .def("setStateValidityChecker",
-            [](ompl::base::SpaceInformation &si, nb::callable func) {
-                // The strong reference lives in __dict__ where tp_clear can drop it; handing OMPL a
-                // std::function built by nanobind's caster would instead keep the callable alive with a
-                // Py_INCREF the collector cannot see, and the cycle could never be broken.
-                nb::handle self = nb::find(si);
-                nb::object keeper = gc::keeper(self, func);
-                si.setStateValidityChecker(
-                    [fn = nb::handle(func), keeper](const ompl::base::State *state)
-                    {
-                        // PRM and LazyPRM call this from their solution-checking thread.
-                        nb::gil_scoped_acquire gil;
-                        return nb::cast<bool>(fn(state));
-                    });
-                // Only now: publishing first would drop the previous callback while OMPL still borrows it.
-                if (self.is_valid()) nb::setattr(self, "_svc", func);
-            },
+        .def(
+            "setStateValidityChecker",
+            [](ompl::base::SpaceInformation &si, const ompl::base::StateValidityCheckerPtr &svc)
+            { si.setStateValidityChecker(svc); },
             nb::arg("svc"))
-        .def("setStateValidityChecker",
-            [](ompl::base::SpaceInformation &si, ompl::base::StateValidityChecker *checker) {
-                // An owning shared_ptr would carry a py_deleter reference to the checker that the collector
-                // cannot see, making it a GC root and pinning everything it reaches. __dict__ holds it
-                // instead, so tp_traverse reports it exactly once and tp_clear can drop it.
-                gc::installBorrowed<ompl::base::StateValidityCheckerPtr>(
-                    nb::find(si), "_svc", checker,
-                    [&si](const ompl::base::StateValidityCheckerPtr &svc) { si.setStateValidityChecker(svc); });
-            },
+        .def(
+            "setStateValidityChecker",
+            [](ompl::base::SpaceInformation &si, nb::callable fn)
+            { si.setStateValidityChecker(std::make_shared<CallableStateValidityChecker>(&si, std::move(fn))); },
             nb::arg("svc"))
         .def("getStateValidityChecker", &ompl::base::SpaceInformation::getStateValidityChecker)
-        .def(
-            "setMotionValidator",
-            [](ompl::base::SpaceInformation &si, ompl::base::MotionValidator *mv)
-            {
-                gc::installBorrowed<ompl::base::MotionValidatorPtr>(
-                    nb::find(si), "_mv", mv,
-                    [&si](const ompl::base::MotionValidatorPtr &v) { si.setMotionValidator(v); });
-            },
-            nb::arg("mv"))
+        .def("setMotionValidator", &ompl::base::SpaceInformation::setMotionValidator, nb::arg("mv"))
         .def("getMotionValidator", nb::overload_cast<>(&ompl::base::SpaceInformation::getMotionValidator, nb::const_))
         .def("setStateValidityCheckingResolution", &ompl::base::SpaceInformation::setStateValidityCheckingResolution)
         .def("getStateValidityCheckingResolution", &ompl::base::SpaceInformation::getStateValidityCheckingResolution)
@@ -143,7 +159,42 @@ void ompl::binding::base::init_SpaceInformation(nb::module_ &m)
         .def("getMaximumExtent", &ompl::base::SpaceInformation::getMaximumExtent)
         .def("searchValidNearby", nb::overload_cast<ompl::base::State*, const ompl::base::State*, double, unsigned int>(&ompl::base::SpaceInformation::searchValidNearby, nb::const_))
         .def("searchValidNearby", nb::overload_cast<const ompl::base::ValidStateSamplerPtr&, ompl::base::State*, const ompl::base::State*, double>(&ompl::base::SpaceInformation::searchValidNearby, nb::const_))
-        .def("randomBounceMotion", &ompl::base::SpaceInformation::randomBounceMotion)
+        .def(
+            "randomBounceMotion",
+            [](const ompl::base::SpaceInformation &si, const ompl::base::StateSamplerPtr &sampler,
+               const ompl::base::State *start, unsigned int steps)
+            {
+                std::vector<ompl::base::State *> states;
+                unsigned int added = 0;
+                try
+                {
+                    added = si.randomBounceMotion(sampler, start, steps, states, true);
+                }
+                catch (...)
+                {
+                    for (ompl::base::State *state : states)
+                        if (state)
+                            si.freeState(state);
+                    throw;
+                }
+                std::vector<std::shared_ptr<ompl::base::State>> owned;
+                owned.reserve(added);
+                for (std::size_t i = 0; i < states.size(); ++i)
+                {
+                    if (i < added)
+                        owned.push_back(ownedState(si, states[i]));
+                    else
+                        si.freeState(states[i]);
+                }
+                return owned;
+            },
+            nb::arg("sampler"), nb::arg("start"), nb::arg("steps"))
+        .def(
+            "randomBounceMotion",
+            [](const ompl::base::SpaceInformation &si, const ompl::base::StateSamplerPtr &sampler,
+               const ompl::base::State *start, unsigned int steps, std::vector<ompl::base::State *> states)
+            { return si.randomBounceMotion(sampler, start, steps, states, false); },
+            nb::arg("sampler"), nb::arg("start"), nb::arg("steps"), nb::arg("states"))
 
         .def("checkMotion", nb::overload_cast<const ompl::base::State*, const ompl::base::State*>(&ompl::base::SpaceInformation::checkMotion, nb::const_))
 
@@ -202,7 +253,7 @@ void ompl::binding::base::init_SpaceInformation(nb::module_ &m)
              })
     // Virtual method: printProperties
     .def("printProperties", [](const ompl::base::SpaceInformation &si) { si.printProperties(std::cout); })
-        .def("params", nb::overload_cast<>(&ompl::base::SpaceInformation::params, nb::const_))
+        .def("params", nb::overload_cast<>(&ompl::base::SpaceInformation::params), nb::rv_policy::reference_internal)
         .def("setup", &ompl::base::SpaceInformation::setup)
         .def("isSetup", &ompl::base::SpaceInformation::isSetup);
     // Protected method: setMotionValidator

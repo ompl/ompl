@@ -1,7 +1,18 @@
 #include <nanobind/nanobind.h>
 
+namespace ompl::base
+{
+    class ParamSet;
+    class SpaceInformation;
+}  // namespace ompl::base
+
 namespace ompl::binding::base
 {
+    int visitParams(const ompl::base::ParamSet &params, visitproc visit, void *arg);
+    void clearParams(ompl::base::ParamSet &params);
+    int visitSpaceInformation(const ompl::base::SpaceInformation &si, visitproc visit, void *arg);
+    void clearSpaceInformation(ompl::base::SpaceInformation &si);
+
     void init_ConstrainedSpaceInformation(nanobind::module_ &m);
     void init_Constraint(nanobind::module_ &m);
     void init_Cost(nanobind::module_ &m);

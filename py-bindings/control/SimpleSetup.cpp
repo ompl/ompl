@@ -14,6 +14,7 @@
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/ProblemDefinition.h"
 #include "ompl/base/OptimizationObjective.h"
+#include "ompl/util/Exception.h"
 
 #include "PyGC.h"
 #include "init.h"
@@ -28,89 +29,34 @@ struct SimpleSetupPublicist : public oc::SimpleSetup
     using oc::SimpleSetup::configured_;
 };
 
-// function decl not needed here since we are defining it
-// void ompl::binding::control::init_SimpleSetup(nb::module_ &m);
-
-// Helper dictionary access
-static PyObject **get_dict_ptr(PyObject *obj)
-{
-    return _PyObject_GetDictPtr(obj);
-}
-
+// The SI and pdef are shared with the planner and the user, so only what ss alone holds counts.
 int simple_setup_tp_traverse(PyObject *self, visitproc visit, void *arg)
 {
     Py_VISIT(Py_TYPE(self));
     if (!nb::inst_ready(self))
         return 0;
+    if (int rc = gc::visitDict(self, visit, arg))
+        return rc;
+    if (!gc::pythonOwned(self))
+        return 0;
 
-    // 1. Visit __dict__
-    PyObject **dictptr = get_dict_ptr(self);
-    if (dictptr && *dictptr)
-    {
-        Py_VISIT(*dictptr);
-    }
-
-    try
-    {
-        auto *ss = nb::inst_ptr<oc::SimpleSetup>(self);
-        if (ss)
-        {
-            // Visit SpaceInformation
-            auto si = ss->getSpaceInformation();
-            if (si)
-            {
-                nb::handle h = nb::find(si);
-                if (h.is_valid())
-                    Py_VISIT(h.ptr());
-            }
-            // Visit ProblemDefinition
-            auto pdef = ss->getProblemDefinition();
-            if (pdef)
-            {
-                nb::handle h = nb::find(pdef);
-                if (h.is_valid())
-                    Py_VISIT(h.ptr());
-            }
-            // Visit Planner
-            auto planner = ss->getPlanner();
-            if (planner)
-            {
-                nb::handle h = nb::find(planner);
-                if (h.is_valid())
-                    Py_VISIT(h.ptr());
-            }
-            // The validity checker and the propagator live in __dict__, already visited above. Reporting them
-            // again would claim more references than exist and the collector would treat the cycle as
-            // externally held.
-        }
-    }
-    catch (...)
-    {
-    }
-    return 0;
+    const auto &ss = *nb::inst_ptr<oc::SimpleSetup>(self);
+    if (int rc = gc::visitHeld(ss.getPlanner(), visit, arg))
+        return rc;
+    return gc::visitHeld(ss.getPlannerAllocator(), visit, arg);
 }
 
 int simple_setup_tp_clear(PyObject *self)
 {
-    // 1. Clear __dict__
-    PyObject **dictptr = get_dict_ptr(self);
-    if (dictptr && *dictptr)
+    if (nb::inst_ready(self) && gc::pythonOwned(self))
     {
-        Py_CLEAR(*dictptr);
+        auto &ss = *nb::inst_ptr<oc::SimpleSetup>(self);
+        if (gc::holdsPython(ss.getPlannerAllocator()))
+            ss.setPlannerAllocator(ob::PlannerAllocator());
+        if (gc::holdsPython(ss.getPlanner()))
+            ss.setPlanner(ob::PlannerPtr());
     }
-    // 2. Break C++ Cycle
-    try
-    {
-        auto *ss = nb::inst_ptr<oc::SimpleSetup>(self);
-        if (ss)
-        {
-            ss->setStateValidityChecker(ompl::base::StateValidityCheckerPtr(nullptr));
-            ss->setStatePropagator(oc::StatePropagatorPtr(nullptr));
-        }
-    }
-    catch (...)
-    {
-    }
+    gc::clearDict(self);
     return 0;
 }
 
@@ -151,85 +97,48 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
         .def("getPlanner", &oc::SimpleSetup::getPlanner)
 
         // getPlannerAllocator
-        .def("getPlannerAllocator", &oc::SimpleSetup::getPlannerAllocator)
+        .def("getPlannerAllocator",
+             [](const oc::SimpleSetup &ss) -> nb::object
+             {
+                 const ob::PlannerAllocator &pa = ss.getPlannerAllocator();
+                 if (nb::handle fn = gc::callableOf(pa); fn.is_valid())
+                     return nb::borrow(fn);
+                 return pa ? nb::cast(pa) : nb::none();
+             })
 
         // haveExactSolutionPath, haveSolutionPath
         .def("haveExactSolutionPath", &oc::SimpleSetup::haveExactSolutionPath)
         .def("haveSolutionPath", &oc::SimpleSetup::haveSolutionPath)
 
-        // getSolutionPath (return by reference)
-        .def(
-            "getSolutionPath", [](oc::SimpleSetup &self) -> oc::PathControl & { return self.getSolutionPath(); },
-            nb::rv_policy::reference_internal)
+        // Shares ownership: clear(), setStartAndGoalStates() and solve() drop the problem definition's path.
+        .def("getSolutionPath",
+             [](const oc::SimpleSetup &self)
+             {
+                 const ob::ProblemDefinitionPtr &pdef = self.getProblemDefinition();
+                 auto path = pdef ? std::dynamic_pointer_cast<oc::PathControl>(pdef->getSolutionPath()) : nullptr;
+                 if (!path)
+                     throw ompl::Exception("No solution path");
+                 return path;
+             })
 
         // getPlannerData
         .def(
             "getPlannerData", [](oc::SimpleSetup &self, ob::PlannerData &pd) { self.getPlannerData(pd); },
             nb::arg("plannerData"))
 
-        // setStateValidityChecker (two overloads)
+        // The SpaceInformation holds the checker and the propagator, so its binding wraps callables.
         .def(
-            "setStateValidityChecker",
-            [](oc::SimpleSetup &ss, nb::callable svc)
-            {
-                // See PyGC.h: the strong reference belongs in __dict__, not inside the std::function.
-                nb::handle self = nb::find(ss);
-                nb::object keeper = gc::keeper(self, svc);
-                ss.setStateValidityChecker(
-                    [fn = nb::handle(svc), keeper](const ompl::base::State *state)
-                    {
-                        // Planners may check validity from a helper thread.
-                        nb::gil_scoped_acquire gil;
-                        return nb::cast<bool>(fn(state));
-                    });
-                // Only now: publishing first would drop the previous callback while OMPL still borrows it.
-                if (self.is_valid())
-                    nb::setattr(self, "_svc", svc);
-            },
-            nb::arg("svc"))
+            "setStateValidityChecker", [](oc::SimpleSetup &ss, const ob::StateValidityCheckerPtr &svc)
+            { ss.setStateValidityChecker(svc); }, nb::arg("svc"))
         .def(
-            "setStateValidityChecker",
-            [](oc::SimpleSetup &ss, ompl::base::StateValidityChecker *checker)
-            {
-                // See PyGC.h: an owning shared_ptr would pin the checker behind a py_deleter reference the
-                // collector cannot see, so __dict__ holds it and C++ only aliases it.
-                gc::installBorrowed<ompl::base::StateValidityCheckerPtr>(
-                    nb::find(ss), "_svc", checker,
-                    [&ss](const ompl::base::StateValidityCheckerPtr &svc) { ss.setStateValidityChecker(svc); });
-            },
-            nb::arg("svc"))
-
-        // setStatePropagator (Ptr and Fn)
+            "setStateValidityChecker", [](oc::SimpleSetup &ss, nb::callable svc)
+            { nb::cast(ss.getSpaceInformation()).attr("setStateValidityChecker")(svc); }, nb::arg("svc"))
         .def(
             "setStatePropagator",
-            [](oc::SimpleSetup &ss, oc::StatePropagator *prop)
-            {
-                // See the same overload on control::SpaceInformation: an owning shared_ptr would pin
-                // everything the propagator holds behind a reference the collector cannot see.
-                gc::installBorrowed<oc::StatePropagatorPtr>(nb::find(ss), "_prop", prop,
-                                                            [&ss](const oc::StatePropagatorPtr &sp)
-                                                            { ss.setStatePropagator(sp); });
-            },
-            nb::arg("sp"))
+            [](oc::SimpleSetup &ss, const oc::StatePropagatorPtr &sp) { ss.setStatePropagator(sp); }, nb::arg("sp"))
         .def(
-            "setStatePropagator",
-            [](oc::SimpleSetup &ss, nb::callable sp)
-            {
-                nb::handle self = nb::find(ss);
-                nb::object keeper = gc::keeper(self, sp);
-                ss.setStatePropagator(
-                    [fn = nb::handle(sp), keeper](const ompl::base::State *state, const oc::Control *control,
-                                                  double duration, ompl::base::State *result)
-                    {
-                        // Planners may propagate from a helper thread.
-                        nb::gil_scoped_acquire gil;
-                        fn(state, control, duration, result);
-                    });
-                // Only now: publishing first would drop the previous callback while OMPL still borrows it.
-                if (self.is_valid())
-                    nb::setattr(self, "_prop", sp);
-            },
-            nb::arg("sp"))
+            "setStatePropagator", [](oc::SimpleSetup &ss, nb::callable sp)
+            { nb::cast(ss.getSpaceInformation()).attr("setStatePropagator")(sp); }, nb::arg("sp"))
 
         // setOptimizationObjective
         .def("setOptimizationObjective", &oc::SimpleSetup::setOptimizationObjective, nb::arg("objective"))
@@ -273,12 +182,32 @@ void ompl::binding::control::init_SimpleSetup(nb::module_ &m)
 
         // setPlanner, setPlannerAllocator
         .def("setPlanner", &oc::SimpleSetup::setPlanner, nb::arg("planner"))
-        .def("setPlannerAllocator", &oc::SimpleSetup::setPlannerAllocator, nb::arg("allocator"))
+        .def(
+            "setPlannerAllocator", [](oc::SimpleSetup &ss, nb::callable allocator)
+            { ss.setPlannerAllocator(gc::function<ob::PlannerAllocator>(std::move(allocator))); }, nb::arg("allocator"))
+        .def(
+            "setPlannerAllocator", [](oc::SimpleSetup &ss, std::nullptr_t)
+            { ss.setPlannerAllocator(ob::PlannerAllocator()); }, nb::arg("allocator").none())
 
-        // solve() methods (two overloads)
-        .def("solve", nb::overload_cast<double>(&oc::SimpleSetup::solve), nb::arg("time") = 1.0)
-        .def("solve", nb::overload_cast<const ob::PlannerTerminationCondition &>(&oc::SimpleSetup::solve),
-             nb::arg("terminationCondition"))
+        // setup() keeps the GIL for Python callbacks that may not take it themselves; see PlannerSolve.h for solve.
+        .def(
+            "solve",
+            [](oc::SimpleSetup &ss, double time)
+            {
+                ss.setup();
+                nb::gil_scoped_release release;
+                return ss.solve(time);
+            },
+            nb::arg("time") = 1.0)
+        .def(
+            "solve",
+            [](oc::SimpleSetup &ss, const ob::PlannerTerminationCondition &ptc)
+            {
+                ss.setup();
+                nb::gil_scoped_release release;
+                return ss.solve(ptc);
+            },
+            nb::arg("terminationCondition"))
 
         // getLastPlannerStatus, getLastPlanComputationTime
         .def("getLastPlannerStatus", &oc::SimpleSetup::getLastPlannerStatus)
