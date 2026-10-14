@@ -5,6 +5,7 @@
 #include "ompl/geometric/planners/prm/SPARS.h"
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/PlannerTerminationCondition.h"
+#include "PlannerSolve.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -13,47 +14,20 @@ namespace og = ompl::geometric;
 
 void ompl::binding::geometric::initPlannersPrm_SPARS(nb::module_ &m)
 {
-    nb::class_<og::SPARS, ob::Planner>(m, "SPARS",
-                                       "Warning: SPARS may use internal threads for solution checking. "
-                                       "Avoid Python StateValidityChecker trampolines when multithreading is enabled.")
+    nb::class_<og::SPARS, ob::Planner>(m, "SPARS")
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
         .def(
             "constructRoadmap",
-            [](og::SPARS &self, nb::object what, bool stopOnMaxFail)
+            [](og::SPARS &self, nb::handle what, bool stopOnMaxFail)
             {
-                if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                {
-                    return self.constructRoadmap(nb::cast<ob::PlannerTerminationCondition>(what), stopOnMaxFail);
-                }
-                else if (nb::isinstance<double>(what))
-                {
-                    return self.constructRoadmap(ob::timedPlannerTerminationCondition(nb::cast<double>(what)),
-                                                 stopOnMaxFail);
-                }
-                else
-                {
-                    throw nb::type_error(
-                        "Invalid argument type for constructRoadmap. Expected PlannerTerminationCondition or double.");
-                }
+                const ob::PlannerTerminationCondition ptc = ompl::binding::toTerminationCondition(what);
+                nb::gil_scoped_release release;
+                self.constructRoadmap(ptc, stopOnMaxFail);
             },
             nb::arg("ptc"), nb::arg("stopOnMaxFail") = false)
-        .def("solve",
-             [](og::SPARS &self, nb::object what)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                 {
-                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-                 }
-             })
+        .def("solve", ompl::binding::solveBinding<og::SPARS>(), nb::arg("what"))
+        .def("solve", ompl::binding::solveFnBinding<og::SPARS>(), nb::arg("terminationConditionFn"),
+             nb::arg("checkInterval") = 0.0)
         .def(
             "getPlannerData", [](const og::SPARS &self, ob::PlannerData &data) { self.getPlannerData(data); },
             nb::arg("data"))
@@ -69,5 +43,7 @@ void ompl::binding::geometric::initPlannersPrm_SPARS(nb::module_ &m)
         .def("getStretchFactor", &og::SPARS::getStretchFactor)
         .def("clearQuery", &og::SPARS::clearQuery)
         .def("milestoneCount", &og::SPARS::milestoneCount)
-        .def("guardCount", &og::SPARS::guardCount);
+        .def("guardCount", &og::SPARS::guardCount)
+        .def("getIterationCount", &og::SPARS::getIterationCount)
+        .def("getBestCost", &og::SPARS::getBestCost);
 }

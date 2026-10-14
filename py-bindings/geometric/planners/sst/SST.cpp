@@ -5,6 +5,7 @@
 #include "ompl/geometric/planners/sst/SST.h"
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/PlannerTerminationCondition.h"
+#include "PlannerSolve.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -15,23 +16,9 @@ void ompl::binding::geometric::initPlannersSst_SST(nb::module_ &m)
 {
     nb::class_<og::SST, ob::Planner>(m, "SST")
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
-        .def("solve",
-             [](og::SST &self, nb::object what)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                 {
-                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-                 }
-             })
+        .def("solve", ompl::binding::solveBinding<og::SST>(), nb::arg("what"))
+        .def("solve", ompl::binding::solveFnBinding<og::SST>(), nb::arg("terminationConditionFn"),
+             nb::arg("checkInterval") = 0.0)
         .def(
             "getPlannerData", [](const og::SST &self, ob::PlannerData &data) { self.getPlannerData(data); },
             nb::arg("data"))

@@ -6,6 +6,8 @@
 #include "ompl/tools/thunder/ThunderDB.h"
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/PlannerTerminationCondition.h"
+#include "ompl/geometric/PathGeometric.h"
+#include "PlannerSolve.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -17,16 +19,9 @@ void ompl::binding::geometric::initPlannersExperience_ThunderRetrieveRepair(nb::
 {
     nb::class_<og::ThunderRetrieveRepair, ob::Planner>(m, "ThunderRetrieveRepair")
         .def(nb::init<const ob::SpaceInformationPtr &, ot::ThunderDBPtr>(), nb::arg("si"), nb::arg("experienceDB"))
-        .def("solve",
-             [](og::ThunderRetrieveRepair &self, nb::object what)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 if (nb::isinstance<double>(what))
-                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 throw nb::type_error(
-                     "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-             })
+        .def("solve", ompl::binding::solveBinding<og::ThunderRetrieveRepair>(), nb::arg("what"))
+        .def("solve", ompl::binding::solveFnBinding<og::ThunderRetrieveRepair>(), nb::arg("terminationConditionFn"),
+             nb::arg("checkInterval") = 0.0)
         .def(
             "getPlannerData", [](const og::ThunderRetrieveRepair &self, ob::PlannerData &data)
             { self.getPlannerData(data); }, nb::arg("data"))
@@ -37,5 +32,14 @@ void ompl::binding::geometric::initPlannersExperience_ThunderRetrieveRepair(nb::
         .def("getNearestK", &og::ThunderRetrieveRepair::getNearestK)
         .def("setNearestK", &og::ThunderRetrieveRepair::setNearestK, nb::arg("nearestK"))
         .def("enableSmoothing", &og::ThunderRetrieveRepair::enableSmoothing, nb::arg("enable"))
-        .def("getLastRecalledNearestPathChosen", &og::ThunderRetrieveRepair::getLastRecalledNearestPathChosen);
+        .def("getLastRecalledNearestPathChosen", &og::ThunderRetrieveRepair::getLastRecalledNearestPathChosen)
+        .def("getLastRecalledNearestPaths", &og::ThunderRetrieveRepair::getLastRecalledNearestPaths)
+        .def("getChosenRecallPath", &og::ThunderRetrieveRepair::getChosenRecallPath, nb::rv_policy::reference_internal)
+        .def("getRepairPlannerDatas",
+             [](const og::ThunderRetrieveRepair &self)
+             {
+                 std::vector<ob::PlannerDataPtr> data;
+                 self.getRepairPlannerDatas(data);
+                 return data;
+             });
 }

@@ -1,4 +1,5 @@
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
@@ -20,8 +21,16 @@ void ompl::binding::geometric::init_PathHybridization(nb::module_ &m)
         .def("computeHybridPath", &og::PathHybridization::computeHybridPath)
         .def("recordPath", &og::PathHybridization::recordPath, nb::arg("pp"), nb::arg("matchAcrossGaps"))
         .def("pathCount", &og::PathHybridization::pathCount)
-        .def("matchPaths", &og::PathHybridization::matchPaths, nb::arg("p"), nb::arg("q"), nb::arg("gapValue"),
-             nb::arg("indexP"), nb::arg("indexQ"))
+        .def(
+            "matchPaths",
+            [](const og::PathHybridization &self, const og::PathGeometric &p, const og::PathGeometric &q,
+               double gapValue)
+            {
+                std::vector<int> indexP, indexQ;
+                self.matchPaths(p, q, gapValue, indexP, indexQ);
+                return std::make_pair(indexP, indexQ);
+            },
+            nb::arg("p"), nb::arg("q"), nb::arg("gapValue"))
         .def("clear", &og::PathHybridization::clear)
         .def("__repr__",
              [](const og::PathHybridization &self)

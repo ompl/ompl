@@ -5,6 +5,7 @@
 #include "ompl/geometric/planners/rrt/LazyLBTRRT.h"
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/PlannerTerminationCondition.h"
+#include "PlannerSolve.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -15,23 +16,9 @@ void ompl::binding::geometric::initPlannersRrt_LazyLBTRRT(nb::module_ &m)
 {
     nb::class_<og::LazyLBTRRT, ob::Planner>(m, "LazyLBTRRT")
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
-        .def("solve",
-             [](og::LazyLBTRRT &self, nb::object what)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                 {
-                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-                 }
-             })
+        .def("solve", ompl::binding::solveBinding<og::LazyLBTRRT>(), nb::arg("what"))
+        .def("solve", ompl::binding::solveFnBinding<og::LazyLBTRRT>(), nb::arg("terminationConditionFn"),
+             nb::arg("checkInterval") = 0.0)
         .def(
             "getPlannerData", [](const og::LazyLBTRRT &self, ob::PlannerData &data) { self.getPlannerData(data); },
             nb::arg("data"))
@@ -41,5 +28,7 @@ void ompl::binding::geometric::initPlannersRrt_LazyLBTRRT(nb::module_ &m)
         .def("getGoalBias", &og::LazyLBTRRT::getGoalBias)
         .def("setRange", &og::LazyLBTRRT::setRange, nb::arg("distance"))
         .def("getRange", &og::LazyLBTRRT::getRange)
-        .def("setApproximationFactor", &og::LazyLBTRRT::setApproximationFactor, nb::arg("epsilon"));
+        .def("setApproximationFactor", &og::LazyLBTRRT::setApproximationFactor, nb::arg("epsilon"))
+        .def("getIterationCount", &og::LazyLBTRRT::getIterationCount)
+        .def("getBestCost", &og::LazyLBTRRT::getBestCost);
 }

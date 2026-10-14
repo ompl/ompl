@@ -5,6 +5,7 @@
 #include "ompl/geometric/planners/kpiece/KPIECE1.h"
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/PlannerTerminationCondition.h"
+#include "PlannerSolve.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -17,23 +18,9 @@ void ompl::binding::geometric::initPlannersKpiece_KPIECE1(nb::module_ &m)
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
 
         // solve
-        .def("solve",
-             [](og::KPIECE1 &self, nb::object what)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                 {
-                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-                 }
-             })
+        .def("solve", ompl::binding::solveBinding<og::KPIECE1>(), nb::arg("what"))
+        .def("solve", ompl::binding::solveFnBinding<og::KPIECE1>(), nb::arg("terminationConditionFn"),
+             nb::arg("checkInterval") = 0.0)
 
         .def(
             "getPlannerData", [](const og::KPIECE1 &self, ob::PlannerData &data) { self.getPlannerData(data); },

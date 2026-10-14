@@ -5,6 +5,7 @@
 #include "ompl/geometric/planners/informedtrees/ABITstar.h"
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/PlannerTerminationCondition.h"
+#include "PlannerSolve.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -16,16 +17,9 @@ void ompl::binding::geometric::initPlannersInformedtrees_ABITstar(nb::module_ &m
     nb::class_<og::ABITstar, og::BITstar>(m, "ABITstar")
         .def(nb::init<const ob::SpaceInformationPtr &, const std::string &>(), nb::arg("si"),
              nb::arg("name") = "ABITstar")
-        .def("solve",
-             [](og::ABITstar &self, nb::object what)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 if (nb::isinstance<double>(what))
-                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 throw nb::type_error(
-                     "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-             })
+        .def("solve", ompl::binding::solveBinding<og::ABITstar>(), nb::arg("what"))
+        .def("solve", ompl::binding::solveFnBinding<og::ABITstar>(), nb::arg("terminationConditionFn"),
+             nb::arg("checkInterval") = 0.0)
         .def(
             "getPlannerData", [](const og::ABITstar &self, ob::PlannerData &data) { self.getPlannerData(data); },
             nb::arg("data"))

@@ -7,9 +7,12 @@
 #include "ompl/geometric/planners/rrt/TSRRT.h"
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/PlannerTerminationCondition.h"
+#include "PyGC.h"
+#include "PlannerSolve.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
+namespace gc = ompl::binding::gc;
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
@@ -39,6 +42,42 @@ public:
     }
 };
 
+namespace
+{
+    struct TSRRTAccess : og::TSRRT
+    {
+        static og::TaskSpaceConfigPtr &taskSpace(og::TSRRT &planner)
+        {
+            return planner.*(&TSRRTAccess::task_space_);
+        }
+    };
+
+    int tsrrt_tp_traverse(PyObject *self, visitproc visit, void *arg)
+    {
+        if (int rc = ompl::binding::gc::traverseParent<ob::Planner>(self, visit, arg))
+            return rc;
+        if (!nb::inst_ready(self) || !gc::pythonOwned(self))
+            return 0;
+        return gc::visitHeld(TSRRTAccess::taskSpace(*nb::inst_ptr<og::TSRRT>(self)), visit, arg);
+    }
+
+    int tsrrt_tp_clear(PyObject *self)
+    {
+        ompl::binding::gc::clearParent<ob::Planner>(self);
+        if (nb::inst_ready(self) && gc::pythonOwned(self))
+        {
+            og::TaskSpaceConfigPtr &taskSpace = TSRRTAccess::taskSpace(*nb::inst_ptr<og::TSRRT>(self));
+            if (gc::holdsPython(taskSpace))
+                taskSpace.reset();
+        }
+        return 0;
+    }
+
+    PyType_Slot tsrrt_slots[] = {{Py_tp_traverse, (void *)tsrrt_tp_traverse},
+                                 {Py_tp_clear, (void *)tsrrt_tp_clear},
+                                 {0, nullptr}};
+}  // namespace
+
 void ompl::binding::geometric::initPlannersRrt_TSRRT(nb::module_ &m)
 {
     nb::class_<og::TaskSpaceConfig, PyTaskSpaceConfig>(m, "TaskSpaceConfig")
@@ -48,26 +87,12 @@ void ompl::binding::geometric::initPlannersRrt_TSRRT(nb::module_ &m)
         .def("sample", &og::TaskSpaceConfig::sample, nb::arg("ts_proj"))
         .def("lift", &og::TaskSpaceConfig::lift, nb::arg("ts_proj"), nb::arg("seed"), nb::arg("state"));
 
-    nb::class_<og::TSRRT, ob::Planner>(m, "TSRRT")
+    nb::class_<og::TSRRT, ob::Planner>(m, "TSRRT", nb::type_slots(tsrrt_slots))
         .def(nb::init<const ob::SpaceInformationPtr &, const og::TaskSpaceConfigPtr &>(), nb::arg("si"),
              nb::arg("task_space"))
-        .def("solve",
-             [](og::TSRRT &self, nb::object what)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                 {
-                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-                 }
-             })
+        .def("solve", ompl::binding::solveBinding<og::TSRRT>(), nb::arg("what"))
+        .def("solve", ompl::binding::solveFnBinding<og::TSRRT>(), nb::arg("terminationConditionFn"),
+             nb::arg("checkInterval") = 0.0)
         .def(
             "getPlannerData", [](const og::TSRRT &self, ob::PlannerData &data) { self.getPlannerData(data); },
             nb::arg("data"))
