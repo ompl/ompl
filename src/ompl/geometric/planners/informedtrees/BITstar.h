@@ -297,6 +297,13 @@ namespace ompl
             void setNearestNeighbors();
 
         protected:
+            /** \brief Allocate the batch sampler. The default uses the problem's optimization objective. */
+            virtual base::InformedSamplerPtr allocInformedStateSampler(const base::ProblemDefinitionPtr &problem,
+                                                                     unsigned int maxCalls);
+
+            /** \brief Prepare custom sampling immediately before a new batch. The default does nothing. */
+            virtual void onNewBatch(const ImplicitGraph &graph);
+
             // ---
             // The settings that turn BIT* into ABIT*.
             // ---
