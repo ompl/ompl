@@ -33,11 +33,16 @@
  *********************************************************************/
 
 /* Author: Elias (OMPL contribution) */
+#include "PlannerComparisonGeometry.h"
 #include <ompl/base/ScopedState.h>
 #include <ompl/base/spaces/RealVectorStateSpace.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/informedtrees/BITstar.h>
 #include <ompl/geometric/planners/informedtrees/DDLBITstar.h>
+#include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <ompl/geometric/planners/rrt/InformedRRTstar.h>
+#include <ompl/geometric/planners/rrt/RRTConnect.h>
+#include <ompl/base/objectives/PathLengthOptimizationObjective.h>
 #include <ompl/util/RandomNumbers.h>
 #include <ompl/util/Console.h>
 #include <chrono>
@@ -45,19 +50,26 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <algorithm>
+#include <array>
+#include <limits>
+#include <vector>
 
 int main(int argc, char **argv)
 {
     if (argc != 5)
     {
-        std::cerr << "Usage: " << argv[0] << " BITstar|DDLBITstar open|passage|clutter|blocked seed seconds\n";
+        std::cerr << "Usage: " << argv[0] << " RRTstar|RRTConnect|InformedRRTstar|BITstar|DDLBITstar"
+                  << " open|passage|narrow|maze|surround|clutter|passage6d|blocked seed seconds\n";
         return 1;
     }
     try
     {
         const std::string plannerName(argv[1]), scenario(argv[2]);
-        if ((plannerName != "BITstar" && plannerName != "DDLBITstar") ||
-            (scenario != "open" && scenario != "passage" && scenario != "clutter" && scenario != "blocked"))
+        if ((plannerName != "BITstar" && plannerName != "DDLBITstar" && plannerName != "RRTstar" &&
+             plannerName != "InformedRRTstar" && plannerName != "RRTConnect") ||
+            (scenario != "open" && scenario != "passage" && scenario != "clutter" && scenario != "blocked" &&
+             scenario != "narrow" && scenario != "maze" && scenario != "surround" && scenario != "passage6d"))
             throw std::invalid_argument("Unknown planner or scenario");
         const auto seed = static_cast<unsigned int>(std::stoul(argv[3]));
         const double seconds = std::stod(argv[4]);
@@ -67,71 +79,153 @@ int main(int argc, char **argv)
         ompl::msg::setLogLevel(ompl::msg::LOG_ERROR);
         namespace ob = ompl::base;
         namespace og = ompl::geometric;
-        auto space = std::make_shared<ob::RealVectorStateSpace>(2);
-        ob::RealVectorBounds bounds(2);
+        const unsigned int dimension = scenario == "passage6d" ? 6u : 2u;
+        auto space = std::make_shared<ob::RealVectorStateSpace>(dimension);
+        ob::RealVectorBounds bounds(dimension);
         bounds.setLow(-1.0);
         bounds.setHigh(1.0);
         space->setBounds(bounds);
         og::SimpleSetup setup(space);
+        std::size_t validityChecks = 0;
+        const PlannerComparisonWorld world(scenario);
+        const auto validConfiguration = [&world](const ob::State *state) { return world.valid(state); };
+        std::size_t motionChecks = 0;
         setup.setStateValidityChecker(
-            [scenario](const ob::State *state)
+            [&](const ob::State *state)
             {
-                const auto *s = state->as<ob::RealVectorStateSpace::StateType>();
-                const double x = s->values[0], y = s->values[1];
-                if (scenario == "open")
-                    return true;
-                if (scenario == "passage")
-                    return std::abs(x) > 0.12 || (y > 0.45 && y < 0.7);
-                if (scenario == "blocked")
-                    return std::abs(x) > 0.12;
-                for (double cx : {-0.45, 0.0, 0.45})
-                    for (double cy : {-0.45, 0.0, 0.45})
-                        if ((x - cx) * (x - cx) + (y - cy) * (y - cy) < 0.15 * 0.15)
-                            return false;
-                return true;
+                ++validityChecks;
+                return validConfiguration(state);
             });
-        setup.getSpaceInformation()->setStateValidityCheckingResolution(0.002);
+        setup.getSpaceInformation()->setMotionValidator(
+            std::make_shared<PlannerComparisonMotionValidator>(setup.getSpaceInformation(), world, motionChecks));
+        setup.getSpaceInformation()->setStateValidityCheckingResolution(0.001);
         ob::ScopedState<> start(space), goal(space);
-        start[0] = -0.8;
-        start[1] = 0.0;
-        goal[0] = 0.8;
-        goal[1] = 0.0;
-        std::shared_ptr<og::BITstar> planner;
+        for (unsigned int i = 0; i < dimension; ++i)
+            start[i] = goal[i] = 0.0;
+        start[0] = -0.9;
+        goal[0] = 0.9;
+        if (dimension == 6)
+            for (unsigned int i = 2; i < dimension; ++i)
+            {
+                start[i] = -0.5;
+                goal[i] = 0.5;
+            }
+        if (scenario == "surround")
+        {
+            start[0] = goal[0] = 0.0;
+            start[1] = -0.25;
+            goal[1] = -0.85;
+        }
+        std::shared_ptr<ob::Planner> planner;
         std::shared_ptr<og::DDLBITstar> ddl;
+        std::shared_ptr<og::BITstar> bit;
         if (plannerName == "DDLBITstar")
         {
             ddl = std::make_shared<og::DDLBITstar>(setup.getSpaceInformation());
-            ddl->setGridResolution(0.15);
-            ddl->setBoundaryResolution(0.025);
-            ddl->setBoundaryStandardDeviation(0.08);
-            planner = ddl;
+            // Rescale Table 1's 500-unit map parameters to the width-2 domain.
+            ddl->setGridResolution(0.06);
+            ddl->setBoundaryResolution(0.008);
+            ddl->setBoundaryStandardDeviation(0.04);
+            bit = ddl;
+            planner = bit;
+        }
+        else if (plannerName == "BITstar")
+        {
+            bit = std::make_shared<og::BITstar>(setup.getSpaceInformation());
+            planner = bit;
+        }
+        else if (plannerName == "RRTConnect")
+        {
+            auto connect = std::make_shared<og::RRTConnect>(setup.getSpaceInformation());
+            connect->setRange(0.1);
+            planner = connect;
         }
         else
-            planner = std::make_shared<og::BITstar>(setup.getSpaceInformation());
-        planner->setSamplesPerBatch(50);
-        planner->setRewireFactor(1.1);
+        {
+            std::shared_ptr<og::RRTstar> rrt = plannerName == "RRTstar" ?
+                                                   std::make_shared<og::RRTstar>(setup.getSpaceInformation()) :
+                                                   std::make_shared<og::InformedRRTstar>(setup.getSpaceInformation());
+            rrt->setRange(0.1);
+            rrt->setGoalBias(0.1);
+            rrt->setRewireFactor(1.1);
+            planner = rrt;
+        }
+        if (bit)
+        {
+            bit->setSamplesPerBatch(50);
+            bit->setRewireFactor(1.1);
+        }
         setup.setStartAndGoalStates(start, goal);
+        setup.setOptimizationObjective(
+            std::make_shared<ob::PathLengthOptimizationObjective>(setup.getSpaceInformation()));
         setup.setPlanner(planner);
         setup.setup();
         double firstSolution = -1.0;
+        double firstCost = std::numeric_limits<double>::infinity();
+        std::vector<std::pair<double, double>> improvements;
         const auto begin = std::chrono::steady_clock::now();
         setup.getProblemDefinition()->setIntermediateSolutionCallback(
-            [&](const ob::Planner *, const std::vector<const ob::State *> &, const ob::Cost)
+            [&](const ob::Planner *, const std::vector<const ob::State *> &, const ob::Cost cost)
             {
+                const auto time = std::chrono::duration<double>(std::chrono::steady_clock::now() - begin).count();
                 if (firstSolution < 0.0)
-                    firstSolution = std::chrono::duration<double>(std::chrono::steady_clock::now() - begin).count();
+                {
+                    firstSolution = time;
+                    firstCost = cost.value();
+                }
+                improvements.emplace_back(time, cost.value());
             });
-        setup.solve(seconds);
+        const auto deadline = begin + std::chrono::duration<double>(seconds);
+        setup.solve(
+            ob::PlannerTerminationCondition([deadline] { return std::chrono::steady_clock::now() >= deadline; }));
         const auto elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - begin).count();
+        const auto planningChecks = validityChecks;
+        const auto planningMotionChecks = motionChecks;
         const bool exact = setup.haveExactSolutionPath();
-        const bool valid = exact && setup.getSolutionPath().check();
+        double finalCost = exact ? setup.getSolutionPath().length() : std::numeric_limits<double>::infinity();
+        if (exact && firstSolution < 0.0)
+        {
+            // RRT-Connect returns its first path without intermediate callbacks.
+            firstSolution = elapsed;
+            firstCost = finalCost;
+            improvements.emplace_back(elapsed, finalCost);
+        }
+        bool valid = exact && setup.getSolutionPath().check();
+        if (valid)
+        {
+            // Independently recheck returned edges at an absolute step ten times finer
+            // than the configured 2D checking resolution, using the geometric predicate.
+            const auto &states = setup.getSolutionPath().getStates();
+            ob::ScopedState<> check(space);
+            for (std::size_t edge = 1; edge < states.size() && valid; ++edge)
+            {
+                valid = world.segmentValid(states[edge - 1], states[edge]);
+                const auto segments = std::max(1u, static_cast<unsigned int>(std::ceil(
+                                                       space->distance(states[edge - 1], states[edge]) / 0.00025)));
+                for (unsigned int i = 0; i <= segments && valid; ++i)
+                {
+                    space->interpolate(states[edge - 1], states[edge], static_cast<double>(i) / segments, check.get());
+                    valid = space->satisfiesBounds(check.get()) && validConfiguration(check.get());
+                }
+            }
+        }
         ob::PlannerData data(setup.getSpaceInformation());
         planner->getPlannerData(data);
         std::cout << std::setprecision(10) << scenario << ',' << plannerName << ',' << seed << ',' << exact << ','
-                  << valid << ',' << firstSolution << ',' << planner->bestCost().value() << ',' << data.numVertices()
-                  << ',' << planner->numBatches() << ',' << (ddl ? ddl->numBoundaryPoints() : 0) << ','
+                  << valid << ',' << firstSolution << ',' << finalCost << ',' << data.numVertices() << ','
+                  << (bit ? bit->numBatches() : 0) << ',' << (ddl ? ddl->numBoundaryPoints() : 0) << ','
                   << (ddl ? ddl->numBoundarySamples() : 0) << ',' << (ddl ? ddl->numDensityRejections() : 0) << ','
-                  << (ddl ? ddl->numGridRebuilds() : 0) << ',' << elapsed << '\n';
+                  << (ddl ? ddl->numGridRebuilds() : 0) << ',' << elapsed << ',' << planningChecks << ',' << firstCost;
+        for (double checkpoint : {0.05, 0.1, 0.25, 0.5})
+        {
+            double cost = std::numeric_limits<double>::infinity();
+            if (checkpoint <= seconds)
+                for (const auto &improvement : improvements)
+                    if (improvement.first <= checkpoint)
+                        cost = std::min(cost, improvement.second);
+            std::cout << ',' << cost;
+        }
+        std::cout << ',' << planningMotionChecks << '\n';
         return exact && !valid ? 2 : 0;
     }
     catch (const std::exception &error)

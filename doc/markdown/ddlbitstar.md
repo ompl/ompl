@@ -87,7 +87,21 @@ with the same scenario, seed and time budget:
 ./build/demos/demo_DDLBITstar DDLBITstar passage 1 1.0
 ```
 
-Scenarios `open`, `passage`, `clutter` and `blocked` use [-1,1]^2. The CSV output
-reports exact success, path validity, first-solution time, final cost, retained
-states, batches, and DDL statistics. Repeat with multiple seeds; use results as
-evidence for these fixtures, rather than a reproduction of the paper's maps.
+The demo also accepts `RRTstar`, `RRTConnect` and `InformedRRTstar`. Scenarios
+`open`, `passage`, `narrow`, `maze`, `surround`, `clutter` and `blocked` use
+[-1,1]^2; `passage6d` extrudes a slit across four additional real coordinates.
+All planners use the same analytic rectangle/circle motion validator, with
+independent dense returned-path checks. The deadline uses `steady_clock`.
+
+The CSV reports exact success, path validity, first-solution time/cost, final
+cost, retained states, batches, DDL statistics, state-checker callback counts,
+motion-validator calls, and costs at 50/100/250/500 ms. RRT-Connect stops at its
+first returned solution; it does not optimize within the remaining budget.
+For the other planners first-solution times come from improvement callbacks.
+The callback count excludes endpoint predicates inside the motion validator.
+
+DDL spatial values are scaled from the paper by 2/500: density width 0.06,
+boundary width 0.008 and sigma 0.04. RRT*/Informed RRT* use range 0.1, goal bias
+0.1 and rewiring factor 1.1; RRT-Connect uses range 0.1. Repeat with multiple
+seeds. These fixtures and validator choices are not a reproduction of the
+paper's FCL environments or SE(3) experiments.
