@@ -11,7 +11,6 @@ void ompl::binding::util::init_Time(nb::module_ &m)
 {
     nb::class_<ompl::time::ProgressDisplay>(m, "ProgressDisplay")
         .def(nb::init<>())
-        .def(nb::init<std::ostream &>(), nb::arg("os"))
         .def("__call__", [](ompl::time::ProgressDisplay &pd) { return ++pd; })
         .def("count", &ompl::time::ProgressDisplay::count);
 

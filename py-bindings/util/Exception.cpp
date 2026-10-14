@@ -8,5 +8,6 @@ namespace nb = nanobind;
 
 void ompl::binding::util::init_Exception(nb::module_ &m)
 {
-    nb::exception<ompl::Exception>(m, "Exception", PyExc_RuntimeError);
+    // Not "Exception": `from ompl.util import *` would shadow the builtin. ompl/util.py keeps the old alias.
+    nb::exception<ompl::Exception>(m, "OMPLException", PyExc_RuntimeError);
 }

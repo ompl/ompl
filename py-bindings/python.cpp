@@ -259,5 +259,4 @@ NB_MODULE(_ompl, m)
     ompl::binding::multilevel::initPlanners_QRRTStar(multilevel);
     ompl::binding::multilevel::initPlanners_QMP(multilevel);
     ompl::binding::multilevel::initPlanners_QMPStar(multilevel);
-    ompl::binding::multilevel::init_BundleSpaceSequence(multilevel);
 }

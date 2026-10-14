@@ -17,7 +17,6 @@ namespace ompl::binding::multilevel
     void init_ParameterSmoothStep(nanobind::module_ &m);
     void init_BundleSpace(nanobind::module_ &m);
     void init_BundleSpaceGraph(nanobind::module_ &m);
-    void init_BundleSpaceSequence(nanobind::module_ &m);
     void init_PlannerDataVertexAnnotated(nanobind::module_ &m);
     void initMetrics_BundleSpaceMetric(nanobind::module_ &m);
     void initMetrics_Geodesic(nanobind::module_ &m);

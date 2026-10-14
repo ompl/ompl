@@ -3,6 +3,9 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
 
+#include <vector>
+
+#include "ompl/base/PlannerData.h"
 #include "ompl/tools/lightning/LightningDB.h"
 #include "../init.h"
 
@@ -26,6 +29,14 @@ void ompl::binding::tools::initLightning_LightningDB(nb::module_ &m)
                 return insertionTime;
             },
             nb::arg("solutionPath"))
+        .def("addPathHelper", &ot::LightningDB::addPathHelper, nb::arg("solutionPath"))
+        .def("getAllPlannerDatas",
+             [](const ot::LightningDB &db)
+             {
+                 std::vector<ob::PlannerDataPtr> plannerDatas;
+                 db.getAllPlannerDatas(plannerDatas);
+                 return plannerDatas;
+             })
         .def("getExperiencesCount", &ot::LightningDB::getExperiencesCount)
         .def("getStatesCount", &ot::LightningDB::getStatesCount)
         .def("getNumUnsavedPaths", &ot::LightningDB::getNumUnsavedPaths)

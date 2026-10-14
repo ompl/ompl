@@ -37,6 +37,7 @@
 
 #include <ompl/tools/lightning/DynamicTimeWarp.h>
 
+#include <limits>
 #include <utility>
 
 namespace  // anonymous
@@ -63,15 +64,14 @@ double ompl::tools::DynamicTimeWarp::calcDTWDistance(const og::PathGeometric &pa
     std::size_t m = path2.getStateCount();
     std::size_t nrows = table_.rows(), ncols = table_.cols();
 
-    // Intialize table
+    // Intialize table; resize() discards the contents, so the borders are set on every call
     if (nrows <= n || ncols <= m)
-    {
         table_.resize(n + 1, m + 1);
-        for (std::size_t i = nrows; i <= n; ++i)
-            table_(i, 0) = std::numeric_limits<double>::infinity();
-        for (std::size_t i = ncols; i <= m; ++i)
-            table_(0, i) = std::numeric_limits<double>::infinity();
-    }
+    table_(0, 0) = 0.;
+    for (std::size_t i = 1; i <= n; ++i)
+        table_(i, 0) = std::numeric_limits<double>::infinity();
+    for (std::size_t j = 1; j <= m; ++j)
+        table_(0, j) = std::numeric_limits<double>::infinity();
 
     // Do calculations
     double cost;
