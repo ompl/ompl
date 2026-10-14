@@ -66,35 +66,47 @@ namespace ompl
         public:
             /** \brief Construct a planner using the paper's parameter defaults. */
             explicit DDLBITstar(const base::SpaceInformationPtr &si);
+            /** \brief Release owned perception state and sampler wrappers. */
             ~DDLBITstar() override;
 
+            /** \brief Validate the supported state space and configure BIT*. */
             void setup() override;
+            /** \brief Clear the graph and perception state while retaining settings. */
             void clear() override;
+            /** \brief Solve with cancellation-aware perception and sampling. */
             base::PlannerStatus solve(const base::PlannerTerminationCondition &terminationCondition) override;
 
             /** \brief Set/get the positive density-grid cell width (default 15). */
             void setGridResolution(double resolution);
+            /** \brief Return the configured sampling parameter. */
             double getGridResolution() const;
             /** \brief Set/get the positive boundary-deduplication cell width (default 2). */
             void setBoundaryResolution(double resolution);
+            /** \brief Return the configured sampling parameter. */
             double getBoundaryResolution() const;
             /** \brief Set/get the positive isotropic Gaussian standard deviation (default 10). */
             void setBoundaryStandardDeviation(double deviation);
+            /** \brief Return the configured sampling parameter. */
             double getBoundaryStandardDeviation() const;
             /** \brief Set/get the boundary proposal probability before a solution, in [0,1) (default 0.2). */
             void setExplorationBias(double bias);
+            /** \brief Return the configured sampling parameter. */
             double getExplorationBias() const;
             /** \brief Set/get the boundary proposal probability after a solution, in [0,1) (default 0.5). */
             void setOptimizationBias(double bias);
+            /** \brief Return the configured sampling parameter. */
             double getOptimizationBias() const;
             /** \brief Set/get the positive soft capacity for uniform proposals (default 1). */
             void setOpenCellCapacity(unsigned int capacity);
+            /** \brief Return the configured sampling parameter. */
             unsigned int getOpenCellCapacity() const;
             /** \brief Set/get the soft capacity for boundary proposals, greater than the open capacity (default 3). */
             void setBoundaryCellCapacity(unsigned int capacity);
+            /** \brief Return the configured sampling parameter. */
             unsigned int getBoundaryCellCapacity() const;
             /** \brief Set/get the positive number of scouting rays per batch (default 18). */
             void setScoutingRays(unsigned int rays);
+            /** \brief Return the configured sampling parameter. */
             unsigned int getScoutingRays() const;
 
             /** \brief Number of deduplicated boundary points currently stored. */
@@ -107,13 +119,18 @@ namespace ompl
             std::size_t numGridRebuilds() const;
 
         protected:
+            /** \brief Wrap the objective sampler with hybrid density admission. */
             base::InformedSamplerPtr allocInformedStateSampler(const base::ProblemDefinitionPtr &problem,
                                                                unsigned int maxCalls) override;
+            /** \brief Reconstruct occupancy as needed and scout before sampling. */
             void onNewBatch(const ImplicitGraph &graph) override;
 
         private:
+            /** \brief Reject setting changes until an initialized planner is cleared. */
             void checkConfigurationChange() const;
+            /** \brief Private perception and configuration state. */
             struct Impl;
+            /** \brief Owned implementation state, retained across clear(). */
             std::unique_ptr<Impl> impl_;
         };
     }  // namespace geometric
