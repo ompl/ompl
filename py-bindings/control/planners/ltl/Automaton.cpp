@@ -4,6 +4,7 @@
 #include <nanobind/stl/vector.h>
 #include <sstream>
 
+#include "ompl/config.h"
 #include "ompl/control/planners/ltl/Automaton.h"
 #include "../../init.h"
 
@@ -12,8 +13,12 @@ namespace oc = ompl::control;
 
 void ompl::binding::control::initPlannersLtl_Automaton(nb::module_ &m)
 {
-    nb::class_<oc::Automaton>(m, "Automaton")
-        .def(nb::init<unsigned int, unsigned int>(), nb::arg("numProps"), nb::arg("numStates") = 0)
+    nb::class_<oc::Automaton> automaton(m, "Automaton");
+#if OMPL_HAVE_SPOT
+    automaton.def(nb::init<unsigned int, std::string, bool>(), nb::arg("numProps"), nb::arg("formula"),
+                  nb::arg("isCosafe") = true);
+#endif
+    automaton.def(nb::init<unsigned int, unsigned int>(), nb::arg("numProps"), nb::arg("numStates") = 0)
         .def("addState", &oc::Automaton::addState, nb::arg("accepting") = false)
         .def("setAccepting", &oc::Automaton::setAccepting, nb::arg("s"), nb::arg("a"))
         .def("isAccepting", &oc::Automaton::isAccepting, nb::arg("s"))

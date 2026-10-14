@@ -36,7 +36,26 @@ void ompl::binding::control::initPlannersLtl_PropositionalDecomposition(nb::modu
         .def("getNumRegions", &oc::PropositionalDecomposition::getNumRegions)
         .def("getRegionVolume", &oc::PropositionalDecomposition::getRegionVolume, nb::arg("rid"))
         .def("locateRegion", &oc::PropositionalDecomposition::locateRegion, nb::arg("s"))
-        .def("project", &oc::PropositionalDecomposition::project, nb::arg("s"), nb::arg("coord"))
+        .def(
+            "project",
+            [](const oc::PropositionalDecomposition &d, const ob::State *s)
+            {
+                std::vector<double> coord;
+                d.project(s, coord);
+                return coord;
+            },
+            nb::arg("s"))
+        .def(
+            "sampleFromRegion",
+            [](const oc::PropositionalDecomposition &d, int rid, ompl::RNG &rng)
+            {
+                std::vector<double> coord;
+                d.sampleFromRegion(rid, rng, coord);
+                return coord;
+            },
+            nb::arg("rid"), nb::arg("rng"))
+        .def("sampleFullState", &oc::PropositionalDecomposition::sampleFullState, nb::arg("sampler"), nb::arg("coord"),
+             nb::arg("s"))
         .def(
             "getNeighbors",
             [](oc::PropositionalDecomposition &d, int rid)

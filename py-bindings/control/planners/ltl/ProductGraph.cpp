@@ -12,8 +12,8 @@ namespace ob = ompl::base;
 
 void ompl::binding::control::initPlannersLtl_ProductGraph(nb::module_ &m)
 {
+    // No constructor: a ProductGraph keeps raw pointers to its states, so they must come from getState().
     nb::class_<oc::ProductGraph::State>(m, "ProductGraphState")
-        .def(nb::init<>())
         .def("isValid", &oc::ProductGraph::State::isValid)
         .def("getDecompRegion", &oc::ProductGraph::State::getDecompRegion)
         .def("getCosafeState", &oc::ProductGraph::State::getCosafeState)

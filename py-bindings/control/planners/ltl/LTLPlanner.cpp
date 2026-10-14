@@ -4,6 +4,7 @@
 
 #include "ompl/control/planners/ltl/LTLPlanner.h"
 #include "ompl/base/PlannerTerminationCondition.h"
+#include "PlannerSolve.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -15,16 +16,9 @@ void ompl::binding::control::initPlannersLtl_LTLPlanner(nb::module_ &m)
     nb::class_<oc::LTLPlanner, ob::Planner>(m, "LTLPlanner")
         .def(nb::init<const oc::LTLSpaceInformationPtr &, oc::ProductGraphPtr, double>(), nb::arg("si"), nb::arg("a"),
              nb::arg("exploreTime") = 0.5)
-        .def("solve",
-             [](oc::LTLPlanner &self, nb::object what)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 if (nb::isinstance<double>(what))
-                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 throw nb::type_error(
-                     "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-             })
+        .def("solve", ompl::binding::solveBinding<oc::LTLPlanner>(), nb::arg("what"))
+        .def("solve", ompl::binding::solveFnBinding<oc::LTLPlanner>(), nb::arg("terminationConditionFn"),
+             nb::arg("checkInterval") = 0.0)
         .def("clear", &oc::LTLPlanner::clear)
         .def("setup", &oc::LTLPlanner::setup)
         .def("getTree",

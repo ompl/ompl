@@ -31,13 +31,13 @@ namespace
         const auto &cspace = si->getControlSpace();
         const unsigned dim = cspace->getDimension();
 
-        if (const auto *rv = dynamic_cast<const oc::RealVectorControlSpace *>(cspace.get()))
+        if (dynamic_cast<const oc::RealVectorControlSpace *>(cspace.get()) != nullptr)
         {
             const auto *ctrl = static_cast<const oc::RealVectorControlSpace::ControlType *>(u);
             for (unsigned i = 0; i < dim; ++i)
                 result.append((*ctrl)[i]);
         }
-        else if (const auto *dc = dynamic_cast<const oc::DiscreteControlSpace *>(cspace.get()))
+        else if (dynamic_cast<const oc::DiscreteControlSpace *>(cspace.get()) != nullptr)
         {
             const auto *ctrl = static_cast<const oc::DiscreteControlSpace::ControlType *>(u);
             result.append(ctrl->value);
@@ -60,6 +60,7 @@ namespace
     void callODE(nb::handle fn, const oc::SpaceInformationPtr &si, const oc::ODESolver::StateType &x,
                  const oc::Control *u, oc::ODESolver::StateType &xnew)
     {
+        nb::gil_scoped_acquire gil;
         // nanobind's std::vector caster converts by copy, so the derivative has to be handed to Python as a
         // list and read back out; passing xnew directly would silently discard everything the ODE writes.
         nb::list qdot;
@@ -110,20 +111,26 @@ namespace
     template <typename Solver>
     int solverTraverse(PyObject *self, visitproc visit, void *arg)
     {
-        if (int rc = gc::traverse<Solver, &Solver::ode>(self, visit, arg); rc != 0)
-            return rc;
-        if (!nb::inst_ready(self))
+        Py_VISIT(Py_TYPE(self));
+        if (!nb::inst_ready(self) || !gc::pythonOwned(self))
             return 0;
 
-        nb::handle si = nb::find(nb::inst_ptr<Solver>(self)->getSpaceInformation());
-        if (si.is_valid())
-            Py_VISIT(si.ptr());
+        const auto *solver = nb::inst_ptr<Solver>(self);
+        Py_VISIT(solver->ode.ptr());
+        return gc::visitHeld(solver->getSpaceInformation(), visit, arg);
+    }
+
+    template <typename Solver>
+    int solverClear(PyObject *self)
+    {
+        if (nb::inst_ready(self) && gc::pythonOwned(self))
+            nb::inst_ptr<Solver>(self)->ode.reset();
         return 0;
     }
 
     template <typename Solver>
     PyType_Slot solverSlots[] = {{Py_tp_traverse, (void *)solverTraverse<Solver>},
-                                 {Py_tp_clear, (void *)gc::clear<Solver, &Solver::ode>},
+                                 {Py_tp_clear, (void *)solverClear<Solver>},
                                  {0, 0}};
 
     /// ODESolver::getStatePropagator() hides its propagator in a private nested class, so wrap it. Owning the
@@ -151,13 +158,28 @@ namespace
 
             impl->propagate(state, control, duration, result);
             if (postEvent.is_valid())
+            {
+                nb::gil_scoped_acquire gil;
                 postEvent(state, control, duration, result);
+            }
         }
     };
 
+    int propagatorTraverse(PyObject *self, visitproc visit, void *arg)
+    {
+        Py_VISIT(Py_TYPE(self));
+        if (!nb::inst_ready(self) || !gc::pythonOwned(self))
+            return 0;
+
+        const auto *prop = nb::inst_ptr<ODEStatePropagator>(self);
+        Py_VISIT(prop->solver.ptr());
+        Py_VISIT(prop->postEvent.ptr());
+        return 0;
+    }
+
     int propagatorClear(PyObject *self)
     {
-        if (!nb::inst_ready(self))
+        if (!nb::inst_ready(self) || !gc::pythonOwned(self))
             return 0;
 
         auto *prop = nb::inst_ptr<ODEStatePropagator>(self);
@@ -168,11 +190,9 @@ namespace
         return 0;
     }
 
-    PyType_Slot propagatorSlots[] = {
-        {Py_tp_traverse,
-         (void *)gc::traverse<ODEStatePropagator, &ODEStatePropagator::solver, &ODEStatePropagator::postEvent>},
-        {Py_tp_clear, (void *)propagatorClear},
-        {0, 0}};
+    PyType_Slot propagatorSlots[] = {{Py_tp_traverse, (void *)propagatorTraverse},
+                                     {Py_tp_clear, (void *)propagatorClear},
+                                     {0, 0}};
 
     template <typename Solver>
     nb::class_<Solver, oc::ODESolver> bindSolver(nb::module_ &m, const char *name)
@@ -200,14 +220,20 @@ void ompl::binding::control::init_ODESolver(nb::module_ &m)
         .def("getSpaceInformation", &oc::ODESolver::getSpaceInformation, nb::rv_policy::reference_internal)
         .def_static(
             "getStatePropagator",
-            [](nb::object solver, nb::object postEvent) -> oc::StatePropagatorPtr
+            [](nb::object solver, nb::object postEvent)
             {
                 auto *raw = nb::cast<oc::ODESolver *>(solver);
+                if (raw == nullptr)
+                    throw nb::type_error("solver must be an ompl.control.ODESolver");
                 if (!postEvent.is_none())
                     postEvent = nb::cast<nb::callable>(postEvent);
                 else
                     postEvent = nb::object();
-                return std::make_shared<ODEStatePropagator>(raw, std::move(solver), std::move(postEvent));
+                // Python owns the propagator, so its traverse may report the solver and postEvent it keeps alive.
+                auto prop = std::make_unique<ODEStatePropagator>(raw, std::move(solver), std::move(postEvent));
+                nb::object result = nb::cast(prop.get(), nb::rv_policy::take_ownership);
+                prop.release();
+                return result;
             },
             nb::arg("solver"), nb::arg("postEvent") = nb::none());
 

@@ -11,7 +11,7 @@ namespace ob = ompl::base;
 void ompl::binding::control::init_SteeredControlSampler(nb::module_ &m)
 {
     nb::class_<oc::SteeredControlSampler, oc::DirectedControlSampler>(m, "SteeredControlSampler")
-        .def(nb::init<const oc::SpaceInformation *>(), nb::arg("si"))
+        .def(nb::init<const oc::SpaceInformation *>(), nb::arg("si"), nb::keep_alive<1, 2>())
         .def("sampleTo",
              nb::overload_cast<oc::Control *, const ob::State *, ob::State *>(&oc::SteeredControlSampler::sampleTo),
              nb::arg("control"), nb::arg("source"), nb::arg("dest"))

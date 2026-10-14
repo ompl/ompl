@@ -8,6 +8,7 @@
 #include "ompl/control/SpaceInformation.h"
 #include "ompl/base/PlannerTerminationCondition.h"
 #include "ompl/base/PlannerData.h"
+#include "PlannerSolve.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -21,7 +22,9 @@ void ompl::binding::control::initPlannersRrt_RRT(nb::module_ &m)
         .def(nb::init<const oc::SpaceInformationPtr &>(), nb::arg("si"))
 
         // --- Overridden methods from base::Planner
-        .def("solve", &oc::RRT::solve, nb::arg("terminationCondition"))
+        .def("solve", ompl::binding::solveBinding<oc::RRT>(), nb::arg("terminationCondition"))
+        .def("solve", ompl::binding::solveFnBinding<oc::RRT>(), nb::arg("terminationConditionFn"),
+             nb::arg("checkInterval") = 0.0)
         .def("clear", &oc::RRT::clear)
 
         // --- RRT-specific methods
