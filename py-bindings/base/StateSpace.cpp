@@ -1,20 +1,72 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/trampoline.h>
+#include <nanobind/stl/function.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/map.h>
 #include "ompl/base/StateSpace.h"
+#include "ompl/base/StateSampler.h"
 #include <sstream>
+#include "PyGC.h"
 #include "init.h"
 #include "validation.h"
 
 namespace nb = nanobind;
+namespace gc = ompl::binding::gc;
 namespace ob = ompl::base;
+
+namespace
+{
+    // The sampler allocator is protected and has no getter.
+    struct SpaceAccess : ob::StateSpace
+    {
+        static const ob::StateSamplerAllocator &samplerAllocator(const ob::StateSpace &space)
+        {
+            return space.*(&SpaceAccess::ssa_);
+        }
+    };
+
+    int stateSpaceTraverse(PyObject *self, visitproc visit, void *arg)
+    {
+        Py_VISIT(Py_TYPE(self));
+        if (!nb::inst_ready(self) || !gc::pythonOwned(self))
+            return 0;
+        const auto &space = *nb::inst_ptr<ob::StateSpace>(self);
+        if (int rc = gc::visitHeld(SpaceAccess::samplerAllocator(space), visit, arg))
+            return rc;
+        return ompl::binding::base::visitParams(space.params(), visit, arg);
+    }
+
+    int stateSpaceClear(PyObject *self)
+    {
+        if (!nb::inst_ready(self) || !gc::pythonOwned(self))
+            return 0;
+        auto &space = *nb::inst_ptr<ob::StateSpace>(self);
+        if (gc::holdsPython(SpaceAccess::samplerAllocator(space)))
+            space.clearStateSamplerAllocator();
+        ompl::binding::base::clearParams(space.params());
+        return 0;
+    }
+
+    ob::State *&substate(const ob::CompoundStateSpace &space, ob::State *state, unsigned int index)
+    {
+        auto *compound = dynamic_cast<ob::CompoundState *>(state);
+        if (compound == nullptr)
+            throw nb::type_error("expected a CompoundState");
+        if (index >= space.getSubspaceCount())
+            throw nb::index_error("subspace index out of range");
+        return compound->components[index];
+    }
+
+    const PyType_Slot stateSpaceSlots[] = {{Py_tp_traverse, (void *)stateSpaceTraverse},
+                                           {Py_tp_clear, (void *)stateSpaceClear},
+                                           {0, 0}};
+}  // namespace
 
 void ompl::binding::base::init_StateSpace(nb::module_ &m)
 {
-    nb::class_<ob::StateSpace>(m, "StateSpace")
+    nb::class_<ob::StateSpace>(m, "StateSpace", nb::type_slots(stateSpaceSlots))
         .def("isCompound", &ob::StateSpace::isCompound)
         .def("isDiscrete", &ob::StateSpace::isDiscrete)
         .def("isHybrid", &ob::StateSpace::isHybrid)
@@ -48,6 +100,15 @@ void ompl::binding::base::init_StateSpace(nb::module_ &m)
              nb::arg("state"), nb::arg("index"), nb::rv_policy::reference_internal)
 
         .def("computeLocations", &ob::StateSpace::computeLocations)
+
+        .def(
+            "setStateSamplerAllocator", [](ob::StateSpace &space, nb::callable allocator)
+            { space.setStateSamplerAllocator(gc::function<ob::StateSamplerAllocator>(std::move(allocator))); },
+            nb::arg("allocator"))
+        .def("clearStateSamplerAllocator", &ob::StateSpace::clearStateSamplerAllocator)
+        .def("allocStateSampler", &ob::StateSpace::allocStateSampler)
+        .def("allocDefaultStateSampler", &ob::StateSpace::allocDefaultStateSampler)
+        .def("params", nb::overload_cast<>(&ob::StateSpace::params), nb::rv_policy::reference_internal)
 
         .def("registerProjection", &ob::StateSpace::registerProjection, nb::arg("name"), nb::arg("projection"))
         .def("registerDefaultProjection", &ob::StateSpace::registerDefaultProjection, nb::arg("projection"))
@@ -127,6 +188,15 @@ void ompl::binding::base::init_StateSpace(nb::module_ &m)
         // Management of subspaces
         .def("addSubspace", &ob::CompoundStateSpace::addSubspace)
         .def("getSubspaceCount", &ob::CompoundStateSpace::getSubspaceCount)
+        .def(
+            "getSubstate", [](const ob::CompoundStateSpace &space, ob::State *state, unsigned int index)
+            { return substate(space, state, index); }, nb::arg("state"), nb::arg("index"), nb::rv_policy::reference,
+            nb::keep_alive<0, 2>())
+        .def(
+            "setSubstate",
+            [](const ob::CompoundStateSpace &space, ob::State *state, unsigned int index, const ob::State *value)
+            { space.getSubspace(index)->copyState(substate(space, state, index), value); }, nb::arg("state"),
+            nb::arg("index"), nb::arg("value"))
         .def("getSubspace", nb::overload_cast<unsigned int>(&ob::CompoundStateSpace::getSubspace, nb::const_))
         .def("getSubspace", nb::overload_cast<const std::string &>(&ob::CompoundStateSpace::getSubspace, nb::const_))
         .def("hasSubspace", &ob::CompoundStateSpace::hasSubspace)

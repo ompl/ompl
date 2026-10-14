@@ -36,31 +36,60 @@
 
 #include "ompl/base/terminationconditions/CostConvergenceTerminationCondition.h"
 
+struct ompl::base::CostConvergenceTerminationCondition::Convergence
+{
+    Convergence(size_t window, double eps) : solutionsWindow(window), epsilon(eps)
+    {
+    }
+
+    /// Adds a solution cost; returns true once the planner has converged.
+    bool update(const Cost solutionCost)
+    {
+        ++solutions;
+        size_t count = std::min(solutions, solutionsWindow);
+        double newCost = ((count - 1) * averageCost + solutionCost.value()) / count;
+        double costLowerThreshold = (1. - epsilon) * averageCost;
+        double costUpperThreshold = (1. + epsilon) * averageCost;
+        averageCost = newCost;
+
+        if (count == solutionsWindow && averageCost > costLowerThreshold && averageCost < costUpperThreshold)
+        {
+            OMPL_DEBUG("CostConvergenceTerminationCondition: Cost of optimizing planner converged after %lu solutions",
+                       solutions);
+            return true;
+        }
+        return false;
+    }
+
+    /// Cumulative moving average of solutions found so far.
+    double averageCost{0.};
+    /// Number of solutions found so far.
+    size_t solutions{0};
+    /// Minimum number of solutions needed to decide whether the planner has converged.
+    const size_t solutionsWindow;
+    /// If an update to the cumulative moving average changes it by less than an epsilon fraction, convergence
+    /// has been reached.
+    const double epsilon;
+};
+
 ompl::base::CostConvergenceTerminationCondition::CostConvergenceTerminationCondition(
     ompl::base::ProblemDefinitionPtr &pdef, size_t solutionsWindow, double epsilon)
   : ompl::base::PlannerTerminationCondition(ompl::base::plannerNonTerminatingCondition())
   , pdef_(pdef)
-  , solutionsWindow_(solutionsWindow)
-  , epsilon_(epsilon)
+  , convergence_(std::make_shared<Convergence>(solutionsWindow, epsilon))
 {
+    // The callback outlives this object on pdef_; a copy of the condition shares its terminate() flag.
     pdef_->setIntermediateSolutionCallback(
-        [this](const Planner * /*planner*/, const std::vector<const State *> & /*states*/, const Cost cost) mutable
-        { this->processNewSolution(cost); });
+        [convergence = convergence_, ptc = static_cast<const PlannerTerminationCondition &>(*this)](
+            const Planner * /*planner*/, const std::vector<const State *> & /*states*/, const Cost cost)
+        {
+            if (convergence->update(cost))
+                ptc.terminate();
+        });
 }
 
 void ompl::base::CostConvergenceTerminationCondition::processNewSolution(const ompl::base::Cost solutionCost)
 {
-    ++solutions_;
-    size_t solutions = std::min(solutions_, solutionsWindow_);
-    double newCost = ((solutions - 1) * averageCost_ + solutionCost.value()) / solutions;
-    double costLowerThreshold = (1. - epsilon_) * averageCost_;
-    double costUpperThreshold = (1. + epsilon_) * averageCost_;
-    averageCost_ = newCost;
-
-    if (solutions == solutionsWindow_ && averageCost_ > costLowerThreshold && averageCost_ < costUpperThreshold)
-    {
-        OMPL_DEBUG("CostConvergenceTerminationCondition: Cost of optimizing planner converged after %lu solutions",
-                   solutions_);
+    if (convergence_->update(solutionCost))
         terminate();
-    }
 }

@@ -6,6 +6,7 @@
 #include "ompl/base/ValidStateSampler.h"
 #include "ompl/base/SpaceInformation.h"
 #include "init.h"
+#include "base/samplers/OwnerRef.h"
 
 namespace nb = nanobind;
 namespace ob = ompl::base;
@@ -28,8 +29,11 @@ void ompl::binding::base::init_ValidStateSampler(nb::module_ &m)
         }
     };
 
-    nb::class_<ob::ValidStateSampler, PyValidStateSampler /* <-- trampoline */>(m, "ValidStateSampler")
-        .def(nb::init<const ob::SpaceInformation *>(), nb::arg("si"))
+    nb::class_<ob::ValidStateSampler, ompl::binding::WithOwner<PyValidStateSampler> /* <-- trampoline */>(
+        m, "ValidStateSampler", nb::type_slots(ompl::binding::ownerSlots<ob::ValidStateSampler>))
+        .def("__init__",
+             ompl::binding::initWithOwnerAs<ob::ValidStateSampler, PyValidStateSampler, ob::SpaceInformation>(),
+             nb::arg("si"))
         .def("getName", &ob::ValidStateSampler::getName)
         .def("setName", &ob::ValidStateSampler::setName, nb::arg("name"))
         .def("sample", &ob::ValidStateSampler::sample, nb::arg("state"))

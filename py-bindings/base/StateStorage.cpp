@@ -3,13 +3,43 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
+#include <memory>
 #include <sstream>
+#include <utility>
 
+#include "ompl/base/StateSampler.h"
 #include "ompl/base/StateStorage.h"
 #include "init.h"
 
 namespace nb = nanobind;
 namespace ob = ompl::base;
+
+namespace
+{
+    std::shared_ptr<ob::State> ownedClone(const ob::StateStorage &storage, const ob::State *state)
+    {
+        const ob::StateSpacePtr &space = storage.getStateSpace();
+        return {space->cloneState(state), [space](ob::State *s) { space->freeState(s); }};
+    }
+
+    void checkIndex(const ob::StateStorage &storage, unsigned int index)
+    {
+        if (index >= storage.size())
+            throw nb::index_error("state index out of range");
+    }
+
+    /// OMPL's allocators, and the samplers they make, point into the storage without owning it.
+    ob::StateSamplerAllocator owningAllocator(std::shared_ptr<ob::StateStorage> storage,
+                                              ob::StateSamplerAllocator allocator)
+    {
+        return [storage = std::move(storage), allocator = std::move(allocator)](const ob::StateSpace *space)
+        {
+            auto owner = std::make_shared<std::pair<std::shared_ptr<ob::StateStorage>, ob::StateSamplerPtr>>(
+                storage, allocator(space));
+            return ob::StateSamplerPtr(owner, owner->second.get());
+        };
+    }
+}  // namespace
 
 void ompl::binding::base::init_StateStorage(nb::module_ &m)
 {
@@ -22,18 +52,41 @@ void ompl::binding::base::init_StateStorage(nb::module_ &m)
         .def("generateSamples", &ob::StateStorage::generateSamples, nb::arg("count"))
         .def("clear", &ob::StateStorage::clear)
         .def("size", &ob::StateStorage::size)
-        .def("getStates", &ob::StateStorage::getStates, nb::rv_policy::reference_internal)
-        .def("getState", nb::overload_cast<unsigned int>(&ob::StateStorage::getState, nb::const_), nb::arg("index"),
-             nb::rv_policy::reference_internal)
+        // Copies: clear() and load() free the stored states, which would leave views dangling.
+        .def("getStates",
+             [](const ob::StateStorage &storage)
+             {
+                 std::vector<std::shared_ptr<ob::State>> states;
+                 states.reserve(storage.size());
+                 for (const ob::State *state : storage.getStates())
+                     states.push_back(ownedClone(storage, state));
+                 return states;
+             })
+        .def(
+            "getState",
+            [](const ob::StateStorage &storage, unsigned int index)
+            {
+                checkIndex(storage, index);
+                return ownedClone(storage, storage.getState(index));
+            },
+            nb::arg("index"))
         .def("hasMetadata", &ob::StateStorage::hasMetadata)
         .def("sort", &ob::StateStorage::sort, nb::arg("op"))
-        .def("getStateSamplerAllocator", &ob::StateStorage::getStateSamplerAllocator)
-        .def("getStateSamplerAllocatorRangeUntil", &ob::StateStorage::getStateSamplerAllocatorRangeUntil,
-             nb::arg("until"))
-        .def("getStateSamplerAllocatorRangeAfter", &ob::StateStorage::getStateSamplerAllocatorRangeAfter,
-             nb::arg("after"))
-        .def("getStateSamplerAllocatorRange", &ob::StateStorage::getStateSamplerAllocatorRange, nb::arg("from"),
-             nb::arg("to"))
+        .def("getStateSamplerAllocator", [](const std::shared_ptr<ob::StateStorage> &storage)
+             { return owningAllocator(storage, storage->getStateSamplerAllocator()); })
+        .def(
+            "getStateSamplerAllocatorRangeUntil",
+            [](const std::shared_ptr<ob::StateStorage> &storage, std::size_t until)
+            { return owningAllocator(storage, storage->getStateSamplerAllocatorRangeUntil(until)); }, nb::arg("until"))
+        .def(
+            "getStateSamplerAllocatorRangeAfter",
+            [](const std::shared_ptr<ob::StateStorage> &storage, std::size_t after)
+            { return owningAllocator(storage, storage->getStateSamplerAllocatorRangeAfter(after)); }, nb::arg("after"))
+        .def(
+            "getStateSamplerAllocatorRange",
+            [](const std::shared_ptr<ob::StateStorage> &storage, std::size_t from, std::size_t to)
+            { return owningAllocator(storage, storage->getStateSamplerAllocatorRange(from, to)); }, nb::arg("from"),
+            nb::arg("to"))
         .def("__repr__",
              [](const ob::StateStorage &storage)
              {
@@ -44,9 +97,16 @@ void ompl::binding::base::init_StateStorage(nb::module_ &m)
 
     nb::class_<ob::GraphStateStorage, ob::StateStorage>(m, "GraphStateStorage")
         .def(nb::init<const ob::StateSpacePtr &>(), nb::arg("space"))
+        .def("addState", nb::overload_cast<const ob::State *>(&ob::GraphStateStorage::addState), nb::arg("state"))
         .def("addState",
              nb::overload_cast<const ob::State *, const std::vector<std::size_t> &>(&ob::GraphStateStorage::addState),
              nb::arg("state"), nb::arg("metadata"))
-        .def("getMetadata", nb::overload_cast<unsigned int>(&ob::GraphStateStorage::getMetadata, nb::const_),
-             nb::arg("index"), nb::rv_policy::reference_internal);
+        .def(
+            "getMetadata",
+            [](const ob::GraphStateStorage &storage, unsigned int index)
+            {
+                checkIndex(storage, index);
+                return storage.getMetadata(index);
+            },
+            nb::arg("index"));
 }

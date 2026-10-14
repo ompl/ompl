@@ -14,7 +14,7 @@ void ompl::binding::base::init_PlannerData(nb::module_ &m)
 {
     // PlannerDataVertex
     nb::class_<ob::PlannerDataVertex>(m, "PlannerDataVertex")
-        .def(nb::init<const ob::State *, int>(), nb::arg("st"), nb::arg("tag") = 0)
+        .def(nb::init<const ob::State *, int>(), nb::arg("st"), nb::arg("tag") = 0, nb::keep_alive<1, 2>())
         .def("getTag", &ob::PlannerDataVertex::getTag)
         .def("setTag", &ob::PlannerDataVertex::setTag, nb::arg("tag"))
         .def("getState", &ob::PlannerDataVertex::getState, nb::rv_policy::reference_internal);
@@ -26,9 +26,9 @@ void ompl::binding::base::init_PlannerData(nb::module_ &m)
     nb::class_<ob::PlannerData>(m, "PlannerData")
         .def(nb::init<ob::SpaceInformationPtr>(), nb::arg("si"))
         // Vertex operations
-        .def("addVertex", &ob::PlannerData::addVertex, nb::arg("st"))
-        .def("addStartVertex", &ob::PlannerData::addStartVertex, nb::arg("v"))
-        .def("addGoalVertex", &ob::PlannerData::addGoalVertex, nb::arg("v"))
+        .def("addVertex", &ob::PlannerData::addVertex, nb::arg("st"), nb::keep_alive<1, 2>())
+        .def("addStartVertex", &ob::PlannerData::addStartVertex, nb::arg("v"), nb::keep_alive<1, 2>())
+        .def("addGoalVertex", &ob::PlannerData::addGoalVertex, nb::arg("v"), nb::keep_alive<1, 2>())
         .def("removeVertex", nb::overload_cast<const ob::PlannerDataVertex &>(&ob::PlannerData::removeVertex),
              nb::arg("st"))
         .def("removeVertexByIndex", nb::overload_cast<unsigned int>(&ob::PlannerData::removeVertex), nb::arg("vIndex"))

@@ -6,6 +6,7 @@
 #include <nanobind/stl/vector.h>
 #include <nanobind/trampoline.h>
 #include <sstream>
+#include <stdexcept>
 
 #include "ompl/base/GenericParam.h"
 #include "PyGC.h"
@@ -27,9 +28,23 @@ namespace
 
         PySpecificParam(const std::string &name, nb::object set, nb::object get)
           : ob::SpecificParam<T>(
-                name, [this](T value) { setter(value); },
+                name,
+                [this](T value)
+                {
+                    nb::gil_scoped_acquire gil;
+                    if (!setter.is_valid())
+                        throw std::runtime_error("the Python setter is no longer set");
+                    setter(value);
+                },
                 get.is_none() ? typename ob::SpecificParam<T>::GetterFn() :
-                                typename ob::SpecificParam<T>::GetterFn([this] { return nb::cast<T>(getter()); }))
+                                typename ob::SpecificParam<T>::GetterFn(
+                                    [this]
+                                    {
+                                        nb::gil_scoped_acquire gil;
+                                        if (!getter.is_valid())
+                                            throw std::runtime_error("the Python getter is no longer set");
+                                        return nb::cast<T>(getter());
+                                    }))
           , setter(std::move(set))
           , getter(std::move(get))
         {
@@ -51,6 +66,24 @@ namespace
                 nb::arg("setter"), nb::arg("getter") = nb::none());
     }
 }  // namespace
+
+int ompl::binding::base::visitParams(const ob::ParamSet &params, visitproc visit, void *arg)
+{
+    for (const auto &entry : params.getParams())
+        if (int rc = gc::visitHeld(entry.second, visit, arg))
+            return rc;
+    return 0;
+}
+
+void ompl::binding::base::clearParams(ob::ParamSet &params)
+{
+    std::vector<std::string> pythonParams;
+    for (const auto &entry : params.getParams())
+        if (gc::holdsPython(entry.second))
+            pythonParams.push_back(entry.first);
+    for (const auto &name : pythonParams)
+        params.remove(name);
+}
 
 void ompl::binding::base::init_GenericParam(nb::module_ &m)
 {

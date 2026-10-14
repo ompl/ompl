@@ -1,6 +1,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/trampoline.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 
 #include <sstream>
@@ -40,6 +41,15 @@ void ompl::binding::base::init_Goal(nb::module_ &m)
         .def("getSpaceInformation", &ob::Goal::getSpaceInformation, nb::rv_policy::reference_internal)
         // virtual methods
         .def("isSatisfied", nb::overload_cast<const ob::State *>(&ob::Goal::isSatisfied, nb::const_), nb::arg("state"))
+        .def(
+            "isSatisfiedWithDistance",
+            [](const ob::Goal &g, const ob::State *state)
+            {
+                double distance = 0.0;
+                bool satisfied = g.isSatisfied(state, &distance);
+                return std::make_pair(satisfied, distance);
+            },
+            nb::arg("state"))
         .def("isStartGoalPairValid", &ob::Goal::isStartGoalPairValid, nb::arg("start"), nb::arg("goal"))
         .def("__repr__",
              [](const ob::Goal &g)
