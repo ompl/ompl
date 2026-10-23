@@ -84,6 +84,12 @@ if(OMPL_BUILD_VAMP)
         # Top level install requires this file so we add a dummy one
         file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/external/vamp/cmake_install.cmake" "# skipped for SKBUILD")
     endif()
+
+    # VAMP forces its SIMD flags on every translation unit that includes its headers, and OMPL hands out
+    # Eigen objects across its own boundary, so the library gets the same flags and passes them on to
+    # everything linking it.
+    apply_vamp_simd_flags_publicly(ompl)
+
     message(STATUS "VAMP integration enabled via OMPL_BUILD_VAMP=ON")
 else()
     set(OMPL_HAVE_VAMP FALSE CACHE BOOL "Whether VAMP integration is available" FORCE)
@@ -113,6 +119,7 @@ if(NOT SKBUILD)
         set(PKG_DESC "The Open Motion Planning Library")
         set(PKG_EXTERNAL_DEPS "eigen3 ${ompl_PKG_DEPS}")
         set(PKG_OMPL_LIBS "-lompl ${ompl_LINK_FLAGS}")
+        list(JOIN VAMP_SIMD_FLAGS " " PKG_SIMD_FLAGS)
         configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/ompl.pc.in"
                        "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc" @ONLY)
         install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ompl.pc"

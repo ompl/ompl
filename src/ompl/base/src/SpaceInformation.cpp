@@ -1,7 +1,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2010, Rice University
+ *  Copyright (c) 2010-2026, Rice University
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@
 #include "ompl/base/spaces/VanaOwenStateSpace.h"
 #include "ompl/base/spaces/Dubins3DMotionValidator.h"
 #include "ompl/base/spaces/DubinsMotionValidator.h"
+#include "ompl/base/spaces/flat/FlatMotionValidator.h"
 #include "ompl/base/spaces/ReedsSheppStateSpace.h"
 #include "ompl/base/spaces/TrochoidStateSpace.h"
 #include "ompl/base/spaces/constraint/ConstrainedStateSpace.h"
@@ -126,6 +127,8 @@ void ompl::base::SpaceInformation::setDefaultMotionValidator()
         motionValidator_ = std::make_shared<Dubins3DMotionValidator<VanaStateSpace>>(this);
     else if (dynamic_cast<VanaOwenStateSpace *>(stateSpace_.get()))
         motionValidator_ = std::make_shared<Dubins3DMotionValidator<VanaOwenStateSpace>>(this);
+    else if (dynamic_cast<FlatStateSpace *>(stateSpace_.get()))
+        motionValidator_ = std::make_shared<FlatMotionValidator>(this);
     else if (dynamic_cast<ConstrainedStateSpace *>(stateSpace_.get()))
         motionValidator_ = std::make_shared<ConstrainedMotionValidator>(this);
     else
