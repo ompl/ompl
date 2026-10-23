@@ -56,6 +56,9 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_fmt_null_goal geometric/test_fmt_null_goal.cpp)
     add_ompl_test(test_directed_specs geometric/2d/directed_specs.cpp)
 
+    # Test DIRT planner
+    add_ompl_test(test_dirt geometric/dirt/test_dirt.cpp)
+
     # Test constrained planning
     add_ompl_test(test_constraint_sphere geometric/constraint/test_sphere.cpp)
 
