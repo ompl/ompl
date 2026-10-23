@@ -66,6 +66,12 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_2dmap_control control/2dmap/2dmap.cpp)
     add_ompl_test(test_planner_data_control control/planner_data.cpp)
 
+    # Exercise deterministic collision events from the Koules demo.
+    add_ompl_test(test_koules control/koules.cpp
+        ${PROJECT_SOURCE_DIR}/demos/Koules/KoulesSimulator.cpp
+        ${PROJECT_SOURCE_DIR}/demos/Koules/KoulesStateSpace.cpp)
+    target_include_directories(test_koules PRIVATE ${PROJECT_SOURCE_DIR}/demos/Koules)
+
     # Test experience based planning
     add_ompl_test(test_experience_planning tools/test_experience_planning.cpp)
 
