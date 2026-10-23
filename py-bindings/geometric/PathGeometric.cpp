@@ -1,4 +1,5 @@
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
@@ -92,14 +93,5 @@ void ompl::binding::geometric::init_PathGeometric(nb::module_ &m)
         .def("getStateCount", &ompl::geometric::PathGeometric::getStateCount)
 
         // Clearing the path.
-        .def("clear", &ompl::geometric::PathGeometric::clear)
-
-        // Add a string representation for the PathGeometric class
-        .def("__repr__",
-             [](const ompl::geometric::PathGeometric &self)
-             {
-                 std::ostringstream oss;
-                 self.print(oss);
-                 return oss.str();
-             });
+        .def("clear", &ompl::geometric::PathGeometric::clear);
 }

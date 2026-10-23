@@ -20,11 +20,21 @@ void ompl::binding::base::initSpacesConstraint_ConstrainedStateSpace(nb::module_
         // We have 5 virtuals: clear, setup, sanityChecks, discreteGeodesic, geodesicInterpolate
         NB_TRAMPOLINE(ConstrainedStateSpace, 5);
 
-        // Pure virtual: must be overridden in Python
+        // OMPL frees every state in *geodesic, so it gets clones of the (ok, states) the override returns.
         bool discreteGeodesic(const ob::State *from, const ob::State *to, bool interpolate,
                               std::vector<ob::State *> *geodesic) const override
         {
-            NB_OVERRIDE_PURE(discreteGeodesic, from, to, interpolate, geodesic);
+            nb::detail::ticket nb_ticket(nb_trampoline, "discreteGeodesic", true);
+            // Held while cloning: the returned list may own the only reference to its states.
+            nb::object result = nb_trampoline.base().attr(nb_ticket.key)(from, to, interpolate);
+            auto [ok, states] = nb::cast<std::pair<bool, std::vector<const ob::State *>>>(result);
+            // interpolate() indexes the geodesic whenever ok is true.
+            if (ok && geodesic != nullptr && states.empty())
+                throw nb::value_error("discreteGeodesic() returned ok=True with no states");
+            if (geodesic != nullptr)
+                for (const ob::State *state : states)
+                    geodesic->push_back(cloneState(state));
+            return ok;
         }
 
         // Optional override
@@ -67,12 +77,22 @@ void ompl::binding::base::initSpacesConstraint_ConstrainedStateSpace(nb::module_
             "copy",
             [](ob::ConstrainedStateSpace::StateType &st, const std::vector<double> &vec)
             {
+                if (vec.size() != static_cast<std::size_t>(st.size()))
+                    throw nb::value_error(
+                        ("copy() expects " + std::to_string(st.size()) + " value(s), got " + std::to_string(vec.size()))
+                            .c_str());
                 Eigen::VectorXd v = Eigen::Map<const Eigen::VectorXd>(vec.data(), vec.size());
                 st.copy(v);
             },
             nb::arg("other"))
         .def(
-            "__getitem__", [](const ob::ConstrainedStateSpace::StateType &st, unsigned int i) { return st[i]; },
+            "__getitem__",
+            [](const ob::ConstrainedStateSpace::StateType &st, unsigned int i)
+            {
+                if (i >= static_cast<std::size_t>(st.size()))
+                    throw nb::index_error("state index out of range");
+                return st[i];
+            },
             nb::arg("i"));
 
     // TODO [ob::ConstrainedStateSpace][TEST]

@@ -15,10 +15,19 @@ namespace ob = ompl::base;
 
 void ompl::binding::control::init_ControlSampler(nb::module_ &m)
 {
-    nb::class_<oc::ControlSampler>(m, "ControlSampler");
+    nb::class_<oc::ControlSampler>(m, "ControlSampler")
+        .def("sample", nb::overload_cast<oc::Control *>(&oc::ControlSampler::sample), nb::arg("control"))
+        .def("sample", nb::overload_cast<oc::Control *, const ob::State *>(&oc::ControlSampler::sample),
+             nb::arg("control"), nb::arg("state"))
+        .def("sampleNext", nb::overload_cast<oc::Control *, const oc::Control *>(&oc::ControlSampler::sampleNext),
+             nb::arg("control"), nb::arg("previous"))
+        .def("sampleNext",
+             nb::overload_cast<oc::Control *, const oc::Control *, const ob::State *>(&oc::ControlSampler::sampleNext),
+             nb::arg("control"), nb::arg("previous"), nb::arg("state"))
+        .def("sampleStepCount", &oc::ControlSampler::sampleStepCount, nb::arg("minSteps"), nb::arg("maxSteps"));
 
     nb::class_<oc::CompoundControlSampler, oc::ControlSampler>(m, "CompoundControlSampler")
-        .def(nb::init<const oc::ControlSpace *>(), nb::arg("space"),
+        .def(nb::init<const oc::ControlSpace *>(), nb::arg("space"), nb::keep_alive<1, 2>(),
              "Construct a CompoundControlSampler for the given control space")
         // Overloaded sample() methods:
         .def("sample", nb::overload_cast<oc::Control *>(&oc::CompoundControlSampler::sample), nb::arg("control"),

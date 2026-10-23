@@ -3,6 +3,7 @@
 #include <nanobind/stl/string.h>
 
 #include "ompl/geometric/planners/rrt/RRTConnect.h"
+#include "PlannerSolve.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -20,22 +21,8 @@ void ompl::binding::geometric::initPlannersRrt_RRTConnect(nb::module_ &m)
         .def("getRange", &RRTConnect::getRange)
         .def("setup", &RRTConnect::setup)
         .def("clear", &RRTConnect::clear)
-        .def("solve",
-             [](RRTConnect &self, nb::object what)
-             {
-                 if (nb::isinstance<PlannerTerminationCondition>(what))
-                 {
-                     return self.solve(nb::cast<PlannerTerminationCondition>(what));
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.solve(timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-                 }
-             })
+        .def("solve", ompl::binding::solveBinding<RRTConnect>(), nb::arg("what"))
+        .def("solve", ompl::binding::solveFnBinding<RRTConnect>(), nb::arg("terminationConditionFn"),
+             nb::arg("checkInterval") = 0.0)
         .def("getPlannerData", &RRTConnect::getPlannerData, nb::arg("data"));
 }

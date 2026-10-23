@@ -5,19 +5,124 @@
 #include <nanobind/stl/map.h>
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/chrono.h>
+#include <algorithm>
 #include <sstream>
+#include <stdexcept>
 
 #include "ompl/tools/benchmark/Benchmark.h"
 #include "ompl/geometric/SimpleSetup.h"
 #include "ompl/control/SimpleSetup.h"
 #include "ompl/base/Planner.h"
+#include "ompl/util/Console.h"
+#include "PyGC.h"
 #include "../init.h"
 
 namespace nb = nanobind;
+namespace gc = ompl::binding::gc;
 namespace ot = ompl::tools;
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 namespace oc = ompl::control;
+
+namespace
+{
+    struct BenchmarkAccess : ot::Benchmark
+    {
+        using ot::Benchmark::planners_;
+        using ot::Benchmark::plannerSwitch_;
+        using ot::Benchmark::postRun_;
+        using ot::Benchmark::preRun_;
+    };
+
+    constexpr auto plannersOf = &BenchmarkAccess::planners_;
+    constexpr auto plannerSwitchOf = &BenchmarkAccess::plannerSwitch_;
+    constexpr auto preRunOf = &BenchmarkAccess::preRun_;
+    constexpr auto postRunOf = &BenchmarkAccess::postRun_;
+
+    /// Passes the callback a copy of the run's properties and writes the copy back: nanobind would hand the
+    /// callback a throwaway copy of the reference, and a view would dangle once the run is stored.
+    struct PostRunEvent
+    {
+        gc::SharedRef fn;
+
+        void operator()(const ob::PlannerPtr &planner, ot::Benchmark::RunProperties &run) const
+        {
+            nb::gil_scoped_acquire gil;
+            nb::handle callable = fn.get();
+            if (!callable.is_valid())
+                throw std::runtime_error("the Python callback is no longer set");
+            nb::object props = nb::cast(run, nb::rv_policy::copy);
+            callable(planner, props);
+            run = nb::cast<const ot::Benchmark::RunProperties &>(props);
+        }
+    };
+
+    /// benchmark() swaps in its own handler and on return leaves OMPL's previous slot pointing at it after it
+    /// has been freed, so both slots are put back.
+    class OutputHandlerSlots
+    {
+    public:
+        OutputHandlerSlots()
+        {
+            current_ = ompl::msg::getOutputHandler();
+            ompl::msg::restorePreviousOutputHandler();
+            previous_ = ompl::msg::getOutputHandler();
+            ompl::msg::restorePreviousOutputHandler();
+        }
+        OutputHandlerSlots(const OutputHandlerSlots &) = delete;
+        OutputHandlerSlots &operator=(const OutputHandlerSlots &) = delete;
+        ~OutputHandlerSlots()
+        {
+            ompl::msg::useOutputHandler(previous_);
+            ompl::msg::useOutputHandler(current_);
+        }
+
+    private:
+        ompl::msg::OutputHandler *current_;
+        ompl::msg::OutputHandler *previous_;
+    };
+
+    int benchmarkTraverse(PyObject *self, visitproc visit, void *arg)
+    {
+        Py_VISIT(Py_TYPE(self));
+        if (!nb::inst_ready(self) || !gc::pythonOwned(self))
+            return 0;
+        const ot::Benchmark &b = *nb::inst_ptr<ot::Benchmark>(self);
+        for (const ob::PlannerPtr &planner : b.*plannersOf)
+            if (int rc = gc::visitHeld(planner, visit, arg))
+                return rc;
+        if (int rc = gc::visitHeld(b.*plannerSwitchOf, visit, arg))
+            return rc;
+        if (int rc = gc::visitHeld(b.*preRunOf, visit, arg))
+            return rc;
+        if (const auto *event = (b.*postRunOf).target<PostRunEvent>())
+            if (nb::handle held = event->fn.exclusive(); held.is_valid())
+                Py_VISIT(held.ptr());
+        return 0;
+    }
+
+    int benchmarkClear(PyObject *self)
+    {
+        if (!nb::inst_ready(self) || !gc::pythonOwned(self))
+            return 0;
+        ot::Benchmark &b = *nb::inst_ptr<ot::Benchmark>(self);
+        auto &planners = b.*plannersOf;
+        planners.erase(std::remove_if(planners.begin(), planners.end(),
+                                      [](const ob::PlannerPtr &p) { return gc::holdsPython(p); }),
+                       planners.end());
+        if (gc::holdsPython(b.*plannerSwitchOf))
+            b.setPlannerSwitchEvent(ot::Benchmark::PreSetupEvent());
+        if (gc::holdsPython(b.*preRunOf))
+            b.setPreRunEvent(ot::Benchmark::PreSetupEvent());
+        if ((b.*postRunOf).target<PostRunEvent>() != nullptr)
+            b.setPostRunEvent(ot::Benchmark::PostSetupEvent());
+        return 0;
+    }
+
+    PyType_Slot benchmarkSlots[] = {{Py_tp_traverse, (void *)benchmarkTraverse},
+                                    {Py_tp_clear, (void *)benchmarkClear},
+                                    {0, nullptr}};
+}  // namespace
 
 void ompl::binding::tools::initBenchmark_Benchmark(nb::module_ &m)
 {
@@ -90,10 +195,12 @@ void ompl::binding::tools::initBenchmark_Benchmark(nb::module_ &m)
         .def_rw("simplify", &ot::Benchmark::Request::simplify);
 
     // Bind Benchmark class
-    nb::class_<ot::Benchmark>(m, "Benchmark")
-        // Constructors
-        .def(nb::init<og::SimpleSetup &, const std::string &>(), nb::arg("setup"), nb::arg("name") = std::string())
-        .def(nb::init<oc::SimpleSetup &, const std::string &>(), nb::arg("setup"), nb::arg("name") = std::string())
+    nb::class_<ot::Benchmark>(m, "Benchmark", nb::type_slots(benchmarkSlots))
+        // Benchmark keeps a raw pointer to the setup.
+        .def(nb::init<og::SimpleSetup &, const std::string &>(), nb::arg("setup"), nb::arg("name") = std::string(),
+             nb::keep_alive<1, 2>())
+        .def(nb::init<oc::SimpleSetup &, const std::string &>(), nb::arg("setup"), nb::arg("name") = std::string(),
+             nb::keep_alive<1, 2>())
 
         // Experiment parameter methods
         .def("addExperimentParameter", &ot::Benchmark::addExperimentParameter, nb::arg("name"), nb::arg("type"),
@@ -111,12 +218,36 @@ void ompl::binding::tools::initBenchmark_Benchmark(nb::module_ &m)
         .def("clearPlanners", &ot::Benchmark::clearPlanners)
 
         // Event setters
-        .def("setPlannerSwitchEvent", &ot::Benchmark::setPlannerSwitchEvent, nb::arg("event"))
-        .def("setPreRunEvent", &ot::Benchmark::setPreRunEvent, nb::arg("event"))
-        .def("setPostRunEvent", &ot::Benchmark::setPostRunEvent, nb::arg("event"))
+        .def(
+            "setPlannerSwitchEvent", [](ot::Benchmark &b, nb::callable event)
+            { b.setPlannerSwitchEvent(gc::function<ot::Benchmark::PreSetupEvent>(std::move(event))); },
+            nb::arg("event"))
+        .def(
+            "setPlannerSwitchEvent", [](ot::Benchmark &b, std::nullptr_t)
+            { b.setPlannerSwitchEvent(ot::Benchmark::PreSetupEvent()); }, nb::arg("event").none())
+        .def(
+            "setPreRunEvent", [](ot::Benchmark &b, nb::callable event)
+            { b.setPreRunEvent(gc::function<ot::Benchmark::PreSetupEvent>(std::move(event))); }, nb::arg("event"))
+        .def(
+            "setPreRunEvent", [](ot::Benchmark &b, std::nullptr_t)
+            { b.setPreRunEvent(ot::Benchmark::PreSetupEvent()); }, nb::arg("event").none())
+        .def(
+            "setPostRunEvent", [](ot::Benchmark &b, nb::callable event)
+            { b.setPostRunEvent(PostRunEvent{gc::SharedRef(std::move(event))}); }, nb::arg("event"))
+        .def(
+            "setPostRunEvent", [](ot::Benchmark &b, std::nullptr_t)
+            { b.setPostRunEvent(ot::Benchmark::PostSetupEvent()); }, nb::arg("event").none())
 
-        // Benchmark execution
-        .def("benchmark", &ot::Benchmark::benchmark, nb::arg("req"))
+        // Runs planners on threads of their own and joins them, and every Python callback it reaches takes the GIL.
+        .def(
+            "benchmark",
+            [](ot::Benchmark &b, const ot::Benchmark::Request &req)
+            {
+                nb::gil_scoped_release release;
+                OutputHandlerSlots slots;
+                b.benchmark(req);
+            },
+            nb::arg("req"))
 
         // Status and data access
         .def("getStatus", &ot::Benchmark::getStatus, nb::rv_policy::reference_internal)
