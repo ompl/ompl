@@ -55,7 +55,15 @@ namespace
 }  // namespace
 
 OwenStateSpace::OwenStateSpace(double turningRadius, double maxPitch)
-  : rho_(turningRadius), tanMaxPitch_(std::tan(maxPitch)), dubinsSpace_(turningRadius)
+  : OwenStateSpace(turningRadius, {-maxPitch, maxPitch})
+{
+}
+
+OwenStateSpace::OwenStateSpace(double turningRadius, std::pair<double, double> pitchRange)
+  : rho_(turningRadius)
+  , tanMaxPitch_(std::tan(pitchRange.second))
+  , tanMinPitch_(std::tan(pitchRange.first))
+  , dubinsSpace_(turningRadius)
 {
     setName("Owen" + getName());
     type_ = STATE_SPACE_OWEN;
@@ -110,18 +118,19 @@ std::optional<OwenStateSpace::PathType> OwenStateSpace::getPath(const State *sta
     auto s2 = state2->as<StateType>();
     auto path = dubinsSpace_.getPath(state1, state2, rho_);
     double dz = (*s2)[2] - (*s1)[2], len = rho_ * path.length();
-    if (std::abs(dz) <= len * tanMaxPitch_)
+    auto tanPitch = std::abs(dz > 0 ? tanMaxPitch_ : tanMinPitch_);
+    if (std::abs(dz) <= len * tanPitch)
     {
         // low altitude path
         return PathType{path, rho_, dz};
     }
-    else if (std::abs(dz) > (len + twopi * rho_) * tanMaxPitch_)
+    else if (std::abs(dz) > (len + twopi * rho_) * tanPitch)
     {
         // high altitude path
-        unsigned int k = std::floor((std::abs(dz) / tanMaxPitch_ - len) / (twopi * rho_));
+        unsigned int k = std::floor((std::abs(dz) / tanPitch - len) / (twopi * rho_));
         auto radius = rho_;
         auto radiusFun = [&, this](double r)
-        { return (dubinsSpace_.getPath(state1, state2, r).length() + twopi * k) * r * tanMaxPitch_ - std::abs(dz); };
+        { return (dubinsSpace_.getPath(state1, state2, r).length() + twopi * k) * r * tanPitch - std::abs(dz); };
         std::uintmax_t iter = MAX_ITER;
         auto result = boost::math::tools::bracket_and_solve_root(radiusFun, radius, 2., true, TOLERANCE, iter);
         radius = .5 * (result.first + result.second);
@@ -139,7 +148,7 @@ std::optional<OwenStateSpace::PathType> OwenStateSpace::getPath(const State *sta
         auto phiFun = [&, this](double phi)
         {
             turn(state1, rho_, phi, zi);
-            return (std::abs(phi) + dubinsSpace_.getPath(zi, state2).length()) * rho_ * tanMaxPitch_ - std::abs(dz);
+            return (std::abs(phi) + dubinsSpace_.getPath(zi, state2).length()) * rho_ * tanPitch - std::abs(dz);
         };
 
         try
