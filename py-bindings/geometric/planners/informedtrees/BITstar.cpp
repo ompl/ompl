@@ -3,6 +3,7 @@
 #include <nanobind/stl/string.h>
 
 #include "ompl/geometric/planners/informedtrees/BITstar.h"
+#include "ompl/geometric/planners/informedtrees/DDLBITstar.h"
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/PlannerTerminationCondition.h"
 #include "../../init.h"
@@ -85,4 +86,27 @@ void ompl::binding::geometric::initPlannersInformedtrees_BITstar(nb::module_ &m)
         .def("setConsiderApproximateSolutions", &og::BITstar::setConsiderApproximateSolutions,
              nb::arg("findApproximate"))
         .def("getConsiderApproximateSolutions", &og::BITstar::getConsiderApproximateSolutions);
+
+    nb::class_<og::DDLBITstar, og::BITstar>(m, "DDLBITstar")
+        .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
+        .def("setGridResolution", &og::DDLBITstar::setGridResolution)
+        .def("getGridResolution", &og::DDLBITstar::getGridResolution)
+        .def("setBoundaryResolution", &og::DDLBITstar::setBoundaryResolution)
+        .def("getBoundaryResolution", &og::DDLBITstar::getBoundaryResolution)
+        .def("setBoundaryStandardDeviation", &og::DDLBITstar::setBoundaryStandardDeviation)
+        .def("getBoundaryStandardDeviation", &og::DDLBITstar::getBoundaryStandardDeviation)
+        .def("setExplorationBias", &og::DDLBITstar::setExplorationBias)
+        .def("getExplorationBias", &og::DDLBITstar::getExplorationBias)
+        .def("setOptimizationBias", &og::DDLBITstar::setOptimizationBias)
+        .def("getOptimizationBias", &og::DDLBITstar::getOptimizationBias)
+        .def("setOpenCellCapacity", &og::DDLBITstar::setOpenCellCapacity)
+        .def("getOpenCellCapacity", &og::DDLBITstar::getOpenCellCapacity)
+        .def("setBoundaryCellCapacity", &og::DDLBITstar::setBoundaryCellCapacity)
+        .def("getBoundaryCellCapacity", &og::DDLBITstar::getBoundaryCellCapacity)
+        .def("setScoutingRays", &og::DDLBITstar::setScoutingRays)
+        .def("getScoutingRays", &og::DDLBITstar::getScoutingRays)
+        .def("numBoundaryPoints", &og::DDLBITstar::numBoundaryPoints)
+        .def("numBoundarySamples", &og::DDLBITstar::numBoundarySamples)
+        .def("numDensityRejections", &og::DDLBITstar::numDensityRejections)
+        .def("numGridRebuilds", &og::DDLBITstar::numGridRebuilds);
 }

@@ -70,7 +70,7 @@ namespace ompl
              * PlannerInputStates, but checks it for starts/goals. */
             void setup(const ompl::base::SpaceInformationPtr &spaceInformation,
                        const ompl::base::ProblemDefinitionPtr &problemDefinition, CostHelper *costHelper,
-                       SearchQueue *searchQueue, const ompl::base::Planner *plannerPtr,
+                       SearchQueue *searchQueue, BITstar *plannerPtr,
                        ompl::base::PlannerInputStates &inputStates);
 
             /** \brief Reset the graph to the state of construction. */
@@ -367,6 +367,9 @@ namespace ompl
 
             /** \brief State sampler */
             ompl::base::InformedSamplerPtr sampler_{nullptr};
+
+            /** \brief Owning planner, used to allocate its sampling strategy. */
+            BITstar *plannerPtr_{nullptr};
 
             /** \brief The start states of the problem as vertices. Constructed as a shared_ptr to give easy access to
              * helper classes. */
