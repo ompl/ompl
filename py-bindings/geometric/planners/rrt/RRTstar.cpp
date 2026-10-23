@@ -17,25 +17,6 @@ void ompl::binding::geometric::initPlannersRrt_RRTstar(nb::module_ &m)
         // Constructor
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
 
-        // solve
-        .def("solve",
-             [](og::RRTstar &self, nb::object what)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                 {
-                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-                 }
-             })
-
         // getPlannerData
         .def(
             "getPlannerData", [](const og::RRTstar &self, ob::PlannerData &data) { self.getPlannerData(data); },
