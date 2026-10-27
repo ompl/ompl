@@ -5,6 +5,7 @@
 
 #include "ompl/base/objectives/PathLengthOptimizationObjective.h"
 #include "ompl/base/OptimizationObjective.h"
+#include "ompl/base/samplers/InformedStateSampler.h"
 #include "../init.h"
 
 namespace nb = nanobind;
@@ -38,6 +39,13 @@ void ompl::binding::base::initObjectives_PathLengthOptimizationObjective(nb::mod
         ob::Cost motionCostBestEstimate(const ob::State *s1, const ob::State *s2) const override
         {
             NB_OVERRIDE(motionCostBestEstimate, s1, s2);
+        }
+
+        // Optional override
+        ob::InformedSamplerPtr allocInformedStateSampler(const ob::ProblemDefinitionPtr &probDefn,
+                                                         unsigned int maxNumberCalls) const override
+        {
+            NB_OVERRIDE(allocInformedStateSampler, probDefn, maxNumberCalls);
         }
     };
 

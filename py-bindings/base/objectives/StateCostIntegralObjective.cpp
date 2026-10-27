@@ -5,6 +5,7 @@
 
 #include "ompl/base/objectives/StateCostIntegralObjective.h"
 #include "ompl/base/OptimizationObjective.h"
+#include "ompl/base/samplers/InformedStateSampler.h"
 #include "../init.h"
 
 namespace nb = nanobind;
@@ -14,7 +15,7 @@ void ompl::binding::base::initObjectives_StateCostIntegralObjective(nb::module_ 
 {
     struct PyStateCostIntegralObjective : ob::StateCostIntegralObjective
     {
-        NB_TRAMPOLINE(ob::StateCostIntegralObjective, 3);
+        NB_TRAMPOLINE(ob::StateCostIntegralObjective, 4);
 
         ob::Cost stateCost(const ob::State *s) const override
         {
@@ -29,6 +30,12 @@ void ompl::binding::base::initObjectives_StateCostIntegralObjective(nb::module_ 
         ob::Cost motionCostBestEstimate(const ob::State *s1, const ob::State *s2) const override
         {
             NB_OVERRIDE(motionCostBestEstimate, s1, s2);
+        }
+
+        ob::InformedSamplerPtr allocInformedStateSampler(const ob::ProblemDefinitionPtr &probDefn,
+                                                         unsigned int maxNumberCalls) const override
+        {
+            NB_OVERRIDE(allocInformedStateSampler, probDefn, maxNumberCalls);
         }
     };
 
