@@ -37,6 +37,7 @@
 #ifndef OMPL_BASE_SPACES_FLAT_MOTION_
 #define OMPL_BASE_SPACES_FLAT_MOTION_
 
+#include "ompl/tools/config/MagicConstants.h"
 #include "ompl/util/ClassForward.h"
 
 #include <Eigen/Core>
@@ -182,7 +183,7 @@ namespace ompl::base
         }
 
         /** \brief Set the time penalty that \ref cost charges per unit duration, which has to be positive.
-            It defaults to 5. */
+            It defaults to \ref magic::FLAT_STEERING_TIME_PENALTY. */
         void setRho(double rho);
 
         /** \brief The time penalty that \ref cost charges per unit duration. */
@@ -235,7 +236,7 @@ namespace ompl::base
         unsigned int order_;
 
         /** \brief The time penalty charged per unit duration. */
-        double rho_{5.};
+        double rho_{magic::FLAT_STEERING_TIME_PENALTY};
 
         /** \brief The inverse of the matrix of the linear system \ref coefficientsOver solves for the top
             \e k coefficients of a steer.
