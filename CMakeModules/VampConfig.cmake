@@ -3,16 +3,6 @@
 # This module provides a clean, modular interface for VAMP integration
 # with OMPL. It handles SIMD configuration, Python setup, and target management
 
-# Function to apply VAMP SIMD flags to a target
-function(apply_vamp_simd_flags TARGET_NAME)
-    if(NOT DEFINED VAMP_SIMD_FLAGS)
-        return()
-    endif()
-
-    target_compile_options(${TARGET_NAME} PRIVATE ${VAMP_SIMD_FLAGS})
-    message(STATUS "Applied VAMP SIMD flags to ${TARGET_NAME}")
-endfunction()
-
 # Function to apply VAMP SIMD flags to a target and to everything linking it.
 #
 # The flags move the instruction set a translation unit is compiled for, which moves the alignment Eigen

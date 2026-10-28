@@ -194,6 +194,8 @@ int main()
     const ob::FlatTrajectory trajectory(path);
     std::cout << "Trajectory of " << trajectory.size() << " segments lasting " << trajectory.duration() << " seconds\n";
 
+    std::cout << "Steering cost " << path.cost(setup.getOptimizationObjective()).value() << "\n";
+
     // A quadrotor's thrust points along its body axis, so the rotors have to supply the acceleration the
     // trajectory asks for plus whatever holds the airframe up against gravity.
     // Its direction gives the tilt and its size over gravity gives the thrust to weight ratio.

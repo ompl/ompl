@@ -46,7 +46,7 @@ namespace ompl::base
 {
     void FlatMotionValidator::defaultSettings()
     {
-        stateSpace_ = dynamic_cast<FlatStateSpace *>(si_->getStateSpace().get());
+        stateSpace_ = dynamic_cast<const FlatStateSpace *>(si_->getStateSpace().get());
         if (stateSpace_ == nullptr)
             throw Exception("FlatMotionValidator needs a FlatStateSpace");
     }

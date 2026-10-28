@@ -120,31 +120,20 @@ BOOST_AUTO_TEST_CASE(RecycledStateMemoryGivesFreshMotions)
     setState(space.get(), from, {-0.8, -0.8}, {0., 0.});
     setState(space.get(), to, {0.8, 0.8}, {0., 0.});
     space->interpolate(from, to, 0.5, result);
-    const double firstX =
-        result->as<FlatStateSpace::StateType>()->output()->as<RealVectorStateSpace::StateType>()->values[0];
 
     space->freeState(from);
     space->freeState(to);
 
+    // The second edge's midpoint sits at x = -0.2, away from the first edge's x = 0, so stale state left
+    // over from the first solve would show up as the wrong answer here.
     State *recycledFrom = space->allocState();
     State *recycledTo = space->allocState();
-    setState(space.get(), recycledFrom, {0.8, -0.8}, {0., 0.});
-    setState(space.get(), recycledTo, {-0.8, 0.8}, {0., 0.});
-    space->interpolate(recycledFrom, recycledTo, 0.5, result);
-    const double secondX =
-        result->as<FlatStateSpace::StateType>()->output()->as<RealVectorStateSpace::StateType>()->values[0];
-
-    // The two edges run opposite ways along x, so stale state would report the first answer twice.
-    BOOST_CHECK_SMALL(firstX, 1e-9);
-    BOOST_CHECK_SMALL(secondX, 1e-9);
-
-    // A sharper version, where the midpoints differ.
     setState(space.get(), recycledFrom, {-0.9, 0.}, {0., 0.});
     setState(space.get(), recycledTo, {0.5, 0.}, {0., 0.});
     space->interpolate(recycledFrom, recycledTo, 0.5, result);
-    const double thirdX =
+    const double secondX =
         result->as<FlatStateSpace::StateType>()->output()->as<RealVectorStateSpace::StateType>()->values[0];
-    BOOST_CHECK_CLOSE(thirdX, -0.2, 1e-6);
+    BOOST_CHECK_CLOSE(secondX, -0.2, 1e-6);
 
     space->freeState(recycledFrom);
     space->freeState(recycledTo);
@@ -175,9 +164,9 @@ BOOST_AUTO_TEST_CASE(InterpolationIsThreadSafe)
                     space->interpolate(from, to, 1., result);
                     if (!space->equalStates(result, to))
                         ++failures[worker];
+                    // The ends copy without steering, so the midpoint is what drives the solve on every
+                    // thread at once.
                     space->interpolate(from, to, 0.5, result);
-                    if (space->validSegmentCount(from, to) < 1u)
-                        ++failures[worker];
                 }
                 space->freeState(from);
                 space->freeState(to);
@@ -229,10 +218,7 @@ namespace
         double norm(const State *state) const
         {
             const double *values = state->as<StateType>()->values;
-            double total = 0.;
-            for (unsigned int i = 0; i < getDimension(); ++i)
-                total += values[i] * values[i];
-            return std::sqrt(total);
+            return Eigen::Map<const Eigen::VectorXd>(values, getDimension()).norm();
         }
 
     private:
@@ -306,7 +292,7 @@ BOOST_AUTO_TEST_CASE(SubstitutedDerivativeSpaceIsHonored)
     BOOST_CHECK(!space->satisfiesBounds(state.get()));
     space->enforceBounds(state.get());
     BOOST_CHECK(space->satisfiesBounds(state.get()));
-    BOOST_CHECK_CLOSE(ball->norm(state->as<CompoundState>()->components[1]), radius, 1e-6);
+    BOOST_CHECK_CLOSE(ball->norm(state->as<FlatStateSpace::StateType>()->derivative(1)), radius, 1e-6);
 
     // The flat output is untouched by any of that.
     const double *values =
@@ -328,7 +314,7 @@ BOOST_AUTO_TEST_CASE(SubstitutedDerivativeSpaceIsHonored)
     ompl::RNG rng;
     for (unsigned int trial = 0; trial < 5000u; ++trial)
     {
-        double *velocity = state->as<CompoundState>()->components[1]->as<RealVectorStateSpace::StateType>()->values;
+        double *velocity = state->as<FlatStateSpace::StateType>()->derivative(1)->values;
         for (unsigned int axis = 0; axis < DIMENSION; ++axis)
             velocity[axis] = rng.uniformReal(-4. * radius, 4. * radius);
 

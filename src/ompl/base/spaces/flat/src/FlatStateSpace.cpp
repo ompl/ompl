@@ -46,7 +46,6 @@
 #include <boost/container/small_vector.hpp>
 
 #include <algorithm>
-#include <array>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
@@ -55,20 +54,18 @@
 
 namespace
 {
-    /** \brief The name each distance type answers to in a parameter set. */
+    // The name each distance type answers to in a parameter set.
     const char *const DISTANCE_TYPE_NAMES[] = {"flat_state_metric", "trajectory_cost"};
 
-    /** \brief The largest flat output dimension whose scratch space stays on the stack. */
+    // The largest flat output dimension whose scratch space stays on the stack.
     constexpr unsigned int STACK_DIMENSION = 16u;
 
-    /** \brief Room for one flat output, held on the stack up to \ref STACK_DIMENSION dimensions. */
+    // Room for one flat output, held on the stack up to STACK_DIMENSION dimensions.
     using OutputBuffer = boost::container::small_vector<double, STACK_DIMENSION>;
 
-    /** \brief Room for both endpoints of an edge, containing the start and end flat states.
-
-        Two flat states of order \e k hold 2 \e k values per flat output dimension, so this stays on the
-        stack up to \ref STACK_DIMENSION dimensions at order 2.
-    */
+    // Room for both endpoints of an edge, containing the start and end flat states.
+    // Two flat states of order k hold 2 k values per flat output dimension, so this stays on the stack up to
+    // STACK_DIMENSION dimensions at order 2.
     using EndpointsBuffer = boost::container::small_vector<double, 4u * STACK_DIMENSION>;
 }  // namespace
 
@@ -203,8 +200,7 @@ namespace ompl::base
         for (unsigned int level = 1; level < componentCount_; ++level)
         {
             const double *values = compound->components[level]->as<RealVectorStateSpace::StateType>()->values;
-            for (unsigned int axis = 0; axis < outputDimension_; ++axis)
-                flatState(level, axis) = values[axis];
+            flatState.row(level) = Eigen::Map<const Eigen::RowVectorXd>(values, outputDimension_);
         }
     }
 
@@ -217,8 +213,7 @@ namespace ompl::base
         for (unsigned int level = 1; level < componentCount_; ++level)
         {
             double *values = compound->components[level]->as<RealVectorStateSpace::StateType>()->values;
-            for (unsigned int axis = 0; axis < outputDimension_; ++axis)
-                values[axis] = flatState(level, axis);
+            Eigen::Map<Eigen::RowVectorXd>(values, outputDimension_) = flatState.row(level);
         }
     }
 
@@ -258,10 +253,10 @@ namespace ompl::base
 
         for (unsigned int level = 1; level < componentCount_; ++level)
         {
-            initial.row(level) = Eigen::Map<const Eigen::RowVectorXd>(
-                start->components[level]->as<RealVectorStateSpace::StateType>()->values, outputDimension_);
-            terminal.row(level) = Eigen::Map<const Eigen::RowVectorXd>(
-                finish->components[level]->as<RealVectorStateSpace::StateType>()->values, outputDimension_);
+            const double *startValues = start->components[level]->as<RealVectorStateSpace::StateType>()->values;
+            const double *finishValues = finish->components[level]->as<RealVectorStateSpace::StateType>()->values;
+            initial.row(level) = Eigen::Map<const Eigen::RowVectorXd>(startValues, outputDimension_);
+            terminal.row(level) = Eigen::Map<const Eigen::RowVectorXd>(finishValues, outputDimension_);
         }
 
         std::optional<MinimumEffortSteering::OptimalDuration> cheapest = steering_.optimalDuration(initial, terminal);
@@ -399,17 +394,9 @@ namespace ompl::base
             motion.evaluate(time, level, derivative);
         }
 
-        // for states less than 16 dimensions, allocate on the stack to go fast :)
-        std::array<double, STACK_DIMENSION> stack;
-        std::vector<double> heap;
-        double *buffer = stack.data();
-        if (outputDimension_ > STACK_DIMENSION)
-        {
-            heap.resize(outputDimension_);
-            buffer = heap.data();
-        }
-
-        Eigen::Map<Eigen::VectorXd> coordinates(buffer, outputDimension_);
+        // The chart reads from a contiguous vector, which stays on the stack for small flat outputs.
+        OutputBuffer buffer(outputDimension_);
+        Eigen::Map<Eigen::VectorXd> coordinates(buffer.data(), outputDimension_);
         motion.evaluate(time, 0u, coordinates);
         chart_->advance(from->as<CompoundState>()->components[0], coordinates, compound->components[0]);
     }

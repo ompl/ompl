@@ -52,7 +52,8 @@ namespace ompl::base
     /** \brief A sequence of polynomial curves joined end to end, parameterized by time.
 
         The PathGeometric objects returned by geometric planners don't include the polynomial interpolations between
-        states, so this class performs the necessary interpolation to produce dynamically valid paths.
+        states, so this class rebuilds the polynomial motions between consecutive states, giving a trajectory
+        continuous in time.
 
         Time runs from zero through \ref duration across the whole trajectory rather than restarting per segment,
         and \ref evaluate takes a time on that clock.
@@ -65,8 +66,8 @@ namespace ompl::base
 
         /** \brief The trajectory steering through \e states in order, under \e space.
 
-            Consecutive states that coincide have no polynomial between them and contribute no motion, so
-            the trajectory can come out shorter than the list it was built from.
+            Consecutive states that are the same state at rest have no polynomial between them and
+            contribute no motion, so the trajectory can come out shorter than the list it was built from.
             The first state gets read through ompl::base::FlatStateSpace::toFlatState, so this throws
             wherever that does.
         */
@@ -115,6 +116,7 @@ namespace ompl::base
             covers, so an angle keeps turning past a half turn rather than wrapping, and a controller
             tracking it sees no jump.
             Times outside zero through \ref duration clamp to the nearer end.
+            A trajectory with no motions, such as one built from a single state, writes zeros.
             This allocates nothing.
         */
         void evaluate(double t, unsigned int level, Eigen::Ref<Eigen::VectorXd> out) const;

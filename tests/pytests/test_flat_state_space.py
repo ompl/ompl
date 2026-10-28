@@ -4,8 +4,6 @@ import numpy as np
 import pytest
 
 from ompl import base as ob
-from ompl import geometric as og
-from ompl import util as ou
 
 
 def plane(order=2):

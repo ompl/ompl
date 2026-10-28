@@ -61,13 +61,15 @@ namespace ompl::base
     class FlatMotionValidator : public MotionValidator
     {
     public:
-        /** \brief Validate motions in the flat state space \e si plans in, which \e si has to carry. */
+        /** \brief Validate motions in the flat state space \e si plans in, so \e si has to hold an
+            ompl::base::FlatStateSpace. */
         FlatMotionValidator(SpaceInformation *si) : MotionValidator(si)
         {
             defaultSettings();
         }
 
-        /** \brief Validate motions in the flat state space \e si plans in, which \e si has to carry. */
+        /** \brief Validate motions in the flat state space \e si plans in, so \e si has to hold an
+            ompl::base::FlatStateSpace. */
         FlatMotionValidator(const SpaceInformationPtr &si) : MotionValidator(si)
         {
             defaultSettings();
@@ -99,8 +101,8 @@ namespace ompl::base
             kind of space. */
         void defaultSettings();
 
-        /** \brief The flat state space the motions run through. */
-        FlatStateSpace *stateSpace_{nullptr};
+        /** \brief The flat state space that the motions run through. */
+        const FlatStateSpace *stateSpace_{nullptr};
     };
 }  // namespace ompl::base
 

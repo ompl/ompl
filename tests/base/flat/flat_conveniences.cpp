@@ -43,7 +43,6 @@
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 #include "ompl/geometric/PathGeometric.h"
 
-#include <cmath>
 #include <memory>
 #include <vector>
 
@@ -56,51 +55,22 @@ namespace
     constexpr unsigned int DIMENSION = 2;
 
     /** \brief A flat space over a bounded Euclidean output with a box bound on the velocity. */
-    std::shared_ptr<FlatStateSpace> makeSpace(double velocity = 2.)
+    std::shared_ptr<FlatStateSpace> makeSpace()
     {
         auto output = std::make_shared<RealVectorStateSpace>(DIMENSION);
         output->setBounds(-1., 1.);
         auto space = std::make_shared<FlatStateSpace>(output, ORDER);
-        space->setDerivativeBound(1, velocity);
+        space->setDerivativeBound(1, 2.);
         space->setup();
         return space;
-    }
-
-    /** \brief Whether the flat output of \e state sits outside a square hole of half width \e half. */
-    bool outsideTheBox(const State *state, double half)
-    {
-        const double *values =
-            state->as<FlatStateSpace::StateType>()->output()->as<RealVectorStateSpace::StateType>()->values;
-        return std::abs(values[0]) > half || std::abs(values[1]) > half;
-    }
-
-    /** \brief A check that keeps the flat output out of a square hole and holds every state to the bounds
-        of the space.
-
-        The bounds belong in the check because the steering polynomial overshoots.
-        A velocity inside its bound at both ends of an edge runs over it in the middle, and the motion
-        validator samples those middles.
-    */
-    std::function<bool(const State *)> makeCheck(const FlatStateSpace *space, double half)
-    {
-        return [space, half](const State *state)
-        { return space->satisfiesBounds(state) && outsideTheBox(state, half); };
-    }
-
-    /** \brief Space information over \e space holding the check from \ref makeCheck. */
-    SpaceInformationPtr makeSpaceInformation(const std::shared_ptr<FlatStateSpace> &space, double half = 0.3)
-    {
-        auto si = std::make_shared<SpaceInformation>(space);
-        si->setStateValidityChecker(makeCheck(space.get(), half));
-        si->setup();
-        return si;
     }
 }  // namespace
 
 BOOST_AUTO_TEST_CASE(ATrajectoryResamplesToTheStatesItCameFrom)
 {
     auto space = makeSpace();
-    auto si = makeSpaceInformation(space);
+    // The space information only owns the path; nothing here checks validity.
+    auto si = std::make_shared<SpaceInformation>(space);
     StateSamplerPtr sampler = space->allocStateSampler();
 
     // The state pointers below have to outlive the vector growing under them, so it reserves first and

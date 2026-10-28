@@ -113,6 +113,8 @@ namespace ompl::vamp
         included, and the robot at the flat output collides with nothing in the environment.
         The check reads bounds from the ompl::base::RealVectorBounds on each component, so a component
         enforcing some other shape of bound needs ompl::base::FlatMotionValidator instead.
+        It never calls the state validity checker of \e si, so any other limit the checker enforces, such as a cap
+        on total speed, goes unchecked along edges; use ompl::base::FlatMotionValidator for such limits.
     */
     template <typename Robot, std::size_t rake = ::vamp::FloatVectorWidth>
     class FlatVampMotionValidator : public ob::MotionValidator
@@ -157,9 +159,9 @@ namespace ompl::vamp
         /** \brief Whether every sample along the motion from \e s1 to \e s2 is valid, assuming \e s1
             already is.
 
-            On a false result \e lastValid.second comes out holding the fraction of the duration of the last
-            sample before the first rejected batch, and \e lastValid.first, when it isn't null, comes out
-            holding the state at that fraction.
+            On a false result \e lastValid.second holds the fraction of the duration at the last sample known
+            to be valid: the sample just before the first rejected batch, or the last interior sample when only
+            \e s2 is invalid. \e lastValid.first, when it isn't null, gets the state there.
         */
         bool checkMotion(const ob::State *s1, const ob::State *s2,
                          std::pair<ob::State *, double> &lastValid) const override
@@ -305,6 +307,7 @@ namespace ompl::vamp
                           Block &block, Block &derivative) const
         {
             const Vector time = sample * edge.step;
+            // Every lane starts out inside the bounds, since time is never NaN here.
             Vector inside = time == time;
             for (unsigned int level = 0; level < stateSpace_->getOrder(); ++level)
             {
@@ -324,8 +327,9 @@ namespace ompl::vamp
         /** \brief Determine whether every sample along the motion from \e s1 to \e s2 is valid, checking the far end
             first and the interior strided.
 
-            Lane j takes the run of samples from j batches + 1 through (j + 1) batches, starting at the top
-            and stepping down one sample per batch, so the first batch spreads over the whole motion.
+            With \e batches the number of batches the interior is split into, lane j takes samples
+            \f$j \cdot batches + 1\f$ through \f$(j + 1) \cdot batches\f$, starting at the top and stepping down one
+           sample per batch, so the first batch spreads over the whole motion.
         */
         bool sweep(const ob::State *s1, const ob::State *s2) const
         {
@@ -341,10 +345,10 @@ namespace ompl::vamp
                 return true;
 
             const Edge edge = prepare(s1, *motion);
-            alignas(Vector::S::Alignment) std::array<float, rake> tops{};
+            std::array<float, rake> tops{};
             for (std::size_t lane = 0; lane < rake; ++lane)
                 tops[lane] = static_cast<float>((lane + 1u) * edge.batches);
-            const Vector top(tops.data());
+            const Vector top(tops);
 
             Block block, derivative;
             for (std::uint64_t batch = 0; batch < edge.batches; ++batch)
@@ -357,8 +361,9 @@ namespace ompl::vamp
             from \e s1 onward and checking the far end last, and recording where the motion stopped being
             valid.
 
-            Batch b holds samples b rake + 1 through (b + 1) rake, so the first rejected batch bounds where
-            the motion stops being valid.
+            With \e rake the number of samples checked at once, batch b holds samples
+            \f$b \cdot rake + 1\f$ through \f$(b + 1) \cdot rake\f$, so the first rejected batch bounds where the motion
+           stops being valid.
         */
         bool march(const ob::State *s1, const ob::State *s2, std::pair<ob::State *, double> &lastValid) const
         {
@@ -374,10 +379,10 @@ namespace ompl::vamp
                 const Edge edge = prepare(s1, *motion);
                 samples = rake * edge.batches;
 
-                alignas(Vector::S::Alignment) std::array<float, rake> firsts{};
+                std::array<float, rake> firsts{};
                 for (std::size_t lane = 0; lane < rake; ++lane)
                     firsts[lane] = static_cast<float>(lane + 1u);
-                const Vector first(firsts.data());
+                const Vector first(firsts);
 
                 Block block, derivative;
                 for (; passed < samples; passed += rake)
