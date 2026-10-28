@@ -334,6 +334,9 @@ BOOST_AUTO_TEST_CASE(VerdictsMatchTheGenericValidator)
         BOOST_TEST_MESSAGE("order " << order << ": " << rejected << " rejected, " << disagreements << " disagreements");
         BOOST_CHECK_GT(rejected, TRIALS / 10u);
         BOOST_CHECK_LT(rejected, TRIALS - TRIALS / 10u);
+        // The batched validator evaluates the motion from coefficients cast to single precision for VAMP,
+        // so a sample grazing a sphere or a bound can land on the other side of it, and an edge that
+        // only just touches an obstacle can flip its verdict. Those stay rare.
         BOOST_CHECK_LE(disagreements, TRIALS / 200u);
     }
 }

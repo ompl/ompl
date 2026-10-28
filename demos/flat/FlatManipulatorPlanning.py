@@ -110,17 +110,15 @@ def plan(seed=None):
     # a side per joint.
     output = ob.RealVectorStateSpace(dimension)
     joints = ob.RealVectorBounds(dimension)
-    for i, (low, high) in enumerate(zip(robot.lower_bounds(), robot.upper_bounds())):
-        joints.setLow(i, float(low))
-        joints.setHigh(i, float(high))
+    joints.low = [float(low) for low in robot.lower_bounds()]
+    joints.high = [float(high) for high in robot.upper_bounds()]
     output.setBounds(joints)
 
     space = ob.FlatStateSpace(output, ORDER)
 
     speeds = ob.RealVectorBounds(dimension)
-    for i, limit in enumerate(SPEED_LIMITS):
-        speeds.setLow(i, -limit)
-        speeds.setHigh(i, limit)
+    speeds.low = (-SPEED_LIMITS).tolist()
+    speeds.high = SPEED_LIMITS.tolist()
     space.getDerivativeSpace(1).setBounds(speeds)
 
     setup = og.SimpleSetup(space)

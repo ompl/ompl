@@ -132,7 +132,7 @@ namespace ompl::base
             output differentiated \e derivativeLevel times.
 
             Minimizing this cost value produces minimum-effort motions.
-            Increasing \e rho buys a shorter motion with more effort.
+            The weight \e rho is charged once per unit of duration.
         */
         double cost(unsigned int derivativeLevel, double rho) const;
 
@@ -141,8 +141,8 @@ namespace ompl::base
             This is the largest Euclidean norm the first derivative reaches between time zero and the
             duration.
 
-            Dividing a distance in the flat output space by this speed gives the longest time step that
-            keeps consecutive samples within that distance of each other.
+            Dividing a distance in the flat output space by this speed gives a time step short enough to keep
+            consecutive samples within that distance of each other.
         */
         double peakSpeed() const;
 
@@ -219,11 +219,11 @@ namespace ompl::base
 
             Below is a summary of the calculation procedure for these coefficients:
 
-            At order \e k, the Taylor expansion at \e from fixes the lowest \e k coefficients.
-            Knowing the bottom \e k coefficients, we can calculate residuals to find higher coefficients.
-            Evaluating the residuals, we see a linear system with one equation per derivative level at \e to and one
-            unknown per top coefficient.
-            Scaling top coefficient \e j by \f$T^{k + j}\f$ and residual \e l by \f$T^l\f$,
+            At order \e k, the Taylor expansion at \e from fixes the bottom \e k coefficients.
+            We then use the value of \e to to constrain the remaining top \e k coefficients.
+            This gives a linear system with one equation per derivative level at \e to and one unknown
+            per top coefficient.
+            Scaling top coefficient \e j by \f$T^{k + j}\f$ and the shortfall at level \e l by \f$T^l\f$,
             where \e T is the duration, writes the system in the time \f$\sigma = t / T\f$ scaled to run from 0 to 1.
             The entry in row \e l and column \e j of its matrix is then derivative level \e l of
             \f$\sigma^{k + j}\f$ at \f$\sigma = 1\f$.
@@ -332,8 +332,8 @@ namespace ompl::base
 
         /** \brief The least-effort motion from \e from to \e to over \e duration, which has to be positive.
 
-            Providing a duration found by \ref optimalDuration allows the motion generator to find a steering without
-            recalculating a duration.
+            Passing the duration found by \ref optimalDuration builds the motion without solving for the duration
+            again.
         */
         FlatMotion motion(const Eigen::Ref<const Eigen::MatrixXd> &from, const Eigen::Ref<const Eigen::MatrixXd> &to,
                           double duration) const;

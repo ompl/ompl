@@ -70,8 +70,9 @@ namespace ompl::base
         Euclidean spaces, SO(2), and compounds of them, such as SE(2) and tori, get an exact chart without
         being asked.
 
-        Distance defaults to the flat output distance plus a weighted Euclidean distance per derivative
-        level, which is symmetric, satisfies the triangle inequality, and needs no steering solve, so
+        Distance defaults to a weighted sum of the distances within each level, the flat output included,
+        where each level is weighted by 1 over its maximum extent.
+        That distance is symmetric, satisfies the triangle inequality, and needs no steering solve, so
         planners keep their fast nearest-neighbor search.
         \ref setDistanceType enables other distances, such as edge traversal cost.
 
@@ -119,12 +120,14 @@ namespace ompl::base
         };
 
         /** \brief The choice of measurement for \ref distance.
-         *
-         *  If you want to plan using a distance not available in this enumeration, you shoud subclass FlatStateSpace.
-         */
+
+            If you want to plan using a distance not available in this enumeration, you should subclass
+            FlatStateSpace.
+        */
         enum DistanceType
         {
-            /** \brief The flat output distance plus a weighted Euclidean distance per derivative level.
+            /** \brief A weighted sum of the distances within each level, the flat output included, where
+                each level is weighted by 1 over its maximum extent.
 
                 It's symmetric, it satisfies the triangle inequality, and it costs no steering solve, so
                 planners keep their fast nearest-neighbor search.
@@ -134,8 +137,9 @@ namespace ompl::base
             /** \brief The cost of traversing a steering motion, meaning its control effort plus rho
                 times its duration.
 
-                It costs a steering solve per query and it runs one way, so nearest-neighbor structures
-                fall back to a linear scan.
+                It costs a steering solve per query and it runs one way, so unless you set a
+                nearest-neighbor structure, planners fall back to an approximate one
+                (ompl::NearestNeighborsSqrtApprox by default).
                 Use it when nearest-neighbor queries should rank states by the cost of reaching them.
             */
             TRAJECTORY_COST
@@ -144,8 +148,8 @@ namespace ompl::base
         /** \brief Build a flat state space over \e output holding \e order derivative levels, counting the
             flat output itself.
 
-            The derivative components come out unbounded, so call \ref setDerivativeBound for each level
-            before planning.
+            The derivative components start with zero-width bounds, like any ompl::base::RealVectorStateSpace,
+            so call \ref setDerivativeBound or set the bounds of each level before planning.
             The order has to be at least 1.
             The steering polynomials between states run in \e chart, which has to carry one coordinate per
             dimension of \e output.
@@ -231,7 +235,7 @@ namespace ompl::base
 
         /** \brief Pick the distance measurement returned from \ref distance.
 
-            This also moves \ref isMetricSpace and \ref hasSymmetricDistance, so set it before a planner
+            This also changes \ref isMetricSpace and \ref hasSymmetricDistance, so set it before a planner
             builds its nearest-neighbor structure.
         */
         void setDistanceType(DistanceType type)
@@ -248,13 +252,15 @@ namespace ompl::base
         /** \brief The cost of traversing the steering polynomial from \e from to \e to, meaning its
             control effort plus rho times its duration.
 
-            Getting from a flat state to itself costs nothing, and a pair no polynomial reaches costs
-            infinity.
+            Getting from a flat state to itself costs nothing, even for a moving state where \ref steer
+            returns a loop, and a pair no polynomial reaches costs infinity.
         */
         double steeringCost(const State *from, const State *to) const;
 
-        /** \brief The motion from \e from to \e to, or nothing when the two coincide and there's nothing
-            to steer through.
+        /** \brief The motion from \e from to \e to, or nothing when both are the same state at rest and
+            there's nothing to steer through.
+
+            Two equal states carrying a velocity get a loop that leaves and comes back.
         */
         virtual std::optional<FlatMotion> steer(const State *from, const State *to) const;
 
@@ -277,7 +283,7 @@ namespace ompl::base
         /** \brief The state reached by following the steering polynomial from \e from toward \e to for
             \e t of its duration.
 
-            Steering between coinciding flat states finds nothing to follow, and \e state then comes out
+            Steering from a state at rest to itself finds nothing to follow, and \e state then comes out
             equal to \e from, which planners already read as no progress.
             \e state is allowed to alias \e from or \e to.
 
@@ -292,7 +298,7 @@ namespace ompl::base
             Hand in \e firstTime set, and the first call solves the steering and clears it.
             Pass the same flag and the same \e motion back on every later call for the same pair of
             states, and the whole edge costs one steering solve.
-            \e motion comes out empty when the two flat states coincide.
+            \e motion comes out empty when both flat states are the same state at rest.
             \e state is allowed to alias \e from or \e to.
         */
         void interpolate(const State *from, const State *to, double t, bool &firstTime,
@@ -360,8 +366,8 @@ namespace ompl::base
         State *allocState() const override;
 
     protected:
-        /** \brief Put \e rho in the parameter set, so a benchmark configuration can sweep it without
-            touching code. */
+        /** \brief Put \e rho and \e distance_type in the parameter set, so a benchmark configuration can
+            sweep them without touching code. */
         void declareParams();
 
         /** \brief Throw unless \e output carries at least one dimension and \e chart one coordinate per

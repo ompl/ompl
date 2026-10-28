@@ -63,7 +63,7 @@ Derivative levels below the order are continuous along a solved trajectory.
 Levels at or above it jump where one edge hands over to the next.
 
 Higher orders cost more.
-For a system of order \f$k\f$, interpolating between two states requires solving a polynomial system of order \f$2k\f$.
+For a system of order \f$k\f$, interpolating between two states requires solving a polynomial of order \f$2k\f$.
 For \f$k=2\f$, this is cheap, since quartics have an analytic solution, but higher-order systems are orders of magnitude less efficient.
 
 ### Robot arms
@@ -80,6 +80,9 @@ The flat state \f$(\theta, \dot{\theta})\f$ is the system state, so \f$\phi\f$ i
 [FlatManipulatorPlanning.cpp](FlatManipulatorPlanning_8cpp_source.html) plans a Panda in this space.
 The solution comes back as \f$\theta(t)\f$ with continuous velocity and piecewise polynomial acceleration.
 Finally, the demo evaluates the joint velocities at 20,001 evenly spaced times along the trajectory and reports the fastest speed of each joint against its velocity cap.
+
+Neither the demo nor VAMP models the arm's dynamics: VAMP only checks collisions, and the demo only enforces joint velocity limits.
+Torque limits are input limits, so check them after solving.
 
 ## Setting up a flat state space
 
@@ -135,6 +138,9 @@ for (unsigned int i = 0; i < Panda::dimension; ++i)
 space->getDerivativeSpace(1)->setBounds(speeds);
 ```
 
+Like any `ompl::base::RealVectorStateSpace`, each derivative level starts with zero-width bounds, so any level that hasn't had its bounds set only admits zero.
+Bound every derivative level, either with `setBounds` as above or with `ompl::base::FlatStateSpace::setDerivativeBound`, before planning.
+
 Any limit that isn't a per-component box can go in the state validity checker, which rejects states that break it.
 To also change how states get sampled and clamped, pass your own derivative spaces to the second `FlatStateSpace` constructor.
 
@@ -160,7 +166,7 @@ The process of finding a valid interpolation between two flat states is called _
 For two given endpoints, steering finds the polynomial between them with the lowest cost.
 The cost of an edge lasting \f$T\f$ is its control effort, \f$\int_0^T \lVert y^{(k)}(t) \rVert^2 \, dt\f$, plus a time penalty of \f$\rho T\f$.
 Raising \f$\rho\f$ buys faster edges that spend more effort.
-You can change \f$\rho\f$ via `ompl::base::FlatStateSpace::setRho`.
+\f$\rho\f$ defaults to 5, and you can change it via `ompl::base::FlatStateSpace::setRho`.
 
 `ompl::base::FlatEffortObjective` charges exactly that cost per edge.
 The space warns when an optimizing planner runs without it, because the default objective sums distances between flat states, which says little about the cost of traversing a path through a flat system.
@@ -274,4 +280,4 @@ if setup.solve(1.0):
 ```
 
 `toFlatState` returns a NumPy array, and `fromFlatState` takes one.
-A Python class can subclass `ompl::base::FlatChart` and pass itself to the constructor, and it calls `setPeriods` to mark wrapping coordinates.
+To write a chart in Python, subclass `ob.FlatChart`, call `super().__init__(dimension)`, override `difference(from_, to, out)` and `advance(from_, delta, out)` so they write their result into `out`, call `setPeriods` to mark wrapping coordinates, and pass an instance to `FlatStateSpace` as `chart=`.

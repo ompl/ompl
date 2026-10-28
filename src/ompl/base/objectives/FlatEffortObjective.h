@@ -62,7 +62,8 @@ namespace ompl::base
     class FlatEffortObjective : public OptimizationObjective
     {
     public:
-        /** \brief Construct a new objective function for the state space \e si. */
+        /** \brief Construct a new objective function for the space information \e si, which has to hold an
+            ompl::base::FlatStateSpace. */
         FlatEffortObjective(const SpaceInformationPtr &si);
 
         /** \brief States cost nothing, since the whole cost of a path sits on its edges. */
@@ -77,8 +78,8 @@ namespace ompl::base
 
         /** \brief Compute the cost of getting from \e s1 to \e s2 with nothing in the way.
 
-            No route from \e s1 to \e s2 comes in under this, so it never overestimates, and it equals the edge
-            cost whenever the steering polynomial is valid.
+            This is the same as \ref motionCost, since the steering polynomial ignores obstacles and nothing
+            gets from \e s1 to \e s2 any cheaper, so it never overestimates.
         */
         Cost motionCostHeuristic(const State *s1, const State *s2) const override;
 

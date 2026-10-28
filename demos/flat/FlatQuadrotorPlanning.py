@@ -124,11 +124,8 @@ def plan(seed=None):
     space = ob.FlatStateSpace(output, ORDER)
 
     rates = ob.RealVectorBounds(4)
-    for i in range(3):
-        rates.setLow(i, -SPEED_LIMIT)
-        rates.setHigh(i, SPEED_LIMIT)
-    rates.setLow(3, -YAW_RATE_LIMIT)
-    rates.setHigh(3, YAW_RATE_LIMIT)
+    rates.low = [-SPEED_LIMIT] * 3 + [-YAW_RATE_LIMIT]
+    rates.high = [SPEED_LIMIT] * 3 + [YAW_RATE_LIMIT]
     space.getDerivativeSpace(1).setBounds(rates)
 
     setup = og.SimpleSetup(space)
@@ -162,13 +159,13 @@ def plan(seed=None):
     og.PathSimplifier(setup.getSpaceInformation()).reduceVertices(path)
     print(f"Solved over {planned} states, reduced to {path.getStateCount()}")
     print(f"The path passes its own validity check: {path.check()}")
-    cost = path.cost(setup.getOptimizationObjective()).value()
-    print(f"Path costs {cost}")
 
     trajectory = ob.FlatTrajectory(path)
     print(
         f"Trajectory of {trajectory.size()} segments lasting {trajectory.duration()} seconds"
     )
+
+    print(f"Steering cost {path.cost(setup.getOptimizationObjective()).value()}")
 
     # A quadrotor's thrust points along its body axis, so the rotors have to supply the acceleration the
     # trajectory asks for plus whatever holds the airframe up against gravity.

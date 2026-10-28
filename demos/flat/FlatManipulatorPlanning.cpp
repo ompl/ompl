@@ -100,8 +100,7 @@ namespace
     void atRest(const ob::FlatStateSpace *space, ob::State *state, const std::array<double, Robot::dimension> &joints)
     {
         Eigen::MatrixXd flat = Eigen::MatrixXd::Zero(ORDER, Robot::dimension);
-        for (unsigned int i = 0; i < Robot::dimension; ++i)
-            flat(0, i) = joints[i];
+        flat.row(0) = Eigen::Map<const Eigen::RowVectorXd>(joints.data(), Robot::dimension);
         space->fromFlatState(flat, state);
     }
 }  // namespace

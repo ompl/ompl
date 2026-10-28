@@ -96,8 +96,7 @@ BOOST_AUTO_TEST_CASE(BoundaryConditions)
     std::mt19937_64 engine(1u);
 
     // The top half of the coefficients solves a system whose matrix grows ill conditioned with the order,
-    // and dividing out the duration scales the solve by up to T^(2k - 1), so this runs up to order 5 over
-    // durations spanning two decades either side of 1.
+    // so this runs up to order 5.
     for (unsigned int order = 1; order <= 5u; ++order)
     {
         MinimumEffortSteering effort(order);
@@ -114,6 +113,8 @@ BOOST_AUTO_TEST_CASE(BoundaryConditions)
         }
 
         // Pinning the duration lands on both flat states too.
+        // Dividing out the duration scales the solve by up to T^(2k - 1), so the durations span about 1.3
+        // decades either side of 1.
         for (double duration : {0.05, 1., 20.})
         {
             FixedDurationSteering steering(order, duration);

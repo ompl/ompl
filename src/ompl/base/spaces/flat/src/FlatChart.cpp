@@ -49,19 +49,21 @@ namespace ompl::base
 {
     void RealVectorFlatChart::difference(const State *from, const State *to, Eigen::Ref<Eigen::VectorXd> out) const
     {
-        const double *start = from->as<RealVectorStateSpace::StateType>()->values;
-        const double *finish = to->as<RealVectorStateSpace::StateType>()->values;
-        for (unsigned int i = 0; i < dimension_; ++i)
-            out[i] = finish[i] - start[i];
+        const double *startValues = from->as<RealVectorStateSpace::StateType>()->values;
+        const double *finishValues = to->as<RealVectorStateSpace::StateType>()->values;
+        const Eigen::Map<const Eigen::VectorXd> start(startValues, dimension_);
+        const Eigen::Map<const Eigen::VectorXd> finish(finishValues, dimension_);
+        out.head(dimension_) = finish - start;
     }
 
     void RealVectorFlatChart::advance(const State *from, const Eigen::Ref<const Eigen::VectorXd> &delta,
                                       State *out) const
     {
-        const double *start = from->as<RealVectorStateSpace::StateType>()->values;
-        double *finish = out->as<RealVectorStateSpace::StateType>()->values;
-        for (unsigned int i = 0; i < dimension_; ++i)
-            finish[i] = start[i] + delta[i];
+        const double *startValues = from->as<RealVectorStateSpace::StateType>()->values;
+        double *outValues = out->as<RealVectorStateSpace::StateType>()->values;
+        const Eigen::Map<const Eigen::VectorXd> start(startValues, dimension_);
+        Eigen::Map<Eigen::VectorXd> finish(outValues, dimension_);
+        finish = start + delta.head(dimension_);
     }
 
     SO2FlatChart::SO2FlatChart() : FlatChart(1u)

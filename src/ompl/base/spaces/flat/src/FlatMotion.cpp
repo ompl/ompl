@@ -313,7 +313,8 @@ namespace
 
         /** \brief The roots of \f$a t^3 + b t^2 + c t + d\f$, where \e a is nonzero.
 
-            Cardano's method, which always hands back at least one root because a cubic always has one.
+            Cardano's method, using its trigonometric form when there are three real roots.
+            This is guaranteed to return at least one root.
         */
         static Roots cubicRoots(double a, double b, double c, double d)
         {
@@ -423,8 +424,7 @@ namespace
     /** \brief Run \e kernel with the order as a compile-time constant at 2, and as 0 at
         every other order, which tells the kernel to read the order at runtime.
 
-        Unrolling the loops over derivative levels at order 2 makes steering there cost what the closed forms
-        it replaced did.
+        Unrolling the loops over derivative levels at order 2, the common case, keeps steering fast.
     */
     template <class Kernel>
     decltype(auto) withOrder(Eigen::Index order, Kernel &&kernel)
@@ -475,10 +475,11 @@ namespace
         coordinate \e axis, as polynomials in the duration T.
 
         Entry \e l + \e k \e p holds the coefficient of \f$T^p\f$ in
-            T^l yf^(l) - sum over i from l through k - 1 of y0^(i) T^i / (i - l)!,
-        for \e l and \e p from 0 through \e k - 1.
-        That polynomial is T^l times whatever of derivative level \e l at \e to the Taylor expansion at
-        \e from leaves over, and scaling level \e l by T^l writes the shortfall in time scaled by the
+        \f$T^l \, to_l - \sum_{i = l}^{k - 1} from_i \, T^i / (i - l)!\f$,
+        for \e l and \e p from 0 through \e k - 1, where \f$to_l\f$ is derivative level \e l of \e to and
+        \f$from_i\f$ is derivative level \e i of \e from, both along \e axis.
+        That polynomial is \f$T^l\f$ times whatever of derivative level \e l at \e to the Taylor expansion at
+        \e from leaves over, and scaling level \e l by \f$T^l\f$ writes the shortfall in time scaled by the
         duration.
         Entries with \e p below \e l are zero.
     */
@@ -628,10 +629,7 @@ namespace ompl::base
         // its polynomial first.
         for (Eigen::Index i = coefficients_.rows() - 1; i >= level; --i)
         {
-            double weight = 1.;
-            for (Eigen::Index k = 0; k < level; ++k)
-                weight *= static_cast<double>(i - k);
-            out = out * t + weight * coefficients_.row(i).transpose();
+            out = out * t + fallingFactorial(i, level) * coefficients_.row(i).transpose();
         }
     }
 
@@ -667,19 +665,14 @@ namespace ompl::base
         double effort = 0.;
         for (Eigen::Index i = level; i < coefficients_.rows(); ++i)
         {
-            double weightI = 1.;
-            for (Eigen::Index k = 0; k < level; ++k)
-                weightI *= static_cast<double>(i - k);
-
+            const double weightI = fallingFactorial(i, level);
             double weightJ = weightI;
-            double durationPower = std::pow(duration_, static_cast<double>(2 * (i - level) + 1));
+            double durationPower = power(duration_, 2 * (i - level) + 1);
             for (Eigen::Index j = i; j < coefficients_.rows(); ++j)
             {
-                const double power = static_cast<double>(i + j - 2 * level + 1);
+                const double integralDegree = static_cast<double>(i + j - 2 * level + 1);
                 const double term =
-                    weightI * weightJ * coefficients_.row(i).dot(coefficients_.row(j)) * durationPower / power;
-
-                // double-count off-diagonals
+                    weightI * weightJ * coefficients_.row(i).dot(coefficients_.row(j)) * durationPower / integralDegree;
                 effort += i == j ? term : 2. * term;
 
                 weightJ *= static_cast<double>(j + 1) / static_cast<double>(j + 1 - level);
@@ -692,20 +685,20 @@ namespace ompl::base
     double FlatMotion::peakSpeed() const
     {
         const Eigen::Index rows = coefficients_.rows();
-        Polynomial v_squared(std::max<Eigen::Index>(2 * rows - 3, 1));
+        Polynomial speedSquared(std::max<Eigen::Index>(2 * rows - 3, 1));
         for (Eigen::Index i = 1; i < rows; ++i)
         {
             const double weight = static_cast<double>(i);
-            v_squared[2 * (i - 1)] += weight * weight * coefficients_.row(i).squaredNorm();
+            speedSquared[2 * (i - 1)] += weight * weight * coefficients_.row(i).squaredNorm();
             for (Eigen::Index j = i + 1; j < rows; ++j)
-                v_squared[i + j - 2] +=
+                speedSquared[i + j - 2] +=
                     2. * weight * static_cast<double>(j) * coefficients_.row(i).dot(coefficients_.row(j));
         }
 
-        double peak = std::max(v_squared(0.), v_squared(duration_));
-        for (double t : v_squared.derivative().roots())
+        double peak = std::max(speedSquared(0.), speedSquared(duration_));
+        for (double t : speedSquared.derivative().roots())
             if (t > 0. && t < duration_)
-                peak = std::max(peak, v_squared(t));
+                peak = std::max(peak, speedSquared(t));
         return std::sqrt(std::max(peak, 0.));
     }
 
@@ -965,9 +958,9 @@ namespace ompl::base
             if (winding != 0.)
                 changes.push_back(WindingChange{0., winding});
 
-            const double direction = idealWinding[1] > 0. ? 1. : -1.;
-            if (!(idealWinding[1] != 0.))
+            if (idealWinding[1] == 0.)
                 return changes;
+            const double direction = idealWinding[1] > 0. ? 1. : -1.;
 
             // A line crosses the halfway points at evenly spaced times.
             // Each time comes from the first one rather than from adding up spacings, so rounding doesn't
@@ -994,7 +987,7 @@ namespace ompl::base
                 low = std::min(low, idealWinding(t));
                 high = std::max(high, idealWinding(t));
             }
-        // A velocity of NaN ends the search rather than spinning forever.
+        // A non-finite ideal winding ends the search rather than spinning forever.
         if (!std::isfinite(low) || !std::isfinite(high))
             return changes;
 

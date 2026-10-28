@@ -45,6 +45,7 @@
 
 #include <cmath>
 #include <memory>
+#include <utility>
 
 using namespace ompl::base;
 
@@ -95,10 +96,10 @@ BOOST_AUTO_TEST_CASE(VerdictsMatchTheDiscreteValidator)
     DiscreteMotionValidator discrete(si);
 
     StateSamplerPtr sampler = space->allocStateSampler();
-    ScopedState<> from(space), to(space);
+    ScopedState<> from(space), to(space), flatState(space), discreteState(space);
 
-    std::pair<State *, double> flatLast(si->allocState(), 0.);
-    std::pair<State *, double> discreteLast(si->allocState(), 0.);
+    std::pair<State *, double> flatLast(flatState.get(), 0.);
+    std::pair<State *, double> discreteLast(discreteState.get(), 0.);
 
     unsigned int rejected = 0u;
     for (unsigned int trial = 0; trial < 2000u; ++trial)
@@ -129,7 +130,4 @@ BOOST_AUTO_TEST_CASE(VerdictsMatchTheDiscreteValidator)
     BOOST_CHECK_LT(rejected, 1900u);
     BOOST_CHECK_EQUAL(flat.getValidMotionCount(), discrete.getValidMotionCount());
     BOOST_CHECK_EQUAL(flat.getInvalidMotionCount(), discrete.getInvalidMotionCount());
-
-    si->freeState(flatLast.first);
-    si->freeState(discreteLast.first);
 }
