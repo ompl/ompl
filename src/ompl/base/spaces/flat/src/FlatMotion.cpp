@@ -43,6 +43,7 @@
 #include <boost/config.hpp>
 #include <boost/container/small_vector.hpp>
 #include <boost/math/constants/constants.hpp>
+#include <boost/math/special_functions/binomial.hpp>
 
 #include <algorithm>
 #include <array>
@@ -303,6 +304,8 @@ namespace
             const double discriminant = c * c - 4. * b * d;
             if (discriminant < 0.)
                 return {};
+            if (discriminant == 0.)
+                return {-c / (2. * b)};
 
             const double spread = std::sqrt(discriminant);
             return {(-c - spread) / (2. * b), (-c + spread) / (2. * b)};
@@ -452,23 +455,10 @@ namespace
         return product;
     }
 
-    /** \brief The binomial coefficient C(n, r), which is exact while it stays below 2^53, since every partial
-        product is itself a binomial coefficient. */
+    /** \brief The binomial coefficient C(n, r). */
     double binomial(Eigen::Index n, Eigen::Index r)
     {
-        double result = 1.;
-        for (Eigen::Index i = 1; i <= r; ++i)
-            result = result * static_cast<double>(n - r + i) / static_cast<double>(i);
-        return result;
-    }
-
-    /** \brief \e base to the power \e exponent, by repeated multiplication. */
-    double power(double base, Eigen::Index exponent)
-    {
-        double result = 1.;
-        for (Eigen::Index i = 0; i < exponent; ++i)
-            result *= base;
-        return result;
+        return boost::math::binomial_coefficient<double>(static_cast<unsigned int>(n), static_cast<unsigned int>(r));
     }
 
     /** \brief Write into \e shortfall what the Taylor expansion at \e from leaves undone at \e to along
@@ -529,7 +519,7 @@ namespace
         /** \brief The cost J(T) of steering over \e duration with time penalty \e rho. */
         double cost(double duration, double rho) const
         {
-            return numerator_(duration) / power(duration, 2 * order_ - 1) + rho * duration;
+            return numerator_(duration) / std::pow(duration, static_cast<double>(2 * order_ - 1)) + rho * duration;
         }
 
         /** \brief T^(2k) times the derivative of \ref cost with respect to T, which is a polynomial of
@@ -793,7 +783,7 @@ namespace ompl::base
 
                       // Scaling the top half back out of time scaled by T divides power k + a by T^(k + a).
                       auto scales = allocBuffer<Order>(k);
-                      scales[0] = 1. / power(T, k);
+                      scales[0] = 1. / std::pow(T, static_cast<double>(k));
                       for (Eigen::Index a = 1; a < k; ++a)
                           scales[a] = scales[a - 1] / T;
 
@@ -816,7 +806,7 @@ namespace ompl::base
                               double value = 0.;
                               for (Eigen::Index p = k - 1; p >= l; --p)
                                   value = value * T + shortfall[l + k * p];
-                              shortfallAt[l] = value * power(T, l);
+                              shortfallAt[l] = value * std::pow(T, static_cast<double>(l));
                           }
 
                           for (Eigen::Index a = 0; a < k; ++a)

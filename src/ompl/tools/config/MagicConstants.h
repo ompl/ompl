@@ -103,6 +103,10 @@ namespace ompl
         /** \brief Default number of close solutions to choose from a path experience database
             (library) for further filtering used in the Lightning Framework */
         static const unsigned int NEAREST_K_RECALL_SOLUTIONS = 10;
+
+        /** \brief Default time penalty for finding motions in flat state spaces.
+            Higher penalties yield shorter-duration motions with higher control efforts. */
+        static const double FLAT_STEERING_TIME_PENALTY = 5.0;
     }  // namespace magic
 }  // namespace ompl
 

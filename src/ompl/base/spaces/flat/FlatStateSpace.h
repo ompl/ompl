@@ -210,7 +210,7 @@ namespace ompl::base
         void setDerivativeBound(unsigned int level, double bound);
 
         /** \brief Set the time penalty charged per unit duration, which has to be positive.
-            It defaults to 5.
+            It defaults to \ref magic::FLAT_STEERING_TIME_PENALTY.
             Raising it buys shorter motions that spend more effort. */
         void setRho(double rho)
         {
