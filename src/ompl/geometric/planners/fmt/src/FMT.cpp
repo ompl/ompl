@@ -57,6 +57,7 @@ ompl::geometric::FMT::FMT(const base::SpaceInformationPtr &si) : base::Planner(s
     lastGoalMotion_ = nullptr;
 
     specs_.approximateSolutions = false;
+    // Each edge is checked and costed from the parent to the child, so directed motions are supported.
     specs_.directed = true;
 
     ompl::base::Planner::declareParam<unsigned int>("num_samples", this, &FMT::setNumSamples, &FMT::getNumSamples,
