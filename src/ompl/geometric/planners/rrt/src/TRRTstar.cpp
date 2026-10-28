@@ -88,7 +88,7 @@ void ompl::geometric::TRRTstar::setup()
     Planner::setup();
     tools::SelfConfig sc(si_, getName());
     sc.configurePlannerRange(maxDistance_);
-    // A solution path runs from the start to the goal, and every motion gets checked that way, so an asymmetric space
+    // Every motion gets checked in the direction it is driven, from the start toward the goal, so an asymmetric space
     // still yields valid paths.
     // A symmetric distance only matters for the rewiring neighborhoods.
     if (!si_->getStateSpace()->hasSymmetricDistance())
@@ -233,6 +233,7 @@ ompl::base::PlannerStatus ompl::geometric::TRRTstar::solve(const base::PlannerTe
     std::vector<std::size_t> sortedCostIndices;
 
     std::vector<int> valid;
+    const bool symmetricInterpolate = si_->getStateSpace()->hasSymmetricInterpolate();
     unsigned int rewireTest = 0;
     unsigned int statesGenerated = 0;
 
@@ -428,7 +429,9 @@ ompl::base::PlannerStatus ompl::geometric::TRRTstar::solve(const base::PlannerTe
                         if (opt_->isCostBetterThan(nbhNewCost, nbh[i]->cost))
                         {
                             bool motionValid;
-                            if (valid[i] == 0)
+                            // The cache holds the motion from the neighbor to the new state, which says nothing about
+                            // the motion back when interpolation is asymmetric.
+                            if (valid[i] == 0 || !symmetricInterpolate)
                             {
                                 motionValid =
                                     (!useKNearest_ || si_->distance(nbh[i]->state, motion->state) < maxDistance_) &&

@@ -484,7 +484,6 @@ void ompl::geometric::ATRRT::addUsefulCycles(Motion *newMotion, Motion *nearMoti
 
 void ompl::geometric::ATRRT::addEdge(Motion *a, Motion *b)
 {
-    // in asymmetric case, we have to check the reverse edge
     a->neighbors.push_back(b);
     if (symmetricMotions_ || si_->checkMotion(b->state, a->state))
         b->neighbors.push_back(a);
