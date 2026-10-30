@@ -51,7 +51,11 @@ else()
 endif()
 
 target_link_libraries(_ompl PRIVATE ompl::ompl)
-target_compile_options(_ompl PRIVATE -Wno-unused-parameter)
+if(MSVC)
+    target_compile_options(_ompl PRIVATE /wd4100)
+else()
+    target_compile_options(_ompl PRIVATE -Wno-unused-parameter)
+endif()
 
 # Set RPATH so the module can find libompl
 if(APPLE)

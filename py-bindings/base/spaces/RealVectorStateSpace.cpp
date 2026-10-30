@@ -2,6 +2,7 @@
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
+#include <cstddef>
 #include <cstring>
 #include <sstream>
 #include "ompl/base/spaces/RealVectorStateSpace.h"
@@ -36,17 +37,17 @@ void ompl::binding::base::initSpaces_RealVectorStateSpace(nb::module_ &m)
                  }
 
                  // Extract stop (required)
-                 ssize_t stop = nb::cast<ssize_t>(slice.attr("stop"));
+                 std::ptrdiff_t stop = nb::cast<std::ptrdiff_t>(slice.attr("stop"));
 
                  // Extract start (default 0)
-                 ssize_t start = 0;
+                 std::ptrdiff_t start = 0;
                  if (!slice.attr("start").is_none())
-                     start = nb::cast<ssize_t>(slice.attr("start"));
+                     start = nb::cast<std::ptrdiff_t>(slice.attr("start"));
 
                  // Extract step (default 1)
-                 ssize_t step = 1;
+                 std::ptrdiff_t step = 1;
                  if (!slice.attr("step").is_none())
-                     step = nb::cast<ssize_t>(slice.attr("step"));
+                     step = nb::cast<std::ptrdiff_t>(slice.attr("step"));
 
                  // Reject negative or zero step
                  if (step <= 0)
@@ -98,17 +99,17 @@ void ompl::binding::base::initSpaces_RealVectorStateSpace(nb::module_ &m)
                 }
 
                 // Extract stop (required)
-                ssize_t stop = nb::cast<ssize_t>(slice.attr("stop"));
+                std::ptrdiff_t stop = nb::cast<std::ptrdiff_t>(slice.attr("stop"));
 
                 // Extract start (default 0)
-                ssize_t start = 0;
+                std::ptrdiff_t start = 0;
                 if (!slice.attr("start").is_none())
-                    start = nb::cast<ssize_t>(slice.attr("start"));
+                    start = nb::cast<std::ptrdiff_t>(slice.attr("start"));
 
                 // Extract step (default 1)
-                ssize_t step = 1;
+                std::ptrdiff_t step = 1;
                 if (!slice.attr("step").is_none())
-                    step = nb::cast<ssize_t>(slice.attr("step"));
+                    step = nb::cast<std::ptrdiff_t>(slice.attr("step"));
 
                 // Reject negative or zero step
                 if (step <= 0)

@@ -1,4 +1,5 @@
 #include <nanobind/nanobind.h>
+#include <string>
 #include "ompl/base/Cost.h"
 #include "init.h"
 
