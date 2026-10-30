@@ -1,6 +1,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/trampoline.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/vector.h>
 #include <nanobind/eigen/dense.h>
 #include "ompl/base/Constraint.h"
 #include "init.h"

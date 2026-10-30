@@ -22,8 +22,8 @@ class MyGoal(ob.Goal):
     def isStartGoalPairValid(self, start: ob.State, goal: ob.State) -> bool:
         return True
 
-    def print(self):
-        print("MyGoal")
+    def __repr__(self) -> str:
+        return "MyGoal"
 
 
 def test_customize_goal():

@@ -24,6 +24,15 @@ void ompl::binding::util::init_PPM(nb::module_ &m)
         .def("setWidth", &ompl::PPM::setWidth)
         .def("setHeight", &ompl::PPM::setHeight)
         .def(
-            "getPixel", [](const ompl::PPM &self, int row, int col) -> const ompl::PPM::Color &
-            { return self.getPixel(row, col); }, nb::arg("row"), nb::arg("col"), nb::rv_policy::reference_internal);
+            "getPixel",
+            [](ompl::PPM &self, int row, int col) -> ompl::PPM::Color &
+            {
+                // setWidth()/setHeight() need not match the loaded pixels, so check against both.
+                const std::size_t index = static_cast<std::size_t>(row) * self.getWidth() + col;
+                if (row < 0 || col < 0 || static_cast<unsigned int>(row) >= self.getHeight() ||
+                    static_cast<unsigned int>(col) >= self.getWidth() || index >= self.getPixels().size())
+                    throw nb::index_error("pixel coordinates out of range");
+                return self.getPixel(row, col);
+            },
+            nb::arg("row"), nb::arg("col"), nb::rv_policy::reference_internal);
 }
