@@ -9,7 +9,7 @@ If you are building OMPL from source, there are several options that you can use
 | OMPL_BUILD_PYTESTS            | ON            | Whether the Python tests should be added to the `test` target. |
 | OMPL_BUILD_SHARED             | ON            | Whether the OMPL library should be a static or dynamic library (the default on Windows is to build a static library)
 | OMPL_BUILD_TESTS              | ON            | Wether to compile the C++ unit tests |
-| OMPL_BUILD_VAMP               | ON            | Build VAMP (Vector-Accelerated Motion Planning) submodule for enhanced collision checking performance. |
+| OMPL_BUILD_VAMP               | ON            | Build VAMP (Vector-Accelerated Motion Planning) submodule for enhanced collision checking performance. OMPL then compiles with VAMP's SIMD flags, and anything linking OMPL has to use the same flags so both sides agree on Eigen's memory alignment. The exported `ompl::ompl` CMake target and the `ompl` pkg-config file both carry the flags, so builds using either get them automatically. |
 | OMPL_VERSIONED_INSTALL        | ON            | Install header files in include/ompl-X.Y/ompl, where X and Y are the major and minor version numbers. |
 | VAMP_PORTABLE_BUILD           | OFF           | Build VAMP with portable SIMD settings for distribution (package maintainers). When OFF, uses -march=native and the largest available SIMD lane count for best performance. |
 | VAMP_BUILD_PYTHON_BINDINGS    | OFF           | Build VAMP Python bindings (advanced feature, requires OMPL_BUILD_VAMP=ON). |

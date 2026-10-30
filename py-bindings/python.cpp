@@ -100,6 +100,12 @@ NB_MODULE(_ompl, m)
     ompl::binding::base::initSpacesSpecial_TorusStateSpace(base);
     ompl::binding::base::initSpacesSpecial_MobiusStateSpace(base);
     ompl::binding::base::initSpacesSpecial_KleinBottleStateSpace(base);
+    ompl::binding::base::initSpacesFlat_FlatChart(base);
+    ompl::binding::base::initSpacesFlat_FlatMotion(base);
+    ompl::binding::base::initSpacesFlat_FlatStateSpace(base);
+    ompl::binding::base::initSpacesFlat_FlatMotionValidator(base);
+    ompl::binding::base::initSpacesFlat_FlatTrajectory(base);
+    ompl::binding::base::initObjectives_FlatEffortObjective(base);
 
     ompl::binding::base::initSpacesConstraint_ConstrainedStateSpace(base);
     ompl::binding::base::initSpacesConstraint_ProjectedStateSpace(base);

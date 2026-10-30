@@ -32,7 +32,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-/* Author: Clayton Ramsey */
+/* Author: Clayton W. Ramsey */
 
 #define BOOST_TEST_MODULE "DirectedSpecs"
 #include <boost/test/unit_test.hpp>
@@ -79,8 +79,8 @@ namespace
     constexpr double SOLVE_TIME = 1.0;
     constexpr unsigned int RUNS = 3u;
 
-    /// A grid of square pillars.
-    /// A Dubins car has to weave through them.
+    /** \brief A grid of square pillars.
+        A Dubins car has to weave through them. */
     bool isValid(const ob::State *state)
     {
         const auto *se2 = state->as<ob::DubinsStateSpace::StateType>();
@@ -131,9 +131,11 @@ namespace
         return {[](const ob::SpaceInformationPtr &si) { return std::make_shared<T>(si); }, solveTime};
     }
 
-    /// BiRLRT has two growth modes.
-    /// The range-limited one takes short steps and the keep-last one takes a step toward a uniform
-    /// sample and truncates it, so the two exercise different edges.
+    /** \brief BiRLRT has two growth modes.
+
+        The range-limited one takes short steps and the keep-last one takes a step toward a uniform
+        sample and truncates it, so the two exercise different edges.
+    */
     PlannerCase keepLastBiRLRT()
     {
         return {[](const ob::SpaceInformationPtr &si)
@@ -157,7 +159,7 @@ namespace
     }
 }  // namespace
 
-/// Make sure the search space is actually asymmetric with some regularity.
+/** \brief Make sure the search space is actually asymmetric with some regularity. */
 BOOST_AUTO_TEST_CASE(DirectionChangesTheVerdict)
 {
     og::SimpleSetup setup = makeSetup();

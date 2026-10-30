@@ -268,7 +268,8 @@ namespace ompl
 
             /** \brief Record the edge from a to b.
                 The caller has already validated that edge.
-                Record the edge from b to a as well, once it holds up on its own. */
+                Record the edge from b to a too when the space interpolates symmetrically, or when the
+                motion from b to a also checks out. */
             void addEdge(Motion *a, Motion *b);
 
             /** \brief Compute lowest-cost path in graph between two motions */

@@ -26,6 +26,7 @@ if (OMPL_BUILD_DEMOS)
     add_ompl_demo(demo_StateSampling StateSampling.cpp)
     add_ompl_demo(demo_GeometricCarPlanning GeometricCarPlanning.cpp)
     add_ompl_demo(demo_DubinsAirplane DubinsAirplane.cpp)
+    add_ompl_demo(demo_FlatQuadrotorPlanning flat/FlatQuadrotorPlanning.cpp)
     add_ompl_demo(demo_Point2DPlanning Point2DPlanning.cpp)
     add_ompl_demo(demo_HybridSystemPlanning HybridSystemPlanning.cpp)
     add_ompl_demo(demo_KinematicChainBenchmark KinematicChainBenchmark.cpp)
@@ -92,6 +93,10 @@ if (OMPL_BUILD_DEMOS)
         add_ompl_demo(demo_VAMPMotionBenchmaker vamp/MotionBenchmakerDemoMain.cpp vamp/MotionBenchmakerDemo.cpp)
         target_include_directories(demo_VAMPMotionBenchmaker PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vamp)
         target_link_libraries(demo_VAMPMotionBenchmaker PRIVATE vamp_cpp)
+
+        # Flat planning uses the same arm and the same cage of spheres as the VAMP demo above.
+        add_ompl_demo(demo_FlatManipulatorPlanning flat/FlatManipulatorPlanning.cpp)
+        target_link_libraries(demo_FlatManipulatorPlanning PRIVATE vamp_cpp)
     endif()
 
 endif(OMPL_BUILD_DEMOS)
