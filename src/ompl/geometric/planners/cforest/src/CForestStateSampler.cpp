@@ -69,10 +69,10 @@ void ompl::base::CForestStateSampler::setStatesToSample(const std::vector<const 
 
     statesToSample_.reserve(states.size());
     // push in reverse order, so that the states are popped in order in getNextSample()
-    for (auto state : states)
+    for (auto it = states.rbegin(); it != states.rend(); ++it)
     {
         State *s = space_->allocState();
-        space_->copyState(s, state);
+        space_->copyState(s, *it);
         statesToSample_.push_back(s);
     }
 }
