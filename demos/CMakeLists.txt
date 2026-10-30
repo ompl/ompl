@@ -94,6 +94,10 @@ if (OMPL_BUILD_DEMOS)
         target_include_directories(demo_VAMPMotionBenchmaker PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vamp)
         target_link_libraries(demo_VAMPMotionBenchmaker PRIVATE vamp_cpp)
 
+        add_ompl_demo(demo_VAMPAllPlanners vamp/VAMPAllPlannersDemo.cpp)
+        target_include_directories(demo_VAMPAllPlanners PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vamp)
+        target_link_libraries(demo_VAMPAllPlanners PRIVATE vamp_cpp)
+
         # Flat planning uses the same arm and the same cage of spheres as the VAMP demo above.
         add_ompl_demo(demo_FlatManipulatorPlanning flat/FlatManipulatorPlanning.cpp)
         target_link_libraries(demo_FlatManipulatorPlanning PRIVATE vamp_cpp)
