@@ -91,7 +91,7 @@ namespace ompl
         void BITstar::ImplicitGraph::setup(const ompl::base::SpaceInformationPtr &spaceInformation,
                                            const ompl::base::ProblemDefinitionPtr &problemDefinition,
                                            CostHelper *costHelper, SearchQueue *searchQueue,
-                                           const ompl::base::Planner *plannerPtr,
+                                           BITstar *plannerPtr,
                                            ompl::base::PlannerInputStates &inputStates)
         {
             // Store that I am setup so that any debug-level tests will pass. This requires assuring that this function
@@ -103,6 +103,7 @@ namespace ompl
             problemDefinition_ = problemDefinition;
             costHelpPtr_ = costHelper;
             queuePtr_ = searchQueue;
+            plannerPtr_ = plannerPtr;
 
             // Configure the nearest-neighbour constructs.
             // Only allocate if they are empty (as they can be set to a specific version by a call to
@@ -200,6 +201,7 @@ namespace ompl
             problemDefinition_.reset();
             costHelpPtr_ = nullptr;
             queuePtr_ = nullptr;
+            plannerPtr_ = nullptr;
 
             // Sampling
             rng_ = ompl::RNG();
@@ -576,7 +578,7 @@ namespace ompl
                 if (!startVertices_.empty() && !goalVertices_.empty())
                 {
                     // There is a start and goal, allocate
-                    sampler_ = costHelpPtr_->getOptObj()->allocInformedStateSampler(
+                    sampler_ = plannerPtr_->allocInformedStateSampler(
                         problemDefinition_, std::numeric_limits<unsigned int>::max());
                 }
                 // No else, this will get allocated when we get the updated start/goal.
@@ -620,6 +622,9 @@ namespace ompl
 
             // And there are no longer and recycled samples.
             recycledSamples_.clear();
+
+            // Custom perception must see all retained states, including recycled vertices.
+            plannerPtr_->onNewBatch(*this);
 
             // Increment the approximation id.
             ++(*approximationId_);
