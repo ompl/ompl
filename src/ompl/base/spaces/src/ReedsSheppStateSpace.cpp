@@ -51,7 +51,8 @@ namespace
 #ifndef NDEBUG
     const double RS_EPS = 1e-6;
 #endif
-    const double ZERO = 10 * std::numeric_limits<double>::epsilon();
+    // Closed-form solutions can produce small negative segment lengths due to floating-point roundoff.
+    const double ZERO = 1e-10;
 
     inline double mod2pi(double x)
     {

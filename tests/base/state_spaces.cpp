@@ -103,6 +103,27 @@ BOOST_AUTO_TEST_CASE(ReedsShepp_Simple)
     d->sanityChecks();
 }
 
+BOOST_AUTO_TEST_CASE(ReedsShepp_InterpolatedDistance)
+{
+    auto d(std::make_shared<base::ReedsSheppStateSpace>());
+
+    base::ScopedState<base::SE2StateSpace> from(d);
+    base::ScopedState<base::SE2StateSpace> to(d);
+    base::ScopedState<base::SE2StateSpace> interpolated(d);
+    from->setX(-1.1548105771891992);
+    from->setY(-2.4936594425062641);
+    from->setYaw(1.2904602927652871);
+    to->setX(0.68068876235161824);
+    to->setY(0.9577618497293372);
+    to->setYaw(-1.3773442068009523);
+
+    constexpr double fraction = 0.043926969507538036;
+    const double expectedDistance = fraction * d->distance(from.get(), to.get());
+    d->interpolate(from.get(), to.get(), fraction, interpolated.get());
+
+    BOOST_CHECK_LE(d->distance(from.get(), interpolated.get()), expectedDistance + 1e-9);
+}
+
 BOOST_AUTO_TEST_CASE(Owen_Simple)
 {
     auto d(std::make_shared<base::OwenStateSpace>());
