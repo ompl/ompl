@@ -1,11 +1,13 @@
 # ---------------------------------------------------------------------
 # Create a single python module named _ompl
 # ---------------------------------------------------------------------
-file(GLOB_RECURSE PY_OMPL_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} base/*.cpp control/*.cpp geometric/*.cpp util/*.cpp tools/*.cpp python.cpp)
+file(GLOB_RECURSE PY_OMPL_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} base/*.cpp control/*.cpp geometric/*.cpp multilevel/*.cpp util/*.cpp tools/*.cpp python.cpp)
 nanobind_add_module(_ompl
     STABLE_ABI
     ${PY_OMPL_SOURCES}
 )
+# So sources in any subdirectory can include the shared PyGC.h helper.
+target_include_directories(_ompl PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Ask Python's sysconfig where 'purelib' lands under CMAKE_INSTALL_PREFIX, then
 # strip the prefix to get a relative path. Matches ament_cmake_python's
@@ -83,6 +85,7 @@ nanobind_add_stub(
         ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl/base.pyi
         ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl/geometric.pyi
         ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl/control.pyi
+        ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl/multilevel.pyi
         ${CMAKE_CURRENT_BINARY_DIR}/ompl/_ompl/util.pyi
 )
 
@@ -109,6 +112,7 @@ install(FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/base.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/geometric.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/control.py
+        ${CMAKE_CURRENT_SOURCE_DIR}/ompl/multilevel.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/util.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/tools.py
         ${CMAKE_CURRENT_SOURCE_DIR}/ompl/_benchmark_statistics.py

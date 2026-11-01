@@ -1,7 +1,12 @@
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/function.h>
+#include <nanobind/stl/optional.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/string.h>
+#include <nanobind/stl/tuple.h>
+#include <optional>
 #include <sstream>
 
 // Include the OMPL headers for ProblemDefinition and related classes.
@@ -10,16 +15,73 @@
 #include "ompl/base/State.h"
 #include "ompl/base/Goal.h"
 #include "ompl/base/OptimizationObjective.h"
+#include "ompl/base/Planner.h"
 #include "ompl/base/SolutionNonExistenceProof.h"
 #include "ompl/base/spaces/RealVectorStateSpace.h"
 
+#include "PyGC.h"
 #include "init.h"
 
 namespace nb = nanobind;
+namespace gc = ompl::binding::gc;
+
+namespace
+{
+    int problemDefinitionTraverse(PyObject *self, visitproc visit, void *arg)
+    {
+        Py_VISIT(Py_TYPE(self));
+        if (!nb::inst_ready(self) || !gc::pythonOwned(self))
+            return 0;
+        const auto &pdef = *nb::inst_ptr<ompl::base::ProblemDefinition>(self);
+        if (int rc = gc::visitHeld(pdef.getSpaceInformation(), visit, arg))
+            return rc;
+        if (int rc = gc::visitHeld(pdef.getGoal(), visit, arg))
+            return rc;
+        if (int rc = gc::visitHeld(pdef.getOptimizationObjective(), visit, arg))
+            return rc;
+        return gc::visitHeld(pdef.getIntermediateSolutionCallback(), visit, arg);
+    }
+
+    int problemDefinitionClear(PyObject *self)
+    {
+        if (!nb::inst_ready(self) || !gc::pythonOwned(self))
+            return 0;
+        auto &pdef = *nb::inst_ptr<ompl::base::ProblemDefinition>(self);
+        if (gc::holdsPython(pdef.getGoal()))
+            pdef.clearGoal();
+        if (gc::holdsPython(pdef.getOptimizationObjective()))
+            pdef.setOptimizationObjective(ompl::base::OptimizationObjectivePtr());
+        if (gc::holdsPython(pdef.getIntermediateSolutionCallback()))
+            pdef.setIntermediateSolutionCallback(ompl::base::ReportIntermediateSolutionFn());
+        return 0;
+    }
+
+    const PyType_Slot problemDefinitionSlots[] = {{Py_tp_traverse, (void *)problemDefinitionTraverse},
+                                                  {Py_tp_clear, (void *)problemDefinitionClear},
+                                                  {0, 0}};
+}  // namespace
 
 void ompl::binding::base::init_ProblemDefinition(nb::module_ &m)
 {
-    nb::class_<ompl::base::ProblemDefinition>(m, "ProblemDefinition")
+    nb::class_<ompl::base::PlannerSolution>(m, "PlannerSolution")
+        .def(nb::init<const ompl::base::PathPtr &>(), nb::arg("path"))
+        .def_rw("index_", &ompl::base::PlannerSolution::index_)
+        .def_rw("path_", &ompl::base::PlannerSolution::path_)
+        .def_rw("length_", &ompl::base::PlannerSolution::length_)
+        .def_rw("approximate_", &ompl::base::PlannerSolution::approximate_)
+        .def_rw("difference_", &ompl::base::PlannerSolution::difference_)
+        .def_rw("optimized_", &ompl::base::PlannerSolution::optimized_)
+        .def_rw("opt_", &ompl::base::PlannerSolution::opt_)
+        .def_rw("cost_", &ompl::base::PlannerSolution::cost_)
+        .def_rw("plannerName_", &ompl::base::PlannerSolution::plannerName_)
+        .def("setApproximate", &ompl::base::PlannerSolution::setApproximate, nb::arg("difference"))
+        .def("setOptimized", &ompl::base::PlannerSolution::setOptimized, nb::arg("opt"), nb::arg("cost"),
+             nb::arg("meetsObjective"))
+        .def("setPlannerName", &ompl::base::PlannerSolution::setPlannerName, nb::arg("name"))
+        .def("__eq__", &ompl::base::PlannerSolution::operator==, nb::arg("other"))
+        .def("__lt__", &ompl::base::PlannerSolution::operator<, nb::arg("other"));
+
+    nb::class_<ompl::base::ProblemDefinition>(m, "ProblemDefinition", nb::type_slots(problemDefinitionSlots))
         // Deleted copy constructor and assignment are not bound.
         // Bind the constructor that takes a SpaceInformationPtr.
         .def(nb::init<ompl::base::SpaceInformationPtr>())
@@ -35,9 +97,14 @@ void ompl::binding::base::init_ProblemDefinition(nb::module_ &m)
         .def("addStartState", nb::overload_cast<const ompl::base::State*>
           (&ompl::base::ProblemDefinition::addStartState))
 
-        // hasStartState: note that the function takes an optional unsigned int pointer.
-        .def("hasStartState", nb::overload_cast<const ompl::base::State*, unsigned int*>
-             (&ompl::base::ProblemDefinition::hasStartState, nb::const_))
+        .def("hasStartState", [](const ompl::base::ProblemDefinition &pd, const ompl::base::State *state) {
+            return pd.hasStartState(state);
+        }, nb::arg("state"))
+        .def("hasStartStateWithIndex", [](const ompl::base::ProblemDefinition &pd, const ompl::base::State *state) {
+            unsigned int index = 0;
+            bool found = pd.hasStartState(state, &index);
+            return std::make_pair(found, found ? std::optional<unsigned int>(index) : std::nullopt);
+        }, nb::arg("state"))
 
         // clearStartStates
         .def("clearStartStates", &ompl::base::ProblemDefinition::clearStartStates)
@@ -47,9 +114,9 @@ void ompl::binding::base::init_ProblemDefinition(nb::module_ &m)
 
         // getStartState overloads.
         .def("getStartState", nb::overload_cast<unsigned int>
-             (&ompl::base::ProblemDefinition::getStartState, nb::const_))
+             (&ompl::base::ProblemDefinition::getStartState, nb::const_), nb::rv_policy::reference_internal)
         .def("getStartState", nb::overload_cast<unsigned int>
-             (&ompl::base::ProblemDefinition::getStartState))
+             (&ompl::base::ProblemDefinition::getStartState), nb::rv_policy::reference_internal)
 
         // setGoal and clearGoal
         .def("setGoal", &ompl::base::ProblemDefinition::setGoal)
@@ -65,7 +132,7 @@ void ompl::binding::base::init_ProblemDefinition(nb::module_ &m)
             std::vector<const ompl::base::State*> states;
             pd.getInputStates(states);
             return states;
-        })
+        }, nb::rv_policy::reference_internal)
 
         // setStartAndGoalStates (State* version) with default threshold.
         .def("setStartAndGoalStates", nb::overload_cast<const ompl::base::State*, const ompl::base::State*, double>
@@ -84,13 +151,27 @@ void ompl::binding::base::init_ProblemDefinition(nb::module_ &m)
         .def("setOptimizationObjective", &ompl::base::ProblemDefinition::setOptimizationObjective)
 
         // Intermediate Solution Callback.
-        .def("getIntermediateSolutionCallback", &ompl::base::ProblemDefinition::getIntermediateSolutionCallback,
-             nb::rv_policy::reference_internal)
-        .def("setIntermediateSolutionCallback", &ompl::base::ProblemDefinition::setIntermediateSolutionCallback)
+        .def("getIntermediateSolutionCallback", [](const ompl::base::ProblemDefinition &pd) -> nb::object {
+            const auto &callback = pd.getIntermediateSolutionCallback();
+            if (nb::handle fn = gc::callableOf(callback); fn.is_valid())
+                return nb::borrow(fn);
+            return callback ? nb::cast(callback) : nb::none();
+        })
+        .def("setIntermediateSolutionCallback", [](ompl::base::ProblemDefinition &pd, nb::callable callback) {
+            pd.setIntermediateSolutionCallback(
+                gc::function<ompl::base::ReportIntermediateSolutionFn>(std::move(callback)));
+        }, nb::arg("callback"))
+        .def("setIntermediateSolutionCallback", [](ompl::base::ProblemDefinition &pd, std::nullptr_t) {
+            pd.setIntermediateSolutionCallback(ompl::base::ReportIntermediateSolutionFn());
+        }, nb::arg("callback").none())
 
-        // isTrivial: Bind a version that takes pointer parameters.
-        .def("isTrivial", nb::overload_cast<unsigned int*, double*>
-             (&ompl::base::ProblemDefinition::isTrivial, nb::const_))
+        // isTrivial: report the start index and distance the pointer arguments would have written.
+        .def("isTrivialWithDetails", [](const ompl::base::ProblemDefinition &pd) {
+            unsigned int startIndex = 0;
+            double distance = 0.0;
+            bool trivial = pd.isTrivial(&startIndex, &distance);
+            return std::make_tuple(trivial, startIndex, distance);
+        })
         // Also provide a simpler overload that calls isTrivial with nullptr for outputs.
         .def("isTrivial", [](const ompl::base::ProblemDefinition &pd) {
             return pd.isTrivial(nullptr, nullptr);
@@ -112,7 +193,12 @@ void ompl::binding::base::init_ProblemDefinition(nb::module_ &m)
 
         // getSolution: because the original function fills a PlannerSolution passed by reference,
         // we wrap it so that it returns the solution if one is found.
-        .def("getSolution", &ompl::base::ProblemDefinition::getSolution)
+        .def("getSolution", [](const ompl::base::ProblemDefinition &pd) -> std::optional<ompl::base::PlannerSolution> {
+            ompl::base::PlannerSolution solution(nullptr);
+            if (pd.getSolution(solution))
+                return solution;
+            return std::nullopt;
+        })
 
         // addSolutionPath overloads.
         .def("addSolutionPath", nb::overload_cast<const ompl::base::PathPtr&, bool, double, const std::string &>

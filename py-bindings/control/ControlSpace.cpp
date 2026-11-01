@@ -7,6 +7,7 @@
 #include "ompl/control/ControlSpace.h"
 #include "ompl/control/ControlSampler.h"
 #include "ompl/control/Control.h"
+#include "OwnedControl.h"
 #include "init.h"
 
 namespace nb = nanobind;
@@ -29,9 +30,12 @@ void ompl::binding::control::init_ControlSpace(nb::module_ &m)
              nb::arg("name"), nb::rv_policy::reference_internal)
         // The override for getDimension
         .def("getDimension", &oc::CompoundControlSpace::getDimension)
-        // The override for allocControl/freeControl
-        .def("allocControl", &oc::CompoundControlSpace::allocControl)
-        .def("freeControl", &oc::CompoundControlSpace::freeControl, nb::arg("control"))
+        .def("allocControl",
+             [](nb::pointer_and_handle<oc::CompoundControlSpace> self)
+             {
+                 auto space = nb::cast<oc::ControlSpacePtr>(self.h);
+                 return ownedControl(space, space->allocControl());
+             })
         .def("copyControl", &oc::CompoundControlSpace::copyControl, nb::arg("destination"), nb::arg("source"))
         .def("equalControls", &oc::CompoundControlSpace::equalControls, nb::arg("control1"), nb::arg("control2"))
         .def("nullControl", &oc::CompoundControlSpace::nullControl, nb::arg("control"))

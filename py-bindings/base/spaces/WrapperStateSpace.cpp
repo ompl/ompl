@@ -1,24 +1,39 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
+#include <nanobind/trampoline.h>
 #include <nanobind/eigen/dense.h>
 #include "ompl/base/spaces/WrapperStateSpace.h"
 #include "ompl/base/StateSampler.h"
 #include "ompl/base/ProjectionEvaluator.h"
 #include "ompl/base/StateSpace.h"
 
+#include "base/samplers/OwnerRef.h"
 #include "../init.h"
 #include "../validation.h"
 
 namespace nb = nanobind;
 namespace ob = ompl::base;
 
+namespace
+{
+    double *valueAt(const ob::WrapperStateSpace &space, ob::State *state, unsigned int index)
+    {
+        double *value = space.getValueAddressAtIndex(state, index);
+        if (value == nullptr)
+            throw nb::index_error("state value index out of range");
+        return value;
+    }
+}  // namespace
+
 void ompl::binding::base::initSpaces_WrapperStateSpace(nb::module_ &m)
 {
     // TODO [ob::WrapperStateSpace][TEST]
-    nb::class_<ob::WrapperStateSampler, ob::StateSampler>(m, "WrapperStateSampler")
-        .def(nb::init<const ob::StateSpace *, ob::StateSamplerPtr>(), nb::arg("space"), nb::arg("sampler"),
-             "Construct a wrapper sampler that delegates to a given sampler")
+    nb::class_<ob::WrapperStateSampler, ob::StateSampler, WithOwner<ob::WrapperStateSampler>>(
+        m, "WrapperStateSampler", nb::type_slots(ownerSlots<ob::WrapperStateSampler>))
+        .def("__init__", initWithOwner<ob::WrapperStateSampler, ob::StateSpace, ob::StateSamplerPtr>(),
+             nb::arg("space"), nb::arg("sampler"), "Construct a wrapper sampler that delegates to a given sampler")
         .def("sampleUniform", &ob::WrapperStateSampler::sampleUniform, nb::arg("state"),
              "Uniformly sample the wrapped space")
         .def("sampleUniformNear", &ob::WrapperStateSampler::sampleUniformNear, nb::arg("state"), nb::arg("near"),
@@ -42,12 +57,58 @@ void ompl::binding::base::initSpaces_WrapperStateSpace(nb::module_ &m)
             "Project a wrapped state into the low‑dimensional space");
 
     // TODO [ob::WrapperStateSpace::StateType][TEST]
-    nb::class_<ompl::base::WrapperStateSpace::StateType, ompl::base::State> stateType(m, "WrapperStateType");
+    nb::class_<ompl::base::WrapperStateSpace::StateType, ompl::base::State>(m, "WrapperStateType")
+        .def("getState", nb::overload_cast<>(&ob::WrapperStateSpace::StateType::getState),
+             nb::rv_policy::reference_internal, "The state of the wrapped space");
     //
     // WrapperStateSpace
     //
     // TODO [ob::WrapperStateSpace][TEST]
-    nb::class_<ob::WrapperStateSpace, ob::StateSpace>(m, "WrapperStateSpace")
+    // Subclassing this in Python is the supported way to customise a metric: the wrapped space keeps
+    // handling state allocation, which Python cannot do.
+    struct PyWrapperStateSpace : ob::WrapperStateSpace
+    {
+        NB_TRAMPOLINE(ob::WrapperStateSpace, 9);
+
+        double distance(const ob::State *state1, const ob::State *state2) const override
+        {
+            NB_OVERRIDE(distance, state1, state2);
+        }
+        void interpolate(const ob::State *from, const ob::State *to, double t, ob::State *state) const override
+        {
+            NB_OVERRIDE(interpolate, from, to, t, state);
+        }
+        void enforceBounds(ob::State *state) const override
+        {
+            NB_OVERRIDE(enforceBounds, state);
+        }
+        bool satisfiesBounds(const ob::State *state) const override
+        {
+            NB_OVERRIDE(satisfiesBounds, state);
+        }
+        bool equalStates(const ob::State *state1, const ob::State *state2) const override
+        {
+            NB_OVERRIDE(equalStates, state1, state2);
+        }
+        unsigned int validSegmentCount(const ob::State *state1, const ob::State *state2) const override
+        {
+            NB_OVERRIDE(validSegmentCount, state1, state2);
+        }
+        double getMaximumExtent() const override
+        {
+            NB_OVERRIDE(getMaximumExtent);
+        }
+        double getMeasure() const override
+        {
+            NB_OVERRIDE(getMeasure);
+        }
+        void setup() override
+        {
+            NB_OVERRIDE(setup);
+        }
+    };
+
+    nb::class_<ob::WrapperStateSpace, ob::StateSpace, PyWrapperStateSpace>(m, "WrapperStateSpace")
         .def(nb::init<const ob::StateSpacePtr &>(), nb::arg("space"),
              "Construct a wrapper around any existing StateSpace")
         .def("isCompound", &ob::WrapperStateSpace::isCompound)
@@ -71,7 +132,13 @@ void ompl::binding::base::initSpaces_WrapperStateSpace(nb::module_ &m)
         .def("setValidSegmentCountFactor", &ob::WrapperStateSpace::setValidSegmentCountFactor, nb::arg("factor"))
         .def("getValidSegmentCountFactor", &ob::WrapperStateSpace::getValidSegmentCountFactor)
         .def("getLongestValidSegmentLength", &ob::WrapperStateSpace::getLongestValidSegmentLength)
-        .def("computeSignature", &ob::WrapperStateSpace::computeSignature, nb::arg("signature"))
+        .def("computeSignature",
+             [](const ob::WrapperStateSpace &space)
+             {
+                 std::vector<int> signature;
+                 space.computeSignature(signature);
+                 return signature;
+             })
         .def("getDimension", &ob::WrapperStateSpace::getDimension)
         .def("getMaximumExtent", &ob::WrapperStateSpace::getMaximumExtent)
         .def("getMeasure", &ob::WrapperStateSpace::getMeasure)
@@ -99,6 +166,12 @@ void ompl::binding::base::initSpaces_WrapperStateSpace(nb::module_ &m)
              nb::overload_cast<ob::State *, const std::string &>(&ob::WrapperStateSpace::getValueAddressAtName,
                                                                  nb::const_),
              nb::arg("state"), nb::arg("name"))
+        .def(
+            "getValue", [](const ob::WrapperStateSpace &space, ob::State *state, unsigned int index)
+            { return *valueAt(space, state, index); }, nb::arg("state"), nb::arg("index"))
+        .def(
+            "setValue", [](const ob::WrapperStateSpace &space, ob::State *state, unsigned int index, double value)
+            { *valueAt(space, state, index) = value; }, nb::arg("state"), nb::arg("index"), nb::arg("value"))
         .def(
             "copyToReals",
             [](const ob::WrapperStateSpace &ss, const ob::State *source)

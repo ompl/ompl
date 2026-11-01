@@ -10,5 +10,6 @@ namespace ob = ompl::base;
 void ompl::binding::control::initPlannersSyclop_SyclopRRT(nb::module_ &m)
 {
     nb::class_<oc::SyclopRRT, oc::Syclop>(m, "SyclopRRT")
-        .def(nb::init<const oc::SpaceInformationPtr &, const oc::DecompositionPtr &>());
+        .def(nb::init<const oc::SpaceInformationPtr &, const oc::DecompositionPtr &>(), nb::arg("si"), nb::arg("d"))
+        .def("setRegionalNearestNeighbors", &oc::SyclopRRT::setRegionalNearestNeighbors, nb::arg("enabled"));
 }

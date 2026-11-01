@@ -64,18 +64,12 @@ namespace ompl
             void processNewSolution(const Cost solutionCost);
 
         private:
+            struct Convergence;
+
             /// Shared pointer to problem definition.
             ProblemDefinitionPtr pdef_;
-            /// Cumulative moving average of solutions found so far.
-            double averageCost_{0.};
-            /// Number of solutions found so far.
-            size_t solutions_{0};
-
-            /// Minimum number of solutions needed to decide whether the planner has converged.
-            const size_t solutionsWindow_;
-            /// If an update to the cumulative moving average changes it by less than an epsilon fraction, convergence
-            /// has been reached.
-            const double epsilon_;
+            /// Convergence statistics, shared with the callback installed on pdef_, which may outlive this object.
+            std::shared_ptr<Convergence> convergence_;
         };
     }  // namespace base
 }  // namespace ompl

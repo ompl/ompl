@@ -1,5 +1,6 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
 #include <nanobind/stl/function.h>
@@ -11,97 +12,89 @@
 #include "ompl/control/Control.h"
 #include "ompl/control/StatePropagator.h"
 #include "ompl/base/SpaceInformation.h"  // ensure the base class is included
+#include "PyGC.h"
+#include "OwnedControl.h"
 #include "init.h"
+#include "base/init.h"
 
 namespace nb = nanobind;
+namespace gc = ompl::binding::gc;
 namespace ob = ompl::base;
 namespace oc = ompl::control;
 
-// Helper dictionary access
-static PyObject **get_dict_ptr(PyObject *obj)
+namespace
 {
-    return _PyObject_GetDictPtr(obj);
-}
+    struct CallableStatePropagator : oc::StatePropagator, gc::HoldsCallable
+    {
+        CallableStatePropagator(oc::SpaceInformation *si, nb::object fn)
+          : oc::StatePropagator(si), gc::HoldsCallable(std::move(fn))
+        {
+        }
+
+        void propagate(const ob::State *state, const oc::Control *control, double duration,
+                       ob::State *result) const override
+        {
+            gc::call<void>(callable, state, control, duration, result);
+        }
+    };
+
+    // ob::State has a protected destructor, so each state handed to Python carries a deleter that frees it.
+    std::vector<std::shared_ptr<ob::State>> ownedStates(const oc::SpaceInformation &si,
+                                                        const std::vector<ob::State *> &states)
+    {
+        std::vector<std::shared_ptr<ob::State>> owned;
+        owned.reserve(states.size());
+        for (ob::State *state : states)
+            owned.emplace_back(state, [space = si.getStateSpace()](ob::State *s) { space->freeState(s); });
+        return owned;
+    }
+
+    template <typename Propagate>
+    std::vector<std::shared_ptr<ob::State>> propagateAllocating(const oc::SpaceInformation &si, Propagate propagate)
+    {
+        std::vector<ob::State *> states;
+        try
+        {
+            propagate(states);
+        }
+        catch (...)
+        {
+            for (ob::State *state : states)
+                if (state)
+                    si.freeState(state);
+            throw;
+        }
+        return ownedStates(si, states);
+    }
+}  // namespace
 
 int control_space_information_tp_traverse(PyObject *self, visitproc visit, void *arg)
 {
     Py_VISIT(Py_TYPE(self));
     if (!nb::inst_ready(self))
         return 0;
+    if (int rc = gc::visitDict(self, visit, arg))
+        return rc;
+    // A view of a C++-owned SpaceInformation does not own what the C++ object holds.
+    if (!gc::pythonOwned(self))
+        return 0;
 
-    // 1. Visit __dict__
-    PyObject **dictptr = get_dict_ptr(self);
-    if (dictptr && *dictptr)
-    {
-        Py_VISIT(*dictptr);
-    }
-
-    try
-    {
-        auto *si = nb::inst_ptr<oc::SpaceInformation>(self);
-        if (si)
-        {
-            // Visit Propagator
-            auto prop = si->getStatePropagator();
-            if (prop)
-            {
-                nb::handle h = nb::find(prop);
-                if (h.is_valid())
-                {
-                    Py_VISIT(h.ptr());
-                }
-                else if (dictptr && *dictptr)
-                {
-                    PyObject *item = PyDict_GetItemString(*dictptr, "_prop");
-                    if (item)
-                        Py_VISIT(item);
-                }
-            }
-            // Visit SVC (Base)
-            auto svc = si->getStateValidityChecker();
-            if (svc)
-            {
-                nb::handle h = nb::find(svc);
-                if (h.is_valid())
-                {
-                    Py_VISIT(h.ptr());
-                }
-                else if (dictptr && *dictptr)
-                {
-                    PyObject *item = PyDict_GetItemString(*dictptr, "_svc");
-                    if (item)
-                        Py_VISIT(item);
-                }
-            }
-        }
-    }
-    catch (...)
-    {
-    }
-    return 0;
+    const auto &si = *nb::inst_ptr<oc::SpaceInformation>(self);
+    if (int rc = ompl::binding::base::visitSpaceInformation(si, visit, arg))
+        return rc;
+    return gc::visitHeld(si.getStatePropagator(), visit, arg);
 }
 
 int control_space_information_tp_clear(PyObject *self)
 {
-    // 1. Clear __dict__
-    PyObject **dictptr = get_dict_ptr(self);
-    if (dictptr && *dictptr)
+    if (nb::inst_ready(self) && gc::pythonOwned(self))
     {
-        Py_CLEAR(*dictptr);
+        auto &si = *nb::inst_ptr<oc::SpaceInformation>(self);
+        ompl::binding::base::clearSpaceInformation(si);
+        if (gc::holdsPython(si.getStatePropagator()))
+            si.setStatePropagator(oc::StatePropagatorPtr());
     }
-    // 2. Break C++ Cycle
-    try
-    {
-        auto *si = nb::inst_ptr<oc::SpaceInformation>(self);
-        if (si)
-        {
-            si->setStatePropagator(oc::StatePropagatorPtr(nullptr));
-            si->setStateValidityChecker(ob::StateValidityCheckerPtr(nullptr));
-        }
-    }
-    catch (...)
-    {
-    }
+    gc::clearDict(self);
     return 0;
 }
 
@@ -121,11 +114,14 @@ void ompl::binding::control::init_SpaceInformation(nb::module_ &m)
         // getControlSpace
         .def("getControlSpace", &oc::SpaceInformation::getControlSpace)
 
-        // allocControl, freeControl, copyControl, cloneControl
-        .def("allocControl", &oc::SpaceInformation::allocControl)
-        .def("freeControl", &oc::SpaceInformation::freeControl, nb::arg("control"))
+        // allocControl, copyControl, cloneControl
+        .def("allocControl", [](const oc::SpaceInformation &si)
+             { return ompl::binding::control::ownedControl(si.getControlSpace(), si.allocControl()); })
         .def("copyControl", &oc::SpaceInformation::copyControl, nb::arg("destination"), nb::arg("source"))
-        .def("cloneControl", &oc::SpaceInformation::cloneControl, nb::arg("source"))
+        .def(
+            "cloneControl", [](const oc::SpaceInformation &si, const oc::Control *source)
+            { return ompl::binding::control::ownedControl(si.getControlSpace(), si.cloneControl(source)); },
+            nb::arg("source"))
 
         // printControl
         .def(
@@ -158,25 +154,11 @@ void ompl::binding::control::init_SpaceInformation(nb::module_ &m)
 
         // setStatePropagator
         .def(
-            "setStatePropagator",
-            [](oc::SpaceInformation &si, const ompl::control::StatePropagatorFn &sp)
-            {
-                si.setStatePropagator(sp);
-                nb::object self = nb::find(nb::cast(&si));
-                if (self.is_valid())
-                    nb::setattr(self, "_prop", nb::cast(sp));
-            },
-            nb::arg("sp"))
+            "setStatePropagator", [](oc::SpaceInformation &si, const oc::StatePropagatorPtr &sp)
+            { si.setStatePropagator(sp); }, nb::arg("sp"))
         .def(
-            "setStatePropagator",
-            [](oc::SpaceInformation &si, const oc::StatePropagatorPtr &sp)
-            {
-                si.setStatePropagator(sp);
-                nb::object self = nb::find(nb::cast(&si));
-                if (self.is_valid())
-                    nb::setattr(self, "_prop", nb::cast(sp));
-            },
-            nb::arg("sp"))
+            "setStatePropagator", [](oc::SpaceInformation &si, nb::callable sp)
+            { si.setStatePropagator(std::make_shared<CallableStatePropagator>(&si, std::move(sp))); }, nb::arg("sp"))
 
         // setPropagationStepSize, getPropagationStepSize
         .def("setPropagationStepSize", &oc::SpaceInformation::setPropagationStepSize, nb::arg("stepSize"))
@@ -188,32 +170,42 @@ void ompl::binding::control::init_SpaceInformation(nb::module_ &m)
             [](const oc::SpaceInformation &si, const ob::State *state, const oc::Control *control, int steps,
                ob::State *result) { si.propagate(state, control, steps, result); },
             nb::arg("start"), nb::arg("control"), nb::arg("steps"), nb::arg("result"))
+        // The vector caster copies the list, but the pointers in it still name the caller's states.
+        .def(
+            "propagate",
+            [](const oc::SpaceInformation &si, const ob::State *state, const oc::Control *control, int steps,
+               std::vector<ob::State *> result) { si.propagate(state, control, steps, result, false); },
+            nb::arg("start"), nb::arg("control"), nb::arg("steps"), nb::arg("result"))
         .def("canPropagateBackward", &oc::SpaceInformation::canPropagateBackward)
         .def(
             "propagateWhileValid",
             [](const oc::SpaceInformation &si, const ob::State *start, const oc::Control *ctrl, int steps,
                ob::State *result) { return si.propagateWhileValid(start, ctrl, steps, result); },
             nb::arg("start"), nb::arg("control"), nb::arg("steps"), nb::arg("result"))
-        // overload that writes to a vector<State*>...
+        .def(
+            "propagateWhileValid",
+            [](const oc::SpaceInformation &si, const ob::State *start, const oc::Control *ctrl, int steps,
+               std::vector<ob::State *> result) { return si.propagateWhileValid(start, ctrl, steps, result, false); },
+            nb::arg("start"), nb::arg("control"), nb::arg("steps"), nb::arg("result"))
         .def(
             "propagateWithAlloc",
-            [](const oc::SpaceInformation &si, const ob::State *start, const oc::Control *ctrl, int steps, bool alloc)
+            [](const oc::SpaceInformation &si, const ob::State *start, const oc::Control *ctrl, int steps)
             {
-                // We'll wrap the version that writes to a std::vector<base::State*>.
-                std::vector<ob::State *> path;
-                si.propagate(start, ctrl, steps, path, alloc);
-                return path;  // returns a Python list of pointers
+                return propagateAllocating(si, [&](std::vector<ob::State *> &states)
+                                           { si.propagate(start, ctrl, steps, states, true); });
             },
-            nb::arg("start"), nb::arg("control"), nb::arg("steps"), nb::arg("alloc") = true)
+            nb::arg("start"), nb::arg("control"), nb::arg("steps"))
         .def(
             "propagateWhileValidWithAlloc",
-            [](const oc::SpaceInformation &si, const ob::State *start, const oc::Control *ctrl, int steps, bool alloc)
+            [](const oc::SpaceInformation &si, const ob::State *start, const oc::Control *ctrl, int steps)
             {
-                std::vector<ob::State *> path;
-                unsigned int nValid = si.propagateWhileValid(start, ctrl, steps, path, alloc);
-                return std::make_pair(nValid, path);
+                unsigned int nValid = 0;
+                auto owned =
+                    propagateAllocating(si, [&](std::vector<ob::State *> &states)
+                                        { nValid = si.propagateWhileValid(start, ctrl, steps, states, true); });
+                return std::make_pair(nValid, std::move(owned));
             },
-            nb::arg("start"), nb::arg("control"), nb::arg("steps"), nb::arg("alloc") = true)
+            nb::arg("start"), nb::arg("control"), nb::arg("steps"))
 
         // printSettings override
         .def("printSettings", [](const oc::SpaceInformation &si) { si.printSettings(std::cout); })

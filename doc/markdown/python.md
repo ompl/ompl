@@ -93,3 +93,21 @@ Although almost all C++ functionality is exposed to Python, there are some cavea
 
 - C++ threads and python code don't mix well. If you have multi-threaded C++ code where multiple threads can call the Python interpreter at the same time, then this can lead to deadlocks or crashes. This is because in python only one thread can execute code, unless a free-threaded version of python is used, see the [Nanobind thread guide](https://nanobind.readthedocs.io/en/latest/free_threaded.html) for a longer discussion.
 - Just because you \em can create Python classes that derive from C++ classes, this doesn't mean it is a good idea. You pay a performance penalty each time your code crosses the Python-C++ barrier (objects may need to be copied, locks acquired, etc.). This means that it is an especially bad idea to override low-level classes. For low-level functionality it is best to stick to the built-in OMPL functionality and use just the callback functions (e.g., for state validation and state propagation). It is also highly recommended to use the ompl::geometric::SimpleSetup and ompl::control::SimpleSetup classes rather than the lower-level classes for that same reason.
+- C++ owns the callbacks you hand it (validity checkers, state propagators, planner allocators), so they stay valid for as long as any C++ object uses them. The garbage collector can see that ownership only while a single Python-owned object holds it, as with a `SpaceInformation` you created yourself. A callback that refers back to its `SimpleSetup` or planner (a lambda capturing `ss`, or a bound method of an object that holds `ss`) forms a cycle through C++ that is never collected. Avoid such references, or break the cycle by hand when you are done with the setup, for example by deleting the attribute that holds it.
+
+### Excluded from Python bindings {#py_excluded_bindings}
+
+The following C++ APIs are intentionally **not** exposed to Python because they spawn background threads or call into Python without GIL management, which can deadlock or crash the interpreter:
+
+| Class | Module | Reason |
+| ----- | ------ | ------ |
+| `ParallelPlan` | tools | Spawns `std::thread` per planner |
+| `OptimizePlan` | tools | Wraps `ParallelPlan` |
+| `CForest`, `CForestStateSpaceWrapper`, `CForestStateSampler` | geometric | Multi-threaded planner pool |
+| `pRRT` | geometric | Parallel RRT threads |
+| `pSBL` | geometric | Parallel SBL threads |
+| `AnytimePathShortening` | geometric | Parallel planner pool |
+| `Lightning`, `Thunder`, `ExperienceSetup` | tools | Internally use `ParallelPlan` |
+| `Profiler`, `PlannerMonitor` | tools | Background monitor threads |
+
+**Bound, with worker threads:** `PRM`, `LazyPRM`, `SPARS`, `SPARStwo` and `GoalLazySamples` call back into Python from threads of their own. `solve()` releases the GIL and every callback re-acquires it, so Python checkers, objectives and samplers work with them; an exception raised by a validity checker on such a thread is reported as unraisable and the state is treated as invalid.

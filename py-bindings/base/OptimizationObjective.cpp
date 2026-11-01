@@ -1,4 +1,5 @@
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/function.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/trampoline.h>
 #include <nanobind/stl/string.h>
@@ -6,16 +7,59 @@
 #include <sstream>
 
 #include "ompl/base/OptimizationObjective.h"
+#include "ompl/base/goals/GoalRegion.h"
+#include "ompl/base/samplers/InformedStateSampler.h"
+#include "PyGC.h"
 #include "init.h"
 
 namespace nb = nanobind;
+namespace gc = ompl::binding::gc;
 namespace ob = ompl::base;
 namespace oc = ompl::control;
+
+namespace
+{
+    // The heuristic is protected and has no getter.
+    struct ObjectiveAccess : ob::OptimizationObjective
+    {
+        static const ob::CostToGoHeuristic &costToGo(const ob::OptimizationObjective &objective)
+        {
+            return objective.*(&ObjectiveAccess::costToGoFn_);
+        }
+    };
+
+    int objectiveTraverse(PyObject *self, visitproc visit, void *arg)
+    {
+        Py_VISIT(Py_TYPE(self));
+        if (!nb::inst_ready(self) || !gc::pythonOwned(self))
+            return 0;
+        const auto &objective = *nb::inst_ptr<ob::OptimizationObjective>(self);
+        if (int rc = gc::visitHeld(objective.getSpaceInformation(), visit, arg))
+            return rc;
+        return gc::visitHeld(ObjectiveAccess::costToGo(objective), visit, arg);
+    }
+
+    int objectiveClear(PyObject *self)
+    {
+        if (!nb::inst_ready(self) || !gc::pythonOwned(self))
+            return 0;
+        auto &objective = *nb::inst_ptr<ob::OptimizationObjective>(self);
+        if (gc::holdsPython(ObjectiveAccess::costToGo(objective)))
+            objective.setCostToGoHeuristic(ob::CostToGoHeuristic());
+        return 0;
+    }
+
+    const PyType_Slot objectiveSlots[] = {{Py_tp_traverse, (void *)objectiveTraverse},
+                                          {Py_tp_clear, (void *)objectiveClear},
+                                          {0, 0}};
+}  // namespace
 
 void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
 {
     struct PyOptimizationObjective : ob::OptimizationObjective
     {
+        // print() is not routed through the trampoline: std::ostream has no caster, so a Python override could
+        // never be called. Python subclasses customise their text via __repr__ instead.
         NB_TRAMPOLINE(ob::OptimizationObjective, 20);
         // Optional override
         bool isSatisfied(ob::Cost c) const override
@@ -133,13 +177,15 @@ void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
         }
 
         // Optional override
-        void print(std::ostream &out) const override
+        ob::InformedSamplerPtr allocInformedStateSampler(const ob::ProblemDefinitionPtr &probDefn,
+                                                         unsigned int maxNumberCalls) const override
         {
-            NB_OVERRIDE(print, out);
+            NB_OVERRIDE(allocInformedStateSampler, probDefn, maxNumberCalls);
         }
     };
 
-    nb::class_<ob::OptimizationObjective, PyOptimizationObjective /* <-- trampoline */>(m, "OptimizationObjective")
+    nb::class_<ob::OptimizationObjective, PyOptimizationObjective /* <-- trampoline */>(m, "OptimizationObjective",
+                                                                                        nb::type_slots(objectiveSlots))
         // constructor
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
         // getters
@@ -150,7 +196,12 @@ void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
         .def("getSpaceInformation", &ob::OptimizationObjective::getSpaceInformation, nb::rv_policy::reference_internal)
         // setters
         .def("setCostThreshold", &ob::OptimizationObjective::setCostThreshold, nb::arg("cost"))
-        .def("setCostToGoHeuristic", &ob::OptimizationObjective::setCostToGoHeuristic, nb::arg("costToGoFn"))
+        .def(
+            "setCostToGoHeuristic", [](ob::OptimizationObjective &objective, nb::callable costToGoFn)
+            { objective.setCostToGoHeuristic(gc::function<ob::CostToGoHeuristic>(costToGoFn)); }, nb::arg("costToGoFn"))
+        .def(
+            "setCostToGoHeuristic", [](ob::OptimizationObjective &objective, std::nullptr_t)
+            { objective.setCostToGoHeuristic(ob::CostToGoHeuristic()); }, nb::arg("costToGoFn").none())
         // virtual methods
         .def("isSatisfied", &ob::OptimizationObjective::isSatisfied, nb::arg("cost"))
         .def("isCostBetterThan", &ob::OptimizationObjective::isCostBetterThan, nb::arg("c1"), nb::arg("c2"))
@@ -170,13 +221,8 @@ void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
         .def("averageStateCost", &ob::OptimizationObjective::averageStateCost, nb::arg("numStates"))
         .def("motionCostHeuristic", &ob::OptimizationObjective::motionCostHeuristic, nb::arg("s1"), nb::arg("s2"))
         .def("motionCostBestEstimate", &ob::OptimizationObjective::motionCostBestEstimate, nb::arg("s1"), nb::arg("s2"))
-        .def("print",
-             [](const ob::OptimizationObjective &obj)
-             {
-                 std::ostringstream oss;
-                 obj.print(oss);
-                 return oss.str();
-             })
+        .def("allocInformedStateSampler", &ob::OptimizationObjective::allocInformedStateSampler, nb::arg("probDefn"),
+             nb::arg("maxNumberCalls"))
         .def("__repr__",
              [](const ob::OptimizationObjective &obj)
              {
@@ -198,4 +244,15 @@ void ompl::binding::base::init_OptimizationObjective(nb::module_ &m)
              nb::arg("weight"))
         .def("lock", &ob::MultiOptimizationObjective::lock)
         .def("isLocked", &ob::MultiOptimizationObjective::isLocked);
+
+    m.def(
+        "goalRegionCostToGo",
+        [](const ob::State *state, const ob::Goal *goal)
+        {
+            // OMPL static_casts the goal to a GoalRegion.
+            if (dynamic_cast<const ob::GoalRegion *>(goal) == nullptr)
+                throw nb::type_error("goalRegionCostToGo() needs a GoalRegion");
+            return ob::goalRegionCostToGo(state, goal);
+        },
+        nb::arg("state"), nb::arg("goal"));
 }

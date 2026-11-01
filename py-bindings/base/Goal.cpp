@@ -1,6 +1,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/trampoline.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 
 #include <sstream>
@@ -15,7 +16,9 @@ void ompl::binding::base::init_Goal(nb::module_ &m)
 {
     struct PyGoal : ob::Goal
     {
-        NB_TRAMPOLINE(ob::Goal, 3);
+        // print() is not routed through the trampoline: std::ostream has no caster, so a Python override could
+        // never be called. Python subclasses customise their text via __repr__ instead.
+        NB_TRAMPOLINE(ob::Goal, 2);
         // Pure virtual: must override in Python
         bool isSatisfied(const ob::State *st) const override
         {
@@ -26,12 +29,6 @@ void ompl::binding::base::init_Goal(nb::module_ &m)
         bool isStartGoalPairValid(const ob::State *start, const ob::State *goal) const override
         {
             NB_OVERRIDE(isStartGoalPairValid, start, goal);
-        }
-
-        // Optional override
-        void print(std::ostream &out) const override
-        {
-            NB_OVERRIDE(print, out);
         }
     };
 
@@ -44,8 +41,17 @@ void ompl::binding::base::init_Goal(nb::module_ &m)
         .def("getSpaceInformation", &ob::Goal::getSpaceInformation, nb::rv_policy::reference_internal)
         // virtual methods
         .def("isSatisfied", nb::overload_cast<const ob::State *>(&ob::Goal::isSatisfied, nb::const_), nb::arg("state"))
+        .def(
+            "isSatisfiedWithDistance",
+            [](const ob::Goal &g, const ob::State *state)
+            {
+                double distance = 0.0;
+                bool satisfied = g.isSatisfied(state, &distance);
+                return std::make_pair(satisfied, distance);
+            },
+            nb::arg("state"))
         .def("isStartGoalPairValid", &ob::Goal::isStartGoalPairValid, nb::arg("start"), nb::arg("goal"))
-        .def("print",
+        .def("__repr__",
              [](const ob::Goal &g)
              {
                  std::ostringstream oss;

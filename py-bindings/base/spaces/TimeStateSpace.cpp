@@ -3,6 +3,7 @@
 #include <nanobind/stl/string.h>
 #include <sstream>
 #include "ompl/base/spaces/TimeStateSpace.h"
+#include "base/samplers/OwnerRef.h"
 #include "../init.h"
 
 namespace nb = nanobind;
@@ -10,8 +11,9 @@ namespace nb = nanobind;
 void ompl::binding::base::initSpaces_TimeStateSpace(nb::module_ &m)
 {
     // Bind the TimeStateSampler.
-    nb::class_<ompl::base::TimeStateSampler, ompl::base::StateSampler>(m, "TimeStateSampler")
-        .def(nb::init<const ompl::base::StateSpace *>())
+    nb::class_<ompl::base::TimeStateSampler, ompl::base::StateSampler, WithOwner<ompl::base::TimeStateSampler>>(
+        m, "TimeStateSampler", nb::type_slots(ownerSlots<ompl::base::TimeStateSampler>))
+        .def("__init__", initWithOwner<ompl::base::TimeStateSampler, ompl::base::StateSpace>(), nb::arg("space"))
         .def("sampleUniform", &ompl::base::TimeStateSampler::sampleUniform)
         .def("sampleUniformNear", &ompl::base::TimeStateSampler::sampleUniformNear)
         .def("sampleGaussian", &ompl::base::TimeStateSampler::sampleGaussian);
@@ -28,6 +30,9 @@ void ompl::binding::base::initSpaces_TimeStateSpace(nb::module_ &m)
         .def("getMinTimeBound", &ompl::base::TimeStateSpace::getMinTimeBound)
         .def("getMaxTimeBound", &ompl::base::TimeStateSpace::getMaxTimeBound)
         .def("isBounded", &ompl::base::TimeStateSpace::isBounded)
+        .def("getDimension", &ompl::base::TimeStateSpace::getDimension)
+        .def("getMaximumExtent", &ompl::base::TimeStateSpace::getMaximumExtent)
+        .def("getMeasure", &ompl::base::TimeStateSpace::getMeasure)
         .def("enforceBounds", &ompl::base::TimeStateSpace::enforceBounds)
         .def("satisfiesBounds", &ompl::base::TimeStateSpace::satisfiesBounds)
         .def("copyState", &ompl::base::TimeStateSpace::copyState)
@@ -38,6 +43,7 @@ void ompl::binding::base::initSpaces_TimeStateSpace(nb::module_ &m)
         .def("equalStates", &ompl::base::TimeStateSpace::equalStates)
         .def("interpolate", &ompl::base::TimeStateSpace::interpolate)
         .def("allocDefaultStateSampler", &ompl::base::TimeStateSpace::allocDefaultStateSampler)
+        .def("allocStateSampler", &ompl::base::TimeStateSpace::allocStateSampler)
         .def("allocState", &ompl::base::TimeStateSpace::allocState)
         .def("getValueAddressAtIndex", &ompl::base::TimeStateSpace::getValueAddressAtIndex)
         .def(

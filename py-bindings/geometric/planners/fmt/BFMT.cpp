@@ -5,6 +5,7 @@
 #include "ompl/geometric/planners/fmt/BFMT.h"
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/PlannerTerminationCondition.h"
+#include "PlannerSolve.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -17,23 +18,9 @@ void ompl::binding::geometric::initPlannersFmt_BFMT(nb::module_ &m)
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
 
         // solve
-        .def("solve",
-             [](og::BFMT &self, nb::object what)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                 {
-                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-                 }
-             })
+        .def("solve", ompl::binding::solveBinding<og::BFMT>(), nb::arg("what"))
+        .def("solve", ompl::binding::solveFnBinding<og::BFMT>(), nb::arg("terminationConditionFn"),
+             nb::arg("checkInterval") = 0.0)
 
         // getPlannerData
         .def(
@@ -71,6 +58,14 @@ void ompl::binding::geometric::initPlannersFmt_BFMT(nb::module_ &m)
         // Extended FMT
         .def("setExtendedFMT", &og::BFMT::setExtendedFMT, nb::arg("e"))
         .def("getExtendedFMT", &og::BFMT::getExtendedFMT)
+
+        .def("setExploration", &og::BFMT::setExploration, nb::arg("balanced"))
+        .def("getExploration", &og::BFMT::getExploration)
+        .def("setTermination", &og::BFMT::setTermination, nb::arg("optimality"))
+        .def("getTermination", &og::BFMT::getTermination)
+        .def("setPrecomputeNN", static_cast<void (og::BFMT::*)(bool)>(&og::BFMT::setPrecomputeNN), nb::arg("p"))
+        // OMPL names the getter setPrecomputeNN() const.
+        .def("getPrecomputeNN", static_cast<bool (og::BFMT::*)() const>(&og::BFMT::setPrecomputeNN))
 
         // BFMT-specific settings
         .def("setFreeSpaceVolume", &og::BFMT::setFreeSpaceVolume, nb::arg("freeSpaceVolume"))

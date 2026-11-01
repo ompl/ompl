@@ -1,6 +1,7 @@
 // bindings/base/goals/GoalRegion.cpp
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/string.h>
 #include <nanobind/trampoline.h>
 #include <sstream>
 
@@ -26,8 +27,6 @@ void ompl::binding::base::initGoals_GoalRegion(nb::module_ &m)
         .def(nb::init<const ob::SpaceInformationPtr &>(), nb::arg("si"))
         .def("isSatisfied", nb::overload_cast<const ob::State *>(&ob::GoalRegion::isSatisfied, nb::const_),
              nb::arg("state"))
-        .def("isSatisfied", nb::overload_cast<const ob::State *, double *>(&ob::GoalRegion::isSatisfied, nb::const_),
-             nb::arg("state"), nb::arg("distance"))
         .def("distanceGoal", &ob::GoalRegion::distanceGoal, nb::arg("state"))
         .def("setThreshold", &ob::GoalRegion::setThreshold, nb::arg("threshold"))
         .def("getThreshold", &ob::GoalRegion::getThreshold)

@@ -5,14 +5,16 @@
 #include <cstring>
 #include <sstream>
 #include "ompl/base/spaces/RealVectorStateSpace.h"
+#include "base/samplers/OwnerRef.h"
 #include "../init.h"
 
 namespace nb = nanobind;
 namespace ob = ompl::base;
 void ompl::binding::base::initSpaces_RealVectorStateSpace(nb::module_ &m)
 {
-    nb::class_<ob::RealVectorStateSampler, ob::StateSampler>(m, "RealVectorStateSampler")
-        .def(nb::init<const ob::StateSpace *>())
+    nb::class_<ob::RealVectorStateSampler, ob::StateSampler, WithOwner<ob::RealVectorStateSampler>>(
+        m, "RealVectorStateSampler", nb::type_slots(ownerSlots<ob::RealVectorStateSampler>))
+        .def("__init__", initWithOwner<ob::RealVectorStateSampler, ob::StateSpace>(), nb::arg("space"))
         .def("sampleUniform", &ob::RealVectorStateSampler::sampleUniform)
         .def("sampleUniformNear", &ob::RealVectorStateSampler::sampleUniformNear)
         .def("sampleGaussian", &ob::RealVectorStateSampler::sampleGaussian);

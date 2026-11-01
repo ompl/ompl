@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "ompl/base/spaces/SO2StateSpace.h"
+#include "base/samplers/OwnerRef.h"
 #include "../init.h"
 
 namespace nb = nanobind;
@@ -11,8 +12,9 @@ namespace nb = nanobind;
 void ompl::binding::base::initSpaces_SO2StateSpace(nb::module_ &m)
 {
     // Bind the SO2 state sampler.
-    nb::class_<ompl::base::SO2StateSampler, ompl::base::StateSampler>(m, "SO2StateSampler")
-        .def(nb::init<const ompl::base::StateSpace *>())
+    nb::class_<ompl::base::SO2StateSampler, ompl::base::StateSampler, WithOwner<ompl::base::SO2StateSampler>>(
+        m, "SO2StateSampler", nb::type_slots(ownerSlots<ompl::base::SO2StateSampler>))
+        .def("__init__", initWithOwner<ompl::base::SO2StateSampler, ompl::base::StateSpace>(), nb::arg("space"))
         .def("sampleUniform", &ompl::base::SO2StateSampler::sampleUniform)
         .def("sampleUniformNear", &ompl::base::SO2StateSampler::sampleUniformNear)
         .def("sampleGaussian", &ompl::base::SO2StateSampler::sampleGaussian);

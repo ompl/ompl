@@ -1,9 +1,12 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
+#include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
+#include <memory>
 #include <sstream>
 
 #include "ompl/base/goals/GoalStates.h"
+#include "ompl/base/SpaceInformation.h"
 #include "../init.h"
 
 namespace nb = nanobind;
@@ -28,6 +31,15 @@ void ompl::binding::base::initGoals_GoalStates(nb::module_ &m)
         .def("addState", nb::overload_cast<const ob::State *>(&ob::GoalStates::addState), nb::arg("state"))
         .def("clear", &ob::GoalStates::clear)
         .def("hasStates", &ob::GoalStates::hasStates)
-        .def("getState", &ob::GoalStates::getState, nb::arg("index"), nb::rv_policy::reference_internal)
+        // A copy: clear() frees the stored states, which would leave a view dangling.
+        .def(
+            "getState",
+            [](const ob::GoalStates &goal, unsigned int index) -> std::shared_ptr<ob::State>
+            {
+                const ob::SpaceInformationPtr &si = goal.getSpaceInformation();
+                return {si->cloneState(goal.getState(index)),
+                        [space = si->getStateSpace()](ob::State *s) { space->freeState(s); }};
+            },
+            nb::arg("index"))
         .def("getStateCount", &ob::GoalStates::getStateCount);
 }

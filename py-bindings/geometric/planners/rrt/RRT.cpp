@@ -6,6 +6,7 @@
 #include "ompl/base/PlannerData.h"
 #include "ompl/base/PlannerTerminationCondition.h"
 #include "ompl/base/OptimizationObjective.h"
+#include "PlannerSolve.h"
 #include "../../init.h"
 
 namespace nb = nanobind;
@@ -27,23 +28,9 @@ void ompl::binding::geometric::initPlannersRrt_RRT(nb::module_ &m)
         //             return self.solve(ptc);
         //         },
         //         nb::arg("ptc"))
-        .def("solve",
-             [](og::RRT &self, nb::object what)
-             {
-                 if (nb::isinstance<ob::PlannerTerminationCondition>(what))
-                 {
-                     return self.solve(nb::cast<ob::PlannerTerminationCondition>(what));
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.solve(ob::timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-                 }
-             })
+        .def("solve", ompl::binding::solveBinding<og::RRT>(), nb::arg("what"))
+        .def("solve", ompl::binding::solveFnBinding<og::RRT>(), nb::arg("terminationConditionFn"),
+             nb::arg("checkInterval") = 0.0)
 
         // getPlannerData
         .def(

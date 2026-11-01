@@ -1,7 +1,6 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/shared_ptr.h>
 #include "ompl/base/spaces/TrochoidStateSpace.h"
-#include "ompl/base/spaces/DubinsMotionValidator.h"
 #include "ompl/base/SpaceInformation.h"
 #include "../init.h"
 
@@ -33,7 +32,4 @@ void ompl::binding::base::initSpaces_TrochoidStateSpace(nb::module_ &m)
         .def("hasSymmetricInterpolate", &ob::TrochoidStateSpace::hasSymmetricInterpolate)
         .def("validSegmentCount", &ob::TrochoidStateSpace::validSegmentCount)
         .def("allocState", &ob::TrochoidStateSpace::allocState);
-
-    nb::class_<ob::DubinsMotionValidator<ob::TrochoidStateSpace>, ob::MotionValidator>(m, "TrochoidMotionValidator")
-        .def(nb::init<ob::SpaceInformation *>());
 }
