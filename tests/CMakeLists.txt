@@ -62,6 +62,7 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_fmt_null_goal geometric/test_fmt_null_goal.cpp)
     add_ompl_test(test_directed_specs geometric/2d/directed_specs.cpp)
     add_ompl_test(test_rrtconnect_progress geometric/test_rrtconnect_progress.cpp)
+    add_ompl_test(test_aorrtc_direct_connection geometric/test_aorrtc_direct_connection.cpp)
 
     # Test constrained planning
     add_ompl_test(test_constraint_sphere geometric/constraint/test_sphere.cpp)

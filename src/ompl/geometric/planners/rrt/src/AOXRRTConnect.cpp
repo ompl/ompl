@@ -352,6 +352,7 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
         /* Straight line check for first search loop
            Nested here for PDT visualize, which calls solve for each iteration */
         si_->copyState(rstate, startState);
+        tgi.xmotion = motion;
         gs = REACHED;
     }
 
@@ -393,13 +394,6 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
                 si_->copyState(motion->state, st);
                 motion->root = motion->state;
                 motion->cost = 0;
-
-                /* Straight line check for start of planning
-                   Nested here for PDT visualize, which calls solve for each iteration */
-                if (tGoal_->size() == 0)
-                {
-                    tgi.xmotion = motion;
-                }
 
                 tGoal_->add(motion);
                 goalState = motion->state;
