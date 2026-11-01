@@ -38,6 +38,7 @@
 #include "ompl/util/GeometricEquations.h"
 
 // For gamma function
+#include <algorithm>
 #include <cmath>
 
 // For pi definition
@@ -74,7 +75,9 @@ double ompl::prolateHyperspheroidMeasure(unsigned int N, double dFoci, double dT
     double lmeas;
 
     // Calculate the conjugate diameter:
-    conjugateDiameter = std::sqrt(dTransverse * dTransverse - dFoci * dFoci);
+    // Clamped: fused multiply-add instructions can make the difference of squares slightly negative when the
+    // diameters are equal, and the square root would be NaN.
+    conjugateDiameter = std::sqrt(std::max(0.0, dTransverse * dTransverse - dFoci * dFoci));
 
     // Calculate the volume
     // First multiply together the radii, noting that the first radius is the transverse diameter/2.0, and the other N-1

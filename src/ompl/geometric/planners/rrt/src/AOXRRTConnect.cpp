@@ -197,7 +197,7 @@ ompl::geometric::AOXRRTConnect::Motion *ompl::geometric::AOXRRTConnect::findNeig
     for (Motion *candidate : nearest_vec)
     {
         auto nearest_distance = si_->distance(sampled_motion->state, candidate->state);
-        if (candidate->cost <= 0 || sampled_motion->cost >= candidate->cost + nearest_distance)
+        if (sampled_motion->cost >= candidate->cost + nearest_distance)
             return candidate;
     }
 
@@ -433,7 +433,15 @@ ompl::base::PlannerStatus ompl::geometric::AOXRRTConnect::solve(const base::Plan
             /* Keep trying to connect until we reach the other tree or fail to advance */
             while (gsc == ADVANCED)
             {
+                Motion *previous = tgi.xmotion;
                 gsc = growTree(otherTree, tgi, cmotion);
+                /* Each step must continue from the node the previous step added. If the cost budget
+                   rejects that node, growTree extends from an earlier one and re-creates the same
+                   state, and this loop would never end. */
+                if (gsc == ADVANCED && tgi.xmotion->parent != previous)
+                {
+                    gsc = TRAPPED;
+                }
             }
 
             Motion *startMotion = tgi.start ? tgi.xmotion : addedMotion;
