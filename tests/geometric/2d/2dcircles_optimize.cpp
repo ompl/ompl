@@ -432,4 +432,59 @@ OMPL_PLANNER_TEST(PRM)
 OMPL_PLANNER_TEST(PRMstar)
 OMPL_PLANNER_TEST(RRTstar)
 
+BOOST_AUTO_TEST_CASE(RRTstar_intermediate_solution)
+{
+    base::SpaceInformationPtr si = geometric::spaceInformation2DCircles(circles_);
+    auto pdef(std::make_shared<base::ProblemDefinition>(si));
+    base::ScopedState<> start(si);
+    start[0] = circles_.queries_[0].startX_;
+    start[1] = circles_.queries_[0].startY_;
+    base::ScopedState<> goal(si);
+    goal[0] = circles_.queries_[0].goalX_;
+    goal[1] = circles_.queries_[0].goalY_;
+    pdef->addStartState(start);
+    pdef->setGoalState(goal, 1e-3);
+
+    bool callbackCalled = false;
+    std::vector<std::vector<base::ScopedState<>>> recordedPaths;
+
+    pdef->setIntermediateSolutionCallback(
+        [&](const base::Planner *, const std::vector<const base::State *> &states, const base::Cost)
+        {
+            callbackCalled = true;
+            std::vector<base::ScopedState<>> pathStates;
+            for (const auto *s : states)
+            {
+                base::ScopedState<> sc(si);
+                si->copyState(sc.get(), s);
+                pathStates.push_back(sc);
+            }
+            recordedPaths.push_back(pathStates);
+        });
+
+    auto planner(std::make_shared<geometric::RRTstar>(si));
+    planner->setProblemDefinition(pdef);
+    planner->setup();
+
+    base::PlannerStatus solved = planner->solve(base::timedPlannerTerminationCondition(2.0));
+    BOOST_CHECK(solved);
+    BOOST_CHECK(callbackCalled);
+
+    base::ScopedState<> startState(si);
+    startState[0] = circles_.queries_[0].startX_;
+    startState[1] = circles_.queries_[0].startY_;
+
+    base::ScopedState<> goalState(si);
+    goalState[0] = circles_.queries_[0].goalX_;
+    goalState[1] = circles_.queries_[0].goalY_;
+
+    for (const auto &path : recordedPaths)
+    {
+        BOOST_REQUIRE(path.size() >= 2);
+        // Path must start at start state and end at goal state in start-to-goal order
+        BOOST_CHECK_SMALL(si->distance(path.front().get(), startState.get()), 1e-4);
+        BOOST_CHECK_SMALL(si->distance(path.back().get(), goalState.get()), 1e-3);
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

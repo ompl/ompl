@@ -523,16 +523,15 @@ ompl::base::PlannerStatus ompl::geometric::TRRTstar::solve(const base::PlannerTe
                         if (intermediateSolutionCallback)
                         {
                             std::vector<const base::State *> spath;
-                            Motion *intermediate_solution =
-                                bestGoalMotion_->parent;  // Do not include goal state to simplify code.
+                            Motion *intermediate_solution = bestGoalMotion_;
 
-                            // Push back until we find the start, but not the start itself
-                            while (intermediate_solution->parent != nullptr)
+                            while (intermediate_solution != nullptr)
                             {
                                 spath.push_back(intermediate_solution->state);
                                 intermediate_solution = intermediate_solution->parent;
                             }
 
+                            std::reverse(spath.begin(), spath.end());
                             intermediateSolutionCallback(this, spath, bestCost_);
                         }
                     }

@@ -217,14 +217,15 @@ ompl::geometric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
             if (intermediateSolutionCallback)
             {
                 std::vector<const base::State *> spath;
-                Motion *intermediate_solution = solution->parent;
+                Motion *intermediate_solution = solution;
 
-                do
+                while (intermediate_solution != nullptr)
                 {
                     spath.push_back(intermediate_solution->state);
                     intermediate_solution = intermediate_solution->parent;
-                } while (intermediate_solution->parent != 0);
+                }
 
+                std::reverse(spath.begin(), spath.end());
                 intermediateSolutionCallback(this, spath, bestCost_);
             }
         } // if updated solution
@@ -232,9 +233,7 @@ ompl::geometric::MyPlanner solve(const base::PlannerTerminationCondition &ptc)
 }
 ~~~
 
-\note The spath vector has to contain the states of the solution from the goal to the start (in this specific order).
-
-In this case, the goal and start states are not being included since it is usually harder to deal with those two states. Code simplicity prevails, but this really depends on the underlying planner used together with CForest.
+\note The spath vector contains the states of the solution from the start to the goal (in start-to-goal order).
 
 It is likely to share more than one path in which one or more states are modified. This would imply that the tree and solution path would have repeated states. To avoid this, add the following code within the `solve()` method just after sampling a new state:
 
