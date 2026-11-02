@@ -1,0 +1,56 @@
+[workspace]
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64", "win-64"]
+preview = ["pixi-build"]
+
+[dependencies]
+ompl = { path = "." }
+cmake = ">=3.18"
+cxx-compiler = "*"
+pytest = "*"
+
+[tasks.test-python]
+cmd = "python -m pytest tests/pytests --ignore=tests/pytests/deprecated"
+
+[tasks.test-cmake-export]
+cmd = "cmake -S tests/cmake_export -B build/cmake-export && cmake --build build/cmake-export"
+
+[tasks.test]
+depends-on = ["test-python", "test-cmake-export"]
+
+[package]
+name = "ompl"
+version = "2.0.2"
+description = "The Open Motion Planning Library"
+authors = ["OMPL Developers"]
+license = "BSD-3-Clause"
+license-file = "LICENSE"
+homepage = "https://ompl.kavrakilab.org"
+repository = "https://github.com/ompl/ompl"
+
+[package.build]
+backend = { name = "pixi-build-cmake", version = "0.*" }
+
+[package.build.config]
+extra-args = [
+  "-DOMPL_BUILD_DEMOS=OFF",
+  "-DOMPL_BUILD_TESTS=OFF",
+  "-DOMPL_BUILD_PYTHON_BINDINGS=ON",
+  "-DOMPL_BUILD_VAMP=OFF",
+]
+
+[package.host-dependencies]
+libboost-devel = ">=1.68"
+eigen = ">=3.3"
+flann = ">=1.9.2"
+python = "3.12.*"
+numpy = "*"
+nanobind = "*"
+typing-extensions = "*"
+
+[package.run-dependencies]
+libboost-devel = ">=1.68"
+eigen = ">=3.3"
+flann = ">=1.9.2"
+python = ">=3.12,<3.13"
+numpy = "*"
