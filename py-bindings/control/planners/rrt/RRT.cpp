@@ -21,7 +21,6 @@ void ompl::binding::control::initPlannersRrt_RRT(nb::module_ &m)
         .def(nb::init<const oc::SpaceInformationPtr &>(), nb::arg("si"))
 
         // --- Overridden methods from base::Planner
-        .def("solve", &oc::RRT::solve, nb::arg("terminationCondition"))
         .def("clear", &oc::RRT::clear)
 
         // --- RRT-specific methods

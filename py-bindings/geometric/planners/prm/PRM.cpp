@@ -17,49 +17,22 @@ void ompl::binding::geometric::initPlannersPrm_PRM(nb::module_ &m)
         .def("setMaxNearestNeighbors", &PRM::setMaxNearestNeighbors, nb::arg("k"))
         .def("getMaxNearestNeighbors", &PRM::getMaxNearestNeighbors)
         .def("setDefaultConnectionStrategy", &PRM::setDefaultConnectionStrategy)
-        .def("constructRoadmap",
-             [](PRM &self, nb::object what)
-             {
-                 if (nb::isinstance<PlannerTerminationCondition>(what))
-                 {
-                     return self.constructRoadmap(nb::cast<PlannerTerminationCondition>(what));
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.constructRoadmap(timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for constructRoadmap. Expected PlannerTerminationCondition or double.");
-                 }
-             })
-        .def("growRoadmap", nb::overload_cast<double>(&PRM::growRoadmap), nb::arg("growTime"))
+        .def("constructRoadmap", &PRM::constructRoadmap, nb::arg("ptc"), nb::call_guard<nb::gil_scoped_release>())
+        .def(
+            "constructRoadmap",
+            [](PRM &self, double time) { self.constructRoadmap(timedPlannerTerminationCondition(time)); },
+            nb::arg("time"), nb::call_guard<nb::gil_scoped_release>())
+        .def("growRoadmap", nb::overload_cast<double>(&PRM::growRoadmap), nb::arg("growTime"),
+             nb::call_guard<nb::gil_scoped_release>())
         .def("growRoadmapPtc", nb::overload_cast<const PlannerTerminationCondition &>(&PRM::growRoadmap),
-             nb::arg("ptc"))
-        .def("expandRoadmap", nb::overload_cast<double>(&PRM::expandRoadmap), nb::arg("expandTime"))
+             nb::arg("ptc"), nb::call_guard<nb::gil_scoped_release>())
+        .def("expandRoadmap", nb::overload_cast<double>(&PRM::expandRoadmap), nb::arg("expandTime"),
+             nb::call_guard<nb::gil_scoped_release>())
         .def("expandRoadmapPtc", nb::overload_cast<const PlannerTerminationCondition &>(&PRM::expandRoadmap),
-             nb::arg("ptc"))
+             nb::arg("ptc"), nb::call_guard<nb::gil_scoped_release>())
         .def("setup", &PRM::setup)
         .def("clear", &PRM::clear)
         .def("clearQuery", &PRM::clearQuery)
-        .def("solve",
-             [](PRM &self, nb::object what)
-             {
-                 if (nb::isinstance<PlannerTerminationCondition>(what))
-                 {
-                     return self.solve(nb::cast<PlannerTerminationCondition>(what));
-                 }
-                 else if (nb::isinstance<double>(what))
-                 {
-                     return self.solve(timedPlannerTerminationCondition(nb::cast<double>(what)));
-                 }
-                 else
-                 {
-                     throw nb::type_error(
-                         "Invalid argument type for solve. Expected PlannerTerminationCondition or double.");
-                 }
-             })
         .def("getPlannerData", &PRM::getPlannerData, nb::arg("data"))
         .def("milestoneCount", &PRM::milestoneCount)
         .def("edgeCount", &PRM::edgeCount);

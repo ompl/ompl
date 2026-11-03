@@ -256,10 +256,10 @@ void ompl::binding::geometric::init_SimpleSetup(nb::module_ &m)
      // solve (two overloads)
      .def("solve",
           static_cast<ob::PlannerStatus (og::SimpleSetup::*)(double)>(&og::SimpleSetup::solve),
-          nb::arg("time") = 1.0)
+          nb::arg("time") = 1.0, nb::call_guard<nb::gil_scoped_release>())
      .def("solve",
           static_cast<ob::PlannerStatus (og::SimpleSetup::*)(const ob::PlannerTerminationCondition &)>(&og::SimpleSetup::solve),
-          nb::arg("ptc"))
+          nb::arg("ptc"), nb::call_guard<nb::gil_scoped_release>())
 
      // getLastPlannerStatus
      .def("getLastPlannerStatus",
