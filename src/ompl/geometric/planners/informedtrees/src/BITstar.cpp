@@ -632,6 +632,16 @@ namespace ompl
             graphPtr_->addNewSamples(samplesPerBatch_);
         }
 
+        base::InformedSamplerPtr BITstar::allocInformedStateSampler(const base::ProblemDefinitionPtr &problem,
+                                                                  unsigned int maxCalls)
+        {
+            return problem->getOptimizationObjective()->allocInformedStateSampler(problem, maxCalls);
+        }
+
+        void BITstar::onNewBatch(const ImplicitGraph &)
+        {
+        }
+
         void BITstar::prune()
         {
 #ifdef BITSTAR_DEBUG

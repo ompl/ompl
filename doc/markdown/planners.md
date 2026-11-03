@@ -93,6 +93,7 @@ Planners in this category only accounts for the geometric and kinematic constrai
   - [Informed RRT*](\ref gInformedRRTstar)<br> A variant of RRT* that uses heuristics to bound the search for optimal solutions. _It uses the general cost framework._
   - [Batch Informed Trees (BIT*)](\ref gBITstar)<br> An anytime asymptotically optimal algorithm that uses heuristics to order and bound the search for optimal solutions. _It uses the general cost framework._
   - [Advanced BIT* (ABIT*)](\ref gABITstar)<br> An extension to BIT* that uses advanced graph-search techniques to find initial solutions faster. _It uses the general cost framework._
+  - [Dual-Density Lock BIT* (DDL-BIT*)](\ref gDDLBITstar)<br> Extends BIT* with boundary scouting, hybrid sampling and probabilistic density regulation. This implementation supports bounded real-vector spaces. See [implementation details](\ref ddlbitstar).
   - [Adaptively Informed Trees (AIT*)](\ref gAITstar)<br> An anytime asymptotically optimal algorithm that simultaneously estimates and exploits problem-specific heuristics. _It uses the general cost framework._
   - [Effort Informed Trees (EIT*)](\ref gEITstar)<br> An anytime asymptotically optimal algorithm that leverages multiple sources of information to improve performance. _It uses the general cost framework._
   - [Lower Bound Tree RRT (LBTRRT)](\ref gLBTRRT)<br> An asymptotically near-optimal version of RRT.

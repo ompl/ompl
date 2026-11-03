@@ -60,6 +60,8 @@ if (OMPL_BUILD_TESTS)
     add_ompl_test(test_2dcircles_opt_geometric geometric/2d/2dcircles_optimize.cpp)
     add_ompl_test(test_2dpath_simplifying geometric/2d/2dpath_simplifying.cpp)
     add_ompl_test(test_fmt_null_goal geometric/test_fmt_null_goal.cpp)
+    add_ompl_test(test_ddlbitstar geometric/ddlbitstar.cpp)
+    add_ompl_test(test_planner_comparison_geometry geometric/planner_comparison_geometry.cpp)
     add_ompl_test(test_directed_specs geometric/2d/directed_specs.cpp)
     add_ompl_test(test_rrtconnect_progress geometric/test_rrtconnect_progress.cpp)
 
