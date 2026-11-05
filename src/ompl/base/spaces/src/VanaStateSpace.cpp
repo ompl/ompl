@@ -142,13 +142,30 @@ bool VanaStateSpace::decoupled(const State *state1, const State *state2, double 
     // 1. path of type CCC (i.e., RLR or LRL)
     // 2. pitch smaller than minPitch_
     // 3. pitch greater than maxPitch_
-    if ((result.pathSZ_.type_->at(1) != DubinsStateSpace::DUBINS_STRAIGHT) ||
-        (result.pathSZ_.type_->at(0) == DubinsStateSpace::DUBINS_RIGHT &&
-         s1->pitch() - result.pathSZ_.length_[0] < minPitch_) ||
-        (result.pathSZ_.type_->at(0) == DubinsStateSpace::DUBINS_LEFT &&
-         s1->pitch() + result.pathSZ_.length_[0] > maxPitch_))
+    if ((result.pathSZ_.type_->at(1) != DubinsStateSpace::DUBINS_STRAIGHT))
     {
         return false;
+    }
+    double pitch = s1->pitch();
+    // the middle segment (i=1) is always straight, so no pitch change there
+    for (std::size_t i = 0; i < 3; i += 2)
+    {
+        if (result.pathSZ_.type_->at(i) == DubinsStateSpace::DUBINS_RIGHT)
+        {
+            pitch -= result.pathSZ_.length_[i];
+            if (pitch < minPitch_)
+            {
+                return false;
+            }
+        }
+        else  // result.pathSZ_.type_->at(i) == DubinsStateSpace::DUBINS_LEFT
+        {
+            pitch += result.pathSZ_.length_[i];
+            if (pitch > maxPitch_)
+            {
+                return false;
+            }
+        }
     }
 
     return true;
