@@ -52,6 +52,7 @@
 #include <Eigen/LU>
 // SVD decomposition
 #include <Eigen/SVD>
+#include <algorithm>
 
 struct ompl::ProlateHyperspheroid::PhsData
 {
@@ -252,16 +253,16 @@ void ompl::ProlateHyperspheroid::updateTransformation()
     // Variables
     // The radii of the ellipse
     Eigen::VectorXd diagAsVector(dataPtr_->dim_);
-    // The conjugate diameters:
-    double conjugateDiamater;
 
-    // Calculate the conjugate radius
-    conjugateDiamater = std::sqrt(dataPtr_->transverseDiameter_ * dataPtr_->transverseDiameter_ -
-                                  dataPtr_->minTransverseDiameter_ * dataPtr_->minTransverseDiameter_);
+    // Calculate the conjugate radius. When the diameters are equal, fused multiply-add instructions can make the
+    // difference of squares slightly negative, so clamp it to keep the square root from producing NaN.
+    double conjugateDiameter =
+        std::sqrt(std::max(0.0, dataPtr_->transverseDiameter_ * dataPtr_->transverseDiameter_ -
+                                    dataPtr_->minTransverseDiameter_ * dataPtr_->minTransverseDiameter_));
 
     // Store into the diagonal matrix
     // All the elements but one are the conjugate radius
-    diagAsVector.fill(conjugateDiamater / 2.0);
+    diagAsVector.fill(conjugateDiameter / 2.0);
 
     // The first element in diagonal is the transverse radius
     diagAsVector(0) = 0.5 * dataPtr_->transverseDiameter_;

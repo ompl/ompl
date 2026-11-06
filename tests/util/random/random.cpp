@@ -409,3 +409,28 @@ BOOST_AUTO_TEST_CASE(SampleInPhs)
         }
     }
 }
+
+// A transverse diameter equal to the distance between the foci collapses the PHS onto the segment
+// between them. Its conjugate diameter is sqrt(t*t - m*m), which fused multiply-add instructions can
+// turn into the square root of a slightly negative number, making every sample NaN.
+BOOST_AUTO_TEST_CASE(SampleDegeneratePhs)
+{
+    RNG rng;
+    for (unsigned int dim = 1u; dim <= 25u; ++dim)
+    {
+        std::vector<double> v1(dim), v2(dim);
+        for (unsigned int i = 0u; i < dim; ++i)
+        {
+            v1.at(i) = rng.uniformReal(-25.0, 25.0);
+            v2.at(i) = rng.uniformReal(-25.0, 25.0);
+        }
+        auto phsPtr = std::make_shared<ompl::ProlateHyperspheroid>(dim, &v1[0], &v2[0]);
+        phsPtr->setTransverseDiameter(phsPtr->getMinTransverseDiameter());
+        for (unsigned int j = 0u; j < 100u; ++j)
+        {
+            std::vector<double> xRand(dim);
+            rng.uniformProlateHyperspheroid(phsPtr, &xRand[0]);
+            BOOST_CHECK_CLOSE(phsPtr->getPathLength(&xRand[0]), phsPtr->getMinTransverseDiameter(), 1e-6);
+        }
+    }
+}
