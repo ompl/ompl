@@ -351,10 +351,14 @@ void KoulesSimulator::step(const ob::State *start, const oc::Control *control, c
                 computeCollisionEvent(k, i);
             else if (k > i && k != j)
                 computeCollisionEvent(i, k);
-            if (k < j && k != i)
-                computeCollisionEvent(k, j);
-            else if (k > j)
-                computeCollisionEvent(j, k);
+            // Walls do not move and must never be used as a koule index.
+            if (j <= numKoules_)
+            {
+                if (k < j && k != i)
+                    computeCollisionEvent(k, j);
+                else if (k > j)
+                    computeCollisionEvent(j, k);
+            }
         }
     }
     advance(t);
