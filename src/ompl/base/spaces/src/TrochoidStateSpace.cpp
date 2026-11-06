@@ -49,7 +49,7 @@ namespace
 
     double trochoid_delx(double omega, double dir, double delt, double phi0, double wind_ratio)
     {
-        return .0 / (dir * omega) * (std::sin(dir * omega * delt + phi0) - std::sin(phi0)) + wind_ratio * delt;
+        return 1.0 / (dir * omega) * (std::sin(dir * omega * delt + phi0) - std::sin(phi0)) + wind_ratio * delt;
     }
 
     double straight_delx(double wind_ratio, double delt, double hInitRad)
@@ -203,7 +203,7 @@ namespace
         double endpoint_x, endpoint_y, endoint_phi;
         computeEndpointBSB(delta_1, delta_2, tA, tBeta, T, phi0, radius, wind_ratio, endpoint_x, endpoint_y,
                            endoint_phi);
-        if (fabs(endpoint_x - xf) > eps && fabs(endpoint_y - yf) > eps)
+        if (fabs(endpoint_x - xf) > eps || fabs(endpoint_y - yf) > eps)
         {
             return false;
         }
